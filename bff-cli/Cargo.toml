@@ -1,0 +1,9 @@
+[package]
+name = "bff-cli"
+version = "0.1.0"
+authors = ["widberg"]
+edition = "2021"
+
+[dependencies]
+bff = { path = "../bff" }
+clap = { version = "4.2.4", features = ["derive"] }
