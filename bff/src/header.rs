@@ -1,6 +1,7 @@
-use binread::*;
-use binread::io::*;
+use binrw::*;
+use binrw::io::*;
 use serde::Serialize;
+use crate::strings::FixedStringNULL;
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct BlockDescription {
@@ -14,8 +15,7 @@ pub struct BlockDescription {
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct Header {
-    version: NullString,
-    #[br(seek_before = SeekFrom::Start(256))]
+    version: FixedStringNULL<256>,
     is_not_rtc: u32,
     block_count: u32,
     block_working_buffer_capacity_even: u32,
@@ -26,7 +26,7 @@ pub struct Header {
     version_major: u32,
     #[br(count = block_count)]
     block_descriptions: Vec<BlockDescription>,
-    #[br(seek_before = SeekFrom::Start(1824))]
+    #[brw(seek_before = SeekFrom::Start(1824))]
     pool_manifest_padded_size: u32,
     pool_manifest_offset: u32,
     pool_manifest_unused0: u32,
@@ -35,6 +35,6 @@ pub struct Header {
     block_sector_padding_size: u32,
     pool_sector_padding_size: u32,
     file_size: u32,
-    #[br(align_after = 2048)]
-    incredi_builder_string: NullString,
+    #[brw(align_after = 2048)]
+    incredi_builder_string: FixedStringNULL<128>,
 }
