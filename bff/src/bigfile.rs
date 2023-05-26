@@ -1,8 +1,8 @@
 use std::io::{Read, Seek};
 
+use crate::{block::Block, header::*};
 use binrw::*;
 use serde::Serialize;
-use crate::{header::*, block::Block};
 
 #[derive(Serialize, Debug)]
 pub struct BigFile {
@@ -25,10 +25,15 @@ impl BinRead for BigFile {
         _: Self::Args<'_>,
     ) -> BinResult<Self> {
         let header = Header::read_options(reader, endian, ())?;
-        
-        // Pool
-        Ok(BigFile {
-            header
-        })
+
+        let blocks = header
+            .block_descriptions()
+            .iter()
+            .map(|block_description| {
+                Block::read_options(reader, endian, (block_description.object_count(),)).unwrap()
+            })
+            .collect();
+
+        Ok(BigFile { header, blocks })
     }
 }

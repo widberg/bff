@@ -1,11 +1,11 @@
 use ascii::AsciiChar;
 use ascii::AsciiString;
 use ascii::FromAsciiError;
+use binrw::io::Read;
+use binrw::io::Seek;
+use binrw::BinRead;
 use binrw::BinResult;
 use binrw::Endian;
-use binrw::io::Seek;
-use binrw::io::Read;
-use binrw::BinRead;
 use serde::Serialize;
 use serde::Serializer;
 use std::fmt;
@@ -33,7 +33,11 @@ impl<const S: usize> BinRead for FixedStringNULL<S> {
         }
 
         // TODO: Don't unwrap
-        reader.seek(std::io::SeekFrom::Current(i64::try_from(S - values.len() - 1).unwrap())).unwrap();
+        reader
+            .seek(std::io::SeekFrom::Current(
+                i64::try_from(S - values.len() - 1).unwrap(),
+            ))
+            .unwrap();
 
         return Ok(Self(values));
     }
@@ -53,7 +57,6 @@ impl<const S: usize> From<FixedStringNULL<S>> for AsciiString {
 }
 
 impl<const S: usize> From<FixedStringNULL<S>> for String {
-
     fn from(value: FixedStringNULL<S>) -> Self {
         String::from(value.0)
     }

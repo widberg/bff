@@ -1,7 +1,7 @@
-use binrw::*;
-use binrw::io::*;
-use serde::Serialize;
 use crate::strings::FixedStringNULL;
+use binrw::io::*;
+use binrw::*;
+use serde::Serialize;
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct BlockDescription {
@@ -11,6 +11,12 @@ pub struct BlockDescription {
     working_buffer_offset: u32,
     first_object_name: u32,
     zero: u32,
+}
+
+impl BlockDescription {
+    pub fn object_count(&self) -> u32 {
+        self.object_count
+    }
 }
 
 #[derive(BinRead, Serialize, Debug)]
@@ -37,4 +43,10 @@ pub struct Header {
     file_size: u32,
     #[brw(align_after = 2048)]
     incredi_builder_string: FixedStringNULL<128>,
+}
+
+impl Header {
+    pub fn block_descriptions(&self) -> &Vec<BlockDescription> {
+        &self.block_descriptions
+    }
 }
