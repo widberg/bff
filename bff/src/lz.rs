@@ -1,6 +1,6 @@
-use std::io::{Seek, Read};
+use std::io::{Read, Seek};
 
-use binrw::{BinResult, BinReaderExt, Endian};
+use binrw::{BinReaderExt, BinResult, Endian};
 
 pub fn decompress<R: Seek + Read>(
     reader: &mut R,
@@ -36,7 +36,7 @@ pub fn decompress<R: Seek + Read>(
                 decompressed_buffer.push(reader.read_be::<u8>()?);
             }
 
-            if decompressed_buffer.len() as usize >= decompressed_size {
+            if decompressed_buffer.len() >= decompressed_size {
                 return Ok(decompressed_buffer);
             }
 
