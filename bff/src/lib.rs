@@ -1,6 +1,9 @@
 pub mod bigfile;
 pub mod block;
+pub mod class;
+pub mod crc32;
 pub mod header;
 pub mod lz;
+pub mod name;
 pub mod object;
 pub mod strings;
