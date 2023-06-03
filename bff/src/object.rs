@@ -1,33 +1,34 @@
-use crate::{name::Name, lz::decompress_parser};
-use binrw::{binread, BinResult, BinRead, VecArgs};
+use crate::{lz::decompress_parser, name::Name};
+use binrw::{binread, BinRead, BinResult, VecArgs};
 use serde::Serialize;
 
-#[derive(Serialize, Debug)]
-#[serde(untagged)]
-pub enum BodySize {
-    Uncompressed {
-        size: u32,
-    },
-    Compressed {
-        decompressed_size: u32,
-        compressed_size: u32,
-    },
-}
-
 #[binrw::parser(reader, endian)]
-fn body_parser(data_size: u32, link_header_size: u32, decompressed_size: u32, compressed_size: u32) -> BinResult<Option<Vec<u8>>> {
+fn body_parser(
+    data_size: u32,
+    link_header_size: u32,
+    decompressed_size: u32,
+    compressed_size: u32,
+) -> BinResult<Option<Vec<u8>>> {
     if data_size == link_header_size {
         // The body is in the pool
         Ok(None)
     } else if compressed_size == 0 {
         // The body is not compressed
-        Ok(Some(Vec::<u8>::read_options(reader, endian, VecArgs {
-            count: decompressed_size as usize,
-            inner: <_>::default(),
-        })?))
+        Ok(Some(Vec::<u8>::read_options(
+            reader,
+            endian,
+            VecArgs {
+                count: decompressed_size as usize,
+                inner: <_>::default(),
+            },
+        )?))
     } else {
         // The body is compressed
-        Ok(Some(decompress_parser(reader, endian, (decompressed_size as usize, compressed_size as usize))?))
+        Ok(Some(decompress_parser(
+            reader,
+            endian,
+            (decompressed_size as usize, compressed_size as usize),
+        )?))
     }
 }
 

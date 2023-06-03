@@ -1,10 +1,7 @@
 use binrw::{BinReaderExt, BinResult};
 
 #[binrw::parser(reader, endian)]
-pub fn decompress_parser(
-    decompressed_size: usize,
-    compressed_size: usize,
-) -> BinResult<Vec<u8>> {
+pub fn decompress_parser(decompressed_size: usize, compressed_size: usize) -> BinResult<Vec<u8>> {
     const WINDOW_LOG: u16 = 14;
     const WINDOW_MASK: u16 = (1 << WINDOW_LOG) - 1;
 
