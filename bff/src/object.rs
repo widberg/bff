@@ -1,5 +1,5 @@
-use crate::name::Name;
-use binrw::binread;
+use crate::{name::Name, lz::decompress_parser};
+use binrw::{binread, BinResult, BinRead, VecArgs};
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
@@ -14,49 +14,50 @@ pub enum BodySize {
     },
 }
 
+#[binrw::parser(reader, endian)]
+fn body_parser(data_size: u32, link_header_size: u32, decompressed_size: u32, compressed_size: u32) -> BinResult<Option<Vec<u8>>> {
+    if data_size == link_header_size {
+        // The body is in the pool
+        Ok(None)
+    } else if compressed_size == 0 {
+        // The body is not compressed
+        Ok(Some(Vec::<u8>::read_options(reader, endian, VecArgs {
+            count: decompressed_size as usize,
+            inner: <_>::default(),
+        })?))
+    } else {
+        // The body is compressed
+        Ok(Some(decompress_parser(reader, endian, (decompressed_size as usize, compressed_size as usize))?))
+    }
+}
+
 #[binread]
-#[br(stream = s)]
 #[derive(Serialize, Debug)]
-pub struct ObjectPtr {
+pub struct Object {
     #[br(temp)]
     data_size: u32,
+    #[br(temp)]
     link_header_size: u32,
     #[br(temp)]
     decompressed_size: u32,
     #[br(temp)]
     compressed_size: u32,
-    #[br(calc =
-        if data_size == link_header_size {
-            None
-        } else {
-            Some(if compressed_size == 0 {
-                BodySize::Uncompressed { size: decompressed_size }
-            } else {
-                BodySize::Compressed { decompressed_size, compressed_size }
-            })
-        }
-    )]
-    body_size: Option<BodySize>,
     class_name: Name,
     name: Name,
-    #[br(try_calc = s.stream_position(), pad_after = data_size)]
-    data_position: u64,
+    #[br(count = link_header_size)]
+    #[serde(skip_serializing)]
+    _link_header: Vec<u8>,
+    #[br(parse_with = body_parser, args(data_size, link_header_size, decompressed_size, compressed_size))]
+    #[serde(skip_serializing)]
+    _body: Option<Vec<u8>>,
 }
 
-impl ObjectPtr {
+impl Object {
     pub fn class_name(self: &Self) -> Name {
         self.class_name
     }
 
     pub fn name(self: &Self) -> Name {
         self.name
-    }
-
-    pub fn link_header_size(self: &Self) -> u32 {
-        self.link_header_size
-    }
-
-    pub fn body_size(self: &Self) -> &Option<BodySize> {
-        &self.body_size
     }
 }

@@ -1,21 +1,24 @@
-use std::io::{Read, Seek};
+use binrw::{BinReaderExt, BinResult};
 
-use binrw::{BinReaderExt, BinResult, Endian};
-
-pub fn decompress<R: Seek + Read>(
-    reader: &mut R,
+#[binrw::parser(reader, endian)]
+pub fn decompress_parser(
     decompressed_size: usize,
-    endian: Endian,
+    compressed_size: usize,
 ) -> BinResult<Vec<u8>> {
     const WINDOW_LOG: u16 = 14;
     const WINDOW_MASK: u16 = (1 << WINDOW_LOG) - 1;
 
     let mut decompressed_buffer: Vec<u8> = Vec::new();
 
-    let _decompressed_size = reader.read_type::<u32>(endian)?;
-    let _compressed_size = reader.read_type::<u32>(endian)? - 8;
+    let read_decompressed_size = reader.read_type::<u32>(endian)?;
+    let read_compressed_size = reader.read_type::<u32>(endian)?;
 
-    assert_eq!(decompressed_size, _decompressed_size as usize);
+    // Ensure the values from the object header match the values
+    // in the compressed data.
+    // compressed_size includes the 8 bytes taken up by the duplicate
+    // size fields.
+    assert_eq!(decompressed_size, read_decompressed_size as usize);
+    assert_eq!(compressed_size, read_compressed_size as usize);
 
     loop {
         let mut flags = reader.read_be::<u32>()?;
