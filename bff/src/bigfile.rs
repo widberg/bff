@@ -1,40 +1,24 @@
-use std::io::{Read, Seek};
-
 use crate::{block::Block, header::*, pool::Pool};
 use binrw::*;
 use serde::Serialize;
 
-#[derive(Serialize, Debug)]
-pub struct BigFile {
-    header: Header,
-    blocks: Vec<Block>,
-    pool: Pool,
+#[binrw::parser(reader, endian)]
+fn blocks_parser(block_descriptions: &Vec<BlockDescription>) -> BinResult<Vec<Block>> {
+    let mut blocks: Vec<Block> = Vec::new();
+    for block_description in block_descriptions {
+        blocks.push(Block::read_options(
+            reader,
+            endian,
+            (block_description.object_count(),),
+        )?)
+    }
+    Ok(blocks)
 }
 
-impl BinRead for BigFile {
-    type Args<'a> = ();
-
-    fn read_options<R: Read + Seek>(
-        reader: &mut R,
-        endian: Endian,
-        _: Self::Args<'_>,
-    ) -> BinResult<Self> {
-        let header = Header::read_options(reader, endian, ())?;
-
-        let blocks = header
-            .block_descriptions()
-            .iter()
-            .map(|block_description| {
-                Block::read_options(reader, endian, (block_description.object_count(),)).unwrap()
-            })
-            .collect();
-
-        let pool = Pool::read_options(reader, endian, ())?;
-
-        Ok(BigFile {
-            header,
-            blocks,
-            pool,
-        })
-    }
+#[derive(BinRead, Serialize, Debug)]
+pub struct BigFile {
+    header: Header,
+    #[br(parse_with = blocks_parser, args(header.block_descriptions()))]
+    blocks: Vec<Block>,
+    pool: Pool,
 }

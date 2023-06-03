@@ -11,8 +11,8 @@ pub fn extract(bigfile: &PathBuf, _directory: &PathBuf) -> Result<(), Box<dyn st
     let now = Instant::now();
     let mut reader = BufReader::new(f);
     let elapsed = now.elapsed();
-    let bigfile_struct = BigFile::read_options(&mut reader, Endian::Little, ())?;
-    println!("{}", to_string_pretty(&bigfile_struct)?);
+    let bigfile = BigFile::read_options(&mut reader, Endian::Little, ())?;
+    println!("{}", to_string_pretty(&bigfile)?);
     println!("Time to parse: {:?}", elapsed);
     Ok(())
 }
