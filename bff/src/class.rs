@@ -10,8 +10,8 @@ use crate::object::Object;
 // we parse a class.
 #[derive(BinRead, Serialize, Debug)]
 #[serde(untagged)]
-#[br(import(object_ptr: Object))]
+#[br(import(object: Object))]
 pub enum Class {
-    #[br(pre_assert(object_ptr.class_name() == 0x52F79F96))]
+    #[br(pre_assert(object.class_name() == 0x52F79F96))]
     UserDefine(),
 }
