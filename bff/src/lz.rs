@@ -1,7 +1,7 @@
 use binrw::{BinReaderExt, BinResult};
 
 #[binrw::parser(reader, endian)]
-pub fn decompress_parser(decompressed_size: usize, compressed_size: usize) -> BinResult<Vec<u8>> {
+pub fn decompress_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
     const WINDOW_LOG: u16 = 14;
     const WINDOW_MASK: u16 = (1 << WINDOW_LOG) - 1;
 
@@ -14,8 +14,8 @@ pub fn decompress_parser(decompressed_size: usize, compressed_size: usize) -> Bi
     // in the compressed data.
     // compressed_size includes the 8 bytes taken up by the duplicate
     // size fields.
-    assert_eq!(decompressed_size, read_decompressed_size as usize);
-    assert_eq!(compressed_size, read_compressed_size as usize);
+    assert_eq!(decompressed_size, read_decompressed_size);
+    assert_eq!(compressed_size, read_compressed_size);
 
     loop {
         let mut flags = reader.read_be::<u32>()?;
@@ -36,7 +36,7 @@ pub fn decompress_parser(decompressed_size: usize, compressed_size: usize) -> Bi
                 decompressed_buffer.push(reader.read_be::<u8>()?);
             }
 
-            if decompressed_buffer.len() >= decompressed_size {
+            if decompressed_buffer.len() >= decompressed_size as usize {
                 return Ok(decompressed_buffer);
             }
 

@@ -14,11 +14,7 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
             },
         )
     } else {
-        decompress_parser(
-            reader,
-            endian,
-            (decompressed_size as usize, compressed_size as usize),
-        )
+        decompress_parser(reader, endian, (decompressed_size, compressed_size))
     }
 }
 

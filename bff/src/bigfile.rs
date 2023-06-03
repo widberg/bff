@@ -1,6 +1,6 @@
 use std::io::{Read, Seek};
 
-use crate::{block::Block, header::*};
+use crate::{block::Block, header::*, pool::Pool};
 use binrw::*;
 use serde::Serialize;
 
@@ -8,12 +8,7 @@ use serde::Serialize;
 pub struct BigFile {
     header: Header,
     blocks: Vec<Block>,
-}
-
-impl BigFile {
-    pub fn read<T: Read + Seek>(reader: &mut T) -> Result<Self, Error> {
-        reader.read_le()
-    }
+    pool: Pool,
 }
 
 impl BinRead for BigFile {
@@ -34,6 +29,12 @@ impl BinRead for BigFile {
             })
             .collect();
 
-        Ok(BigFile { header, blocks })
+        let pool = Pool::read_options(reader, endian, ())?;
+
+        Ok(BigFile {
+            header,
+            blocks,
+            pool,
+        })
     }
 }
