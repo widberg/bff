@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::{lz::decompress_parser, name::Name};
 use binrw::{binread, BinRead, BinResult, VecArgs};
 use serde::Serialize;
@@ -33,10 +35,10 @@ pub struct Object {
     name: Name,
     #[br(count = link_header_size)]
     #[serde(skip_serializing)]
-    _link_header: Vec<u8>,
+    link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
     #[serde(skip_serializing)]
-    _body: Vec<u8>,
+    body: Vec<u8>,
 }
 
 impl Object {
@@ -46,5 +48,32 @@ impl Object {
 
     pub fn name(self: &Self) -> Name {
         self.name
+    }
+
+    pub fn link_header(self: &Self) -> &Vec<u8> {
+        &self.link_header
+    }
+
+    pub fn body(self: &Self) -> Option<&Vec<u8>> {
+        if self.body.len() != 0 {
+            Some(&self.body)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(BinRead, Serialize, Debug)]
+pub struct PoolObject {
+    #[br(align_after(2048))]
+    #[serde(flatten)]
+    object: Object,
+}
+
+impl Deref for PoolObject {
+    type Target = Object;
+
+    fn deref(&self) -> &Self::Target {
+        &self.object
     }
 }

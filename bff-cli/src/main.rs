@@ -3,12 +3,16 @@ use std::path::PathBuf;
 use clap::*;
 
 mod extract;
+mod info;
 
 #[derive(Subcommand)]
 enum Commands {
     Extract {
         bigfile: PathBuf,
         directory: PathBuf,
+    },
+    Info {
+        bigfile: PathBuf,
     },
 }
 
@@ -24,5 +28,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match &cli.command {
         Commands::Extract { bigfile, directory } => extract::extract(bigfile, directory),
+        Commands::Info { bigfile } => info::info(bigfile),
     }
 }
