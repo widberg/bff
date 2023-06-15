@@ -3,11 +3,6 @@ use serde::Serialize;
 
 use crate::object::Object;
 
-// Sorry about the magic numbers!
-// Rust does not have good compile time execution support
-// so we can't run the hash function at compile time.
-// And I'm not going to hash the class names every time
-// we parse a class.
 #[derive(BinRead, Serialize, Debug)]
 #[serde(untagged)]
 #[br(import(object: Object))]

@@ -9,6 +9,8 @@ use std::ops::Deref;
 #[derive(Debug)]
 pub struct DynArray<InnerType, SizeType = u32>
 where
+    // This code is ugly but the pretty syntax isn't stable yet
+    // https://github.com/rust-lang/rust/issues/52662
     for<'a> InnerType: BinRead + Serialize + 'a,
     for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
 
