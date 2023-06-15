@@ -8,7 +8,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        name: [linux, windows, macos]
+
+        include:
+          - name: linux
+            os: ubuntu-latest
+            bff_cli_executable_name: bff-cli
+          - name: windows
+            os: windows-latest
+            bff_cli_executable_name: bff-cli.exe
+          - name: macos
+            os: macos-latest
+            bff_cli_executable_name: bff-cli
 
     steps:
     - uses: actions/checkout@v1
@@ -20,3 +31,15 @@ jobs:
 
     - name: Build
       run: cargo build --release --locked
+
+    - name: Create Archive
+      run: |
+        cp README.md target/release/README.md
+        cd target/release/
+        7z a ../../bff-${{ matrix.name }}-${{ github.sha }}.zip ${{ matrix.bff_cli_executable_name }} README.md
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: bff-${{ matrix.name }}-${{ github.sha }}.zip
+        path: ./bff-${{ matrix.name }}-${{ github.sha }}.zip
