@@ -2,13 +2,15 @@ use crate::strings::FixedStringNULL;
 use binrw::*;
 use serde::Serialize;
 
-#[derive(BinRead, Serialize, Debug)]
+#[binread]
+#[derive(Serialize, Debug)]
 pub struct BlockDescription {
     object_count: u32,
     padded_size: u32,
     data_size: u32,
     working_buffer_offset: u32,
     first_object_name: u32,
+    #[br(temp)]
     zero: u32,
 }
 
@@ -19,6 +21,10 @@ impl BlockDescription {
 
     pub fn object_count(&self) -> u32 {
         self.object_count
+    }
+
+    pub fn working_buffer_offset(&self) -> u32 {
+        self.working_buffer_offset
     }
 }
 
@@ -31,19 +37,28 @@ pub struct Header {
     block_count: u32,
     block_working_buffer_capacity_even: u32,
     block_working_buffer_capacity_odd: u32,
+    #[br(temp)]
     padded_size: u32,
     version_patch: u32,
     version_minor: u32,
     version_major: u32,
+    #[serde(skip)]
     #[br(count = block_count, pad_size_to = BlockDescription::SIZE * 64)]
     block_descriptions: Vec<BlockDescription>,
+    #[br(temp)]
     pool_manifest_padded_size: u32,
+    #[br(temp)]
     pool_manifest_offset: u32,
     pool_manifest_unused0: u32,
+    #[br(temp)]
     pool_manifest_unused1: u32,
+    #[br(temp)]
     pool_object_decompression_buffer_capacity: u32,
+    #[br(temp)]
     block_sector_padding_size: u32,
+    #[br(temp)]
     pool_sector_padding_size: u32,
+    #[br(temp)]
     file_size: u32,
     #[brw(align_after = 2048)]
     incredi_builder_string: FixedStringNULL<128>,

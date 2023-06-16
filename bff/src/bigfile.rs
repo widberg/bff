@@ -4,14 +4,12 @@ use serde::Serialize;
 
 #[binrw::parser(reader, endian)]
 fn blocks_parser(block_descriptions: &Vec<BlockDescription>) -> BinResult<Vec<Block>> {
-    let mut blocks: Vec<Block> = Vec::new();
+    let mut blocks: Vec<Block> = Vec::with_capacity(block_descriptions.len());
+
     for block_description in block_descriptions {
-        blocks.push(Block::read_options(
-            reader,
-            endian,
-            (block_description.object_count(),),
-        )?)
+        blocks.push(Block::read_options(reader, endian, (block_description,))?)
     }
+
     Ok(blocks)
 }
 

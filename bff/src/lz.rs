@@ -1,12 +1,7 @@
 use binrw::{BinReaderExt, BinResult};
 
 #[binrw::parser(reader, endian)]
-pub fn decompress_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
-    const WINDOW_LOG: u16 = 14;
-    const WINDOW_MASK: u16 = (1 << WINDOW_LOG) - 1;
-
-    let mut decompressed_buffer: Vec<u8> = Vec::new();
-
+pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
     let read_decompressed_size = reader.read_type::<u32>(endian)?;
     let read_compressed_size = reader.read_type::<u32>(endian)?;
 
@@ -16,6 +11,24 @@ pub fn decompress_parser(decompressed_size: u32, compressed_size: u32) -> BinRes
     // size fields.
     assert_eq!(decompressed_size, read_decompressed_size);
     assert_eq!(compressed_size, read_compressed_size);
+
+    decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
+}
+
+#[binrw::parser(reader, endian)]
+pub fn decompress_data_with_header_parser() -> BinResult<Vec<u8>> {
+    let decompressed_size = reader.read_type::<u32>(endian)?;
+    let compressed_size = reader.read_type::<u32>(endian)?;
+
+    decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
+}
+
+#[binrw::parser(reader)]
+pub fn decompress_data_parser(decompressed_size: u32, _compressed_size: u32) -> BinResult<Vec<u8>> {
+    const WINDOW_LOG: u16 = 14;
+    const WINDOW_MASK: u16 = (1 << WINDOW_LOG) - 1;
+
+    let mut decompressed_buffer: Vec<u8> = Vec::new();
 
     loop {
         let mut flags = reader.read_be::<u32>()?;

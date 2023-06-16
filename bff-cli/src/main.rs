@@ -2,10 +2,12 @@ use std::path::PathBuf;
 
 use clap::*;
 use crc32::{Crc32Algorithm, Crc32Format, Crc32Mode};
+use lz::LzEndian;
 
 mod crc32;
 mod extract;
 mod info;
+mod lz;
 
 #[derive(Subcommand)]
 enum Commands {
@@ -35,6 +37,11 @@ enum Commands {
         #[arg(short, long, default_value_t = Crc32Format::Unsigned)]
         format: Crc32Format,
     },
+    Lz {
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
+        endian: LzEndian,
+    },
 }
 
 #[derive(Parser)]
@@ -57,5 +64,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             mode,
             format,
         } => crc32::crc32(string, starting, algorithm, mode, format),
+        Commands::Lz { endian } => lz::lz(endian),
     }
 }

@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use crate::{lz::decompress_parser, name::Name};
+use crate::{lz::decompress_body_parser, name::Name};
 use binrw::{binread, BinRead, BinResult, VecArgs};
 use serde::Serialize;
 
@@ -16,7 +16,7 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
             },
         )
     } else {
-        decompress_parser(reader, endian, (decompressed_size, compressed_size))
+        decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
     }
 }
 

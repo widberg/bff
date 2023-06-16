@@ -20,6 +20,52 @@ pub struct ReferenceRecord {
 }
 
 #[derive(BinRead, Serialize, Debug)]
+pub struct ObjectDescription {
+    name: Name,
+    reference_count: u32,
+    padded_size: u32,
+    reference_records_index: u32,
+}
+
+#[derive(BinRead, Debug)]
+pub struct ObjectDescriptionSOA {
+    names: DynArray<Name>,
+    reference_counts: DynArray<u32>,
+    padded_sizes: DynArray<u32>,
+    reference_records_indices: DynArray<u32>,
+}
+
+fn zip_object_description_soa(
+    object_description_soa: ObjectDescriptionSOA,
+) -> Vec<ObjectDescription> {
+    assert_eq!(
+        object_description_soa.names.len(),
+        object_description_soa.reference_counts.len()
+    );
+    assert_eq!(
+        object_description_soa.names.len(),
+        object_description_soa.padded_sizes.len()
+    );
+    assert_eq!(
+        object_description_soa.names.len(),
+        object_description_soa.reference_records_indices.len()
+    );
+
+    let mut result = Vec::with_capacity(object_description_soa.names.len());
+
+    for i in 0..object_description_soa.names.len() {
+        result.push(ObjectDescription {
+            name: object_description_soa.names[i],
+            reference_count: object_description_soa.reference_counts[i],
+            padded_size: object_description_soa.padded_sizes[i],
+            reference_records_index: object_description_soa.reference_records_indices[i],
+        })
+    }
+
+    result
+}
+
+#[derive(BinRead, Serialize, Debug)]
 pub struct PoolHeader {
     #[serde(skip)]
     _equals524288: u32,
@@ -27,11 +73,9 @@ pub struct PoolHeader {
     _equals2048: u32,
     #[serde(skip)]
     _objects_names_count_sum: u32,
-    object_names_indices: DynArray<u32>,
-    object_names: DynArray<Name>,
-    reference_counts: DynArray<u32>,
-    object_padded_size: DynArray<u32>,
-    reference_records_indices: DynArray<u32>,
+    object_descriptions_indices: DynArray<u32>,
+    #[br(map = zip_object_description_soa)]
+    object_descriptions: Vec<ObjectDescription>,
     reference_records: DynArray<ReferenceRecord>,
     #[br(align_after = 2048)]
     #[serde(skip)]
@@ -41,6 +85,6 @@ pub struct PoolHeader {
 #[derive(BinRead, Serialize, Debug)]
 pub struct Pool {
     header: PoolHeader,
-    #[br(count = header.object_names.len())]
+    #[br(count = header.object_descriptions.len())]
     objects: Vec<PoolObject>,
 }
