@@ -2,8 +2,9 @@ use binrw::{BinReaderExt, BinResult};
 
 #[binrw::parser(reader, endian)]
 pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
-    let read_decompressed_size = reader.read_type::<u32>(endian)?;
-    let read_compressed_size = reader.read_type::<u32>(endian)?;
+    // These fields are little endian even on big endian platforms.
+    let read_decompressed_size = reader.read_le::<u32>()?;
+    let read_compressed_size = reader.read_le::<u32>()?;
 
     // Ensure the values from the object header match the values
     // in the compressed data.
@@ -17,8 +18,9 @@ pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> B
 
 #[binrw::parser(reader, endian)]
 pub fn decompress_data_with_header_parser() -> BinResult<Vec<u8>> {
-    let decompressed_size = reader.read_type::<u32>(endian)?;
-    let compressed_size = reader.read_type::<u32>(endian)?;
+    // These fields are little endian even on big endian platforms.
+    let decompressed_size = reader.read_le::<u32>()?;
+    let compressed_size = reader.read_le::<u32>()?;
 
     decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
 }

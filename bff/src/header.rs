@@ -47,6 +47,8 @@ pub struct Header {
     block_descriptions: Vec<BlockDescription>,
     #[br(temp)]
     pool_manifest_padded_size: u32,
+    #[br(calc = pool_manifest_padded_size != u32::MAX && pool_manifest_padded_size != 0)]
+    has_pool: bool,
     #[br(temp)]
     pool_manifest_offset: u32,
     pool_manifest_unused0: u32,
@@ -60,12 +62,20 @@ pub struct Header {
     pool_sector_padding_size: u32,
     #[br(temp)]
     file_size: u32,
-    #[brw(align_after = 2048)]
-    incredi_builder_string: FixedStringNULL<128>,
+    #[br(temp, restore_position)]
+    incredi_builder_string_char: u8,
+    #[brw(if(incredi_builder_string_char != u8::MAX))]
+    incredi_builder_string: Option<FixedStringNULL<128>>,
+    #[br(temp, align_after = 2048)]
+    padding: (),
 }
 
 impl Header {
     pub fn block_descriptions(&self) -> &Vec<BlockDescription> {
         &self.block_descriptions
+    }
+
+    pub fn has_pool(&self) -> bool {
+        self.has_pool
     }
 }
