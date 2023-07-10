@@ -1,4 +1,5 @@
 use crate::strings::FixedStringNULL;
+use crate::versions::{version_string_to_version, Version, VersionTriple};
 use binrw::*;
 use serde::Serialize;
 
@@ -31,7 +32,7 @@ impl BlockDescription {
 #[binread]
 #[derive(Serialize, Debug)]
 pub struct Header {
-    version: FixedStringNULL<256>,
+    version_string: FixedStringNULL<256>,
     is_not_rtc: u32,
     #[br(temp)]
     block_count: u32,
@@ -39,9 +40,7 @@ pub struct Header {
     block_working_buffer_capacity_odd: u32,
     #[br(temp)]
     padded_size: u32,
-    version_patch: u32,
-    version_minor: u32,
-    version_major: u32,
+    version_triple: VersionTriple,
     #[serde(skip)]
     #[br(count = block_count, pad_size_to = BlockDescription::SIZE * 64)]
     block_descriptions: Vec<BlockDescription>,
@@ -77,5 +76,9 @@ impl Header {
 
     pub fn has_pool(&self) -> bool {
         self.has_pool
+    }
+
+    pub fn version(&self) -> Option<Version> {
+        version_string_to_version(self.version_string.as_str())
     }
 }

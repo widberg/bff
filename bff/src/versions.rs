@@ -38,8 +38,8 @@ macro_rules! versions {
 versions! {
     (V1_06_63_02, "v1.06.63.02 - Asobo Studio - Internal Cross Technology"),
     (V1_220_50_07, "v1.220.50.07 - Asobo Studio - Internal Cross Technology"),
-    (V1_231_88_06, "v1.231.88.06 - Asobo Studio - Internal Cross Technology"),
     (V1_235_88_06, "v1.235.88.06 - Asobo Studio - Internal Cross Technology"),
+    (V1_231_88_06, "v1.231.88.06 - Asobo Studio - Internal Cross Technology"),
     (V1_258_91_06, "v1.258.91.06 - Asobo Studio - Internal Cross Technology"),
     (V1_278_94_06, "v1.278.94.06 - Asobo Studio - Internal Cross Technology"),
     (V1_286_98_06, "v1.286.98.06 - Asobo Studio - Internal Cross Technology"),
@@ -58,3 +58,5 @@ versions! {
     (V1_381_67_09, "v1.381.67.09 - Asobo Studio - Internal Cross Technology"),
     (V1_381_67_12, "v1.381.67.12 - Asobo Studio - Internal Cross Technology"),
 }
+
+pub type VersionTriple = (u32, u32, u32);
