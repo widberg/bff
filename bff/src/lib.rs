@@ -12,3 +12,4 @@ pub mod object;
 pub mod platforms;
 pub mod pool;
 pub mod strings;
+pub mod versions;
