@@ -1,4 +1,5 @@
 use bff::bigfile::*;
+use bff::platforms::extension_to_endian;
 use binrw::io::BufReader;
 use binrw::{BinRead, Endian};
 use serde_json::to_writer_pretty;
