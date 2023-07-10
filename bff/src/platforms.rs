@@ -35,6 +35,23 @@ pub fn extension_to_platform(extension: &OsStr) -> Option<Platform> {
     }
 }
 
+pub fn platform_to_extension(platform: Platform) -> &'static OsStr {
+    match platform {
+        Platform::PC => OsStr::new("DPC"),
+        Platform::UWP => OsStr::new("DUA"),
+        Platform::Maci386 => OsStr::new("DMC"),
+        Platform::MacPPC => OsStr::new("DBM"),
+        Platform::PS2 => OsStr::new("DPS"),
+        Platform::PS3 => OsStr::new("DP3"),
+        Platform::PSP => OsStr::new("DPP"),
+        Platform::Xbox => OsStr::new("DXB"),
+        Platform::Xbox360 => OsStr::new("D36"),
+        Platform::GameCube => OsStr::new("DGC"),
+        Platform::Wii => OsStr::new("DRV"),
+        Platform::Switch => OsStr::new("DNX"),
+    }
+}
+
 pub fn platform_to_endian(platform: Platform) -> Endian {
     match platform {
         Platform::PC => Endian::Little,
