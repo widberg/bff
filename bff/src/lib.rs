@@ -10,3 +10,4 @@ pub mod name;
 pub mod object;
 pub mod pool;
 pub mod strings;
+pub mod math;
