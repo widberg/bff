@@ -1,6 +1,9 @@
 use serde::Serialize;
 
-use crate::{name::Name, object::Object, platforms::Platform, versions::Version};
+use crate::name::Name;
+use crate::object::Object;
+use crate::platforms::Platform;
+use crate::versions::Version;
 
 pub trait TryIntoVersionPlatform<T>: Sized {
     type Error;
@@ -37,8 +40,6 @@ where
     }
 }
 
-pub trait BigFileClass:
-    Sized + Serialize + for<'a> TryFromVersionPlatform<&'a Object> + TryIntoVersionPlatform<Object>
-{
+pub trait ShadowClass: Sized + Serialize + for<'a> TryFromVersionPlatform<&'a Object> {
     const NAME: Name;
 }

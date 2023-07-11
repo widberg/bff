@@ -1,5 +1,8 @@
+use derive_more::Display;
+
 macro_rules! versions_enum {
-    ($(($i:ident,$s:literal)),* $(,)?) => {
+    ($($i:ident),* $(,)?) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
         pub enum Version {
             $($i,)*
         }
@@ -29,7 +32,7 @@ macro_rules! versions_to_version_strings {
 
 macro_rules! versions {
     ($(($i:ident,$s:literal)),* $(,)?) => {
-        versions_enum!($(($i,$s)),*);
+        versions_enum!($($i),*);
         version_strings_to_versions!($(($i,$s)),*);
         versions_to_version_strings!($(($i,$s)),*);
     };

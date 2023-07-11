@@ -8,6 +8,7 @@ edition = "2021"
 ascii = { version = "1.1.0", features = ["serde"] }
 binrw = "0.11.2"
 serde = { version = "1.0.160", features = ["derive"] }
+derive_more = "0.99.17"
 
 [dev-dependencies]
 test-generator = "0.3.1"

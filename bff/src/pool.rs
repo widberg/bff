@@ -1,7 +1,12 @@
+// binrw casts all count directives to usize even when they already are.
+#![allow(clippy::useless_conversion)]
+
 use binrw::BinRead;
 use serde::Serialize;
 
-use crate::{dynarray::DynArray, name::Name, object::PoolObject};
+use crate::dynarray::DynArray;
+use crate::name::Name;
+use crate::object::PoolObject;
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct ReferenceRecord {

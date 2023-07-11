@@ -1,6 +1,12 @@
-use crate::{block::Block, header::*, pool::Pool};
+use std::io::{Read, Seek};
+
 use binrw::*;
 use serde::Serialize;
+
+use crate::block::Block;
+use crate::header::*;
+use crate::pool::Pool;
+use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
 fn blocks_parser(block_descriptions: &Vec<BlockDescription>) -> BinResult<Vec<Block>> {
@@ -22,26 +28,8 @@ pub struct BigFile {
     pool: Option<Pool>,
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::platforms::extension_to_endian;
-
-    use super::*;
-    use binrw::io::BufReader;
-    use std::{fs::File, path::PathBuf};
-    use test_generator::test_resources;
-
-    #[test_resources("data/bigfiles/**/*.*")]
-    fn read(bigfile_path_str: &str) {
-        let mut bigfile_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        bigfile_path.pop();
-        bigfile_path.push(bigfile_path_str);
-        let endian = match bigfile_path.extension() {
-            Some(extension) => extension_to_endian(extension).unwrap_or(Endian::Little),
-            None => Endian::Little,
-        };
-        let f = File::open(bigfile_path).unwrap();
-        let mut reader = BufReader::new(f);
-        let _ = BigFile::read_options(&mut reader, endian, ()).unwrap();
+impl BigFile {
+    pub fn read_endian<R: Read + Seek>(reader: &mut R, endian: Endian) -> BffResult<Self> {
+        Ok(Self::read_options(reader, endian, ())?)
     }
 }

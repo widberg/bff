@@ -1,9 +1,10 @@
-use binrw::{binread, BinRead};
-use serde::{Serialize, Serializer};
 use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::ops::Deref;
+
+use binrw::{binread, BinRead};
+use serde::{Serialize, Serializer};
 
 #[binread]
 #[derive(Debug)]

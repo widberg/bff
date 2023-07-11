@@ -1,7 +1,6 @@
 use std::io::{self, BufRead, Read};
 
 use bff::crc64::asobo_crc64_options;
-
 use clap::ValueEnum;
 
 #[derive(ValueEnum, Clone)]

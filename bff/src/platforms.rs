@@ -1,9 +1,11 @@
 use std::ffi::OsStr;
 
 use binrw::Endian;
+use derive_more::Display;
 
 macro_rules! platforms_enum {
-    ($(($i:ident,$s:literal)),* $(,)?) => {
+    ($($i:ident),* $(,)?) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
         pub enum Platform {
             $($i,)*
         }
@@ -43,7 +45,7 @@ macro_rules! platforms_to_endian {
 
 macro_rules! platforms {
     ($(($i:ident,$s:literal,$e:ident)),* $(,)?) => {
-        platforms_enum!($(($i,$s)),*);
+        platforms_enum!($($i),*);
         extensions_to_platforms!($(($i,$s)),*);
         platforms_to_extensions!($(($i,$s)),*);
         platforms_to_endian!($(($i,$e)),*);
@@ -66,8 +68,5 @@ platforms! {
 }
 
 pub fn extension_to_endian(extension: &OsStr) -> Option<Endian> {
-    match extension_to_platform(extension) {
-        Some(platform) => Some(platform_to_endian(platform)),
-        None => None,
-    }
+    extension_to_platform(extension).map(platform_to_endian)
 }

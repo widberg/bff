@@ -1,7 +1,8 @@
-use crate::strings::FixedStringNULL;
-use crate::versions::{version_string_to_version, Version, VersionTriple};
 use binrw::*;
 use serde::Serialize;
+
+use crate::strings::FixedStringNull;
+use crate::versions::{version_string_to_version, Version, VersionTriple};
 
 #[binread]
 #[derive(Serialize, Debug)]
@@ -17,7 +18,11 @@ pub struct BlockDescription {
 
 impl BlockDescription {
     /// binrw doesn't have a way to calculate the number of bytes read by even a simple structure.
-    /// So we will calculate it ourselves and store it in this constant.
+    /// So we will calculate it ourselves and store it in this constant. We could mark the struct as
+    /// #[repr(C)] and use std::mem::size_of::<BlockDescription>(), but that would imply that we
+    /// care about the size of the struct in memory, which we don't; we care about how many bytes
+    /// are read. For this trivial struct it does not matter, but I do not want to introduce that
+    /// pattern into the code as more complex structs are added.
     pub const SIZE: usize = 0x18;
 
     pub fn object_count(&self) -> u32 {
@@ -32,7 +37,7 @@ impl BlockDescription {
 #[binread]
 #[derive(Serialize, Debug)]
 pub struct Header {
-    version_string: FixedStringNULL<256>,
+    version_string: FixedStringNull<256>,
     is_not_rtc: u32,
     #[br(temp)]
     block_count: u32,
@@ -64,7 +69,7 @@ pub struct Header {
     #[br(temp, restore_position)]
     incredi_builder_string_char: u8,
     #[brw(if(incredi_builder_string_char != u8::MAX))]
-    incredi_builder_string: Option<FixedStringNULL<128>>,
+    incredi_builder_string: Option<FixedStringNull<128>>,
     #[br(temp, align_after = 2048)]
     padding: (),
 }
