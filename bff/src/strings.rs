@@ -5,6 +5,7 @@ use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::Serialize;
 
 #[derive(Clone, PartialEq, Eq, Default, Deref, DerefMut, Display, Debug, From, Into, Serialize)]
+#[serde(transparent)]
 pub struct FixedStringNull<const S: usize>(pub AsciiString);
 
 #[derive(Debug, Display, Error, Constructor)]
@@ -35,7 +36,7 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
 
             if values.len() == S {
                 return Err(Error::Custom {
-                    pos: reader.seek(std::io::SeekFrom::Current(0))? - 1,
+                    pos: reader.stream_position()? - 1,
                     err: Box::new(FixedStringNullUnterminated::new(S)),
                 });
             }
@@ -44,7 +45,7 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
                 Ok(val) => val,
                 Err(e) => {
                     return Err(Error::Custom {
-                        pos: reader.seek(std::io::SeekFrom::Current(0))? - 1,
+                        pos: reader.stream_position()? - 1,
                         err: Box::new(e),
                     })
                 }
@@ -58,6 +59,7 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
 }
 
 #[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize)]
+#[serde(transparent)]
 pub struct PascalString(pub AsciiString);
 
 impl BinRead for PascalString {
@@ -70,7 +72,7 @@ impl BinRead for PascalString {
     ) -> BinResult<Self> {
         let count: usize = <u32>::read_options(reader, endian, ())? as usize;
 
-        let ascii_string_position = reader.seek(std::io::SeekFrom::Current(0))?;
+        let ascii_string_position = reader.stream_position()?;
 
         let val = <Vec<u8>>::read_options(
             reader,
@@ -80,6 +82,48 @@ impl BinRead for PascalString {
                 inner: <_>::default(),
             },
         )?;
+
+        let values = match AsciiString::from_ascii(val) {
+            Ok(val) => val,
+            Err(e) => {
+                return Err(Error::Custom {
+                    pos: ascii_string_position + e.ascii_error().valid_up_to() as u64,
+                    err: Box::new(e),
+                })
+            }
+        };
+
+        Ok(Self(values))
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize)]
+#[serde(transparent)]
+pub struct PascalStringNull(pub AsciiString);
+
+impl BinRead for PascalStringNull {
+    type Args<'a> = ();
+
+    fn read_options<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+        _: Self::Args<'_>,
+    ) -> BinResult<Self> {
+        let count: usize = <u32>::read_options(reader, endian, ())? as usize;
+
+        let ascii_string_position = reader.stream_position()?;
+
+        let val = <Vec<u8>>::read_options(
+            reader,
+            endian,
+            VecArgs {
+                count: count - 1,
+                inner: <_>::default(),
+            },
+        )?;
+
+        // Consume the null terminator
+        <u8>::read_options(reader, endian, ())?;
 
         let values = match AsciiString::from_ascii(val) {
             Ok(val) => val,
