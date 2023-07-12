@@ -40,6 +40,9 @@ where
     }
 }
 
-pub trait ShadowClass: Sized + Serialize + for<'a> TryFromVersionPlatform<&'a Object> {
+pub trait ShadowClass: Sized + Serialize
+where
+    for<'a> &'a Object: TryIntoVersionPlatform<Self>,
+{
     const NAME: Name;
 }

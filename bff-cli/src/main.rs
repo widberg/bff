@@ -13,10 +13,12 @@ mod lz;
 
 #[derive(Subcommand)]
 enum Commands {
+    #[clap(alias = "x")]
     Extract {
         bigfile: PathBuf,
         directory: PathBuf,
     },
+    #[clap(alias = "t")]
     Info {
         bigfile: PathBuf,
     },
