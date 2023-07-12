@@ -32,7 +32,7 @@ macro_rules! objects_to_classes {
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name() {
-                    $($i::NAME => Ok($i::try_from_version_platform(object, version, platform)?.into()),)*
+                    $(<$i as ShadowClass>::NAME => Ok($i::try_from_version_platform(object, version, platform)?.into()),)*
                     _ => Err(UnimplementedClassError::new(object.name(), object.class_name(), version, platform).into())
                 }
             }

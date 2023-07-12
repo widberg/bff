@@ -1,4 +1,4 @@
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, SeekFrom};
 
 use binrw::*;
 use serde::Serialize;
@@ -22,10 +22,10 @@ fn blocks_parser(block_descriptions: &Vec<BlockDescription>) -> BinResult<Vec<Bl
 #[derive(BinRead, Serialize, Debug)]
 pub struct BigFile {
     header: Header,
+    #[br(if(header.pool_offset().is_some()), seek_before = SeekFrom::Start(header.pool_offset().unwrap() as u64), restore_position)]
+    pool: Option<Pool>,
     #[br(parse_with = blocks_parser, args(header.block_descriptions()))]
     blocks: Vec<Block>,
-    #[br(if(header.has_pool()))]
-    pool: Option<Pool>,
 }
 
 impl BigFile {
