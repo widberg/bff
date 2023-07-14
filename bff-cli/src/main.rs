@@ -19,9 +19,7 @@ enum Commands {
         directory: PathBuf,
     },
     #[clap(alias = "t")]
-    Info {
-        bigfile: PathBuf,
-    },
+    Info { bigfile: PathBuf },
     Crc32 {
         string: Option<String>,
         #[arg(
