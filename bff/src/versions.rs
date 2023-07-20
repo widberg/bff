@@ -49,6 +49,7 @@ versions! {
     (V1_290_01_06, "v1.290.01.06 - Asobo Studio - Internal Cross Technology"),
     (V1_290_98_06, "v1.290.98.06 - Asobo Studio - Internal Cross Technology"),
     (V1_290_99_06, "v1.290.99.06 - Asobo Studio - Internal Cross Technology"),
+    (V1_291_03_01, "v1.291.03.01 - Asobo Studio - Internal Cross Technology"),
     (V1_291_03_06, "v1.291.03.06 - Asobo Studio - Internal Cross Technology"),
     (V1_291_03_07, "v1.291.03.07 - Asobo Studio - Internal Cross Technology"),
     (V1_325_50_07, "v1.325.50.07 - Asobo Studio - Internal Cross Technology"),
