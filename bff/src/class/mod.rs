@@ -2,6 +2,8 @@ use derive_more::From;
 use serde::Serialize;
 
 use self::bitmap::Bitmap;
+use self::gameobj::GameObj;
+use self::mesh::Mesh;
 use self::sound::Sound;
 use self::user_define::UserDefine;
 use crate::error::{Error, UnimplementedClassError};
@@ -12,6 +14,8 @@ use crate::versions::Version;
 use crate::BffResult;
 
 pub mod bitmap;
+pub mod gameobj;
+pub mod mesh;
 pub mod sound;
 pub mod user_define;
 
@@ -49,6 +53,8 @@ macro_rules! classes {
 
 classes! {
     Bitmap,
+    GameObj,
+    Mesh,
     Sound,
     UserDefine,
 }
