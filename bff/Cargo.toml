@@ -10,6 +10,7 @@ binrw = "0.11.2"
 serde = { version = "1.0.160", features = ["derive"] }
 derive_more = "0.99.17"
 num-traits = "0.2.15"
+bff-derive = { path = "../bff-derive", version = "*" }
 
 [dev-dependencies]
 test-generator = "0.3.1"

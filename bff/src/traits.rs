@@ -1,7 +1,4 @@
-use serde::Serialize;
-
 use crate::name::Name;
-use crate::object::Object;
 use crate::platforms::Platform;
 use crate::versions::Version;
 
@@ -40,9 +37,6 @@ where
     }
 }
 
-pub trait ShadowClass: Sized + Serialize
-where
-    for<'a> &'a Object: TryIntoVersionPlatform<Self>,
-{
+pub trait NamedClass {
     const NAME: Name;
 }

@@ -3,5 +3,6 @@
 members = [
     "bff",
     "bff-cli",
+    "bff-derive",
     "bff-gui",
 ]

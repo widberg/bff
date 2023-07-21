@@ -3,19 +3,17 @@ use serde::Serialize;
 
 use self::bitmap::Bitmap;
 use self::gameobj::GameObj;
-use self::mesh::Mesh;
 use self::sound::Sound;
 use self::user_define::UserDefine;
 use crate::error::{Error, UnimplementedClassError};
 use crate::object::Object;
 use crate::platforms::Platform;
-use crate::traits::{ShadowClass, TryFromVersionPlatform};
+use crate::traits::{NamedClass, TryFromVersionPlatform};
 use crate::versions::Version;
 use crate::BffResult;
 
 pub mod bitmap;
 pub mod gameobj;
-pub mod mesh;
 pub mod sound;
 pub mod user_define;
 
@@ -36,7 +34,7 @@ macro_rules! objects_to_classes {
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name() {
-                    $(<$i as ShadowClass>::NAME => Ok($i::try_from_version_platform(object, version, platform)?.into()),)*
+                    $(<$i as NamedClass>::NAME => Ok(<$i as TryFromVersionPlatform<&Object>>::try_from_version_platform(object, version, platform)?.into()),)*
                     _ => Err(UnimplementedClassError::new(object.name(), object.class_name(), version, platform).into())
                 }
             }
@@ -54,7 +52,6 @@ macro_rules! classes {
 classes! {
     Bitmap,
     GameObj,
-    Mesh,
     Sound,
     UserDefine,
 }

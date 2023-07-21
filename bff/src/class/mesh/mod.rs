@@ -1,3 +1,4 @@
+use bff_derive::{NamedClass, bff_forms};
 use binrw::binread;
 use serde::Serialize;
 
@@ -7,7 +8,7 @@ use crate::math::{DynBox, DynSphere, Mat4f, Quat, Vec2f, Vec3, Vec3f};
 use crate::name::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
-use crate::traits::{ShadowClass, TryFromVersionPlatform};
+use crate::traits::{NamedClass, TryFromVersionPlatform};
 use crate::versions::Version;
 use crate::{crc32, BffResult};
 
@@ -252,7 +253,8 @@ struct MeshBuffer {
     morpher: Morpher,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, NamedClass)]
+#[bff_forms((Version::V1_291_03_06, Platform::PC) => MeshV1_291_03_06PC)]
 pub struct Mesh {
     points: Points,
     unknown1s: DynArray<Unknown1>,
@@ -271,29 +273,4 @@ pub struct Mesh {
     unknown6s: DynArray<Unknown6>,
     mesh_buffer: MeshBuffer,
     unknown8s: DynArray<Unknown8>,
-}
-
-impl ShadowClass for Mesh {
-    const NAME: Name = crc32::asobo(b"Mesh_Z");
-}
-
-impl TryFromVersionPlatform<&Object> for Mesh {
-    type Error = Error;
-
-    fn try_from_version_platform(
-        object: &Object,
-        version: Version,
-        platform: Platform,
-    ) -> BffResult<Mesh> {
-        match (version, platform) {
-            (Version::V1_291_03_06, Platform::PC) => {
-                let mesh: MeshV1_291_03_06PC =
-                    MeshV1_291_03_06PC::try_from_version_platform(object, version, platform)?;
-                Ok(mesh.into())
-            }
-            _ => Err(
-                UnimplementedClassError::new(object.name(), Self::NAME, version, platform).into(),
-            ),
-        }
-    }
 }
