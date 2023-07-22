@@ -12,3 +12,9 @@ pub struct Block {
     #[br(count = block_description.object_count(), align_after = 2048)]
     objects: Vec<Object>,
 }
+
+impl Block {
+    pub fn objects(&self) -> &Vec<Object> {
+        &self.objects
+    }
+}

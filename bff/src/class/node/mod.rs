@@ -1,4 +1,3 @@
-use ascii::AsciiString;
 use bff_derive::{bff_forms, NamedClass};
 use serde::Serialize;
 

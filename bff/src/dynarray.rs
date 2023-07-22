@@ -28,3 +28,20 @@ where
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
 }
+
+impl<InnerType, SizeType> From<Vec<InnerType>> for DynArray<InnerType, SizeType>
+where
+    for<'a> InnerType: BinRead + Serialize + 'a,
+    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
+
+    SizeType: BinRead + Debug + Copy,
+    for<'a> <SizeType as BinRead>::Args<'a>: Default,
+    usize: TryFrom<SizeType>,
+{
+    fn from(vec: Vec<InnerType>) -> Self {
+        Self {
+            data: vec,
+            _phantom: PhantomData,
+        }
+    }
+}
