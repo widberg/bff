@@ -278,6 +278,32 @@ pub struct MeshV1_291_03_06PC {
     unknown8s: DynArray<Unknown8>,
 }
 
+impl From<DynArray<super::PointsRelated0>> for DynArray<PointsRelated0> {
+    fn from(points_related0: DynArray<super::PointsRelated0>) -> Self {
+        DynArray::<PointsRelated0> {
+            // size: points_related0.size,
+            data: points_related0.data,
+            _phantom: points_related0._phantom,
+        }
+    }
+}
+
+impl From<super::Points> for Points {
+    fn from(points: super::Points) -> Self {
+        Points {
+            mesh_data_crc32: points.mesh_data_crc32,
+            rotation: points.rotation,
+            transform: points.transform,
+            radius: points.radius,
+            flags: points.flags,
+            mesh_type: points.mesh_type,
+            points_related0: points.points_related0.into(),
+            points_related1: points.points_related1,
+            points_related2: points.points_related2,
+        }
+    }
+}
+
 impl From<Mesh> for MeshV1_291_03_06PC {
     fn from(mesh: Mesh) -> Self {
         MeshV1_291_03_06PC {
