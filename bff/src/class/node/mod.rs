@@ -1,0 +1,52 @@
+use bff_derive::{bff_forms, NamedClass};
+use serde::Serialize;
+
+mod v1_06_63_02_pc;
+mod v1_291_03_06_pc;
+
+use v1_06_63_02_pc::NodeV1_06_63_02PC;
+use v1_291_03_06_pc::NodeV1_291_03_06PC;
+
+use crate::{
+    math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA},
+    name::Name,
+};
+
+#[derive(Serialize, Debug, NamedClass)]
+// #[bff_forms((V1_06_63_02, PC) => NodeV1_06_63_02PC)]
+#[bff_forms((V1_291_03_06, PC) => NodeV1_291_03_06PC,, (V1_06_63_02, PC) => NodeV1_06_63_02PC)]
+pub struct Node {
+    parent_crc32: Name,
+    head_child_crc32: Name,
+    prev_node_crc32: Name,
+    next_node_crc32: Name,
+    object_node_crc32: Name,
+    user_define_crc32: Name,
+    light_data_crc32: Option<Name>,
+    bitmap_crc32: Name,
+    unknown_crc32: Name,
+    inverse_world_transform: Mat4f,
+    unknown_vec3f1: Vec3f,
+    collide_seads_id1: Name,
+    unknown_vec3f2: Vec3f,
+    placeholder_world_matrix_ptr: u32,
+    display_seads_id1: Name,
+    unknown_matrix: Mat4f,
+    translation: Vec3f,
+    flags: u32,
+    rotation: Quat,
+    scale: f32,
+    other_scale: f32,
+    one_over_scale: f32,
+    unknown_float1: f32,
+    color: RGBA,
+    b_sphere: Sphere,
+    display_seads_rect: Rect,
+    collide_seads_rect: Rect,
+    world_transform: Mat4f,
+    collide_seads_id2: Name,
+    display_seads_id2: Name,
+    unknown4: u16,
+    unknown5: u16,
+    unknown6: u16,
+}

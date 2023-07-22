@@ -1,4 +1,4 @@
-use bff_derive::{NamedClass, bff_forms};
+use bff_derive::{bff_forms, NamedClass};
 use binrw::binread;
 use serde::Serialize;
 

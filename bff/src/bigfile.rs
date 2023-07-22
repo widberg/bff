@@ -32,4 +32,10 @@ impl BigFile {
     pub fn read_endian<R: Read + Seek>(reader: &mut R, endian: Endian) -> BffResult<Self> {
         Ok(Self::read_options(reader, endian, ())?)
     }
+    pub fn blocks(&self) -> &Vec<Block> {
+        &self.blocks
+    }
+    pub fn header(&self) -> &Header {
+        &self.header
+    }
 }
