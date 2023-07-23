@@ -62,14 +62,12 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         })
         .collect::<Vec<_>>();
 
-    let gen = quote! {
-        #[derive(Serialize, Debug, NamedClass, derive_more::From)]
+    quote! {
+        #[derive(Serialize, Debug, NamedClass, derive_more::From, derive_more::IsVariant)]
         pub enum #class {
             #(#variants),*
         }
-    };
-
-    gen.into()
+    }
 }
 
 fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
@@ -92,7 +90,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         }
     }).collect::<Vec<_>>();
 
-    let gen = quote! {
+    quote! {
         impl crate::traits::TryFromVersionPlatform<&crate::object::Object> for #class {
             type Error = crate::error::Error;
 
@@ -111,7 +109,5 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
                 }
             }
         }
-    };
-
-    gen.into()
+    }
 }

@@ -10,6 +10,7 @@ pub mod lz;
 pub mod math;
 pub mod name;
 pub mod object;
+pub mod option;
 pub mod platforms;
 pub mod pool;
 pub mod strings;

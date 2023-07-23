@@ -1,4 +1,4 @@
-use derive_more::From;
+use derive_more::{From, IsVariant};
 use serde::Serialize;
 
 use self::bitmap::Bitmap;
@@ -38,10 +38,10 @@ pub mod world;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Serialize, Debug, From)]
+        #[derive(Serialize, Debug, From, IsVariant)]
         #[serde(untagged)]
         pub enum Class {
-            $($i($i),)*
+            $($i(Box<$i>),)*
         }
     };
 }
@@ -53,7 +53,7 @@ macro_rules! objects_to_classes {
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name() {
-                    $(<$i as NamedClass>::NAME => Ok(<$i as TryFromVersionPlatform<&Object>>::try_from_version_platform(object, version, platform)?.into()),)*
+                    $(<$i as NamedClass>::NAME => Ok(Box::new(<$i as TryFromVersionPlatform<&Object>>::try_from_version_platform(object, version, platform)?).into()),)*
                     _ => Err(UnimplementedClassError::new(object.name(), object.class_name(), version, platform).into())
                 }
             }

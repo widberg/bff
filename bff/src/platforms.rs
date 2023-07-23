@@ -3,6 +3,9 @@ use std::ffi::OsStr;
 use binrw::Endian;
 use derive_more::Display;
 
+use crate::error::{Error, InvalidExtensionError};
+use crate::BffResult;
+
 macro_rules! platforms_enum {
     ($($i:ident),* $(,)?) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
@@ -14,10 +17,14 @@ macro_rules! platforms_enum {
 
 macro_rules! extensions_to_platforms {
     ($(($i:ident,$s:literal)),* $(,)?) => {
-        pub fn extension_to_platform(extension: &OsStr) -> Option<Platform> {
-            match extension.to_ascii_uppercase().to_str() {
-                $(Some($s) => Some(Platform::$i),)*
-                _ => None,
+        impl TryFrom<&OsStr> for Platform {
+            type Error = Error;
+
+            fn try_from(extension: &OsStr) -> Result<Self, Self::Error> {
+                match extension.to_ascii_uppercase().to_str() {
+                    $(Some($s) => Ok(Platform::$i),)*
+                    _ => Err(InvalidExtensionError::new(extension.to_os_string()).into()),
+                }
             }
         }
     };
@@ -25,9 +32,11 @@ macro_rules! extensions_to_platforms {
 
 macro_rules! platforms_to_extensions {
     ($(($i:ident,$s:literal)),* $(,)?) => {
-        pub fn platform_to_extension(platform: Platform) -> &'static OsStr {
-            match platform {
-                $(Platform::$i => OsStr::new($s),)*
+        impl From<Platform> for &'static OsStr {
+            fn from(platform: Platform) -> Self {
+                match platform {
+                    $(Platform::$i => OsStr::new($s),)*
+                }
             }
         }
     };
@@ -35,9 +44,11 @@ macro_rules! platforms_to_extensions {
 
 macro_rules! platforms_to_endian {
     ($(($i:ident,$e:ident)),* $(,)?) => {
-        pub fn platform_to_endian(platform: Platform) -> Endian {
-            match platform {
-                $(Platform::$i => Endian::$e,)*
+        impl From<Platform> for Endian {
+            fn from(platform: Platform) -> Self {
+                match platform {
+                    $(Platform::$i => Endian::$e,)*
+                }
             }
         }
     };
@@ -67,6 +78,6 @@ platforms! {
     (Switch, "DNX", Little),
 }
 
-pub fn extension_to_endian(extension: &OsStr) -> Option<Endian> {
-    extension_to_platform(extension).map(platform_to_endian)
+pub fn try_extension_to_endian(extension: &OsStr) -> BffResult<Endian> {
+    extension.try_into().map(<Platform as Into<Endian>>::into)
 }
