@@ -1,5 +1,6 @@
 use binrw::BinRead;
 use serde::Serialize;
+use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
@@ -53,8 +54,8 @@ struct Unknown6 {
 
 #[derive(BinRead, Debug, Serialize)]
 struct Unknown7 {
-    #[br(count = 44)]
-    data: Vec<u8>,
+    #[serde(with = "BigArray")]
+    data: [u8; 44],
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -83,8 +84,8 @@ struct Points {
 
 #[derive(BinRead, Debug, Serialize)]
 struct CylindreCol {
-    #[br(count = 40)]
-    data: Vec<u8>,
+    #[serde(with = "BigArray")]
+    data: [u8; 40],
     name: Name,
 }
 

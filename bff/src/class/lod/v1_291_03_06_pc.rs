@@ -1,10 +1,12 @@
 use binrw::BinRead;
 use serde::Serialize;
+use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::math::{DynBox, DynSphere, Mat4f, Sphere, Vec3f};
 use crate::name::Name;
+use crate::option::BffOption;
 
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkInfo {
@@ -20,8 +22,8 @@ pub struct LinkInfo {
 
 #[derive(BinRead, Debug, Serialize)]
 struct CylindreCol {
-    #[br(count = 40)]
-    data: Vec<u8>,
+    #[serde(with = "BigArray")]
+    data: [u8; 40],
     name: Name,
 }
 
@@ -48,12 +50,8 @@ pub struct LodBodyV1_291_03_06PC {
     close: Vec3f,
     component_crc32s: DynArray<Name>,
     shadow_crc32: Name,
-    has_anim: u8,
-    #[br(if(has_anim == 1))]
-    anims: Option<DynArray<ClassRes>>,
-    has_sound: u8,
-    #[br(if(has_sound == 1))]
-    sounds: Option<DynArray<ClassRes>>,
+    anims: BffOption<DynArray<ClassRes>>,
+    sounds: BffOption<DynArray<ClassRes>>,
     user_define_crc32: Name,
 }
 
