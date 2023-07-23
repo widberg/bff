@@ -1,5 +1,7 @@
 use derive_more::Display;
 
+use crate::error::{Error, InvalidVersionError};
+
 macro_rules! versions_enum {
     ($($i:ident),* $(,)?) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
@@ -11,10 +13,14 @@ macro_rules! versions_enum {
 
 macro_rules! version_strings_to_versions {
     ($(($i:ident,$s:literal)),* $(,)?) => {
-        pub fn version_string_to_version(version_string: &str) -> Option<Version> {
-            match version_string {
-                $($s => Some(Version::$i),)*
-                _ => None,
+        impl TryFrom<&str> for Version {
+            type Error = Error;
+
+            fn try_from(version_string: &str) -> Result<Self, Self::Error> {
+                match version_string {
+                    $($s => Ok(Version::$i),)*
+                    _ => Err(InvalidVersionError::new(version_string.to_string()).into()),
+                }
             }
         }
     };
@@ -22,9 +28,11 @@ macro_rules! version_strings_to_versions {
 
 macro_rules! versions_to_version_strings {
     ($(($i:ident,$s:literal)),* $(,)?) => {
-        pub fn version_to_version_string(version: Version) -> &'static str {
-            match version {
-                $(Version::$i => $s,)*
+        impl From<Version> for &'static str {
+            fn from(version: Version) -> Self {
+                match version {
+                    $(Version::$i => $s,)*
+                }
             }
         }
     };

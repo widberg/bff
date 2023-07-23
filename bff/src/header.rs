@@ -2,7 +2,8 @@ use binrw::*;
 use serde::Serialize;
 
 use crate::strings::FixedStringNull;
-use crate::versions::{version_string_to_version, Version, VersionTriple};
+use crate::versions::{Version, VersionTriple};
+use crate::BffResult;
 
 #[binread]
 #[derive(Serialize, Debug)]
@@ -73,8 +74,8 @@ impl Header {
         &self.block_descriptions
     }
 
-    pub fn version(&self) -> Option<Version> {
-        version_string_to_version(self.version_string.as_str())
+    pub fn version(&self) -> BffResult<Version> {
+        self.version_string.as_str().try_into()
     }
 
     pub fn pool_offset(&self) -> Option<u32> {

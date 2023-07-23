@@ -27,9 +27,16 @@ pub struct InvalidExtensionError {
     extension: OsString,
 }
 
+#[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "Unknown BigFile version {}", version)]
+pub struct InvalidVersionError {
+    version: String,
+}
+
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     UnimplementedClass(UnimplementedClassError),
     InvalidExtension(InvalidExtensionError),
+    InvalidVersion(InvalidVersionError),
     BinRWError(binrw::Error),
 }
