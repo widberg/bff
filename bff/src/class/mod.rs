@@ -4,10 +4,16 @@ use serde::Serialize;
 use self::bitmap::Bitmap;
 use self::collision_vol::CollisionVol;
 use self::game_obj::GameObj;
+use self::light::Light;
+use self::lod::Lod;
+use self::material::Material;
 use self::mesh::Mesh;
+use self::mesh_data::MeshData;
 use self::node::Node;
+use self::rot_shape::RotShape;
 use self::sound::Sound;
 use self::user_define::UserDefine;
+use self::world::World;
 use crate::error::{Error, UnimplementedClassError};
 use crate::object::Object;
 use crate::platforms::Platform;
@@ -18,11 +24,17 @@ use crate::BffResult;
 pub mod bitmap;
 pub mod collision_vol;
 pub mod game_obj;
+pub mod light;
+pub mod lod;
+pub mod material;
 pub mod mesh;
+pub mod mesh_data;
 pub mod node;
+pub mod rot_shape;
 pub mod sound;
 pub mod trivial_class;
 pub mod user_define;
+pub mod world;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
@@ -60,8 +72,14 @@ classes! {
     Bitmap,
     CollisionVol,
     GameObj,
+    Light,
+    Lod,
+    Material,
     Mesh,
+    MeshData,
     Node,
+    RotShape,
     Sound,
     UserDefine,
+    World,
 }

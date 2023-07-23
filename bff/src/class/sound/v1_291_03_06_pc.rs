@@ -10,7 +10,7 @@ pub struct SoundBodyV1_291_03_06PC {
     #[brw(if(sample_rate != 0))]
     data_size: Option<u32>,
     #[brw(if(sample_rate != 0))]
-    sound_type: Option<u16>,
+    r#type: Option<u16>,
     #[br(count = data_size.expect("sample rate is 0") / 2)]
     data: Vec<i16>,
 }

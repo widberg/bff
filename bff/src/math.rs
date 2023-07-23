@@ -14,6 +14,7 @@ pub type Vec2<T = f32> = Vec<2, T>;
 pub type Vec2f = Vec2;
 pub type Vec3<T = f32> = Vec<3, T>;
 pub type Vec3f = Vec3;
+pub type RGB = Vec3;
 pub type Vec4<T = f32> = Vec<4, T>;
 pub type Vec4f = Vec4;
 pub type Quat = Vec4;
