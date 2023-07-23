@@ -6,6 +6,7 @@ use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
+#[br(import(_link_header: &()))]
 pub struct NodeBodyV1_06_63_02PC {
     parent_crc32: Name,
     head_child_crc32: Name,

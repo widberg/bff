@@ -4,6 +4,7 @@ use serde::Serialize;
 use crate::class::trivial_class::TrivialClass;
 
 #[derive(Debug, BinRead, Serialize)]
+#[br(import(_link_header: &()))]
 pub struct SoundBodyV1_291_03_06PC {
     sample_rate: u32,
     #[brw(if(sample_rate != 0))]

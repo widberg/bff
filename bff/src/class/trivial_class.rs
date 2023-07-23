@@ -9,14 +9,17 @@ use crate::platforms::Platform;
 use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 
+trait TyEq {}
+
+impl<T: Sized> TyEq for (T, T) {}
+
 #[derive(Debug, Serialize)]
 pub struct TrivialClass<LinkHeaderType, BodyType>
 where
     for<'a> LinkHeaderType: BinRead + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead + Serialize + 'a,
-    for<'a> <BodyType as BinRead>::Args<'a>: Default,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
 {
     link_header: LinkHeaderType,
     body: BodyType,
@@ -27,8 +30,7 @@ where
     for<'a> LinkHeaderType: BinRead + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead + Serialize + 'a,
-    for<'a> <BodyType as BinRead>::Args<'a>: Default,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
 {
     pub fn link_header(&self) -> &LinkHeaderType {
         &self.link_header
@@ -45,8 +47,7 @@ where
     for<'a> LinkHeaderType: BinRead + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead + Serialize + 'a,
-    for<'a> <BodyType as BinRead>::Args<'a>: Default,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
 {
     type Error = Error;
 
@@ -57,17 +58,16 @@ where
     ) -> Result<Self, Self::Error> {
         let mut header_cursor = Cursor::new(object.link_header());
         let mut body_cursor = Cursor::new(object.body());
-        Ok(Self {
-            link_header: LinkHeaderType::read_options(
-                &mut header_cursor,
-                crate::platforms::platform_to_endian(platform),
-                <LinkHeaderType as binrw::BinRead>::Args::default(),
-            )?,
-            body: BodyType::read_options(
-                &mut body_cursor,
-                crate::platforms::platform_to_endian(platform),
-                <BodyType as binrw::BinRead>::Args::default(),
-            )?,
-        })
+        let link_header = LinkHeaderType::read_options(
+            &mut header_cursor,
+            crate::platforms::platform_to_endian(platform),
+            <LinkHeaderType as binrw::BinRead>::Args::default(),
+        )?;
+        let body = BodyType::read_options(
+            &mut body_cursor,
+            crate::platforms::platform_to_endian(platform),
+            (&link_header,),
+        )?;
+        Ok(Self { link_header, body })
     }
 }

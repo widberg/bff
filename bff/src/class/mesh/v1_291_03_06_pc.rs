@@ -246,6 +246,7 @@ struct MeshBuffer {
 
 #[binread]
 #[derive(Debug, Serialize)]
+#[br(import(_link_header: &()))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,
     unknown1s: DynArray<Unknown1>,

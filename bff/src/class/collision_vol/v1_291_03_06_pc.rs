@@ -23,6 +23,7 @@ struct CollisionVolInfo {
 }
 
 #[derive(BinRead, Debug, Serialize)]
+#[br(import(_link_header: &()))]
 pub struct CollisionVolBodyV1_291_03_06PC {
     collision_vol_infos: DynArray<CollisionVolInfo>,
     in_message_id: u32,

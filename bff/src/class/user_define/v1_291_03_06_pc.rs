@@ -5,6 +5,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::strings::PascalString;
 
 #[derive(BinRead, Debug, Serialize)]
+#[br(import(_link_header: &()))]
 pub struct UserDefineBodyV1_291_03_06PC {
     data: PascalString,
 }
