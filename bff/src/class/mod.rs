@@ -1,4 +1,4 @@
-use derive_more::From;
+use derive_more::{From, IsVariant};
 use serde::Serialize;
 
 use self::bitmap::Bitmap;
@@ -26,7 +26,7 @@ pub mod user_define;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Serialize, Debug, From)]
+        #[derive(Serialize, Debug, From, IsVariant)]
         #[serde(untagged)]
         pub enum Class {
             $($i($i),)*
