@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f, RGBA};
+use crate::math::{DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
