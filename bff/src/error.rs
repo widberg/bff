@@ -1,3 +1,5 @@
+use std::ffi::OsString;
+
 use derive_more::{Constructor, Display, Error, From};
 
 use crate::name::Name;
@@ -19,8 +21,15 @@ pub struct UnimplementedClassError {
     platform: Platform,
 }
 
+#[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "Invalid BigFile extension {:#?}", extension)]
+pub struct InvalidExtensionError {
+    extension: OsString,
+}
+
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     UnimplementedClass(UnimplementedClassError),
+    InvalidExtension(InvalidExtensionError),
     BinRWError(binrw::Error),
 }

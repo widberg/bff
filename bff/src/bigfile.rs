@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::block::Block;
 use crate::header::*;
-use crate::platforms::{platform_to_endian, Platform};
+use crate::platforms::Platform;
 use crate::pool::Pool;
 use crate::BffResult;
 
@@ -35,11 +35,7 @@ impl BigFile {
     }
 
     pub fn read_platform<R: Read + Seek>(reader: &mut R, platform: Platform) -> BffResult<Self> {
-        Ok(Self::read_options(
-            reader,
-            platform_to_endian(platform),
-            (),
-        )?)
+        Ok(Self::read_options(reader, platform.into(), ())?)
     }
 
     pub fn blocks(&self) -> &Vec<Block> {

@@ -60,14 +60,10 @@ where
         let mut body_cursor = Cursor::new(object.body());
         let link_header = LinkHeaderType::read_options(
             &mut header_cursor,
-            crate::platforms::platform_to_endian(platform),
+            platform.into(),
             <LinkHeaderType as binrw::BinRead>::Args::default(),
         )?;
-        let body = BodyType::read_options(
-            &mut body_cursor,
-            crate::platforms::platform_to_endian(platform),
-            (&link_header,),
-        )?;
+        let body = BodyType::read_options(&mut body_cursor, platform.into(), (&link_header,))?;
         Ok(Self { link_header, body })
     }
 }
