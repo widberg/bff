@@ -11,7 +11,10 @@ use self::mesh::Mesh;
 use self::mesh_data::MeshData;
 use self::node::Node;
 use self::rot_shape::RotShape;
+use self::skel::Skel;
+use self::skin::Skin;
 use self::sound::Sound;
+use self::surface::Surface;
 use self::user_define::UserDefine;
 use self::world::World;
 use crate::error::{Error, UnimplementedClassError};
@@ -31,7 +34,10 @@ pub mod mesh;
 pub mod mesh_data;
 pub mod node;
 pub mod rot_shape;
+pub mod skel;
+pub mod skin;
 pub mod sound;
+pub mod surface;
 pub mod trivial_class;
 pub mod user_define;
 pub mod world;
@@ -79,7 +85,10 @@ classes! {
     MeshData,
     Node,
     RotShape,
+    Skel,
+    Skin,
     Sound,
+    Surface,
     UserDefine,
     World,
 }

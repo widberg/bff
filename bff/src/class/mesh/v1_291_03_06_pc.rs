@@ -196,12 +196,12 @@ struct VertexGroup {
 
 #[derive(BinRead, Debug, Serialize)]
 struct MorpherRelated {
-    morpher_relateds: [u8; 16],
+    data: [u8; 16],
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct MorphTargetDescRelated {
-    morpher_relateds: [u8; 16],
+    data: [u8; 16],
 }
 
 #[derive(BinRead, Debug, Serialize)]
