@@ -1,17 +1,10 @@
-use std::io::Cursor;
-
-use binrw::{binread, BinRead};
+use binrw::binread;
 use serde::Serialize;
 
+use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::error::Error;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Vec2f, Vec3, Vec3f};
 use crate::name::Name;
-use crate::object::Object;
-use crate::platforms::{platform_to_endian, Platform};
-use crate::traits::TryFromVersionPlatform;
-use crate::versions::Version;
-use crate::BffResult;
 
 #[binread]
 #[derive(Debug, Serialize)]
@@ -253,7 +246,7 @@ struct MeshBuffer {
 
 #[binread]
 #[derive(Debug, Serialize)]
-pub struct MeshV1_291_03_06PC {
+pub struct MeshBodyV1_291_03_06PC {
     points: Points,
     unknown1s: DynArray<Unknown1>,
     unknown2s: DynArray<Unknown2>,
@@ -277,20 +270,4 @@ pub struct MeshV1_291_03_06PC {
     unknown8s: DynArray<Unknown8>,
 }
 
-impl TryFromVersionPlatform<&Object> for MeshV1_291_03_06PC {
-    type Error = Error;
-
-    fn try_from_version_platform(
-        object: &Object,
-        _version: Version,
-        platform: Platform,
-    ) -> BffResult<MeshV1_291_03_06PC> {
-        let mut _header_cursor = Cursor::new(object.link_header());
-        let mut body_cursor = Cursor::new(object.body());
-        Ok(MeshV1_291_03_06PC::read_options(
-            &mut body_cursor,
-            platform_to_endian(platform),
-            (),
-        )?)
-    }
-}
+pub type MeshV1_291_03_06PC = TrivialClass<(), MeshBodyV1_291_03_06PC>;

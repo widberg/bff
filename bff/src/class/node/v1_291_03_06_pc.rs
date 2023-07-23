@@ -1,19 +1,12 @@
-use std::io::Cursor;
-
 use binrw::BinRead;
 use serde::Serialize;
 
-use crate::error::Error;
+use crate::class::trivial_class::TrivialClass;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::name::Name;
-use crate::object::Object;
-use crate::platforms::{platform_to_endian, Platform};
-use crate::traits::TryFromVersionPlatform;
-use crate::versions::Version;
-use crate::BffResult;
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct NodeV1_291_03_06PC {
+pub struct NodeBodyV1_291_03_06PC {
     parent_crc32: Name,
     head_child_crc32: Name,
     prev_node_crc32: Name,
@@ -49,20 +42,4 @@ pub struct NodeV1_291_03_06PC {
     unknown6: u16,
 }
 
-impl TryFromVersionPlatform<&Object> for NodeV1_291_03_06PC {
-    type Error = Error;
-
-    fn try_from_version_platform(
-        object: &Object,
-        _version: Version,
-        platform: Platform,
-    ) -> BffResult<NodeV1_291_03_06PC> {
-        let mut _header_cursor = Cursor::new(object.link_header());
-        let mut body_cursor = Cursor::new(object.body());
-        Ok(NodeV1_291_03_06PC::read_options(
-            &mut body_cursor,
-            platform_to_endian(platform),
-            (),
-        )?)
-    }
-}
+pub type NodeV1_291_03_06PC = TrivialClass<(), NodeBodyV1_291_03_06PC>;

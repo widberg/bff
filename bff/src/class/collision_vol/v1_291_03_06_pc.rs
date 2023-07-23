@@ -1,17 +1,10 @@
-use std::io::Cursor;
-
 use binrw::BinRead;
 use serde::Serialize;
 
+use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::error::Error;
 use crate::math::Mat4f;
 use crate::name::Name;
-use crate::object::Object;
-use crate::platforms::{platform_to_endian, Platform};
-use crate::traits::TryFromVersionPlatform;
-use crate::versions::Version;
-use crate::BffResult;
 
 // #[derive(BinRead, Debug)]
 // struct LinkInfo {
@@ -30,7 +23,7 @@ struct CollisionVolInfo {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct CollisionVolV1_291_03_06PC {
+pub struct CollisionVolBodyV1_291_03_06PC {
     collision_vol_infos: DynArray<CollisionVolInfo>,
     in_message_id: u32,
     out_message_id: u32,
@@ -43,20 +36,4 @@ pub struct CollisionVolV1_291_03_06PC {
     anim_start_time: f32,
 }
 
-impl TryFromVersionPlatform<&Object> for CollisionVolV1_291_03_06PC {
-    type Error = Error;
-
-    fn try_from_version_platform(
-        object: &Object,
-        _version: Version,
-        platform: Platform,
-    ) -> BffResult<CollisionVolV1_291_03_06PC> {
-        let mut _header_cursor = Cursor::new(object.link_header());
-        let mut body_cursor = Cursor::new(object.body());
-        Ok(CollisionVolV1_291_03_06PC::read_options(
-            &mut body_cursor,
-            platform_to_endian(platform),
-            (),
-        )?)
-    }
-}
+pub type CollisionVolV1_291_03_06PC = TrivialClass<(), CollisionVolBodyV1_291_03_06PC>;

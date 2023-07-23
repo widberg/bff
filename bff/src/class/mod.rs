@@ -21,6 +21,7 @@ pub mod game_obj;
 pub mod mesh;
 pub mod node;
 pub mod sound;
+pub mod trivial_class;
 pub mod user_define;
 
 macro_rules! classes_enum {
