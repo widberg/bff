@@ -11,6 +11,7 @@ use self::mesh::Mesh;
 use self::mesh_data::MeshData;
 use self::node::Node;
 use self::rot_shape::RotShape;
+use self::skin::Skin;
 use self::sound::Sound;
 use self::user_define::UserDefine;
 use self::world::World;
@@ -31,6 +32,7 @@ pub mod mesh;
 pub mod mesh_data;
 pub mod node;
 pub mod rot_shape;
+pub mod skin;
 pub mod sound;
 pub mod trivial_class;
 pub mod user_define;
@@ -79,6 +81,7 @@ classes! {
     MeshData,
     Node,
     RotShape,
+    Skin,
     Sound,
     UserDefine,
     World,
