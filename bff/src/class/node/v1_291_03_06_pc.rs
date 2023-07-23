@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use binrw::BinRead;
+use serde::Serialize;
 
-use super::Node;
 use crate::error::Error;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::name::Name;
@@ -12,47 +12,7 @@ use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 use crate::BffResult;
 
-impl From<NodeV1_291_03_06PC> for Node {
-    fn from(node: NodeV1_291_03_06PC) -> Self {
-        Node {
-            parent_crc32: node.parent_crc32,
-            head_child_crc32: node.head_child_crc32,
-            prev_node_crc32: node.prev_node_crc32,
-            next_node_crc32: node.next_node_crc32,
-            object_node_crc32: node.object_node_crc32,
-            user_define_crc32: node.user_define_crc32,
-            light_data_crc32: Some(node.light_data_crc32),
-            bitmap_crc32: node.bitmap_crc32,
-            unknown_crc32: node.unknown_crc32,
-            inverse_world_transform: node.inverse_world_transform,
-            unknown_vec3f1: node.unknown_vec3f1,
-            collide_seads_id1: node.collide_seads_id1,
-            unknown_vec3f2: node.unknown_vec3f2,
-            placeholder_world_matrix_ptr: node.placeholder_world_matrix_ptr,
-            display_seads_id1: node.display_seads_id1,
-            unknown_matrix: node.unknown_matrix,
-            translation: node.translation,
-            flags: node.flags,
-            rotation: node.rotation,
-            scale: node.scale,
-            other_scale: node.other_scale,
-            one_over_scale: node.one_over_scale,
-            unknown_float1: node.unknown_float1,
-            color: node.color,
-            b_sphere: node.b_sphere,
-            display_seads_rect: node.display_seads_rect,
-            collide_seads_rect: node.collide_seads_rect,
-            world_transform: node.world_transform,
-            collide_seads_id2: node.collide_seads_id2,
-            display_seads_id2: node.display_seads_id2,
-            unknown4: node.unknown4,
-            unknown5: node.unknown5,
-            unknown6: node.unknown6,
-        }
-    }
-}
-
-#[derive(BinRead, Debug)]
+#[derive(BinRead, Debug, Serialize)]
 pub struct NodeV1_291_03_06PC {
     parent_crc32: Name,
     head_child_crc32: Name,
@@ -87,49 +47,6 @@ pub struct NodeV1_291_03_06PC {
     unknown4: u16,
     unknown5: u16,
     unknown6: u16,
-}
-
-impl From<Node> for NodeV1_291_03_06PC {
-    fn from(node: Node) -> Self {
-        NodeV1_291_03_06PC {
-            parent_crc32: node.parent_crc32,
-            head_child_crc32: node.head_child_crc32,
-            prev_node_crc32: node.prev_node_crc32,
-            next_node_crc32: node.next_node_crc32,
-            object_node_crc32: node.object_node_crc32,
-            user_define_crc32: node.user_define_crc32,
-            light_data_crc32: match node.light_data_crc32 {
-                Some(x) => x,
-                None => 0,
-            },
-            bitmap_crc32: node.bitmap_crc32,
-            unknown_crc32: node.unknown_crc32,
-            inverse_world_transform: node.inverse_world_transform,
-            unknown_vec3f1: node.unknown_vec3f1,
-            collide_seads_id1: node.collide_seads_id1,
-            unknown_vec3f2: node.unknown_vec3f2,
-            placeholder_world_matrix_ptr: node.placeholder_world_matrix_ptr,
-            display_seads_id1: node.display_seads_id1,
-            unknown_matrix: node.unknown_matrix,
-            translation: node.translation,
-            flags: node.flags,
-            rotation: node.rotation,
-            scale: node.scale,
-            other_scale: node.other_scale,
-            one_over_scale: node.one_over_scale,
-            unknown_float1: node.unknown_float1,
-            color: node.color,
-            b_sphere: node.b_sphere,
-            display_seads_rect: node.display_seads_rect,
-            collide_seads_rect: node.collide_seads_rect,
-            world_transform: node.world_transform,
-            collide_seads_id2: node.collide_seads_id2,
-            display_seads_id2: node.display_seads_id2,
-            unknown4: node.unknown4,
-            unknown5: node.unknown5,
-            unknown6: node.unknown6,
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for NodeV1_291_03_06PC {

@@ -1,10 +1,10 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, Arm, DeriveInput, Token, LitStr};
+use syn::parse::{Parse, ParseStream};
+use syn::{braced, parse_macro_input, Arm, DeriveInput, Ident, LitStr, Result};
 
 #[proc_macro_derive(NamedClass)]
-pub fn bff_class(input: TokenStream) -> TokenStream {
+pub fn bff_named_class(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
     let class_name = LitStr::new(format!("{}_Z", name).as_str(), name.span());
@@ -17,30 +17,65 @@ pub fn bff_class(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_attribute]
-pub fn bff_forms(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let forms: Vec<Arm> =
-        parse_macro_input!(attr with Punctuated::<Arm, Token!(,)>::parse_terminated)
-            .into_iter()
-            .collect();
-    let input = parse_macro_input!(input as DeriveInput);
+struct BffClassMacroInput {
+    class: Ident,
+    forms: Vec<Arm>,
+}
 
-    let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input, forms);
+impl Parse for BffClassMacroInput {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let class = input.parse()?;
+        let content;
+        braced!(content in input);
+        let mut forms = Vec::new();
+        while !content.is_empty() {
+            forms.push(content.parse()?);
+        }
+        Ok(BffClassMacroInput { class, forms })
+    }
+}
+
+#[proc_macro]
+pub fn bff_class(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as BffClassMacroInput);
+
+    let enum_class = impl_enum_class(&input);
+
+    let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input);
 
     quote! {
-        #input
+        #enum_class
         #from_object_to_shadow_class
     }
     .into()
 }
 
-fn impl_from_object_to_shadow_class(
-    ast: &syn::DeriveInput,
-    forms: Vec<Arm>,
-) -> proc_macro2::TokenStream {
-    let name = &ast.ident;
+fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
+    let class = &input.class;
 
-    let arms = forms.iter().map(|form| {
+    let variants = input
+        .forms
+        .iter()
+        .map(|form| {
+            let body = &form.body;
+            quote! { #body(#body) }
+        })
+        .collect::<Vec<_>>();
+
+    let gen = quote! {
+        #[derive(Serialize, Debug, NamedClass, derive_more::From)]
+        pub enum #class {
+            #(#variants),*
+        }
+    };
+
+    gen.into()
+}
+
+fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
+    let class = &input.class;
+
+    let arms = input.forms.iter().map(|form| {
         let attrs = &form.attrs;
         let pat = &form.pat;
         let guard = match &form.guard {
@@ -58,14 +93,14 @@ fn impl_from_object_to_shadow_class(
     }).collect::<Vec<_>>();
 
     let gen = quote! {
-        impl crate::traits::TryFromVersionPlatform<&crate::object::Object> for #name {
+        impl crate::traits::TryFromVersionPlatform<&crate::object::Object> for #class {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
                 object: &crate::object::Object,
                 version: crate::versions::Version,
                 platform: crate::platforms::Platform,
-            ) -> crate::BffResult<#name> {
+            ) -> crate::BffResult<#class> {
                 use crate::versions::Version::*;
                 use crate::platforms::Platform::*;
                 match (version, platform) {

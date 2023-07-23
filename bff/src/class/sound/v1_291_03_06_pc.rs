@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use binrw::{binread, BinRead};
+use binrw::BinRead;
+use serde::Serialize;
 
-use super::Sound;
 use crate::error::Error;
 use crate::object::Object;
 use crate::platforms::{platform_to_endian, Platform};
@@ -10,8 +10,7 @@ use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 use crate::BffResult;
 
-#[binread]
-#[derive(Debug)]
+#[derive(Debug, BinRead, Serialize)]
 pub struct SoundV1_291_03_06PC {
     sample_rate: u32,
     #[brw(if(sample_rate != 0))]
@@ -20,28 +19,6 @@ pub struct SoundV1_291_03_06PC {
     sound_type: Option<u16>,
     #[br(count = data_size.expect("sample rate is 0") / 2)]
     data: Vec<i16>,
-}
-
-impl From<Sound> for SoundV1_291_03_06PC {
-    fn from(sound: Sound) -> Self {
-        SoundV1_291_03_06PC {
-            sample_rate: sound.sample_rate,
-            data_size: sound.data_size,
-            sound_type: sound.sound_type,
-            data: sound.data,
-        }
-    }
-}
-
-impl From<SoundV1_291_03_06PC> for Sound {
-    fn from(sound: SoundV1_291_03_06PC) -> Self {
-        Sound {
-            sample_rate: sound.sample_rate,
-            data_size: sound.data_size,
-            sound_type: sound.sound_type,
-            data: sound.data,
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for SoundV1_291_03_06PC {

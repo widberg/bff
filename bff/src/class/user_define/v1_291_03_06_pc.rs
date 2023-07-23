@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use binrw::BinRead;
+use serde::Serialize;
 
-use super::UserDefine;
 use crate::error::Error;
 use crate::object::Object;
 use crate::platforms::{platform_to_endian, Platform};
@@ -11,25 +11,9 @@ use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 use crate::BffResult;
 
-impl From<UserDefineV1_291_03_06PC> for UserDefine {
-    fn from(user_define: UserDefineV1_291_03_06PC) -> Self {
-        UserDefine {
-            data: (*user_define.data).clone(),
-        }
-    }
-}
-
-#[derive(BinRead, Debug)]
+#[derive(BinRead, Debug, Serialize)]
 pub struct UserDefineV1_291_03_06PC {
     data: PascalString,
-}
-
-impl From<UserDefine> for UserDefineV1_291_03_06PC {
-    fn from(user_define: UserDefine) -> Self {
-        UserDefineV1_291_03_06PC {
-            data: PascalString(user_define.data),
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for UserDefineV1_291_03_06PC {

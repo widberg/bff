@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use binrw::{binread, BinRead};
+use serde::Serialize;
 
-use super::Mesh;
 use crate::dynarray::DynArray;
 use crate::error::Error;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Vec2f, Vec3, Vec3f};
@@ -12,7 +12,6 @@ use crate::platforms::{platform_to_endian, Platform};
 use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 use crate::BffResult;
-use serde::Serialize;
 
 #[binread]
 #[derive(Debug, Serialize)]
@@ -276,80 +275,6 @@ pub struct MeshV1_291_03_06PC {
     unknown6s: DynArray<Unknown6>,
     mesh_buffer: MeshBuffer,
     unknown8s: DynArray<Unknown8>,
-}
-
-impl From<DynArray<super::PointsRelated0>> for DynArray<PointsRelated0> {
-    fn from(points_related0: DynArray<super::PointsRelated0>) -> Self {
-        DynArray::<PointsRelated0> {
-            // size: points_related0.size,
-            data: points_related0.data,
-            _phantom: points_related0._phantom,
-        }
-    }
-}
-
-impl From<super::Points> for Points {
-    fn from(points: super::Points) -> Self {
-        Points {
-            mesh_data_crc32: points.mesh_data_crc32,
-            rotation: points.rotation,
-            transform: points.transform,
-            radius: points.radius,
-            flags: points.flags,
-            mesh_type: points.mesh_type,
-            points_related0: points.points_related0.into(),
-            points_related1: points.points_related1,
-            points_related2: points.points_related2,
-        }
-    }
-}
-
-impl From<Mesh> for MeshV1_291_03_06PC {
-    fn from(mesh: Mesh) -> Self {
-        MeshV1_291_03_06PC {
-            points: mesh.points,
-            unknown1s: mesh.unknown1s,
-            unknown2s: mesh.unknown2s,
-            unknown3_count: mesh.unknown3_count,
-            unknown3s: mesh.unknown3s,
-            unknown4s: mesh.unknown4s,
-            unknown5s: mesh.unknown5s,
-            material_crc32s: mesh.material_crc32s,
-            related_to_counts: mesh.related_to_counts,
-            sphere_cols: mesh.sphere_cols,
-            box_cols: mesh.box_cols,
-            cylindre_cols: mesh.cylindre_cols,
-            aabb_cols: mesh.aabb_cols,
-            vertices: mesh.vertices,
-            unknown6s: mesh.unknown6s,
-            mesh_buffer: mesh.mesh_buffer,
-            unknown8s: mesh.unknown8s,
-        }
-    }
-}
-
-impl From<MeshV1_291_03_06PC> for Mesh {
-    fn from(mesh: MeshV1_291_03_06PC) -> Self {
-        Mesh {
-            points: mesh.points,
-            unknown1s: mesh.unknown1s,
-            unknown2s: mesh.unknown2s,
-            unknown3_count: mesh.unknown3_count,
-            unknown3s: mesh.unknown3s,
-            unknown4s: mesh.unknown4s,
-            unknown5s: mesh.unknown5s,
-            material_crc32s: mesh.material_crc32s,
-            related_to_counts: mesh.related_to_counts,
-            sphere_cols: mesh.sphere_cols,
-            box_cols: mesh.box_cols,
-            cylindre_cols: mesh.cylindre_cols,
-            aabb_cols: mesh.aabb_cols,
-            vertices: mesh.vertices,
-            unknown6s: mesh.unknown6s,
-            mesh_buffer: mesh.mesh_buffer,
-            unknown8s: mesh.unknown8s,
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for MeshV1_291_03_06PC {

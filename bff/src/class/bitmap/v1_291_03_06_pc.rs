@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use binrw::{binread, BinRead};
+use serde::Serialize;
 
-use super::Bitmap;
 use crate::error::Error;
 use crate::object::Object;
 use crate::platforms::{platform_to_endian, Platform};
@@ -11,7 +11,7 @@ use crate::versions::Version;
 use crate::BffResult;
 
 #[binread]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct BitmapV1_291_03_06PC {
     size: (u32, u32),
     #[br(temp)]
@@ -22,32 +22,6 @@ pub struct BitmapV1_291_03_06PC {
     unknown: u8,
     #[br(count = precalculated_size)]
     data: Vec<u8>,
-}
-
-impl From<Bitmap> for BitmapV1_291_03_06PC {
-    fn from(bitmap: Bitmap) -> Self {
-        BitmapV1_291_03_06PC {
-            size: bitmap.size,
-            flag: bitmap.flag,
-            format: bitmap.format,
-            mipmap_count: bitmap.mipmap_count,
-            unknown: bitmap.unknown,
-            data: bitmap.data,
-        }
-    }
-}
-
-impl From<BitmapV1_291_03_06PC> for Bitmap {
-    fn from(bitmap: BitmapV1_291_03_06PC) -> Self {
-        Bitmap {
-            size: bitmap.size,
-            flag: bitmap.flag,
-            format: bitmap.format,
-            mipmap_count: bitmap.mipmap_count,
-            unknown: bitmap.unknown,
-            data: bitmap.data,
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for BitmapV1_291_03_06PC {

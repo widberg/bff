@@ -16,8 +16,8 @@ pub fn info(bigfile_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let f = File::open(bigfile_path)?;
     let now = Instant::now();
     let mut reader = BufReader::new(f);
-    let elapsed = now.elapsed();
     let bigfile = BigFile::read_endian(&mut reader, endian)?;
+    let elapsed = now.elapsed();
     to_writer_pretty(io::stdout().lock(), &bigfile)?;
     println!("Time to parse: {:?}", elapsed);
     Ok(())

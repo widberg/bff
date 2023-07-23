@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use binrw::{binread, BinRead};
+use binrw::BinRead;
+use serde::Serialize;
 
-use super::GameObj;
 use crate::dynarray::DynArray;
 use crate::error::Error;
 use crate::name::Name;
@@ -12,26 +12,9 @@ use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 use crate::BffResult;
 
-#[binread]
-#[derive(Debug)]
+#[derive(Debug, BinRead, Serialize)]
 pub struct GameObjV1_291_03_06PC {
     node_crc32s: DynArray<Name>,
-}
-
-impl From<GameObj> for GameObjV1_291_03_06PC {
-    fn from(gameobj: GameObj) -> Self {
-        GameObjV1_291_03_06PC {
-            node_crc32s: gameobj.node_crc32s,
-        }
-    }
-}
-
-impl From<GameObjV1_291_03_06PC> for GameObj {
-    fn from(gameobj: GameObjV1_291_03_06PC) -> Self {
-        GameObj {
-            node_crc32s: gameobj.node_crc32s,
-        }
-    }
 }
 
 impl TryFromVersionPlatform<&Object> for GameObjV1_291_03_06PC {
