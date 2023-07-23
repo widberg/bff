@@ -28,8 +28,7 @@ where
     _phantom: PhantomData<ConditionType>,
 }
 
-impl<InnerType, ConditionType> From<Option<InnerType>>
-    for BffOption<InnerType, ConditionType>
+impl<InnerType, ConditionType> From<Option<InnerType>> for BffOption<InnerType, ConditionType>
 where
     for<'a> InnerType: BinRead + Serialize + 'a,
     for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,

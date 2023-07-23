@@ -1,9 +1,9 @@
 use binrw::*;
 use serde::Serialize;
 
+use crate::error::InvalidVersionError;
 use crate::strings::FixedStringNull;
 use crate::versions::{Version, VersionTriple};
-use crate::BffResult;
 
 #[binread]
 #[derive(Serialize, Debug)]
@@ -74,7 +74,7 @@ impl Header {
         &self.block_descriptions
     }
 
-    pub fn version(&self) -> BffResult<Version> {
+    pub fn version(&self) -> Result<Version, InvalidVersionError> {
         self.version_string.as_str().try_into()
     }
 
