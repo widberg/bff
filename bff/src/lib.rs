@@ -10,12 +10,12 @@ pub mod lz;
 pub mod math;
 pub mod name;
 pub mod object;
+pub mod option;
 pub mod platforms;
 pub mod pool;
 pub mod strings;
 pub mod traits;
 pub mod versions;
-pub mod option;
 
 pub type BffResult<T> = std::result::Result<T, crate::error::Error>;
 pub type Endian = binrw::Endian;
