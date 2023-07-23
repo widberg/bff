@@ -12,6 +12,7 @@ derive_more = "0.99.17"
 num-traits = "0.2.15"
 bff-derive = { path = "../bff-derive", version = "*" }
 serde-big-array = "0.5.1"
+indexmap = { version = "2.0.0", features = [ "serde" ] }
 
 [dev-dependencies]
 test-generator = "0.3.1"

@@ -7,6 +7,7 @@ pub mod dynarray;
 pub mod error;
 pub mod header;
 pub mod lz;
+pub mod map;
 pub mod math;
 pub mod name;
 pub mod object;
@@ -16,7 +17,6 @@ pub mod pool;
 pub mod strings;
 pub mod traits;
 pub mod versions;
-pub mod map;
 
 pub type BffResult<T> = std::result::Result<T, crate::error::Error>;
 pub type Endian = binrw::Endian;
