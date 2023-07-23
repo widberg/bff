@@ -54,6 +54,10 @@ struct Unknown6 {
 
 #[derive(BinRead, Debug, Serialize)]
 struct Unknown7 {
+    // Big array helper for serde.
+    // The purpose of this crate is to make (de-)serializing arrays of sizes > 32 easy.
+    // This solution is needed until serde adopts const generics support.
+    // https://github.com/serde-rs/serde/issues/1937
     #[serde(with = "BigArray")]
     data: [u8; 44],
 }

@@ -1,7 +1,10 @@
 use binrw::BinRead;
 use serde::Serialize;
 
-use crate::{class::trivial_class::TrivialClass, dynarray::DynArray, math::Vec2f, name::Name};
+use crate::class::trivial_class::TrivialClass;
+use crate::dynarray::DynArray;
+use crate::math::Vec2f;
+use crate::name::Name;
 
 #[derive(Debug, BinRead, Serialize)]
 struct SeadEntry {

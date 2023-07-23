@@ -3,8 +3,7 @@ use std::ffi::OsStr;
 use binrw::Endian;
 use derive_more::Display;
 
-use crate::error::{Error, InvalidExtensionError};
-use crate::BffResult;
+use crate::error::InvalidExtensionError;
 
 macro_rules! platforms_enum {
     ($($i:ident),* $(,)?) => {
@@ -18,12 +17,12 @@ macro_rules! platforms_enum {
 macro_rules! extensions_to_platforms {
     ($(($i:ident,$s:literal)),* $(,)?) => {
         impl TryFrom<&OsStr> for Platform {
-            type Error = Error;
+            type Error = InvalidExtensionError;
 
             fn try_from(extension: &OsStr) -> Result<Self, Self::Error> {
                 match extension.to_ascii_uppercase().to_str() {
                     $(Some($s) => Ok(Platform::$i),)*
-                    _ => Err(InvalidExtensionError::new(extension.to_os_string()).into()),
+                    _ => Err(InvalidExtensionError::new(extension.to_os_string())),
                 }
             }
         }
@@ -78,6 +77,6 @@ platforms! {
     (Switch, "DNX", Little),
 }
 
-pub fn try_extension_to_endian(extension: &OsStr) -> BffResult<Endian> {
+pub fn try_extension_to_endian(extension: &OsStr) -> Result<Endian, InvalidExtensionError> {
     extension.try_into().map(<Platform as Into<Endian>>::into)
 }
