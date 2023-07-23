@@ -4,7 +4,7 @@ use crate::error::{Error, InvalidVersionError};
 
 macro_rules! versions_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Display)]
         pub enum Version {
             $($i,)*
         }
@@ -46,6 +46,8 @@ macro_rules! versions {
     };
 }
 
+// Keep these in order
+// The order of these is what determines <, >, <=, >=, etc.
 versions! {
     (V1_06_63_02, "v1.06.63.02 - Asobo Studio - Internal Cross Technology"),
     (V1_220_50_07, "v1.220.50.07 - Asobo Studio - Internal Cross Technology"),
