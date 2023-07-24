@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::map::BffMap;
 use crate::math::{Mat4f, Sphere};
 use crate::name::Name;
 
@@ -43,12 +44,6 @@ struct Bone {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct HashElement {
-    value: i32,
-    r#ref: i32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
 struct MorphPacketDA {
     size_capacity: u32,
     ptr: u32,
@@ -81,9 +76,9 @@ pub struct SkinBodyV1_291_03_06PC {
     bones: DynArray<Bone>,
     is_class_id: u8,
     #[br(if(is_class_id != 0))]
-    anim_class_ids: Option<DynArray<HashElement>>,
+    anim_class_ids: Option<BffMap<i32, i32>>,
     #[br(if(is_class_id != 0))]
-    sound_class_ids: Option<DynArray<HashElement>>,
+    sound_class_ids: Option<BffMap<i32, i32>>,
     matrix_cache_check: u32,
     skin_sections: DynArray<SkinSection>,
 }

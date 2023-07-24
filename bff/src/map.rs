@@ -21,16 +21,12 @@ where
     for<'a> (KeyType, ValueType): BinRead + Serialize + 'a,
     for<'a> <(KeyType, ValueType) as BinRead>::Args<'a>: Clone + Default,
 
-    Vec<(KeyType, ValueType)>: Copy,
-
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
 {
     #[deref]
-    #[br(map = |pairs: DynArray<(KeyType, ValueType), SizeType>| {
-        pairs.into_iter().collect::<IndexMap<_, _>>()
-    })]
+    #[br(map = |pairs: DynArray<(KeyType, ValueType), SizeType>| <DynArray<(KeyType, ValueType), SizeType> as Into<Vec<(KeyType, ValueType)>>>::into(pairs).into_iter().collect::<IndexMap<_, _>>())]
     map: IndexMap<KeyType, ValueType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
@@ -45,8 +41,6 @@ where
 
     for<'a> (KeyType, ValueType): BinRead + Serialize + 'a,
     for<'a> <(KeyType, ValueType) as BinRead>::Args<'a>: Clone + Default,
-
-    Vec<(KeyType, ValueType)>: Copy,
 
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,

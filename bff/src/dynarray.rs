@@ -3,11 +3,11 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use binrw::{binread, BinRead};
-use derive_more::{Deref, IntoIterator};
+use derive_more::Deref;
 use serde::Serialize;
 
 #[binread]
-#[derive(Debug, Serialize, Deref, IntoIterator)]
+#[derive(Debug, Serialize, Deref)]
 #[serde(transparent)]
 pub struct DynArray<InnerType, SizeType = u32>
 where
@@ -23,11 +23,24 @@ where
     #[br(temp)]
     size: SizeType,
     #[deref]
-    #[into_iterator(owned, ref, ref_mut)]
     #[br(count = size)]
     data: Vec<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
+}
+
+impl<InnerType, SizeType> From<DynArray<InnerType, SizeType>> for Vec<InnerType>
+where
+    for<'a> InnerType: BinRead + Serialize + 'a,
+    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
+
+    SizeType: BinRead + Debug + Copy,
+    for<'a> <SizeType as BinRead>::Args<'a>: Default,
+    usize: TryFrom<SizeType>,
+{
+    fn from(dynarray: DynArray<InnerType, SizeType>) -> Self {
+        dynarray.data
+    }
 }
 
 impl<InnerType, SizeType> From<Vec<InnerType>> for DynArray<InnerType, SizeType>
