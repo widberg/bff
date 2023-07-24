@@ -4,7 +4,7 @@ mod tests {
     use std::path::PathBuf;
 
     use bff::bigfile::BigFile;
-    use bff::platforms::extension_to_endian;
+    use bff::platforms::try_extension_to_endian;
     use binrw::io::BufReader;
     use binrw::Endian;
     use test_generator::test_resources;
@@ -15,7 +15,7 @@ mod tests {
         bigfile_path.pop();
         bigfile_path.push(bigfile_path_str);
         let endian = match bigfile_path.extension() {
-            Some(extension) => extension_to_endian(extension).unwrap_or(Endian::Little),
+            Some(extension) => try_extension_to_endian(extension).unwrap_or(Endian::Little),
             None => Endian::Little,
         };
         let f = File::open(bigfile_path).unwrap();
