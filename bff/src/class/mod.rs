@@ -1,6 +1,7 @@
 use derive_more::{From, IsVariant};
 use serde::Serialize;
 
+use self::animation::Animation;
 use self::bitmap::Bitmap;
 use self::collision_vol::CollisionVol;
 use self::game_obj::GameObj;
@@ -24,6 +25,7 @@ use crate::traits::{NamedClass, TryFromVersionPlatform};
 use crate::versions::Version;
 use crate::BffResult;
 
+pub mod animation;
 pub mod bitmap;
 pub mod collision_vol;
 pub mod game_obj;
@@ -75,6 +77,7 @@ macro_rules! classes {
 }
 
 classes! {
+    Animation,
     Bitmap,
     CollisionVol,
     GameObj,
