@@ -1,10 +1,12 @@
 use derive_more::{From, IsVariant};
 use serde::Serialize;
 
+use self::animation::Animation;
 use self::bitmap::Bitmap;
 use self::collision_vol::CollisionVol;
 use self::game_obj::GameObj;
 use self::light::Light;
+use self::light_data::LightData;
 use self::lod::Lod;
 use self::material::Material;
 use self::mesh::Mesh;
@@ -24,10 +26,12 @@ use crate::traits::{NamedClass, TryFromVersionPlatform};
 use crate::versions::Version;
 use crate::BffResult;
 
+pub mod animation;
 pub mod bitmap;
 pub mod collision_vol;
 pub mod game_obj;
 pub mod light;
+pub mod light_data;
 pub mod lod;
 pub mod material;
 pub mod mesh;
@@ -75,10 +79,12 @@ macro_rules! classes {
 }
 
 classes! {
+    Animation,
     Bitmap,
     CollisionVol,
     GameObj,
     Light,
+    LightData,
     Lod,
     Material,
     Mesh,
