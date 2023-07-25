@@ -13,6 +13,7 @@ num-traits = "0.2.15"
 bff-derive = { path = "../bff-derive", version = "*" }
 serde-big-array = "0.5.1"
 indexmap = { version = "2.0.0", features = [ "serde" ] }
+bilge = "0.1.5"
 
 [dev-dependencies]
 test-generator = "0.3.1"
