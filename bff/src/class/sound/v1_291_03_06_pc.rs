@@ -15,4 +15,13 @@ pub struct SoundBodyV1_291_03_06PC {
     data: Vec<i16>,
 }
 
+impl SoundBodyV1_291_03_06PC {
+    pub fn sample_rate(&self) -> u32 {
+        self.sample_rate
+    }
+    pub fn data(&self) -> &Vec<i16> {
+        &self.data
+    }
+}
+
 pub type SoundV1_291_03_06PC = TrivialClass<(), SoundBodyV1_291_03_06PC>;

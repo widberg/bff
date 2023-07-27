@@ -1,0 +1,121 @@
+@font-face {
+  font-family: "WorkSans";
+  src: url("fonts/WorkSans.ttf");
+}
+
+:root {
+  font-family: WorkSans, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1rem;
+  /* font-weight: 400; */
+
+  color: rgb(255, 244, 240);
+  background-color: #191618;
+  color-scheme: dark;
+
+  overflow: hidden;
+  user-select: none;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.menubar {
+  width: 100%;
+  background-color: #272527;
+}
+
+.main {
+  display: flex;
+  flex-direction: row;
+}
+
+.explorer,
+.preview {
+  width: 50%;
+}
+
+.bffobject-list {
+  height: calc(100vh - 32px);
+  overflow-y: scroll;
+  border-right: 2px solid #201e20;
+}
+
+.bffobject {
+  white-space: nowrap;
+  width: 100%;
+  padding-left: 1em;
+}
+
+.explorer-header,
+.preview-header {
+  display: flex;
+  font-size: 1.1em;
+  padding-inline: 0.5em;
+  padding-block: 0.3em;
+  height: 1em;
+  background-color: #201e20;
+}
+
+.preview-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
+  justify-content: end;
+}
+
+.preview-display {
+  image-rendering: pixelated;
+  vertical-align: middle;
+  padding: 1em;
+  height: 45vh;
+  width: auto;
+  object-fit: contain;
+  border-bottom: 2px solid #201e20;
+}
+
+.preview-text {
+  max-height: calc(50vh - 36px);
+  font-family: monospace;
+  overflow-y: scroll;
+  white-space: pre;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+  border-bottom: 2px solid #201e20;
+}
+
+.menubar button {
+  padding-inline: 0.4em;
+  padding-block: 0.1em;
+}
+
+button {
+  font-size: 1em;
+  padding: 0;
+  font-family: WorkSans;
+  text-align: start;
+  border: none;
+  background-color: #00000000;
+}
+
+button:hover {
+  background-color: #ffffff44;
+}
+
+.bffobject:focus {
+  background-color: #ffffff44;
+}

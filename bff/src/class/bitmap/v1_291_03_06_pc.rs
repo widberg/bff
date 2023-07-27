@@ -18,4 +18,10 @@ pub struct BitmapBodyV1_291_03_06PC {
     data: Vec<u8>,
 }
 
+impl BitmapBodyV1_291_03_06PC {
+    pub fn data(&self) -> &Vec<u8> {
+        &self.data
+    }
+}
+
 pub type BitmapV1_291_03_06PC = TrivialClass<(), BitmapBodyV1_291_03_06PC>;
