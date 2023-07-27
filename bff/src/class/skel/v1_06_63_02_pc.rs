@@ -61,8 +61,9 @@ struct BoxColBone {
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &()))]
-pub struct SkelBodyV1_291_03_06PC {
+pub struct SkelBodyV1_06_63_02PC {
     object_datas: ObjectDatas,
+    maybe_rotation: Quat,
     bone_nodes: DynArray<BoneNode>,
     material_crc32s: DynArray<Name>,
     mesh_data_crc32s: DynArray<Name>,
@@ -73,4 +74,4 @@ pub struct SkelBodyV1_291_03_06PC {
     box_col_bones: DynArray<BoxColBone>,
 }
 
-pub type SkelV1_291_03_06PC = TrivialClass<(), SkelBodyV1_291_03_06PC>;
+pub type SkelV1_06_63_02PC = TrivialClass<(), SkelBodyV1_06_63_02PC>;

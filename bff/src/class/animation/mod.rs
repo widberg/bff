@@ -6,5 +6,5 @@ mod v1_291_03_06_pc;
 use v1_291_03_06_pc::AnimationV1_291_03_06PC;
 
 bff_class!(Animation {
-    (V1_291_03_06, PC) => AnimationV1_291_03_06PC,
+    (V1_291_03_06, PC) | (V1_06_63_02, PC) => AnimationV1_291_03_06PC,
 });
