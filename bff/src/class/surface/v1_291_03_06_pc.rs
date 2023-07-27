@@ -1,3 +1,5 @@
+use bilge::prelude::{bitsize, u3, u5, Number};
+use bilge::{Bitsized, DebugBits};
 use binrw::BinRead;
 use serde::Serialize;
 
@@ -99,9 +101,11 @@ struct Edge {
     t: [u16; 2],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[bitsize(16)]
+#[derive(BinRead, DebugBits, Serialize)]
 struct ShouldDrawRelated {
-    data: u8,
+    index_in_draw_info_array: u3,
+    shift_amount_for_bit: u5,
     other: u8,
 }
 

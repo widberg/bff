@@ -8,6 +8,7 @@ use self::game_obj::GameObj;
 use self::light::Light;
 use self::light_data::LightData;
 use self::lod::Lod;
+use self::lod_data::LodData;
 use self::material::Material;
 use self::mesh::Mesh;
 use self::mesh_data::MeshData;
@@ -33,6 +34,7 @@ pub mod game_obj;
 pub mod light;
 pub mod light_data;
 pub mod lod;
+pub mod lod_data;
 pub mod material;
 pub mod mesh;
 pub mod mesh_data;
@@ -86,6 +88,7 @@ classes! {
     Light,
     LightData,
     Lod,
+    LodData,
     Material,
     Mesh,
     MeshData,

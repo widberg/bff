@@ -3,8 +3,9 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{Mat4f, Quat, Sphere};
+use crate::math::RGBA;
 use crate::name::Name;
+use crate::option::BffOption;
 
 #[derive(BinRead, Debug, Serialize)]
 struct ObjectDatas {
@@ -36,12 +37,12 @@ struct ActorData {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
-struct LodDataBodyV1_06_63_02PC {
+#[br(import(_link_header: &()))]
+pub struct LodDataBodyV1_06_63_02PC {
     obj_datas: ObjectDatas,
     mesh_data_or_skelcrc32s: DynArray<Name>,
     final_skel_crc32: Name,
     actor_data: BffOption<ActorData>,
 }
 
-pub type LodDataV1_06_63_02PC = TrivialClass<LinkInfo, LodDataBodyV1_06_63_02PC>;
+pub type LodDataV1_06_63_02PC = TrivialClass<(), LodDataBodyV1_06_63_02PC>;
