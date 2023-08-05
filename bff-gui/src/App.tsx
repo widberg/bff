@@ -55,38 +55,37 @@ const classNames: Map<number, String> = new Map([
   [1393846573, "FlareData_Z"],
 ]);
 
-interface BigFile {
-  name: String;
-  version: String;
-  platform: String;
+interface BigFileData {
+  name: string;
   objects: BFFObject[];
 }
 
 interface BFFObject {
-  class_name: number;
   name: number;
-  link_header: number[];
-  data: number[];
+  class_name: number;
+  is_implemented: boolean;
 }
 
-interface BFFClass {
-  preview_path?: String;
-  preview_text: String;
+interface PreviewData {
   name: number;
+  preview_data: string;
+  preview_path?: string;
 }
 
 function BFFObjectButton({
   bffObjectName = "",
+  implemented = true,
   index = 0,
   onClick,
 }: {
   bffObjectName: String;
+  implemented: boolean;
   index: number;
   onClick: any;
 }) {
   return (
     <button
-      className="bffobject"
+      className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
       onClick={() => {
         onClick(index);
       }}
@@ -108,6 +107,7 @@ function BFFObjects({
     btns.push(
       <BFFObjectButton
         key={i}
+        implemented={v.is_implemented}
         bffObjectName={String(v.name) + "." + classNames.get(v.class_name)}
         index={i}
         onClick={onClick}
@@ -131,37 +131,25 @@ function Preview({ previewPath }: { previewPath: string }) {
 }
 
 function App(this: any) {
-  const [bigfile, setBigfile] = useState<BigFile>({
+  const [bigfile, setBigfile] = useState<BigFileData>({
     name: "",
-    version: "",
-    platform: "",
     objects: [],
   });
-  const [parsedBFFObjects, setParsedBFFObjects] = useState<BFFClass[]>([]);
-  const [currentBFFObject, setCurrentBFFObject] = useState<number | null>(null);
+  const [currentBFFObject, setCurrentBFFObject] = useState<PreviewData | null>(
+    null
+  );
 
   listen("tauri://file-drop", (event) => {
     openBF((event.payload as Array<String>)[0]);
   });
 
   async function setBFFObject(objectIndex: number) {
-    let exists = false;
-    parsedBFFObjects.forEach((parsedObject, i) => {
-      if (parsedObject.name == bigfile.objects[objectIndex].name) {
-        setCurrentBFFObject(i);
-        exists = true;
-      }
-    });
-    if (exists) return;
     let tmp = await tempdir();
     let object = (await invoke("parse_object", {
-      object: bigfile.objects[objectIndex],
-      versionStr: bigfile.version,
-      platformStr: bigfile.platform,
+      objectName: bigfile.objects[objectIndex].name,
       tempPath: tmp,
-    })) as BFFClass;
-    setParsedBFFObjects([object, ...parsedBFFObjects]);
-    setCurrentBFFObject(0);
+    })) as PreviewData;
+    setCurrentBFFObject(object);
   }
 
   async function selectAndOpenBF() {
@@ -170,7 +158,20 @@ function App(this: any) {
       filters: [
         {
           name: "BigFile",
-          extensions: ["dpc", "dps"], //TODO: add all
+          extensions: [
+            "DPC",
+            "DUA",
+            "DMC",
+            "DBM",
+            "DPS",
+            "DP3",
+            "DPP",
+            "DXB",
+            "D36",
+            "DGC",
+            "DRV",
+            "DNX",
+          ], //potentially get extensions from bff itself
         },
       ],
     })) as string | null;
@@ -178,16 +179,16 @@ function App(this: any) {
     if (selected === null) {
       return;
     }
-
     openBF(selected);
   }
 
   async function openBF(path: String) {
+    setCurrentBFFObject(null);
     invoke("extract_bigfile", {
       path: path,
     })
       .then((bfData) => {
-        setBigfile(bfData as BigFile);
+        setBigfile(bfData as BigFileData);
       })
       .catch((e) => console.error(e));
   }
@@ -208,23 +209,22 @@ function App(this: any) {
         </div>
         <div className="preview">
           <span className="preview-header">
-            {currentBFFObject !== null
-              ? parsedBFFObjects[currentBFFObject].name
-              : "preview"}
+            {currentBFFObject !== null ? currentBFFObject.name : "preview"}
           </span>
           {currentBFFObject !== null && (
             <>
               <div className="preview-inner">
-                {parsedBFFObjects[currentBFFObject].preview_path !== null && (
+                {currentBFFObject.preview_path !== null ? (
                   <Preview
                     previewPath={convertFileSrc(
-                      parsedBFFObjects[currentBFFObject].preview_path as string
+                      currentBFFObject.preview_path as string
                     )}
                   />
+                ) : (
+                  <div className="preview-text">
+                    <p>{currentBFFObject.preview_data}</p>
+                  </div>
                 )}
-                <div className="preview-text">
-                  <p>{parsedBFFObjects[currentBFFObject].preview_text}</p>
-                </div>
               </div>
             </>
           )}

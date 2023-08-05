@@ -4,13 +4,19 @@
 }
 
 :root {
+  --font: hsl(16, 100%, 97%);
+  --background: hsl(320, 6%, 9%);
+  --light1-background: hsl(300, 3%, 15%);
+  --light2-background: hsl(300, 3%, 12%);
+  --hover: hsla(0, 0%, 100%, 0.25);
+  --error: hsl(357, 97%, 75%);
+
   font-family: WorkSans, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1rem;
-  /* font-weight: 400; */
 
-  color: rgb(255, 244, 240);
-  background-color: #191618;
+  color: var(--font);
+  background-color: var(--background);
   color-scheme: dark;
 
   overflow: hidden;
@@ -33,7 +39,7 @@ body {
 
 .menubar {
   width: 100%;
-  background-color: #272527;
+  background-color: var(--light1-background);
 }
 
 .main {
@@ -47,9 +53,9 @@ body {
 }
 
 .bffobject-list {
-  height: calc(100vh - 32px);
+  height: calc(100vh - 3em);
   overflow-y: scroll;
-  border-right: 2px solid #201e20;
+  border-right: 2px solid var(--light2-background);
 }
 
 .bffobject {
@@ -63,9 +69,9 @@ body {
   display: flex;
   font-size: 1.1em;
   padding-inline: 0.5em;
-  padding-block: 0.3em;
+  padding-block: 0.25em;
   height: 1em;
-  background-color: #201e20;
+  background-color: var(--light2-background);
 }
 
 .preview-inner {
@@ -81,21 +87,23 @@ body {
   image-rendering: pixelated;
   vertical-align: middle;
   padding: 1em;
-  height: 45vh;
-  width: auto;
+  height: calc(100vh - 5em);
+  width: calc(100% - 2em);
   object-fit: contain;
-  border-bottom: 2px solid #201e20;
+  border-bottom: 0.125em solid var(--light2-background);
 }
 
 .preview-text {
-  max-height: calc(50vh - 36px);
+  height: calc(100vh - 3em);
   font-family: monospace;
+  overflow-x: auto;
   overflow-y: scroll;
   white-space: pre;
-  word-wrap: break-word;
-  word-break: break-all;
-  white-space: pre-wrap;
-  border-bottom: 2px solid #201e20;
+  line-height: 1.3rem;
+  white-space: pre;
+  user-select: text;
+  padding-inline: 0.5em;
+  border-bottom: 0.125em solid var(--light2-background);
 }
 
 .menubar button {
@@ -113,9 +121,13 @@ button {
 }
 
 button:hover {
-  background-color: #ffffff44;
+  background-color: var(--hover);
 }
 
 .bffobject:focus {
-  background-color: #ffffff44;
+  background-color: var(--hover);
+}
+
+.bffobject-unimpl {
+  color: var(--error);
 }
