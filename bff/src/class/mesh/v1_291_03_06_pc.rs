@@ -112,13 +112,13 @@ struct Vertex {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct Triangle {
+pub struct Triangle {
     indices: Vec3<i16>,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(length: u32))]
-enum VertexStruct {
+pub enum VertexStruct {
     #[br(pre_assert(length == 24))]
     VertexStruct24 {
         position: Vec3f,
@@ -163,7 +163,7 @@ enum VertexStruct {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct VertexBuffer {
+pub struct VertexBuffer {
     vertex_struct_count: u32,
     vertex_struct_length: u32,
     unknown: u32,
@@ -172,7 +172,7 @@ struct VertexBuffer {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct IndexBuffer {
+pub struct IndexBuffer {
     index_count: u32,
     unknown: u32,
     #[br(count = index_count / 3)]
@@ -217,7 +217,7 @@ struct Morpher {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct MeshBuffer {
+pub struct MeshBuffer {
     vertex_buffers: DynArray<VertexBuffer>,
     index_buffers: DynArray<IndexBuffer>,
     vertex_groups: DynArray<VertexGroup>,
@@ -249,6 +249,39 @@ pub struct MeshBodyV1_291_03_06PC {
     unknown6s: DynArray<Unknown6>,
     mesh_buffer: MeshBuffer,
     unknown8s: DynArray<Unknown8>,
+}
+
+impl MeshBodyV1_291_03_06PC {
+    pub fn mesh_buffer(&self) -> &MeshBuffer {
+        &self.mesh_buffer
+    }
+}
+
+impl MeshBuffer {
+    pub fn vertex_buffers(&self) -> &Vec<VertexBuffer> {
+        &self.vertex_buffers
+    }
+    pub fn index_buffers(&self) -> &Vec<IndexBuffer> {
+        &self.index_buffers
+    }
+}
+
+impl VertexBuffer {
+    pub fn vertex_structs(&self) -> &Vec<VertexStruct> {
+        &self.vertex_structs
+    }
+}
+
+impl IndexBuffer {
+    pub fn tris(&self) -> &Vec<Triangle> {
+        &self.tris
+    }
+}
+
+impl Triangle {
+    pub fn indices(&self) -> &[i16; 3] {
+        &self.indices
+    }
 }
 
 pub type MeshV1_291_03_06PC = TrivialClass<LinkInfo, MeshBodyV1_291_03_06PC>;

@@ -1,5 +1,3 @@
-use bilge::prelude::{bitsize, u3, u5, Number};
-use bilge::{Bitsized, DebugBits};
 use binrw::BinRead;
 use serde::Serialize;
 
@@ -8,6 +6,11 @@ use crate::dynarray::DynArray;
 use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
 use crate::option::BffOption;
+
+#[derive(BinRead, Debug, Serialize)]
+struct Box {
+    transformation: Mat4f,
+}
 
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkInfo {
@@ -23,38 +26,59 @@ pub struct LinkInfo {
 
 #[derive(BinRead, Debug, Serialize)]
 struct PointsRelated0 {
-    vector: Vec3f,
+    vec3: Vec3f,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct PointsRelated1 {
-    vector: Vec4f,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct Points {
-    points_related0s: DynArray<PointsRelated0>,
-    points_related1s: DynArray<PointsRelated1>,
-    morpher: Morpher,
+    vec4: Vec4f,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct MorpherRelated {
-    data: [u8; 4],
+    data: [u8; 16],
+}
+
+#[derive(BinRead, Debug, Serialize)]
+struct MorphTargetDescRelated {
+    data: [u8; 16],
+}
+
+#[derive(BinRead, Debug, Serialize)]
+struct MorphTargetDesc {
+    name: u32,
+    morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
+    morph_target_descs: DynArray<MorphTargetDesc>,
+}
+
+#[derive(BinRead, Debug, Serialize)]
+struct Points {
+    points_relateds0: DynArray<PointsRelated0>,
+    points_relateds1: DynArray<PointsRelated1>,
+    morpher: Morpher,
+}
+
+#[derive(BinRead, Debug, Serialize)]
+struct PatchCol {
+    sphere: Sphere,
+    flag: u32,
+    edge_col_id: u16,
+    next_patch_col_id: u16,
+    cdcdcdcd: [u32; 2],
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct EdgeCol {
     sphere: Sphere,
     flag: u32,
-    unknown0: u32,
-    unknown1: u32,
     edge_id: u32,
+    cache_index_maybe: u32,
+    unk_placeholder_ptr3: u32,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -62,19 +86,13 @@ struct ClingLineRelated {
     sphere: Sphere,
     flag: u32,
     edge_id: u32,
-    unknown0: u32,
-    unknown1: u32,
-    unknown2: f32,
+    unk_uints: [u32; 2],
+    unk_float: f32,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 struct CullCone {
     data: [u8; 32],
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct Box {
-    transformation: Mat4f,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -101,23 +119,6 @@ struct Edge {
     t: [u16; 2],
 }
 
-#[bitsize(16)]
-#[derive(BinRead, DebugBits, Serialize)]
-struct ShouldDrawRelated {
-    index_in_draw_info_array: u3,
-    shift_amount_for_bit: u5,
-    other: u8,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct PatchCol {
-    sphere: Sphere,
-    flag: u32,
-    edge_col_id: u16,
-    next_patch_col_id: u16,
-    cdcdcdcd: [u32; 2],
-}
-
 #[derive(BinRead, Debug, Serialize)]
 struct SeadVoxel {
     element_entry: u16,
@@ -128,29 +129,37 @@ struct SeadVoxel {
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patch_indices: DynArray<u16>,
-    unknown_vec0s: [Vec4f; 3],
-    axes0: Vec3f,
-    unknown_ptr0: u32,
-    axes1: Vec3f,
-    unknown_ptr1: u32,
-    axes2: Vec3f,
-    unknown_ptr2: u32,
-    unknown_vec1: Vec4f,
+    unk_vec4_1: Vec4f,
+    unk_vec4_2: Vec4f,
+    unk_vec4_3: Vec4f,
+    axes_1: Vec3f,
+    unk_ptr1: u32,
+    axes_2: Vec3f,
+    unk_ptr2: u32,
+    axes_3: Vec3f,
+    unk_ptr3: u32,
+    unk_vec4_4: Vec4f,
     size: Vec4f,
     step: Vec3f,
-    unknown_ptr3: u32,
+    unk_ptr4: u32,
     center: Vec4f,
-    unknown_vec2: Vec4f,
+    unk_vec4_7: Vec4f,
     f_size: Vec3f,
-    unknown_ptr4: u32,
-    used_in_voxel_trace: u32,
+    unk_ptr5: u32,
+    unk_used_in_voxel_trace: u32,
     i_size: Vec3f,
     hit_patch_count: u32,
 }
 
 #[derive(BinRead, Debug, Serialize)]
+struct ShouldDrawRelated {
+    data: u8,
+    other: u8,
+}
+
+#[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &LinkInfo))]
-pub struct SurfaceBodyV1_291_03_06PC {
+pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
     cling_line_relateds: DynArray<ClingLineRelated>,
@@ -164,4 +173,4 @@ pub struct SurfaceBodyV1_291_03_06PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_291_03_06PC = TrivialClass<LinkInfo, SurfaceBodyV1_291_03_06PC>;
+pub type SurfaceV1_06_63_02PC = TrivialClass<LinkInfo, SurfaceBodyV1_06_63_02PC>;

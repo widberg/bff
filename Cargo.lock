@@ -121,6 +121,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b13c32d80ecc7ab747b80c3784bce54ee8a7a0cc4fbda9bf4cda2cf6fe90854"
 
 [[package]]
+name = "arbitrary-int"
+version = "1.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe8e2a586ecd6eb29477a0c25b19742acca4fa5e39c92e127656616810c20579"
+
+[[package]]
 name = "array-init"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -219,6 +225,7 @@ version = "0.1.0"
 dependencies = [
  "ascii",
  "bff-derive",
+ "bilge",
  "binrw",
  "derive_more",
  "indexmap 2.0.0",
@@ -254,10 +261,33 @@ dependencies = [
  "ddsfile",
  "hound",
  "image_dds",
+ "quick-xml 0.30.0",
  "serde",
  "serde_yaml",
  "tauri",
  "tauri-build",
+]
+
+[[package]]
+name = "bilge"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79ce1664066c385d913b974a9f59746a78b7e550e9ffb7984eda322ab8bf5e08"
+dependencies = [
+ "arbitrary-int",
+ "bilge-impl",
+]
+
+[[package]]
+name = "bilge-impl"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60fd0a3dc3001795b19260220070e6e8cbb3d8013351f382cc38533a41ca6e27"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2 1.0.66",
+ "quote 1.0.31",
+ "syn 2.0.27",
 ]
 
 [[package]]
@@ -2481,7 +2511,7 @@ dependencies = [
  "base64 0.21.2",
  "indexmap 1.9.3",
  "line-wrap",
- "quick-xml",
+ "quick-xml 0.29.0",
  "serde",
  "time",
 ]
@@ -2591,6 +2621,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81b9228215d82c7b61490fec1de287136b5de6f5700f6e58ea9ad61a7964ca51"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eff6510e86862b57b210fd8cbe8ed3f0d7d600b9c2863cd4549a2e033c66e956"
+dependencies = [
+ "memchr",
+ "serde",
 ]
 
 [[package]]

@@ -102,18 +102,15 @@ function BFFObjects({
   bffObjects: BFFObject[];
   onClick: any;
 }) {
-  let btns: JSX.Element[] = [];
-  bffObjects.map((v: BFFObject, i: number) => {
-    btns.push(
-      <BFFObjectButton
-        key={i}
-        implemented={v.is_implemented}
-        bffObjectName={String(v.name) + "." + classNames.get(v.class_name)}
-        index={i}
-        onClick={onClick}
-      />
-    );
-  });
+  let btns: JSX.Element[] = bffObjects.map((v: BFFObject, i: number) => (
+    <BFFObjectButton
+      key={i}
+      implemented={v.is_implemented}
+      bffObjectName={String(v.name) + "." + classNames.get(v.class_name)}
+      index={i}
+      onClick={onClick}
+    />
+  ));
   return <div>{btns}</div>;
 }
 
