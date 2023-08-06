@@ -420,7 +420,9 @@ fn parse_object(
                             .index_buffers()
                             .iter()
                             .flat_map(|i| i.tris())
-                            .flat_map(|tri| tri.indices().to_vec())
+                            .flat_map(|tri| {
+                                tri.indices().iter().rev().map(|i| *i).collect::<Vec<i16>>()
+                            })
                             .collect();
                         let geometries: Vec<ColladaGeometry> = buffers
                             .iter()

@@ -5,6 +5,9 @@ import { tempdir } from "@tauri-apps/api/os";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { JSX } from "react/jsx-runtime";
+import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 
 //this is copied from dpc LOL
 //TODO: get the name from the backend
@@ -125,7 +128,43 @@ function Preview({ previewPath }: { previewPath: string }) {
     );
   else if (previewPath.endsWith("wav"))
     return <audio className="preview-display" controls src={previewPath} />;
+  else if (previewPath.endsWith("dae")) {
+    const { scene } = useLoader(ColladaLoader, previewPath);
+    return (
+      <Canvas
+        camera={{ fov: 70, position: [0, 0, 5] }}
+        resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
+      >
+        <OrbitControls rotateSpeed={0.7} dampingFactor={0.1} makeDefault />
+        <ambientLight intensity={0.1} />
+        <directionalLight color="white" position={[3, 3, 3]} />
+        <group>
+          <primitive object={scene} />
+        </group>
+      </Canvas>
+    );
+  }
 }
+
+// function Model(props) {
+//   const meshRef = useRef(null);
+//   const [hovered, setHover] = useState(false);
+//   const [active, setActive] = useState(false);
+//   useFrame((state, delta) => (meshRef.current.rotation.x += 0.01));
+//   return (
+//     <mesh
+//       {...props}
+//       ref={meshRef}
+//       scale={active ? 1.5 : 1}
+//       onClick={(event) => setActive(!active)}
+//       onPointerOver={(event) => setHover(true)}
+//       onPointerOut={(event) => setHover(false)}
+//     >
+//       <boxGeometry args={[1, 1, 1]} />
+//       <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
+//     </mesh>
+//   );
+// }
 
 function App(this: any) {
   const [bigfile, setBigfile] = useState<BigFileData>({
