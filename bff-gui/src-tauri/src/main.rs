@@ -17,7 +17,6 @@ use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
 use bff::BufReader;
 
-use quick_xml::events::{BytesStart, Event};
 use quick_xml::writer::Writer;
 
 use serde::Serialize;
@@ -407,7 +406,7 @@ fn parse_object(
                                 let all_normals = normals
                                     .iter()
                                     .flat_map(|pos| pos.to_vec())
-                                    .map(|i| (i as f32 - 128.0) / -128.0)
+                                    .map(|i| (i as f32 - 128.0) / 128.0)
                                     .collect();
                                 SimpleMesh {
                                     positions: all_positions,
@@ -481,33 +480,51 @@ fn parse_object(
                                                 offset: None,
                                             },
                                         },
-                                        triangles: vec![ColladaTriangles {
-                                            count: indices.len() / 3,
-                                            material: None,
-                                            input: vec![
-                                                ("VERTEX", "vertices"),
-                                                ("NORMAL", "normals"),
-                                            ]
+                                        triangles: mesh
+                                            .body()
+                                            .mesh_buffer()
+                                            .vertex_groups()
                                             .iter()
-                                            .enumerate()
-                                            .map(|(i, p)| ColladaInput {
-                                                semantic: p.0.to_string(),
-                                                source: format!(
-                                                    "#{}-{}",
-                                                    geometry_id,
-                                                    p.1.to_string()
-                                                ),
-                                                offset: Some(i),
+                                            .map(|group| {
+                                                let offset_indices = &indices[*group
+                                                    .index_buffer_offset_in_shorts()
+                                                    as usize
+                                                    ..*group.index_buffer_offset_in_shorts()
+                                                        as usize
+                                                        + *group.face_count() as usize * 3];
+                                                ColladaTriangles {
+                                                    count: offset_indices.len() / 3,
+                                                    material: None,
+                                                    input: vec![
+                                                        ("VERTEX", "vertices"),
+                                                        ("NORMAL", "normals"),
+                                                    ]
+                                                    .iter()
+                                                    .enumerate()
+                                                    .map(|(i, p)| ColladaInput {
+                                                        semantic: p.0.to_string(),
+                                                        source: format!(
+                                                            "#{}-{}",
+                                                            geometry_id,
+                                                            p.1.to_string()
+                                                        ),
+                                                        offset: Some(i),
+                                                    })
+                                                    .collect(),
+                                                    p: offset_indices
+                                                        .iter()
+                                                        .map(|i| {
+                                                            format!(
+                                                                "{} {}",
+                                                                i.to_string(),
+                                                                i.to_string()
+                                                            )
+                                                        })
+                                                        .collect::<Vec<String>>()
+                                                        .join(" "),
+                                                }
                                             })
                                             .collect(),
-                                            p: indices
-                                                .iter()
-                                                .map(|i| {
-                                                    format!("{} {}", i.to_string(), i.to_string())
-                                                })
-                                                .collect::<Vec<String>>()
-                                                .join(" "),
-                                        }],
                                     },
                                     id: geometry_id,
                                     name: format!("{}.{}", object.name(), i),

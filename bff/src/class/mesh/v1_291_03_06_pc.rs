@@ -180,7 +180,7 @@ pub struct IndexBuffer {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct VertexGroup {
+pub struct VertexGroup {
     zeroes: Vec3<u32>,
     primitive: u32,
     vertex_offset_in_groups: u16,
@@ -264,6 +264,9 @@ impl MeshBuffer {
     pub fn index_buffers(&self) -> &Vec<IndexBuffer> {
         &self.index_buffers
     }
+    pub fn vertex_groups(&self) -> &Vec<VertexGroup> {
+        &self.vertex_groups
+    }
 }
 
 impl VertexBuffer {
@@ -281,6 +284,15 @@ impl IndexBuffer {
 impl Triangle {
     pub fn indices(&self) -> &[i16; 3] {
         &self.indices
+    }
+}
+
+impl VertexGroup {
+    pub fn index_buffer_offset_in_shorts(&self) -> &u32 {
+        &self.index_buffer_offset_in_shorts
+    }
+    pub fn face_count(&self) -> &u32 {
+        &self.face_count
     }
 }
 
