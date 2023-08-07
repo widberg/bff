@@ -337,7 +337,7 @@ fn parse_object(
                     _ => (
                         format!(
                             "Error: unimplemented class version\n\n{}",
-                            serde_yaml::to_string(&object).unwrap()
+                            serde_yaml::to_string(&bitmap).unwrap()
                         ),
                         None,
                     ),
@@ -360,7 +360,7 @@ fn parse_object(
                     _ => (
                         format!(
                             "Error: unimplemented class version\n\n{}",
-                            serde_yaml::to_string(&object).unwrap()
+                            serde_yaml::to_string(&sound).unwrap()
                         ),
                         None,
                     ),
@@ -590,7 +590,7 @@ fn parse_object(
                     _ => (
                         format!(
                             "Error: unimplemented class version\n\n{}",
-                            serde_yaml::to_string(&object).unwrap()
+                            serde_yaml::to_string(&mesh).unwrap()
                         ),
                         None,
                     ),
@@ -602,7 +602,7 @@ fn parse_object(
                     _ => (
                         format!(
                             "Error: unimplemented class version\n\n{}",
-                            serde_yaml::to_string(&object).unwrap()
+                            serde_yaml::to_string(&userdefine).unwrap()
                         ),
                         None,
                     ),
@@ -610,7 +610,7 @@ fn parse_object(
                 _ => (
                     format!(
                         "Preview unavailable\n\n{}",
-                        serde_yaml::to_string(&object).unwrap()
+                        serde_yaml::to_string(&class).unwrap()
                     ),
                     None,
                 ),
