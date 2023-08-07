@@ -15,7 +15,6 @@ import {
   MeshBasicMaterial,
   MeshNormalMaterial,
   MeshStandardMaterial,
-  Side,
 } from "three";
 
 //this is copied from dpc LOL
@@ -127,16 +126,38 @@ function BFFObjects({
 }
 
 function Preview({ previewPath }: { previewPath: string }) {
-  if (previewPath.endsWith("png"))
+  if (previewPath.endsWith("png")) {
+    const [rendering, setRendering] = useState<string>("pixelated");
+    function setFilter(enabled: boolean) {
+      setRendering(enabled ? "auto" : "pixelated");
+    }
     return (
-      <img
-        className="preview-display preview-image"
-        src={previewPath}
-        alt="image"
-      />
+      <div>
+        <div className="preview-overlay">
+          <div>
+            <label htmlFor="filter">Filter</label>
+            <input
+              type="checkbox"
+              id="filter"
+              onChange={(e) => setFilter(e.target.checked)}
+            />
+          </div>
+        </div>
+        <img
+          //@ts-ignore
+          style={{ imageRendering: rendering }}
+          className="preview-display preview-image"
+          src={previewPath}
+          alt="image"
+        />
+      </div>
     );
-  else if (previewPath.endsWith("wav"))
-    return <audio className="preview-display" controls src={previewPath} />;
+  } else if (previewPath.endsWith("wav"))
+    return (
+      <div className="preview-display">
+        <audio controls src={previewPath} />
+      </div>
+    );
   else if (previewPath.endsWith("dae")) {
     const { scene } = useLoader(ColladaLoader, previewPath);
     const [material, setMaterial] = useState<Material>(
@@ -153,7 +174,7 @@ function Preview({ previewPath }: { previewPath: string }) {
     }
     return (
       <div className="preview-scene">
-        <div className="scene-ui">
+        <div className="preview-overlay">
           <label htmlFor="material">Material</label>
           <select
             name="material"
@@ -190,26 +211,6 @@ function Preview({ previewPath }: { previewPath: string }) {
     );
   }
 }
-
-// function Model(props) {
-//   const meshRef = useRef(null);
-//   const [hovered, setHover] = useState(false);
-//   const [active, setActive] = useState(false);
-//   useFrame((state, delta) => (meshRef.current.rotation.x += 0.01));
-//   return (
-//     <mesh
-//       {...props}
-//       ref={meshRef}
-//       scale={active ? 1.5 : 1}
-//       onClick={(event) => setActive(!active)}
-//       onPointerOver={(event) => setHover(true)}
-//       onPointerOut={(event) => setHover(false)}
-//     >
-//       <boxGeometry args={[1, 1, 1]} />
-//       <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
-//     </mesh>
-//   );
-// }
 
 function App(this: any) {
   const [bigfile, setBigfile] = useState<BigFileData>({
