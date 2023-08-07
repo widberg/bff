@@ -8,6 +8,15 @@ import { JSX } from "react/jsx-runtime";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import {
+  DoubleSide,
+  FrontSide,
+  Material,
+  MeshBasicMaterial,
+  MeshNormalMaterial,
+  MeshStandardMaterial,
+  Side,
+} from "three";
 
 //this is copied from dpc LOL
 //TODO: get the name from the backend
@@ -130,18 +139,54 @@ function Preview({ previewPath }: { previewPath: string }) {
     return <audio className="preview-display" controls src={previewPath} />;
   else if (previewPath.endsWith("dae")) {
     const { scene } = useLoader(ColladaLoader, previewPath);
+    const [material, setMaterial] = useState<Material>(
+      new MeshStandardMaterial()
+    );
+    function changeMaterial(type: string) {
+      if (type == "default") setMaterial(new MeshStandardMaterial());
+      else if (type == "normal") setMaterial(new MeshNormalMaterial());
+      else if (type == "wireframe")
+        setMaterial(new MeshBasicMaterial({ wireframe: true }));
+    }
+    function setSide(checked: boolean) {
+      material.side = checked ? DoubleSide : FrontSide;
+    }
     return (
-      <Canvas
-        camera={{ fov: 70, position: [0, 0, 5] }}
-        resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
-      >
-        <OrbitControls rotateSpeed={0.7} dampingFactor={0.1} makeDefault />
-        <ambientLight intensity={0.1} />
-        <directionalLight color="white" position={[3, 3, 3]} />
-        <group>
-          <primitive object={scene} />
-        </group>
-      </Canvas>
+      <div className="preview-scene">
+        <div className="scene-ui">
+          <label htmlFor="material">Material</label>
+          <select
+            name="material"
+            id="material"
+            defaultValue={"default"}
+            onChange={(e) => changeMaterial(e.target.value)}
+          >
+            <option value="default">Default</option>
+            <option value="normal">Normal</option>
+            <option value="wireframe">Wireframe</option>
+          </select>
+          <div>
+            <label htmlFor="sided">Double sided</label>
+            <input
+              type="checkbox"
+              id="sided"
+              onChange={(e) => setSide(e.target.checked)}
+            />
+          </div>
+        </div>
+        <Canvas
+          camera={{ fov: 70, position: [0, 0, 5] }}
+          resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
+        >
+          <OrbitControls rotateSpeed={0.7} dampingFactor={0.1} makeDefault />
+          <ambientLight intensity={0.1} />
+          <directionalLight color="white" position={[10, 10, 10]} />
+          <directionalLight color="white" position={[-10, -10, -10]} />
+          <group>
+            <primitive object={scene} children-0-material={material} />
+          </group>
+        </Canvas>
+      </div>
     );
   }
 }
