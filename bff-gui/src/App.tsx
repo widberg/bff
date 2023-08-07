@@ -16,6 +16,7 @@ import {
   MeshNormalMaterial,
   MeshStandardMaterial,
 } from "three";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 //this is copied from dpc LOL
 //TODO: get the name from the backend
@@ -126,31 +127,36 @@ function BFFObjects({
 }
 
 function Preview({ previewPath }: { previewPath: string }) {
+  const [rendering, setRendering] = useState<string>("pixelated");
+
+  function setFilter(enabled: boolean) {
+    setRendering(enabled ? "auto" : "pixelated");
+  }
+
   if (previewPath.endsWith("png")) {
-    const [rendering, setRendering] = useState<string>("pixelated");
-    function setFilter(enabled: boolean) {
-      setRendering(enabled ? "auto" : "pixelated");
-    }
     return (
-      <div>
+      <TransformWrapper minScale={0.25} limitToBounds={false}>
         <div className="preview-overlay">
           <div>
             <label htmlFor="filter">Filter</label>
             <input
               type="checkbox"
               id="filter"
+              defaultChecked={rendering == "auto" ? true : false}
               onChange={(e) => setFilter(e.target.checked)}
             />
           </div>
         </div>
-        <img
-          //@ts-ignore
-          style={{ imageRendering: rendering }}
-          className="preview-display preview-image"
-          src={previewPath}
-          alt="image"
-        />
-      </div>
+        <TransformComponent>
+          <img
+            //@ts-ignore
+            style={{ imageRendering: rendering }}
+            src={previewPath}
+            alt="image"
+            className="preview-image"
+          />
+        </TransformComponent>
+      </TransformWrapper>
     );
   } else if (previewPath.endsWith("wav"))
     return (
@@ -163,6 +169,7 @@ function Preview({ previewPath }: { previewPath: string }) {
     const [material, setMaterial] = useState<Material>(
       new MeshStandardMaterial()
     );
+
     function changeMaterial(type: string) {
       if (type == "default") setMaterial(new MeshStandardMaterial());
       else if (type == "normal") setMaterial(new MeshNormalMaterial());
@@ -172,6 +179,7 @@ function Preview({ previewPath }: { previewPath: string }) {
     function setSide(checked: boolean) {
       material.side = checked ? DoubleSide : FrontSide;
     }
+
     return (
       <div className="preview-scene">
         <div className="preview-overlay">
@@ -179,7 +187,6 @@ function Preview({ previewPath }: { previewPath: string }) {
           <select
             name="material"
             id="material"
-            defaultValue={"default"}
             onChange={(e) => changeMaterial(e.target.value)}
           >
             <option value="default">Default</option>

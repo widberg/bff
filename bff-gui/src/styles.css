@@ -51,8 +51,12 @@ body {
 
 .explorer,
 .preview {
-  height: 100%;
   width: 50%;
+}
+
+.preview {
+  min-height: calc(100vh - 1.4em);
+  background-color: var(--light1-background);
 }
 
 .explorer {
@@ -92,6 +96,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--light1-background);
+  height: 100%;
 }
 
 .preview-header {
@@ -102,12 +107,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* image-rendering: pixelated; */
+  image-rendering: pixelated;
   padding: 1em;
   height: calc(100vh - 5em);
   width: calc(100% - 2em);
   object-fit: contain;
   border-bottom: 0.125em solid var(--light2-background);
+}
+
+.preview-image {
+  height: calc(100vh - 3em);
+  width: 100%;
+  object-fit: contain;
 }
 
 .preview-scene {
@@ -123,6 +134,8 @@ body {
   flex-direction: column;
   gap: 0.2em;
   background-color: var(--background);
+  bottom: 0;
+  right: 0;
 }
 
 .preview-text {
