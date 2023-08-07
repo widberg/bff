@@ -84,6 +84,11 @@ interface PreviewData {
   preview_path?: string;
 }
 
+interface MeshMaterial {
+  name: string;
+  material: Material;
+}
+
 function BFFObjectButton({
   bffObjectName = "",
   implemented = true,
@@ -128,9 +133,26 @@ function BFFObjects({
 
 function Preview({ previewPath }: { previewPath: string }) {
   const [rendering, setRendering] = useState<string>("pixelated");
+  const [material, setMaterial] = useState<MeshMaterial>({
+    name: "default",
+    material: new MeshStandardMaterial(),
+  });
 
   function setFilter(enabled: boolean) {
     setRendering(enabled ? "auto" : "pixelated");
+  }
+  function changeMaterial(type: string) {
+    let mat: Material = new MeshStandardMaterial();
+    if (type == "normal") mat = new MeshNormalMaterial();
+    else if (type == "wireframe")
+      mat = new MeshBasicMaterial({ wireframe: true });
+    setMaterial({
+      name: type,
+      material: mat,
+    });
+  }
+  function setSide(checked: boolean) {
+    material.material.side = checked ? DoubleSide : FrontSide;
   }
 
   if (previewPath.endsWith("png")) {
@@ -142,7 +164,7 @@ function Preview({ previewPath }: { previewPath: string }) {
             <input
               type="checkbox"
               id="filter"
-              defaultChecked={rendering == "auto" ? true : false}
+              defaultChecked={rendering == "auto"}
               onChange={(e) => setFilter(e.target.checked)}
             />
           </div>
@@ -166,19 +188,6 @@ function Preview({ previewPath }: { previewPath: string }) {
     );
   else if (previewPath.endsWith("dae")) {
     const { scene } = useLoader(ColladaLoader, previewPath);
-    const [material, setMaterial] = useState<Material>(
-      new MeshStandardMaterial()
-    );
-
-    function changeMaterial(type: string) {
-      if (type == "default") setMaterial(new MeshStandardMaterial());
-      else if (type == "normal") setMaterial(new MeshNormalMaterial());
-      else if (type == "wireframe")
-        setMaterial(new MeshBasicMaterial({ wireframe: true }));
-    }
-    function setSide(checked: boolean) {
-      material.side = checked ? DoubleSide : FrontSide;
-    }
 
     return (
       <div className="preview-scene">
@@ -187,6 +196,7 @@ function Preview({ previewPath }: { previewPath: string }) {
           <select
             name="material"
             id="material"
+            defaultValue={material.name}
             onChange={(e) => changeMaterial(e.target.value)}
           >
             <option value="default">Default</option>
@@ -198,6 +208,7 @@ function Preview({ previewPath }: { previewPath: string }) {
             <input
               type="checkbox"
               id="sided"
+              defaultChecked={material.material.side == DoubleSide}
               onChange={(e) => setSide(e.target.checked)}
             />
           </div>
@@ -211,7 +222,7 @@ function Preview({ previewPath }: { previewPath: string }) {
           <directionalLight color="white" position={[10, 10, 10]} />
           <directionalLight color="white" position={[-10, -10, -10]} />
           <group>
-            <primitive object={scene} children-0-material={material} />
+            <primitive object={scene} children-0-material={material.material} />
           </group>
         </Canvas>
       </div>
