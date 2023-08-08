@@ -64,7 +64,8 @@ body {
 }
 
 .bffobject-list {
-  height: calc(100vh - 3em);
+  height: calc(100vh - 4.45em);
+  padding-top: 1.4em;
   overflow-y: scroll;
 }
 
@@ -80,6 +81,29 @@ body {
 
 .bffobject-unimpl {
   color: var(--error);
+}
+
+.explorer-sort {
+  background-color: var(--light1-background);
+  display: flex;
+  position: fixed;
+  width: calc(40% - 0.95rem);
+}
+
+.explorer-sort button {
+  padding-inline: 0.3em;
+  padding-block: 0.1em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  /* text-align: center; */
+}
+
+.explorer-sort-arrow {
+  text-align: right;
+  font-size: 0.8em;
 }
 
 .explorer-header,

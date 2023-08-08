@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/dialog";
+import { open, message } from "@tauri-apps/api/dialog";
 import { tempdir } from "@tauri-apps/api/os";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
@@ -79,10 +79,11 @@ interface BFFObject {
   is_implemented: boolean;
 }
 
-interface PreviewData {
+interface PreviewObject {
   name: number;
   preview_data: string;
   preview_path?: string;
+  error?: string;
 }
 
 interface MeshMaterial {
@@ -90,22 +91,27 @@ interface MeshMaterial {
   material: Material;
 }
 
+interface ParseError {
+  error: string;
+  object: PreviewObject;
+}
+
 function BFFObjectButton({
   bffObjectName = "",
   implemented = true,
-  index = 0,
+  name = 0,
   onClick,
 }: {
   bffObjectName: string;
   implemented: boolean;
-  index: number;
+  name: number;
   onClick: any;
 }) {
   return (
     <button
       className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
       onClick={() => {
-        onClick(index);
+        onClick(name);
       }}
     >
       {bffObjectName}
@@ -116,22 +122,30 @@ function BFFObjectButton({
 function BFFObjects({
   bffObjects,
   onClick,
+  sort,
+  sortForward,
 }: {
   bffObjects: BFFObject[];
   onClick: any;
+  sort: number;
+  sortForward: boolean;
 }) {
-  bffObjects.sort((a, b) => a.name - b.name);
-  bffObjects.sort((a, b) =>
-    (classNames.get(a.class_name) as string).localeCompare(
-      classNames.get(b.class_name) as string
-    )
-  );
-  let btns: JSX.Element[] = bffObjects.map((v: BFFObject, i: number) => (
+  let objectsCopy = [...bffObjects];
+  if (sort == 1) objectsCopy.sort((a, b) => a.name - b.name);
+  else if (sort == 2)
+    objectsCopy.sort((a, b) =>
+      (classNames.get(a.class_name) as string).localeCompare(
+        classNames.get(b.class_name) as string
+      )
+    );
+  if (!sortForward) objectsCopy.reverse();
+
+  let btns: JSX.Element[] = objectsCopy.map((v: BFFObject, i: number) => (
     <BFFObjectButton
       key={i}
       implemented={v.is_implemented}
       bffObjectName={String(v.name) + "." + classNames.get(v.class_name)}
-      index={i}
+      name={v.name}
       onClick={onClick}
     />
   ));
@@ -245,31 +259,36 @@ function App(this: any) {
     name: "",
     objects: [],
   });
-  const [currentBFFObject, setCurrentBFFObject] = useState<PreviewData | null>(
-    null
-  );
+  const [currentBFFObject, setCurrentBFFObject] =
+    useState<PreviewObject | null>(null);
+  const [sortOrderForward, setSortOrderForward] = useState<boolean>(true);
+  const [sort, setSort] = useState<number>(0);
 
-  listen("tauri://file-drop", (event) => {
-    openBF((event.payload as Array<String>)[0]);
-  });
+  // listen<string[]>("tauri://file-drop", (event) => {
+  //   console.log(event.windowLabel);
+  //   openBF((event.payload as string[])[0]);
+  // });
 
-  async function setBFFObject(objectIndex: number) {
+  async function setBFFObject(objectName: number) {
     let tmp = await tempdir();
     invoke("parse_object", {
-      objectName: bigfile.objects[objectIndex].name,
+      objectName: objectName,
       tempPath: tmp,
     })
       .then((object) => {
-        setCurrentBFFObject(object as PreviewData);
+        setCurrentBFFObject(object as PreviewObject);
       })
       .catch((err) => {
-        console.error(err);
-        setCurrentBFFObject(null);
+        let parseError = err as ParseError;
+        let newObject = parseError.object;
+        console.log(err as ParseError);
+        setCurrentBFFObject(newObject);
+        console.log(currentBFFObject);
       });
   }
 
   async function selectAndOpenBF() {
-    const selected = (await open({
+    open({
       multiple: false,
       filters: [
         {
@@ -290,12 +309,9 @@ function App(this: any) {
           ], //potentially get extensions from bff itself
         },
       ],
-    })) as string | null;
-
-    if (selected === null) {
-      return;
-    }
-    openBF(selected);
+    }).then((path) => {
+      if (path !== null) openBF(path as string);
+    });
   }
 
   async function openBF(path: String) {
@@ -306,21 +322,57 @@ function App(this: any) {
       .then((bfData) => {
         setBigfile(bfData as BigFileData);
       })
-      .catch((e) => console.error(e));
+      .catch((e) => message(e, { type: "warning" }));
+  }
+
+  function sortButtonPress(type: number) {
+    setSort(type);
+    setSortOrderForward(sort != type ? true : !sortOrderForward);
   }
 
   return (
     <div className="container">
       <div className="menubar">
         <button type="submit" onClick={selectAndOpenBF}>
-          open bigfile...
+          Open BigFile...
         </button>
       </div>
       <div className="main">
         <div className="explorer">
           <span className="explorer-header">{bigfile.name}</span>
+          <span className="explorer-sort">
+            <button onClick={() => sortButtonPress(0)}>
+              <span>Block</span>
+              {sort == 0 && (
+                <span className="explorer-sort-arrow">
+                  {sortOrderForward ? "▼" : "▲"}
+                </span>
+              )}
+            </button>
+            <button onClick={() => sortButtonPress(1)}>
+              <span>Name</span>
+              {sort == 1 && (
+                <span className="explorer-sort-arrow">
+                  {sortOrderForward ? "▼" : "▲"}
+                </span>
+              )}
+            </button>
+            <button onClick={() => sortButtonPress(2)}>
+              <span>Extension</span>
+              {sort == 2 && (
+                <span className="explorer-sort-arrow">
+                  {sortOrderForward ? "▼" : "▲"}
+                </span>
+              )}
+            </button>
+          </span>
           <div className="bffobject-list">
-            <BFFObjects bffObjects={bigfile.objects} onClick={setBFFObject} />
+            <BFFObjects
+              bffObjects={bigfile.objects}
+              onClick={setBFFObject}
+              sort={sort}
+              sortForward={sortOrderForward}
+            />
           </div>
         </div>
         <div className="preview">
@@ -338,7 +390,10 @@ function App(this: any) {
                   />
                 ) : (
                   <div className="preview-text">
-                    <p>{parse(currentBFFObject.preview_data)}</p>
+                    {currentBFFObject.error !== null && (
+                      <p>{parse(currentBFFObject.error as string)}</p>
+                    )}
+                    <p>{currentBFFObject.preview_data}</p>
                   </div>
                 )}
               </div>

@@ -22,15 +22,13 @@ use quick_xml::writer::Writer;
 use serde::Serialize;
 
 #[derive(Debug)]
-struct UnimplementedClassError {
-    text: String,
-}
+struct SimpleError(String);
 
-impl std::error::Error for UnimplementedClassError {}
+impl std::error::Error for SimpleError {}
 
-impl std::fmt::Display for UnimplementedClassError {
+impl std::fmt::Display for SimpleError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.text)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -47,7 +45,7 @@ enum Error {
     #[error(transparent)]
     Hound(#[from] hound::Error),
     #[error(transparent)]
-    UnimplementedClass(#[from] UnimplementedClassError),
+    Simple(#[from] SimpleError),
     #[error(transparent)]
     Bff(#[from] bff::error::Error),
     #[error(transparent)]
@@ -58,6 +56,8 @@ enum Error {
     AnsiToHtml(#[from] ansi_to_html::Error),
     #[error(transparent)]
     SerdeYaml(#[from] serde_yaml::Error),
+    // #[error(transparent)]
+    // Parse(#[from] ParseError),
 }
 
 impl serde::Serialize for Error {
@@ -65,15 +65,22 @@ impl serde::Serialize for Error {
     where
         S: serde::ser::Serializer,
     {
-        serializer.serialize_str(self.to_string().as_ref())
+        serializer.serialize_str(&ansi_to_html::convert_escaped(self.to_string().as_ref()).unwrap())
     }
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PreviewObject {
     name: u32,
     preview_data: String,
     preview_path: Option<String>,
+    error: Option<String>,
+}
+
+impl std::fmt::Display for PreviewObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.preview_data)
+    }
 }
 
 #[derive(Serialize)]
@@ -326,11 +333,11 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
 
 #[tauri::command]
 #[allow(unreachable_patterns)]
-fn parse_object(
+fn parse_object<'a>(
     object_name: u32,
-    temp_path: &Path,
-    state: tauri::State<AppState>,
-) -> Result<PreviewObject, Error> {
+    temp_path: &'a Path,
+    state: tauri::State<'a, AppState>,
+) -> PreviewObject {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
     let object_names: Vec<u32> = state.preview_objects().iter().map(|obj| obj.name).collect();
@@ -341,10 +348,10 @@ fn parse_object(
             .filter(|obj| obj.name == object_name)
             .next()
             .unwrap();
-        return Ok(preview_object.clone());
+        return preview_object.clone();
     }
     let bf = state.bigfile();
-    let version = bf.header().version()?;
+    let version = bf.header().version().unwrap();
     let platform = state.platform;
 
     let object: &Object = bf
@@ -355,23 +362,24 @@ fn parse_object(
         .next()
         .unwrap();
 
-    let new_object = match object.try_into_version_platform(version, platform) {
+    let (data, path);
+    match object.try_into_version_platform(version, platform) {
         Ok(class) => {
-            let (data, path) = match class {
-                Class::Bitmap(bitmap) => bitmap.export(
+            let res = match class {
+                Class::Bitmap(ref bitmap) => bitmap.export(
                     &temp_path.join(object.name().to_string() + ".png"),
                     object_name,
                 ),
-                Class::Sound(sound) => sound.export(
+                Class::Sound(ref sound) => sound.export(
                     &temp_path.join(object.name().to_string() + ".wav"),
                     object_name,
                 ),
-                Class::Mesh(mesh) => mesh.export(
+                Class::Mesh(ref mesh) => mesh.export(
                     &temp_path.join(object.name().to_string() + ".dae"),
                     object_name,
                 ),
-                Class::UserDefine(userdefine) => match *userdefine {
-                    UserDefine::UserDefineV1_291_03_06PC(userdefine) => {
+                Class::UserDefine(ref userdefine) => match **userdefine {
+                    UserDefine::UserDefineV1_291_03_06PC(ref userdefine) => {
                         Ok((userdefine.body().data().to_string(), None))
                     }
                 },
@@ -379,32 +387,39 @@ fn parse_object(
                 //     Material::MaterialV1_291_03_06PC(material) => {}
                 //     _ => (),
                 // },
-                _ => Ok((
-                    format!("Preview unavailable\n\n{}", serde_yaml::to_string(&class)?),
-                    None,
-                )),
-            }?;
-            PreviewObject {
-                name: object.name(),
-                preview_data: data,
-                preview_path: path,
+                _ => Err(Error::Simple(SimpleError(
+                    "Preview unavailable".to_string(),
+                ))),
+            };
+            match res {
+                Ok((d, p)) => (data, path) = (d, p),
+                Err(e) => {
+                    return PreviewObject {
+                        name: object_name,
+                        preview_data: serde_yaml::to_string(&class).unwrap(),
+                        preview_path: None,
+                        error: Some(serde_yaml::to_string(&e).unwrap()),
+                    }
+                }
             }
         }
         Err(e) => {
-            println!("{}", e);
-            PreviewObject {
-                name: object.name(),
-                preview_data: format!(
-                    "{}\n{}",
-                    ansi_to_html::convert_escaped(&e.to_string())?,
-                    serde_yaml::to_string(&object)?
-                ),
+            return PreviewObject {
+                name: object_name,
+                preview_data: String::new(),
                 preview_path: None,
+                error: Some(serde_yaml::to_string(&Error::Bff(e)).unwrap()),
             }
         }
     };
+    let new_object = PreviewObject {
+        name: object_name,
+        preview_data: data,
+        preview_path: path,
+        error: None,
+    };
     state.add_preview(new_object.clone());
-    Ok(new_object)
+    new_object
 }
 
 //TODO: move these to their respective classes
@@ -426,15 +441,57 @@ impl Exportable for Box<Bitmap> {
                 ))
             }
             Bitmap::BitmapV1_06_63_02PC(ref bitmap) => {
-                let image = match bitmap.body().dds() {
+                let image: image::ImageBuffer<_, _> = match bitmap.body().dds() {
                     Some(dds_data) => {
                         let buf = BufReader::new(Cursor::new(dds_data));
                         let dds = ddsfile::Dds::read(buf)?;
                         image_dds::image_from_dds(&dds, 0)?
                     }
                     None => {
-                        let buf = BufReader::new(Cursor::new(bitmap.body().tex().unwrap()));
-                        image::io::Reader::new(buf).decode()?.into_rgba8()
+                        // let buf = BufReader::new(Cursor::new(bitmap.body().tex().unwrap()));
+                        match bitmap.body().format() {
+                            12 => {
+                                let inverted_image: Vec<u8> = bitmap
+                                    .body()
+                                    .tex()
+                                    .unwrap()
+                                    .chunks(3)
+                                    .flat_map(|rgb| {
+                                        rgb.iter().rev().map(|i| *i).collect::<Vec<u8>>()
+                                    })
+                                    .collect();
+                                image::RgbaImage::from_raw(
+                                    bitmap.body().size().0,
+                                    bitmap.body().size().1,
+                                    inverted_image,
+                                )
+                            }
+                            .unwrap(),
+                            _ => {
+                                let inverted_image: Vec<u8> = bitmap
+                                    .body()
+                                    .tex()
+                                    .unwrap()
+                                    .chunks(4)
+                                    .flat_map(|rgba| {
+                                        let rgb = &rgba[..3];
+                                        let mut rev_rgba =
+                                            rgb.iter().rev().map(|i| *i).collect::<Vec<u8>>();
+                                        rev_rgba.push(*rgba.last().unwrap());
+                                        rev_rgba
+                                    })
+                                    .collect();
+                                image::DynamicImage::ImageRgb8(
+                                    image::RgbImage::from_raw(
+                                        bitmap.body().size().0,
+                                        bitmap.body().size().1,
+                                        inverted_image,
+                                    )
+                                    .unwrap(),
+                                )
+                                .into_rgba8()
+                            }
+                        }
                     }
                 };
                 image.save(export_path)?;
@@ -676,11 +733,9 @@ impl Exportable for Box<Mesh> {
                     Some(export_path.to_str().unwrap().to_string()),
                 ))
             }
-            Mesh::MeshV1_06_63_02PC(ref mesh) => {
-                Err(Error::UnimplementedClass(UnimplementedClassError {
-                    text: format!("Unimplemented class\n{:?}", mesh),
-                }))
-            }
+            Mesh::MeshV1_06_63_02PC(_) => Err(Error::Simple(SimpleError(
+                "Unimplemented class".to_string(),
+            ))),
         }
     }
 }

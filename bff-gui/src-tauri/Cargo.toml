@@ -14,7 +14,7 @@ tauri-build = { version = "1.3", features = [] }
 
 [dependencies]
 bff = { path = "../../bff" }
-tauri = { version = "1.3", features = [
+tauri = { version = "1.3", features = [ "dialog-message",
     "fs-read-file",
     "protocol-asset",
     "os-all",

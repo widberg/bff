@@ -19,7 +19,8 @@
       },
       "dialog": {
         "open": true,
-        "save": true
+        "save": true,
+        "message": true
       },
       "path": {
         "all": true
