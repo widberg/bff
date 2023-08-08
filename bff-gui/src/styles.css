@@ -33,7 +33,6 @@ body {
 }
 
 .container {
-  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -43,28 +42,29 @@ body {
   background-color: var(--light1-background);
 }
 
+.menubar button {
+  padding-inline: 0.4em;
+  padding-block: 0.1em;
+}
+
 .main {
-  height: calc(100vh - 3em);
+  height: calc(100vh - 1.4em);
   display: flex;
   flex-direction: row;
 }
 
-.explorer,
 .preview {
-  width: 50%;
-}
-
-.preview {
-  min-height: calc(100vh - 1.4em);
+  width: 60%;
   background-color: var(--light1-background);
 }
 
 .explorer {
+  width: 40%;
   resize: horizontal;
 }
 
 .bffobject-list {
-  height: 100%;
+  height: calc(100vh - 3em);
   overflow-y: scroll;
 }
 
@@ -117,7 +117,7 @@ body {
 
 .preview-image {
   height: calc(100vh - 3em);
-  width: 100%;
+  width: 60vw;
   object-fit: contain;
 }
 
@@ -149,11 +149,6 @@ body {
   user-select: text;
   padding-inline: 0.5em;
   border-bottom: 0.125em solid var(--light2-background);
-}
-
-.menubar button {
-  padding-inline: 0.4em;
-  padding-block: 0.1em;
 }
 
 button {

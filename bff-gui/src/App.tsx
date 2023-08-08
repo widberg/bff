@@ -17,6 +17,7 @@ import {
   MeshStandardMaterial,
 } from "three";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import parse from "html-react-parser";
 
 //this is copied from dpc LOL
 //TODO: get the name from the backend
@@ -95,7 +96,7 @@ function BFFObjectButton({
   index = 0,
   onClick,
 }: {
-  bffObjectName: String;
+  bffObjectName: string;
   implemented: boolean;
   index: number;
   onClick: any;
@@ -119,6 +120,12 @@ function BFFObjects({
   bffObjects: BFFObject[];
   onClick: any;
 }) {
+  bffObjects.sort((a, b) => a.name - b.name);
+  bffObjects.sort((a, b) =>
+    (classNames.get(a.class_name) as string).localeCompare(
+      classNames.get(b.class_name) as string
+    )
+  );
   let btns: JSX.Element[] = bffObjects.map((v: BFFObject, i: number) => (
     <BFFObjectButton
       key={i}
@@ -146,6 +153,7 @@ function Preview({ previewPath }: { previewPath: string }) {
     if (type == "normal") mat = new MeshNormalMaterial();
     else if (type == "wireframe")
       mat = new MeshBasicMaterial({ wireframe: true });
+    mat.side = material.material.side;
     setMaterial({
       name: type,
       material: mat,
@@ -157,7 +165,7 @@ function Preview({ previewPath }: { previewPath: string }) {
 
   if (previewPath.endsWith("png")) {
     return (
-      <TransformWrapper minScale={0.25} limitToBounds={false}>
+      <TransformWrapper minScale={0.1} limitToBounds={false}>
         <div className="preview-overlay">
           <div>
             <label htmlFor="filter">Filter</label>
@@ -227,6 +235,8 @@ function Preview({ previewPath }: { previewPath: string }) {
         </Canvas>
       </div>
     );
+  } else {
+    return <></>;
   }
 }
 
@@ -245,11 +255,17 @@ function App(this: any) {
 
   async function setBFFObject(objectIndex: number) {
     let tmp = await tempdir();
-    let object = (await invoke("parse_object", {
+    invoke("parse_object", {
       objectName: bigfile.objects[objectIndex].name,
       tempPath: tmp,
-    })) as PreviewData;
-    setCurrentBFFObject(object);
+    })
+      .then((object) => {
+        setCurrentBFFObject(object as PreviewData);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCurrentBFFObject(null);
+      });
   }
 
   async function selectAndOpenBF() {
@@ -322,7 +338,7 @@ function App(this: any) {
                   />
                 ) : (
                   <div className="preview-text">
-                    <p>{currentBFFObject.preview_data}</p>
+                    <p>{parse(currentBFFObject.preview_data)}</p>
                   </div>
                 )}
               </div>

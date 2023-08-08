@@ -26,4 +26,16 @@ pub struct MaterialBodyV1_291_03_06PC {
     textures: Vec<u32>,
 }
 
+impl MaterialBodyV1_291_03_06PC {
+    pub fn diffuse_color(&self) -> &[f32; 4] {
+        &self.diffuse_color
+    }
+    pub fn emissive_color(&self) -> &[f32; 3] {
+        &self.emissive_color
+    }
+    pub fn textures(&self) -> &Vec<u32> {
+        &self.textures
+    }
+}
+
 pub type MaterialV1_291_03_06PC = TrivialClass<(), MaterialBodyV1_291_03_06PC>;

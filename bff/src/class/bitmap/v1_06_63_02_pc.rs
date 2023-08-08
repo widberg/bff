@@ -27,4 +27,13 @@ pub struct BitmapBodyV1_06_63_02PC {
     tex: Option<Vec<u8>>,
 }
 
+impl BitmapBodyV1_06_63_02PC {
+    pub fn dds(&self) -> Option<&Vec<u8>> {
+        self.dds.as_ref()
+    }
+    pub fn tex(&self) -> Option<&Vec<u8>> {
+        self.tex.as_ref()
+    }
+}
+
 pub type BitmapV1_06_63_02PC = TrivialClass<(), BitmapBodyV1_06_63_02PC>;
