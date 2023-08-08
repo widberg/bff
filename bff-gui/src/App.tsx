@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { open, message } from "@tauri-apps/api/dialog";
+import { open, message, save } from "@tauri-apps/api/dialog";
 import { tempdir } from "@tauri-apps/api/os";
+import { extname } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { listen } from "@tauri-apps/api/event";
 import { JSX } from "react/jsx-runtime";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
 import { Canvas, useLoader } from "@react-three/fiber";
@@ -81,7 +81,7 @@ interface BFFObject {
 
 interface PreviewObject {
   name: number;
-  preview_data: string;
+  preview_data?: string;
   preview_path?: string;
   error?: string;
 }
@@ -123,12 +123,12 @@ function BFFObjects({
   bffObjects,
   onClick,
   sort,
-  sortForward,
+  sortBackward,
 }: {
   bffObjects: BFFObject[];
   onClick: any;
   sort: number;
-  sortForward: boolean;
+  sortBackward: boolean;
 }) {
   let objectsCopy = [...bffObjects];
   if (sort == 1) objectsCopy.sort((a, b) => a.name - b.name);
@@ -138,7 +138,7 @@ function BFFObjects({
         classNames.get(b.class_name) as string
       )
     );
-  if (!sortForward) objectsCopy.reverse();
+  if (sortBackward) objectsCopy.reverse();
 
   let btns: JSX.Element[] = objectsCopy.map((v: BFFObject, i: number) => (
     <BFFObjectButton
@@ -150,6 +150,35 @@ function BFFObjects({
     />
   ));
   return <div>{btns}</div>;
+}
+
+function PreviewContainer({
+  openTab,
+  previewObject,
+}: {
+  openTab: number;
+  previewObject: PreviewObject;
+}) {
+  if (openTab == 0)
+    return (
+      <div className="preview-data preview-text">
+        <p>{previewObject.preview_data}</p>
+      </div>
+    );
+  if (openTab == 1) {
+    if (previewObject.preview_path !== null)
+      return (
+        <Preview
+          previewPath={convertFileSrc(previewObject.preview_path as string)}
+        />
+      );
+    else return <p className="preview-text">Preview unavailable</p>;
+  }
+  if (openTab == 2) {
+    if (previewObject.error)
+      return <p className="preview-text">{parse(previewObject.error)}</p>;
+    else return <p className="preview-text">Loaded successfully</p>;
+  }
 }
 
 function Preview({ previewPath }: { previewPath: string }) {
@@ -254,6 +283,29 @@ function Preview({ previewPath }: { previewPath: string }) {
   }
 }
 
+function SortButton({
+  onClick,
+  id,
+  name,
+  sort,
+  sortBackward,
+}: {
+  onClick: any;
+  id: number;
+  name: string;
+  sort: number;
+  sortBackward: boolean;
+}) {
+  return (
+    <button onClick={() => onClick(id)}>
+      <span>{name}</span>
+      {sort == id && (
+        <span className="explorer-sort-arrow">{sortBackward ? "▲" : "▼"}</span>
+      )}
+    </button>
+  );
+}
+
 function App(this: any) {
   const [bigfile, setBigfile] = useState<BigFileData>({
     name: "",
@@ -261,30 +313,25 @@ function App(this: any) {
   });
   const [currentBFFObject, setCurrentBFFObject] =
     useState<PreviewObject | null>(null);
-  const [sortOrderForward, setSortOrderForward] = useState<boolean>(true);
+  const [sortBackward, setSortBackward] = useState<boolean>(false);
   const [sort, setSort] = useState<number>(0);
-
-  // listen<string[]>("tauri://file-drop", (event) => {
-  //   console.log(event.windowLabel);
-  //   openBF((event.payload as string[])[0]);
-  // });
+  const [submenuShown, setSubmenuShown] = useState<number>(-1);
+  const submenuRef: React.MutableRefObject<HTMLDivElement | null> =
+    useRef(null);
+  const [openPreviewTab, setOpenPreviewTab] = useState<number>(1);
 
   async function setBFFObject(objectName: number) {
     let tmp = await tempdir();
     invoke("parse_object", {
       objectName: objectName,
       tempPath: tmp,
-    })
-      .then((object) => {
-        setCurrentBFFObject(object as PreviewObject);
-      })
-      .catch((err) => {
-        let parseError = err as ParseError;
-        let newObject = parseError.object;
-        console.log(err as ParseError);
-        setCurrentBFFObject(newObject);
-        console.log(currentBFFObject);
-      });
+    }).then((object) => {
+      let previewObject = object as PreviewObject;
+      setCurrentBFFObject(previewObject);
+      if (previewObject.error !== null) setOpenPreviewTab(2);
+      else if (previewObject.preview_path !== null) setOpenPreviewTab(1);
+      else setOpenPreviewTab(0);
+    });
   }
 
   async function selectAndOpenBF() {
@@ -325,79 +372,190 @@ function App(this: any) {
       .catch((e) => message(e, { type: "warning" }));
   }
 
+  async function exportAll() {
+    open({ directory: true }).then((path) => {
+      if (path !== null)
+        invoke("export_all_objects", { path: path }).catch((e) =>
+          console.log(e)
+        );
+    });
+  }
+
+  async function exportOne(objectName: number) {
+    save({
+      defaultPath: `${objectName}.json`,
+      filters: [
+        {
+          name: "JSON",
+          extensions: ["json"],
+        },
+      ],
+    }).then((path) => {
+      if (path !== null)
+        invoke("export_one_object", { path: path, name: objectName }).catch(
+          (e) => console.log(e)
+        );
+    });
+  }
+
+  async function exportPreview(objectName: number, objectPath: string) {
+    let extension = await extname(objectPath);
+    save({
+      defaultPath: `${objectName}.${extension}`,
+      filters: [
+        {
+          name: extension,
+          extensions: [extension],
+        },
+      ],
+    }).then((path) => {
+      if (path !== null)
+        invoke("export_preview", { path: path, name: objectName }).catch((e) =>
+          console.log(e)
+        );
+    });
+  }
+
   function sortButtonPress(type: number) {
     setSort(type);
-    setSortOrderForward(sort != type ? true : !sortOrderForward);
+    setSortBackward(sort != type ? false : !sortBackward);
   }
+
+  const handleClickOutside = (e: { target: any }) => {
+    if (submenuRef.current && !submenuRef.current.contains(e.target)) {
+      setSubmenuShown(-1);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  });
 
   return (
     <div className="container">
       <div className="menubar">
-        <button type="submit" onClick={selectAndOpenBF}>
-          Open BigFile...
-        </button>
+        <button onClick={selectAndOpenBF}>Open BigFile...</button>
+        <div ref={submenuRef}>
+          <button
+            onClick={() => {
+              setSubmenuShown(submenuShown == 0 ? -1 : 0);
+            }}
+          >
+            Export
+          </button>
+          <div
+            className="submenu"
+            style={{ display: submenuShown == 0 ? "flex" : "none" }}
+          >
+            <button onClick={exportAll} disabled={!bigfile.name}>
+              Export objects as JSON...
+            </button>
+            <button
+              onClick={() => exportOne(currentBFFObject?.name as number)}
+              disabled={currentBFFObject === null}
+            >
+              Export current object as JSON...
+            </button>
+            <button
+              onClick={() =>
+                exportPreview(
+                  currentBFFObject?.name as number,
+                  currentBFFObject?.preview_path as string
+                )
+              }
+              disabled={
+                currentBFFObject === null ||
+                currentBFFObject?.preview_path === null
+              }
+            >
+              Export preview...
+            </button>
+          </div>
+        </div>
       </div>
       <div className="main">
         <div className="explorer">
-          <span className="explorer-header">{bigfile.name}</span>
-          <span className="explorer-sort">
-            <button onClick={() => sortButtonPress(0)}>
-              <span>Block</span>
-              {sort == 0 && (
-                <span className="explorer-sort-arrow">
-                  {sortOrderForward ? "▼" : "▲"}
-                </span>
-              )}
-            </button>
-            <button onClick={() => sortButtonPress(1)}>
-              <span>Name</span>
-              {sort == 1 && (
-                <span className="explorer-sort-arrow">
-                  {sortOrderForward ? "▼" : "▲"}
-                </span>
-              )}
-            </button>
-            <button onClick={() => sortButtonPress(2)}>
-              <span>Extension</span>
-              {sort == 2 && (
-                <span className="explorer-sort-arrow">
-                  {sortOrderForward ? "▼" : "▲"}
-                </span>
-              )}
-            </button>
+          <span className="explorer-header">
+            {bigfile.name !== "" ? bigfile.name : "BigFile structure"}
+          </span>
+          <span className="explorer-sort second-header">
+            <SortButton
+              onClick={sortButtonPress}
+              id={0}
+              name="Block"
+              sort={sort}
+              sortBackward={sortBackward}
+            />
+            <SortButton
+              onClick={sortButtonPress}
+              id={1}
+              name="Name"
+              sort={sort}
+              sortBackward={sortBackward}
+            />
+            <SortButton
+              onClick={sortButtonPress}
+              id={2}
+              name="Extension"
+              sort={sort}
+              sortBackward={sortBackward}
+            />
           </span>
           <div className="bffobject-list">
             <BFFObjects
               bffObjects={bigfile.objects}
               onClick={setBFFObject}
               sort={sort}
-              sortForward={sortOrderForward}
+              sortBackward={sortBackward}
             />
           </div>
         </div>
         <div className="preview">
           <span className="preview-header">
-            {currentBFFObject !== null ? currentBFFObject.name : "preview"}
+            {currentBFFObject !== null
+              ? currentBFFObject.name
+              : "Object preview"}
           </span>
+          <div>
+            <span
+              className={
+                "second-header" +
+                (openPreviewTab == 0
+                  ? " preview-tabs-small"
+                  : " preview-tabs-big")
+              }
+            >
+              <button
+                onClick={() => setOpenPreviewTab(0)}
+                disabled={currentBFFObject === null}
+                className={openPreviewTab == 0 ? "selected-tab" : ""}
+              >
+                Data
+              </button>
+              <button
+                onClick={() => setOpenPreviewTab(1)}
+                disabled={currentBFFObject === null}
+                className={openPreviewTab == 1 ? "selected-tab" : ""}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setOpenPreviewTab(2)}
+                disabled={currentBFFObject === null}
+                className={openPreviewTab == 2 ? "selected-tab" : ""}
+              >
+                Error
+              </button>
+            </span>
+          </div>
           {currentBFFObject !== null && (
-            <>
-              <div className="preview-inner">
-                {currentBFFObject.preview_path !== null ? (
-                  <Preview
-                    previewPath={convertFileSrc(
-                      currentBFFObject.preview_path as string
-                    )}
-                  />
-                ) : (
-                  <div className="preview-text">
-                    {currentBFFObject.error !== null && (
-                      <p>{parse(currentBFFObject.error as string)}</p>
-                    )}
-                    <p>{currentBFFObject.preview_data}</p>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="preview-inner">
+              <PreviewContainer
+                openTab={openPreviewTab}
+                previewObject={currentBFFObject}
+              />
+            </div>
           )}
         </div>
       </div>

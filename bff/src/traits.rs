@@ -39,4 +39,5 @@ where
 
 pub trait NamedClass {
     const NAME: Name;
+    const REAL_NAME: &'static str;
 }

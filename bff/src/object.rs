@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use binrw::{binread, BinRead, BinResult, VecArgs};
+use binrw::{binrw, BinRead, BinResult, VecArgs};
 use serde::Serialize;
 
 use crate::lz::decompress_body_parser;
@@ -22,24 +22,26 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
     }
 }
 
-#[binread]
+#[binrw]
 #[derive(Serialize, Debug, Default)]
 pub struct Object {
     #[br(temp)]
+    #[bw(try_calc(u32::try_from(link_header.len() + body.len())))]
     data_size: u32,
     #[br(temp)]
+    #[bw(try_calc(u32::try_from(link_header.len())))]
     link_header_size: u32,
     #[br(temp)]
+    #[bw(try_calc(u32::try_from(body.len())))]
     decompressed_size: u32,
     #[br(temp)]
+    #[bw(calc = 0)]
     compressed_size: u32,
     class_name: Name,
     name: Name,
     #[br(count = link_header_size)]
-    // #[serde(skip_serializing)]
     link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
-    // #[serde(skip_serializing)]
     body: Vec<u8>,
 }
 

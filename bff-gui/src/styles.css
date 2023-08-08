@@ -6,9 +6,10 @@
 :root {
   --font: hsl(16, 100%, 97%);
   --background: hsl(320, 6%, 9%);
-  --light1-background: hsl(300, 3%, 15%);
-  --light2-background: hsl(300, 3%, 12%);
+  --light1-background: hsl(300, 3%, 12%);
+  --light2-background: hsl(300, 3%, 15%);
   --hover: hsla(0, 0%, 100%, 0.25);
+  --hover-weak: hsla(0, 0%, 100%, 0.05);
   --error: hsl(357, 97%, 75%);
 
   font-family: WorkSans, Helvetica, Arial, sans-serif;
@@ -39,12 +40,22 @@ body {
 
 .menubar {
   width: 100%;
+  display: flex;
   background-color: var(--light1-background);
 }
 
 .menubar button {
   padding-inline: 0.4em;
   padding-block: 0.1em;
+}
+
+.submenu {
+  background-color: var(--light1-background);
+  box-shadow: 0.2em 0.2em var(--hover) 0.05em;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
 }
 
 .main {
@@ -55,7 +66,7 @@ body {
 
 .preview {
   width: 60%;
-  background-color: var(--light1-background);
+  background-color: var(--background);
 }
 
 .explorer {
@@ -64,7 +75,7 @@ body {
 }
 
 .bffobject-list {
-  height: calc(100vh - 4.45em);
+  height: calc(100vh - 4.79em);
   padding-top: 1.4em;
   overflow-y: scroll;
 }
@@ -84,21 +95,7 @@ body {
 }
 
 .explorer-sort {
-  background-color: var(--light1-background);
-  display: flex;
-  position: fixed;
   width: calc(40% - 0.95rem);
-}
-
-.explorer-sort button {
-  padding-inline: 0.3em;
-  padding-block: 0.1em;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  /* text-align: center; */
 }
 
 .explorer-sort-arrow {
@@ -106,21 +103,56 @@ body {
   font-size: 0.8em;
 }
 
+.preview-tabs-small {
+  width: calc(60% - 0.95rem);
+}
+
+.preview-tabs-big {
+  width: 60%;
+}
+
+.second-header {
+  display: flex;
+  position: fixed;
+  background-color: var(--light1-background);
+  border-bottom: var(--background) 3px solid;
+  z-index: 1;
+}
+
+.second-header button {
+  font-size: 0.95em;
+  padding-inline: 0.3em;
+  padding-block: 0.1em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-right: var(--background) 3px solid;
+}
+
+.second-header button:first-child {
+  border-inline: var(--background) 3px solid;
+}
+
+.selected-tab {
+  background-color: var(--hover-weak);
+}
+
 .explorer-header,
 .preview-header {
   display: flex;
-  font-size: 1.1em;
+  font-size: 1.07em;
   padding-inline: 0.5em;
   padding-block: 0.25em;
   height: 1em;
-  background-color: var(--light2-background);
+  background-color: var(--light1-background);
+  border-block: var(--background) 3px solid;
 }
 
 .preview-inner {
   display: flex;
   flex-direction: column;
-  background-color: var(--light1-background);
-  height: 100%;
 }
 
 .preview-header {
@@ -136,7 +168,6 @@ body {
   height: calc(100vh - 5em);
   width: calc(100% - 2em);
   object-fit: contain;
-  border-bottom: 0.125em solid var(--light2-background);
 }
 
 .preview-image {
@@ -157,22 +188,25 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.2em;
-  background-color: var(--background);
+  background-color: var(--light1-background);
   bottom: 0;
   right: 0;
 }
 
-.preview-text {
-  height: calc(100vh - 3em);
-  font-family: monospace;
+.preview-data {
+  height: calc(100vh - 4.3em);
   overflow-x: auto;
   overflow-y: scroll;
   white-space: pre;
   line-height: 1.3rem;
   white-space: pre;
   user-select: text;
-  padding-inline: 0.5em;
-  border-bottom: 0.125em solid var(--light2-background);
+}
+
+.preview-text {
+  padding-top: 0.8em;
+  font-family: monospace;
+  padding-inline: 0.4em;
 }
 
 button {
@@ -184,8 +218,12 @@ button {
   background-color: #00000000;
 }
 
-button:hover {
+button:enabled:hover {
   background-color: var(--hover);
+}
+
+button:disabled:hover {
+  background-color: var(--hover-weak);
 }
 
 select {

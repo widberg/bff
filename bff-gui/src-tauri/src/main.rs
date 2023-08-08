@@ -33,7 +33,7 @@ impl std::fmt::Display for SimpleError {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum Error {
+enum GuiError {
     #[error(transparent)]
     Dds(#[from] ddsfile::Error),
     #[error(transparent)]
@@ -56,11 +56,11 @@ enum Error {
     AnsiToHtml(#[from] ansi_to_html::Error),
     #[error(transparent)]
     SerdeYaml(#[from] serde_yaml::Error),
-    // #[error(transparent)]
-    // Parse(#[from] ParseError),
+    #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
 }
 
-impl serde::Serialize for Error {
+impl serde::Serialize for GuiError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -72,14 +72,21 @@ impl serde::Serialize for Error {
 #[derive(Debug, Serialize, Clone)]
 pub struct PreviewObject {
     name: u32,
-    preview_data: String,
-    preview_path: Option<String>,
+    preview_data: Option<String>,
+    preview_path: Option<PathBuf>,
     error: Option<String>,
 }
 
 impl std::fmt::Display for PreviewObject {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.preview_data)
+        write!(
+            f,
+            "{}",
+            match self.preview_data {
+                Some(ref d) => d,
+                None => "None",
+            }
+        )
     }
 }
 
@@ -279,13 +286,19 @@ pub struct AppState(pub Mutex<Option<InnerAppState>>);
 fn main() {
     tauri::Builder::default()
         .manage(AppState(Mutex::new(None)))
-        .invoke_handler(tauri::generate_handler![extract_bigfile, parse_object])
+        .invoke_handler(tauri::generate_handler![
+            extract_bigfile,
+            parse_object,
+            export_all_objects,
+            export_one_object,
+            export_preview,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileData, Error> {
+fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileData, GuiError> {
     let bigfile_path = Path::new(path);
     let platform = match bigfile_path.extension() {
         Some(extension) => extension.try_into().unwrap(),
@@ -332,11 +345,10 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
 }
 
 #[tauri::command]
-#[allow(unreachable_patterns)]
-fn parse_object<'a>(
+fn parse_object(
     object_name: u32,
-    temp_path: &'a Path,
-    state: tauri::State<'a, AppState>,
+    temp_path: &Path,
+    state: tauri::State<AppState>,
 ) -> PreviewObject {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
@@ -362,83 +374,135 @@ fn parse_object<'a>(
         .next()
         .unwrap();
 
-    let (data, path);
-    match object.try_into_version_platform(version, platform) {
+    let (data, path, err) = match object.try_into_version_platform(version, platform) {
         Ok(class) => {
-            let res = match class {
-                Class::Bitmap(ref bitmap) => bitmap.export(
-                    &temp_path.join(object.name().to_string() + ".png"),
-                    object_name,
-                ),
-                Class::Sound(ref sound) => sound.export(
-                    &temp_path.join(object.name().to_string() + ".wav"),
-                    object_name,
-                ),
-                Class::Mesh(ref mesh) => mesh.export(
-                    &temp_path.join(object.name().to_string() + ".dae"),
-                    object_name,
-                ),
+            let (res, export_path) = match class {
+                Class::Bitmap(ref bitmap) => {
+                    let new_path = temp_path.join(format!("{}.png", object.name()));
+                    (bitmap.export(&new_path, object_name), Some(new_path))
+                }
+                Class::Sound(ref sound) => {
+                    let new_path = temp_path.join(format!("{}.wav", object.name()));
+                    (sound.export(&new_path, object_name), Some(new_path))
+                }
+                Class::Mesh(ref mesh) => {
+                    let new_path = temp_path.join(format!("{}.dae", object.name()));
+                    (mesh.export(&new_path, object_name), Some(new_path))
+                }
                 Class::UserDefine(ref userdefine) => match **userdefine {
                     UserDefine::UserDefineV1_291_03_06PC(ref userdefine) => {
-                        Ok((userdefine.body().data().to_string(), None))
+                        (Ok(userdefine.body().data().to_string()), None)
                     }
                 },
                 // Class::Material(material) => match *material {
                 //     Material::MaterialV1_291_03_06PC(material) => {}
                 //     _ => (),
                 // },
-                _ => Err(Error::Simple(SimpleError(
-                    "Preview unavailable".to_string(),
-                ))),
+                _ => (Ok(serde_yaml::to_string(&class).unwrap()), None),
             };
             match res {
-                Ok((d, p)) => (data, path) = (d, p),
-                Err(e) => {
-                    return PreviewObject {
-                        name: object_name,
-                        preview_data: serde_yaml::to_string(&class).unwrap(),
-                        preview_path: None,
-                        error: Some(serde_yaml::to_string(&e).unwrap()),
-                    }
-                }
+                Ok(d) => (Some(d), export_path, None),
+                Err(e) => (
+                    Some(serde_yaml::to_string(&class).unwrap()),
+                    None,
+                    Some(serde_yaml::to_string(&e).unwrap()),
+                ),
             }
         }
-        Err(e) => {
-            return PreviewObject {
-                name: object_name,
-                preview_data: String::new(),
-                preview_path: None,
-                error: Some(serde_yaml::to_string(&Error::Bff(e)).unwrap()),
-            }
-        }
+        Err(e) => (
+            Some(serde_yaml::to_string(&object).unwrap()),
+            None,
+            Some(serde_yaml::to_string(&GuiError::Bff(e)).unwrap()),
+        ),
     };
     let new_object = PreviewObject {
         name: object_name,
         preview_data: data,
         preview_path: path,
-        error: None,
+        error: err,
     };
     state.add_preview(new_object.clone());
     new_object
 }
 
+#[tauri::command]
+fn export_all_objects(path: &Path, state: tauri::State<AppState>) -> Result<(), GuiError> {
+    let mut state_guard = state.0.lock().unwrap();
+    let state = state_guard.as_mut().unwrap();
+    for object in state.bigfile().blocks().iter().flat_map(|b| b.objects()) {
+        let class_res: bff::BffResult<Class> = object.try_into_version_platform(
+            state.bigfile().header().version().unwrap(),
+            *state.platform(),
+        );
+        match class_res {
+            Ok(class) => write_class(&path.join(format!("{}.json", object.name())), &class)?,
+            Err(_) => println!("skipped {}", object.name()),
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn export_one_object(
+    path: &Path,
+    name: u32,
+    state: tauri::State<AppState>,
+) -> Result<(), GuiError> {
+    let mut state_guard = state.0.lock().unwrap();
+    let state = state_guard.as_mut().unwrap();
+    let object: &Object = state
+        .bigfile()
+        .blocks()
+        .iter()
+        .flat_map(|block| block.objects())
+        .filter(|obj| obj.name() == name)
+        .next()
+        .ok_or(SimpleError("failed to find object in bigfile".to_string()))?;
+    let class_res: bff::BffResult<Class> = object.try_into_version_platform(
+        state.bigfile().header().version().unwrap(),
+        *state.platform(),
+    );
+    match class_res {
+        Ok(class) => write_class(&path.join(format!("{}.json", object.name())), &class)?,
+        Err(_) => println!("skipped {}", object.name()),
+    }
+    Ok(())
+}
+
+fn write_class(path: &PathBuf, class: &Class) -> Result<(), GuiError> {
+    let mut file = File::create(path)?;
+    file.write(serde_json::to_string_pretty(&class)?.as_bytes())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn export_preview(path: &Path, name: u32, state: tauri::State<AppState>) -> Result<(), GuiError> {
+    let mut state_guard = state.0.lock().unwrap();
+    let state = state_guard.as_mut().unwrap();
+    let preview_object: &PreviewObject = state
+        .preview_objects()
+        .iter()
+        .filter(|obj| obj.name == name)
+        .next()
+        .unwrap();
+    std::fs::copy(preview_object.preview_path.as_ref().unwrap(), path)?;
+    Ok(())
+}
+
 //TODO: move these to their respective classes
 trait Exportable {
-    fn export(&self, export_path: &PathBuf, name: u32) -> Result<(String, Option<String>), Error>;
+    fn export(&self, export_path: &PathBuf, name: u32) -> Result<String, GuiError>;
 }
 
 impl Exportable for Box<Bitmap> {
-    fn export(&self, export_path: &PathBuf, _name: u32) -> Result<(String, Option<String>), Error> {
+    fn export(&self, export_path: &PathBuf, _name: u32) -> Result<String, GuiError> {
         match **self {
             Bitmap::BitmapV1_291_03_06PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(bitmap.body().data()));
                 let dds = ddsfile::Dds::read(buf)?;
                 let image = image_dds::image_from_dds(&dds, 0)?;
                 image.save(export_path)?;
-                Ok((
-                    String::new(),
-                    Some(export_path.to_str().unwrap().to_string()),
-                ))
+                Ok(serde_yaml::to_string(bitmap.body())?)
             }
             Bitmap::BitmapV1_06_63_02PC(ref bitmap) => {
                 let image: image::ImageBuffer<_, _> = match bitmap.body().dds() {
@@ -495,17 +559,14 @@ impl Exportable for Box<Bitmap> {
                     }
                 };
                 image.save(export_path)?;
-                Ok((
-                    String::new(),
-                    Some(export_path.to_str().unwrap().to_string()),
-                ))
+                Ok(serde_yaml::to_string(bitmap.body())?)
             }
         }
     }
 }
 
 impl Exportable for Box<Sound> {
-    fn export(&self, export_path: &PathBuf, _name: u32) -> Result<(String, Option<String>), Error> {
+    fn export(&self, export_path: &PathBuf, _name: u32) -> Result<String, GuiError> {
         match **self {
             Sound::SoundV1_291_03_06PC(ref sound) => {
                 let spec = hound::WavSpec {
@@ -524,17 +585,14 @@ impl Exportable for Box<Sound> {
                 writer.flush()?;
                 parent_writer.finalize()?;
 
-                Ok((
-                    String::new(),
-                    Some(export_path.to_str().unwrap().to_string()),
-                ))
+                Ok(serde_yaml::to_string(sound.body())?)
             }
         }
     }
 }
 
 impl Exportable for Box<Mesh> {
-    fn export(&self, export_path: &PathBuf, name: u32) -> Result<(String, Option<String>), Error> {
+    fn export(&self, export_path: &PathBuf, name: u32) -> Result<String, GuiError> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh
@@ -728,12 +786,9 @@ impl Exportable for Box<Mesh> {
                 let mut writer = Writer::new_with_indent(&mut buffer, b' ', 2);
                 writer.write_serializable("COLLADA", &collada)?;
                 File::create(&export_path)?.write_all(&buffer)?;
-                Ok((
-                    String::new(),
-                    Some(export_path.to_str().unwrap().to_string()),
-                ))
+                Ok(serde_yaml::to_string(mesh.body())?)
             }
-            Mesh::MeshV1_06_63_02PC(_) => Err(Error::Simple(SimpleError(
+            Mesh::MeshV1_06_63_02PC(_) => Err(GuiError::Simple(SimpleError(
                 "Unimplemented class".to_string(),
             ))),
         }

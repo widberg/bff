@@ -1,14 +1,17 @@
-use binrw::BinRead;
+use binrw::binread;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::math::{Mat3f, RGB, RGBA};
+use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[binread]
+#[derive(Debug, Serialize)]
 #[br(import(_link_header: &()))]
 pub struct MaterialBodyV1_06_63_02PC {
     diffuse_color: RGBA,
     emissive_color: RGB,
+    #[br(temp)]
     cdcdcdcd: u32,
     uv_transform_matrix: Mat3f,
     unknown1s: [f32; 8],
@@ -23,7 +26,7 @@ pub struct MaterialBodyV1_06_63_02PC {
         3 => 2,
         _ => 4,
     })]
-    textures: Vec<u32>,
+    textures: Vec<Name>,
 }
 
 pub type MaterialV1_06_63_02PC = TrivialClass<(), MaterialBodyV1_06_63_02PC>;

@@ -40,6 +40,18 @@ impl UnimplementedClassError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "unknown class {}", class_name)]
+pub struct UnknownClassError {
+    class_name: Name,
+}
+
+impl UnknownClassError {
+    pub fn class_name(&self) -> &Name {
+        &self.class_name
+    }
+}
+
+#[derive(Debug, Constructor, Display, Error)]
 #[display(fmt = "Invalid BigFile extension {:#?}", extension)]
 pub struct InvalidExtensionError {
     extension: OsString,
@@ -60,6 +72,7 @@ pub struct InvalidVersionError {
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     UnimplementedClass(UnimplementedClassError),
+    UnknownClass(UnknownClassError),
     InvalidExtension(InvalidExtensionError),
     InvalidVersion(InvalidVersionError),
     BinRWError(binrw::Error),

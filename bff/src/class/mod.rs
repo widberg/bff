@@ -23,7 +23,7 @@ use self::surface::Surface;
 use self::user_define::UserDefine;
 use self::warp::Warp;
 use self::world::World;
-use crate::error::{Error, UnimplementedClassError};
+use crate::error::{Error, UnimplementedClassError, UnknownClassError};
 use crate::object::Object;
 use crate::platforms::Platform;
 use crate::traits::{NamedClass, TryFromVersionPlatform};
@@ -79,10 +79,37 @@ macro_rules! objects_to_classes {
     };
 }
 
+macro_rules! classes_to_names {
+    ($($i:ident),* $(,)?) => {
+        impl From<Class> for &'static str {
+            fn from(class: Class) -> &'static str {
+                match class {
+                    $(Class::$i(_) => <$i as NamedClass>::REAL_NAME,)*
+                }
+            }
+        }
+    };
+}
+
+macro_rules! hashes_to_names {
+    ($($i:ident),* $(,)?) => {
+        impl Object {
+            pub fn real_class_name(&self) -> BffResult<&'static str> {
+                match self.class_name() {
+                    $(<$i as NamedClass>::NAME => Ok(<$i as NamedClass>::REAL_NAME),)*
+                    _ => Err(UnknownClassError::new(self.class_name()).into())
+                }
+            }
+        }
+    };
+}
+
 macro_rules! classes {
     ($($i:ident),* $(,)?) => {
         classes_enum!($($i),*);
         objects_to_classes!($($i),*);
+        classes_to_names!($($i),*);
+        hashes_to_names!($($i),*);
     };
 }
 
