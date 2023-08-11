@@ -2,6 +2,7 @@ use derive_more::{From, IsVariant};
 use serde::Serialize;
 
 use self::animation::Animation;
+use self::binary::Binary;
 use self::bitmap::Bitmap;
 use self::camera_zone::CameraZone;
 use self::collision_vol::CollisionVol;
@@ -31,6 +32,7 @@ use crate::versions::Version;
 use crate::BffResult;
 
 pub mod animation;
+pub mod binary;
 pub mod bitmap;
 pub mod camera_zone;
 pub mod collision_vol;
@@ -88,6 +90,7 @@ macro_rules! classes {
 
 classes! {
     Animation,
+    Binary,
     Bitmap,
     CameraZone,
     CollisionVol,
