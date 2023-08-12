@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt::Display};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -9,6 +9,7 @@ use serde::Serialize;
 #[binread]
 #[derive(Debug, Serialize, Deref)]
 #[serde(transparent)]
+#[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
 pub struct DynArray<InnerType, SizeType = u32>
 where
     // This code is ugly but the pretty syntax isn't stable yet
@@ -19,11 +20,12 @@ where
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
+    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
 {
-    #[br(temp)]
-    size: SizeType,
+    #[br(temp, try_map = |count: SizeType| count.try_into())]
+    count: usize,
     #[deref]
-    #[br(count = size)]
+    #[br(args { count, inner })]
     data: Vec<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
@@ -37,6 +39,7 @@ where
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
+    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
 {
     fn from(dynarray: DynArray<InnerType, SizeType>) -> Self {
         dynarray.data
@@ -51,6 +54,7 @@ where
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
+    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
 {
     fn from(vec: Vec<InnerType>) -> Self {
         Self {

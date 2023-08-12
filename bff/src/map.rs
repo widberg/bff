@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::marker::PhantomData;
 
@@ -24,6 +24,7 @@ where
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
+    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
 {
     #[deref]
     #[br(map = |pairs: DynArray<(KeyType, ValueType), SizeType>| <DynArray<(KeyType, ValueType), SizeType> as Into<Vec<(KeyType, ValueType)>>>::into(pairs).into_iter().collect::<IndexMap<_, _>>())]
@@ -45,7 +46,7 @@ where
     SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     usize: TryFrom<SizeType>,
-    <usize as TryFrom<SizeType>>::Error: Debug,
+    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
 {
     fn from(map: IndexMap<KeyType, ValueType>) -> Self {
         Self {
