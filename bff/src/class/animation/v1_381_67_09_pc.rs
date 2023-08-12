@@ -137,12 +137,12 @@ struct Unknown14 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
+pub struct ResourceObject {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObject))]
 pub struct AnimationBodyV1_381_67_09PC {
     duration: f32,
     blending: f32,
@@ -158,4 +158,4 @@ pub struct AnimationBodyV1_381_67_09PC {
     unknown15s: DynArray<Unknown14>,
 }
 
-pub type AnimationV1_381_67_09PC = TrivialClass<LinkHeader, AnimationBodyV1_381_67_09PC>;
+pub type AnimationV1_381_67_09PC = TrivialClass<ResourceObject, AnimationBodyV1_381_67_09PC>;

@@ -1,4 +1,8 @@
+use binrw::{until_eof, BinRead};
+use serde::Serialize;
+
 use crate::class::trivial_class::TrivialClass;
+use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u16)]
@@ -10,10 +14,10 @@ enum BitmapClass {
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u8)]
 enum BmFormat {
-    BM_MULTIPLE_BITMAPS = 0,
-    BM_A8L8 = 7,
-    BM_DXT1 = 14,
-    BM_DXT5 = 16,
+    BmMultipleBitmaps = 0,
+    BmA8l8 = 7,
+    BmDxt1 = 14,
+    BmDxt5 = 16,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -26,10 +30,10 @@ enum BitmapClass2 {
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u8)]
 enum BmTransp {
-    BM_NO_TRANSP = 0,
-    BM_TRANSP_ONE = 1,
-    BM_TRANSP = 2,
-    BM_CUBEMAP = 255,
+    BmNoTransp = 0,
+    BmTranspOne = 1,
+    BmTransp = 2,
+    BmCubemap = 255,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -53,9 +57,9 @@ pub struct BitmapLinkHeader {
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &BitmapLinkHeader))]
-struct BitmapBodyV1_381_67_09PC {
-    #[br(count = data_size - link_header_size)]
+pub struct BitmapBodyV1_381_67_09PC {
+    #[br(parse_with = until_eof)]
     data: Vec<u8>,
 }
 
-pub type BitmapV1_381_67_09PC = TrivialClass<BitmapLinkHeader, Bitmap>;
+pub type BitmapV1_381_67_09PC = TrivialClass<BitmapLinkHeader, BitmapBodyV1_381_67_09PC>;

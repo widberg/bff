@@ -1,10 +1,9 @@
-use crate::{class::trivial_class::TrivialClass, name::Name};
-use bilge::{
-    prelude::{bitsize, u12, u20, u4, Number},
-    Bitsized, DebugBits, FromBits,
-};
+use bilge::prelude::{bitsize, u12, u20, u4, Bitsized, DebugBits, FromBits, Number};
 use binrw::BinRead;
 use serde::Serialize;
+
+use crate::class::trivial_class::TrivialClass;
+use crate::name::Name;
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, Serialize, FromBits)]

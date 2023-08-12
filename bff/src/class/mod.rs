@@ -4,14 +4,20 @@ use serde::Serialize;
 use self::animation::Animation;
 use self::binary::Binary;
 use self::bitmap::Bitmap;
+use self::camera::Camera;
 use self::camera_zone::CameraZone;
 use self::collision_vol::CollisionVol;
+use self::fonts::Fonts;
 use self::game_obj::GameObj;
+use self::gen_world::GenWorld;
+use self::gw_road::GwRoad;
 use self::light::Light;
 use self::light_data::LightData;
 use self::lod::Lod;
 use self::lod_data::LodData;
 use self::material::Material;
+use self::material_anim::MaterialAnim;
+use self::material_obj::MaterialObj;
 use self::mesh::Mesh;
 use self::mesh_data::MeshData;
 use self::node::Node;
@@ -34,14 +40,20 @@ use crate::BffResult;
 pub mod animation;
 pub mod binary;
 pub mod bitmap;
+pub mod camera;
 pub mod camera_zone;
 pub mod collision_vol;
+pub mod fonts;
 pub mod game_obj;
+pub mod gen_world;
+pub mod gw_road;
 pub mod light;
 pub mod light_data;
 pub mod lod;
 pub mod lod_data;
 pub mod material;
+pub mod material_anim;
+pub mod material_obj;
 pub mod mesh;
 pub mod mesh_data;
 pub mod node;
@@ -92,14 +104,20 @@ classes! {
     Animation,
     Binary,
     Bitmap,
+    Camera,
     CameraZone,
     CollisionVol,
+    Fonts,
     GameObj,
+    GenWorld,
+    GwRoad,
     Light,
     LightData,
     Lod,
     LodData,
     Material,
+    MaterialAnim,
+    MaterialObj,
     Mesh,
     MeshData,
     Node,

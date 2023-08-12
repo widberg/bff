@@ -1,5 +1,4 @@
-use bilge::prelude::{bitsize, u3, u5, Number};
-use bilge::{Bitsized, DebugBits};
+use bilge::prelude::{bitsize, u3, u5, Bitsized, DebugBits, Number};
 use binrw::BinRead;
 use serde::Serialize;
 
