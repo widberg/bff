@@ -5,7 +5,9 @@ use serde::Serialize;
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::map::BffMap;
-use crate::math::{DynBox, DynSphere, Mat4f, NumeratorFloat, Quat, Vec2f, Vec3f};
+use crate::math::{
+    DynBox, DynSphere, Mat4f, NumeratorFloat, Quat, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f,
+};
 use crate::name::Name;
 use crate::strings::PascalString;
 
@@ -14,29 +16,6 @@ type VertexVector3u8 = [VertexVectorComponent; 3];
 type VertexBlendIndex = f32;
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
-type RangeBeginEnd = RangeBeginEndBase<u16>;
-type RangeBeginSize = RangeBeginSizeBase<u16>;
-type RangeBeginSizeU32 = RangeBeginSizeBase<u32>;
-
-#[derive(BinRead, Debug, Serialize)]
-struct RangeBeginEndBase<T>
-where
-    for<'a> T: BinRead + Serialize + 'a,
-    for<'a> <T as binrw::BinRead>::Args<'a>: Default,
-{
-    begin: T,
-    end: T,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct RangeBeginSizeBase<T: BinRead>
-where
-    for<'a> T: BinRead + Serialize + 'a,
-    for<'a> <T as binrw::BinRead>::Args<'a>: Default,
-{
-    begin: T,
-    size: T,
-}
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, Serialize)]
@@ -143,7 +122,7 @@ struct Unused4 {
 #[derive(BinRead, Debug, Serialize)]
 struct CollisionAABB {
     min: Vec3f,
-    collision_aabb_range: RangeBeginEnd,
+    collision_aabb_range: RangeFirstLast,
     max: Vec3f,
     collision_faces_range: RangeBeginSize,
 }
@@ -283,9 +262,9 @@ struct VertexGroupFlags {
 struct VertexGroup {
     vertex_buffer_index: u32,
     index_buffer_index: u32,
-    quad_range: RangeBeginSizeU32,
+    quad_range: RangeBeginSize<u32>,
     flags: VertexGroupFlags,
-    vertex_buffer_range: RangeBeginEnd,
+    vertex_buffer_range: RangeFirstLast,
     vertex_count: u32,
     index_buffer_index_begin: u32,
     face_count: u32,
@@ -299,7 +278,7 @@ struct VertexGroup {
 #[derive(BinRead, Debug, Serialize)]
 struct AABBMorphTrigger {
     min: Vec3f,
-    aabb_morph_triggers_range: RangeBeginEnd,
+    aabb_morph_triggers_range: RangeFirstLast,
     max: Vec3f,
     map_index_range: RangeBeginSize,
 }

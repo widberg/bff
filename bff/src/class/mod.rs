@@ -31,10 +31,14 @@ use self::skel::Skel;
 use self::skin::Skin;
 use self::sound::Sound;
 use self::spline::Spline;
+use self::spline_graph::SplineGraph;
 use self::surface::Surface;
+use self::surface_datas::SurfaceDatas;
 use self::user_define::UserDefine;
 use self::warp::Warp;
 use self::world::World;
+use self::world_ref::WorldRef;
+
 use crate::error::{Error, UnimplementedClassError};
 use crate::object::Object;
 use crate::platforms::Platform;
@@ -72,11 +76,14 @@ pub mod skel;
 pub mod skin;
 pub mod sound;
 pub mod spline;
+pub mod spline_graph;
 pub mod surface;
+pub mod surface_datas;
 pub mod trivial_class;
 pub mod user_define;
 pub mod warp;
 pub mod world;
+pub mod world_ref;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
@@ -141,8 +148,11 @@ classes! {
     Skin,
     Sound,
     Spline,
+    SplineGraph,
     Surface,
+    SurfaceDatas,
     UserDefine,
     Warp,
     World,
+    WorldRef,
 }

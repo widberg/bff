@@ -1,34 +1,32 @@
+use bilge::prelude::{bitsize, u1, u13, Bitsized, DebugBits, Number};
+use binrw::BinRead;
+use serde::Serialize;
+
 use crate::class::trivial_class::TrivialClass;
-use bilge::prelude::1;
-use bilge::prelude::13;
+use crate::name::Name;
 
-#[derive(BinRead, DebugBits, Serialize, FromBits)]
 #[bitsize(16)]
+#[derive(BinRead, DebugBits, Serialize)]
 struct SoundFlags {
-	PAUSED: u1,
-	LOOPING: u1,
-	STEREO: u1,
-	#[br(temp)]	padding: u13,
+    paused: u1,
+    looping: u1,
+    stereo: u1,
+    padding: u13,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
-	//FIXME: inherits BaseObject_Z
-	link_name: Name,
+pub struct LinkHeader {
+    link_name: Name,
+    sample_rate: u32,
+    sound_data_size: u32,
+    flags: SoundFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
-pub struct Sound_LinkHeaderBodyV1_381_67_09PC {
-	sample_rate: u32,
-	sound_data_size: u32,
-	flags: SoundFlags,
+#[br(import(link_header: &LinkHeader))]
+pub struct SoundBodyV1_381_67_09PC {
+    #[br(count = link_header.sound_data_size)]
+    data: Vec<u8>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-struct Sound {
-	//FIXME: inherits Sound_Z_LinkHeader
-	#[br(count = sound_data_size)]	data: Vec<u8>,
-}
-
-pub type SoundV1_381_67_09PC = TrivialClass<(), Sound>;
+pub type SoundV1_381_67_09PC = TrivialClass<LinkHeader, SoundBodyV1_381_67_09PC>;
