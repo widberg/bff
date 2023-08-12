@@ -21,7 +21,12 @@ use self::material_obj::MaterialObj;
 use self::mesh::Mesh;
 use self::mesh_data::MeshData;
 use self::node::Node;
+use self::omni::Omni;
+use self::particles::Particles;
+use self::particles_data::ParticlesData;
 use self::rot_shape::RotShape;
+use self::rot_shape_data::RotShapeData;
+use self::rtc::Rtc;
 use self::skel::Skel;
 use self::skin::Skin;
 use self::sound::Sound;
@@ -57,7 +62,12 @@ pub mod material_obj;
 pub mod mesh;
 pub mod mesh_data;
 pub mod node;
+pub mod omni;
+pub mod particles;
+pub mod particles_data;
 pub mod rot_shape;
+pub mod rot_shape_data;
+pub mod rtc;
 pub mod skel;
 pub mod skin;
 pub mod sound;
@@ -121,7 +131,12 @@ classes! {
     Mesh,
     MeshData,
     Node,
+    Omni,
+    Particles,
+    ParticlesData,
     RotShape,
+    RotShapeData,
+    Rtc,
     Skel,
     Skin,
     Sound,
