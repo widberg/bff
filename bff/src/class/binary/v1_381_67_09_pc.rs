@@ -51,15 +51,15 @@ struct Internal {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct BinaryBodyV1_381_67_09PC {
     data_size: u32,
     data: Internal,
 }
 
-pub type BinaryV1_381_67_09PC = TrivialClass<ResourceObject, BinaryBodyV1_381_67_09PC>;
+pub type BinaryV1_381_67_09PC = TrivialClass<LinkHeader, BinaryBodyV1_381_67_09PC>;
