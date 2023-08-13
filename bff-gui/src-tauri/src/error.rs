@@ -32,8 +32,6 @@ pub enum GuiError {
     #[error(transparent)]
     AnsiToHtml(#[from] ansi_to_html::Error),
     #[error(transparent)]
-    SerdeYaml(#[from] serde_yaml::Error),
-    #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 }
 

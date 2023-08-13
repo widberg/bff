@@ -25,7 +25,7 @@ impl Export for Box<Sound> {
                 writer.flush()?;
                 parent_writer.finalize()?;
 
-                Ok(serde_yaml::to_string(sound.body())?)
+                Ok(serde_json::to_string_pretty(sound.body())?)
             }
         }
     }

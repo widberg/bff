@@ -362,7 +362,7 @@ impl Export for Box<Mesh> {
                 let mut writer = Writer::new_with_indent(&mut buffer, b' ', 2);
                 writer.write_serializable("COLLADA", &collada)?;
                 File::create(&export_path)?.write_all(&buffer)?;
-                Ok(serde_yaml::to_string(mesh.body())?)
+                Ok(serde_json::to_string_pretty(mesh.link_header())?)
             }
             Mesh::MeshV1_06_63_02PC(_) => Err(GuiError::Simple(SimpleError(
                 "Unimplemented class".to_string(),

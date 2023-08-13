@@ -13,7 +13,7 @@ impl Export for Box<Bitmap> {
                 let dds = ddsfile::Dds::read(buf)?;
                 let image = image_dds::image_from_dds(&dds, 0)?;
                 image.save(export_path)?;
-                Ok(serde_yaml::to_string(bitmap.body())?)
+                Ok(serde_json::to_string_pretty(bitmap.body())?)
             }
             Bitmap::BitmapV1_06_63_02PC(ref bitmap) => {
                 let image: image::ImageBuffer<_, _> = match bitmap.body().dds() {
@@ -70,7 +70,7 @@ impl Export for Box<Bitmap> {
                     }
                 };
                 image.save(export_path)?;
-                Ok(serde_yaml::to_string(bitmap.body())?)
+                Ok(serde_json::to_string_pretty(bitmap.body())?)
             }
         }
     }

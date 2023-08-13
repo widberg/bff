@@ -196,21 +196,21 @@ fn parse_object(
                 //     Material::MaterialV1_291_03_06PC(material) => {}
                 //     _ => (),
                 // },
-                _ => (Ok(serde_yaml::to_string(&class).unwrap()), None),
+                _ => (Ok(serde_json::to_string_pretty(&class).unwrap()), None),
             };
             match res {
                 Ok(d) => (Some(d), export_path, None),
                 Err(e) => (
-                    Some(serde_yaml::to_string(&class).unwrap()),
+                    Some(serde_json::to_string_pretty(&class).unwrap()),
                     None,
-                    Some(serde_yaml::to_string(&e).unwrap()),
+                    Some(serde_json::to_string_pretty(&e).unwrap()),
                 ),
             }
         }
         Err(e) => (
-            Some(serde_yaml::to_string(&object).unwrap()),
+            Some(serde_json::to_string_pretty(&object).unwrap()),
             None,
-            Some(serde_yaml::to_string(&GuiError::Bff(e)).unwrap()),
+            Some(serde_json::to_string_pretty(&GuiError::Bff(e)).unwrap()),
         ),
     };
     let new_object = PreviewObject {

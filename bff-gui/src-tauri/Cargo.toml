@@ -14,7 +14,8 @@ tauri-build = { version = "1.3", features = [] }
 
 [dependencies]
 bff = { path = "../../bff" }
-tauri = { version = "1.3", features = [ "dialog-message",
+tauri = { version = "1.3", features = [
+    "dialog-message",
     "fs-read-file",
     "protocol-asset",
     "os-all",
@@ -24,7 +25,6 @@ tauri = { version = "1.3", features = [ "dialog-message",
     "shell-open",
 ] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9.25"
 ddsfile = "0.5.1"
 image_dds = "0.1.1"
 hound = "3.5.0"
