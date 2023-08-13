@@ -30,9 +30,9 @@ where
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u16)]
 enum KeyframerInterpolationType {
-    FlKeyframerSmooth = 0x01,
-    FlKeyframerLinear = 0x02,
-    FlKeyframerSquare = 0x03,
+    Smooth = 0x01,
+    Linear = 0x02,
+    Square = 0x03,
 }
 
 #[derive(BinRead, Debug, Serialize)]

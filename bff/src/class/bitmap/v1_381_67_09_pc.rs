@@ -7,8 +7,8 @@ use crate::name::Name;
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u16)]
 enum BitmapClass {
-    SINGLE = 0,
-    CUBEMAP = 2,
+    Single = 0,
+    Cubemap = 2,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -23,17 +23,17 @@ enum BmFormat {
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u8)]
 enum BitmapClass2 {
-    CUBEMAP2 = 0,
-    SINGLE2 = 3,
+    Cubemap2 = 0,
+    Single2 = 3,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u8)]
 enum BmTransp {
-    BmNoTransp = 0,
-    BmTranspOne = 1,
-    BmTransp = 2,
-    BmCubemap = 255,
+    NoTransp = 0,
+    TranspOne = 1,
+    Transp = 2,
+    Cubemap = 255,
 }
 
 #[derive(BinRead, Debug, Serialize)]

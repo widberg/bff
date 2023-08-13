@@ -146,57 +146,43 @@ struct Unused8 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct VertexLayoutPosition {
-    position: Vec3f,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct VertexLayoutNoBlend {
-    position: Vec3f,
-    tangent: VertexVector3u8,
-    tangent_w: VertexVectorComponent,
-    normal: VertexVector3u8,
-    normal_w: VertexVectorComponent,
-    uv: Vec2f,
-    luv: Vec2f,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct VertexLayout1Blend {
-    position: Vec3f,
-    tangent: VertexVector3u8,
-    tangent_w: VertexVectorComponent,
-    normal: VertexVector3u8,
-    normal_w: VertexVectorComponent,
-    uv: Vec2f,
-    blend_index: VertexBlendIndex,
-    pad2: [i32; 3],
-    blend_weight: f32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct VertexLayout4Blend {
-    position: Vec3f,
-    tangent: VertexVector3u8,
-    tangent_w: VertexVectorComponent,
-    normal: VertexVector3u8,
-    normal_w: VertexVectorComponent,
-    uv: Vec2f,
-    blend_indices: [VertexBlendIndex; 4],
-    blend_weights: [f32; 4],
-}
-
-#[derive(BinRead, Debug, Serialize)]
 #[br(import(vertex_layout: u32))]
 enum Vertex {
     #[br(pre_assert(vertex_layout == 12))]
-    VertexLayoutPosition(VertexLayoutPosition),
+    LayoutPosition { position: Vec3f },
     #[br(pre_assert(vertex_layout == 36))]
-    VertexLayoutNoBlend(VertexLayoutNoBlend),
+    LayoutNoBlend {
+        position: Vec3f,
+        tangent: VertexVector3u8,
+        tangent_w: VertexVectorComponent,
+        normal: VertexVector3u8,
+        normal_w: VertexVectorComponent,
+        uv: Vec2f,
+        luv: Vec2f,
+    },
     #[br(pre_assert(vertex_layout == 48))]
-    VertexLayout1Blend(VertexLayout1Blend),
+    Layout1Blend {
+        position: Vec3f,
+        tangent: VertexVector3u8,
+        tangent_w: VertexVectorComponent,
+        normal: VertexVector3u8,
+        normal_w: VertexVectorComponent,
+        uv: Vec2f,
+        blend_index: VertexBlendIndex,
+        pad2: [i32; 3],
+        blend_weight: f32,
+    },
     #[br(pre_assert(vertex_layout == 60))]
-    VertexLayout4Blend(VertexLayout4Blend),
+    Layout4Blend {
+        position: Vec3f,
+        tangent: VertexVector3u8,
+        tangent_w: VertexVectorComponent,
+        normal: VertexVector3u8,
+        normal_w: VertexVectorComponent,
+        uv: Vec2f,
+        blend_indices: [VertexBlendIndex; 4],
+        blend_weights: [f32; 4],
+    },
 }
 
 #[bitsize(32)]
