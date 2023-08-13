@@ -1,3 +1,4 @@
+use bilge::prelude::{bitsize, u3, u5, Bitsized, DebugBits, Number};
 use binrw::BinRead;
 use serde::Serialize;
 
@@ -151,9 +152,11 @@ struct SeadIndex {
     hit_patch_count: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[bitsize(16)]
+#[derive(BinRead, DebugBits, Serialize)]
 struct ShouldDrawRelated {
-    data: u8,
+    index_in_draw_info_array: u3,
+    shift_amount_for_bit: u5,
     other: u8,
 }
 
