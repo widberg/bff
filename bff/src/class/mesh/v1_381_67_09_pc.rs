@@ -1,5 +1,7 @@
+use bff_derive::serialize_bits;
 use bilge::prelude::{bitsize, u1, u12, u15, u2, u24, Bitsized, DebugBits, Number};
 use binrw::BinRead;
+use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -17,8 +19,9 @@ type VertexBlendIndex = f32;
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
 
+#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct ObjectFlags {
     fl_object_init: u1,
     fl_object_max_bsphere: u1,
@@ -185,8 +188,9 @@ enum Vertex {
     },
 }
 
+#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct D3DFlags {
     d3d_pool_default: u1,
     d3d_pool_managed: u1,
@@ -234,8 +238,9 @@ struct Unused1 {
     unused6: u32,
 }
 
+#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct VertexGroupFlags {
     padding: u2,
     visible: u1,

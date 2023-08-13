@@ -1,16 +1,19 @@
 // binrw casts all count directives to usize even when they already are.
 #![allow(clippy::useless_conversion)]
 
+use bff_derive::serialize_bits;
 use bilge::prelude::{bitsize, u1, u19, Bitsized, DebugBits, Number};
 use binrw::BinRead;
+use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::name::Name;
 
+#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct ObjectDatasFlags {
     fl_objectdatas_hide: u1,
     fl_objectdatas_code_control: u1,

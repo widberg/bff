@@ -1,5 +1,7 @@
+use bff_derive::serialize_bits;
 use bilge::prelude::{bitsize, u1, Bitsized, DebugBits, Number};
 use binrw::BinRead;
+use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -80,8 +82,9 @@ where
     value: T,
 }
 
+#[serialize_bits]
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct MaterialAnimFlags {
     fl_mat_play: u1,
     fl_mat_played: u1,

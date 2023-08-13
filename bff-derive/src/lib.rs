@@ -148,7 +148,6 @@ pub fn serialize_bits(_attr: TokenStream, input: TokenStream) -> TokenStream {
     });
 
     quote! {
-        use serde::ser::SerializeStruct;
         #input
         impl serde::Serialize for #name {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
