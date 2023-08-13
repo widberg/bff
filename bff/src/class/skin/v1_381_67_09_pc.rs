@@ -18,7 +18,7 @@ struct SkinSubsection {
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(bone_name_count: u32))]
 struct SkinSection {
-    #[br(args(bone_name_count))]
+    #[br(args { inner: (bone_name_count,) })]
     skin_subsections: DynArray<SkinSubsection>,
 }
 
@@ -94,7 +94,7 @@ pub struct SkinBodyV1_381_67_09PC {
     zeros: [u32; 4],
     one_and_a_half: f32,
     bone_name_count: u32,
-    #[br(args(bone_name_count))]
+    #[br(args { inner: (bone_name_count,) })]
     skin_sections: DynArray<SkinSection>,
 }
 

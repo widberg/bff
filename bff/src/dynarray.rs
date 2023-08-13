@@ -2,14 +2,19 @@ use std::{convert::TryFrom, fmt::Display};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use binrw::{binread, BinRead};
+use binrw::{binread, BinRead, NamedArgs};
 use derive_more::Deref;
 use serde::Serialize;
+
+#[derive(Clone, NamedArgs, Default)]
+pub struct DynArrayArgs<Inner> {
+    inner: Inner,
+}
 
 #[binread]
 #[derive(Debug, Serialize, Deref)]
 #[serde(transparent)]
-#[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
+#[br(import_raw(args: DynArrayArgs<<InnerType as BinRead>::Args<'_>>))]
 pub struct DynArray<InnerType, SizeType = u32>
 where
     // This code is ugly but the pretty syntax isn't stable yet
@@ -25,7 +30,7 @@ where
     #[br(temp, try_map = |count: SizeType| count.try_into())]
     count: usize,
     #[deref]
-    #[br(args { count, inner })]
+    #[br(args { count, inner: args.inner })]
     data: Vec<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
