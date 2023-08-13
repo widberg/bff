@@ -1,0 +1,19 @@
+.menubar {
+  width: 100%;
+  display: flex;
+  background-color: var(--light1-background);
+}
+
+.menubar button {
+  padding-inline: 0.4em;
+  padding-block: 0.1em;
+}
+
+.submenu {
+  background-color: var(--light1-background);
+  box-shadow: 0.2em 0.2em 0.05em var(--shadow);
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
