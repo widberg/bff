@@ -15,6 +15,7 @@ pub struct BitmapBodyV1_291_03_06PC {
     mipmap_count: u8,
     unknown: u8,
     #[br(count = precalculated_size)]
+    #[serde(skip_serializing)]
     data: Vec<u8>,
 }
 
