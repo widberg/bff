@@ -1,6 +1,7 @@
-use bilge::prelude::{bitsize, u3, u5, Number};
-use bilge::{Bitsized, DebugBits};
+use bff_derive::serialize_bits;
+use bilge::prelude::{bitsize, u3, u5, Bitsized, DebugBits, Number};
 use binrw::BinRead;
+use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -101,8 +102,9 @@ struct Edge {
     t: [u16; 2],
 }
 
+#[serialize_bits]
 #[bitsize(16)]
-#[derive(BinRead, DebugBits, Serialize)]
+#[derive(BinRead, DebugBits)]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,

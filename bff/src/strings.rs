@@ -4,7 +4,9 @@ use binrw::{BinRead, BinResult, Endian, Error, VecArgs};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::Serialize;
 
-#[derive(Clone, PartialEq, Eq, Default, Deref, DerefMut, Display, Debug, From, Into, Serialize)]
+#[derive(
+    Clone, PartialEq, Eq, Default, Deref, DerefMut, Display, Debug, From, Into, Serialize, Hash,
+)]
 #[serde(transparent)]
 pub struct FixedStringNull<const S: usize>(pub AsciiString);
 
@@ -97,7 +99,7 @@ impl BinRead for PascalString {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize)]
+#[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize, Hash)]
 #[serde(transparent)]
 pub struct PascalStringNull(pub AsciiString);
 

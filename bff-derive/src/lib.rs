@@ -112,3 +112,54 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         }
     }
 }
+
+// bilge serialization is incorrect
+#[proc_macro_attribute]
+pub fn serialize_bits(_attr: TokenStream, input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    let name_str = LitStr::new(&name.to_string(), name.span());
+
+    let data = if let syn::Data::Struct(data) = &input.data {
+        data
+    } else {
+        unimplemented!();
+    };
+
+    let field_count = data.fields.len();
+
+    let fields = data.fields.iter().filter(|f| {
+        if let Some(name) = &f.ident {
+            name != "reserved" && name != "_reserved" && name != "padding" && name != "_padding"
+        } else {
+            true
+        }
+    });
+
+    let serialize_fields = fields.map(|f| {
+        let name = &f.ident;
+        let name_str = if let Some(n) = name {
+            LitStr::new(&n.to_string(), n.span())
+        } else {
+            unimplemented!()
+        };
+        quote! {
+            state.serialize_field(#name_str, &self.#name().value())?;
+        }
+    });
+
+    quote! {
+        #input
+        impl serde::Serialize for #name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut state = serializer.serialize_struct(#name_str, #field_count)?;
+                #(#serialize_fields)*
+                state.end()
+            }
+        }
+    }
+    .into()
+}

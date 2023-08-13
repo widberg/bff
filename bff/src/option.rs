@@ -2,14 +2,20 @@ use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use binrw::{binread, BinRead};
+use binrw::{binread, BinRead, NamedArgs};
 use derive_more::Deref;
 use num_traits::Zero;
 use serde::Serialize;
 
+#[derive(Clone, NamedArgs, Default)]
+pub struct BffOptionArgs<Inner> {
+    inner: Inner,
+}
+
 #[binread]
 #[derive(Debug, Serialize, Deref)]
 #[serde(transparent)]
+#[br(import_raw(args: BffOptionArgs<<InnerType as BinRead>::Args<'_>>))]
 pub struct BffOption<InnerType, ConditionType = u8>
 where
     for<'a> InnerType: BinRead + Serialize + 'a,
@@ -23,6 +29,7 @@ where
     condition: ConditionType,
     #[deref]
     #[br(if(condition != ConditionType::zero()))]
+    #[br(args_raw = args.inner)]
     data: Option<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<ConditionType>,

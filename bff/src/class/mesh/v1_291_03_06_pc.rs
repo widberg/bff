@@ -1,3 +1,6 @@
+// binrw casts all count directives to usize even when they already are.
+#![allow(clippy::useless_conversion)]
+
 use binrw::BinRead;
 use serde::Serialize;
 use serde_big_array::BigArray;
@@ -231,11 +234,9 @@ pub struct MeshBodyV1_291_03_06PC {
     points: Points,
     unknown1s: DynArray<Unknown1>,
     unknown2s: DynArray<Unknown2>,
-    #[br(restore_position)]
-    unknown3_count: u32,
     unknown3s: DynArray<Unknown3>,
     #[br(if(link_header.flags & 2 > 0))]
-    #[br(count = unknown3_count * 4)]
+    #[br(count = unknown3s.len() * 4)]
     unknown4s: Option<Vec<u8>>,
     unknown5s: DynArray<Unknown5>,
     material_crc32s: DynArray<Name>,
