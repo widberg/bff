@@ -28,12 +28,12 @@ struct ObjectDatasFlags {
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkHeader {
     link_name: Name,
-    flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct LightDataBodyV1_381_67_09PC {
+    object_datas_flags: ObjectDatasFlags,
     facing: Vec3f,
     local_collision_sphere: Vec3f,
     unused_vec: Vec3<i32>,

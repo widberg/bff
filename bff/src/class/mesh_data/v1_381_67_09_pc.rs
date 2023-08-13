@@ -27,12 +27,12 @@ struct ObjectDatasFlags {
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkHeader {
     link_name: Name,
-    flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct MeshDataBodyV1_381_67_09PC {
+    flags: ObjectDatasFlags,
     zero0: u32,
     zero1: u32,
     zero2: u32,

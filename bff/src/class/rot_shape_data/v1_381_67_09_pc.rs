@@ -28,12 +28,12 @@ struct ObjectDatasFlags {
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkHeader {
     link_name: Name,
-    flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct RotShapeDataBodyV1_381_67_09PC {
+    flags: ObjectDatasFlags,
     zeros: DynArray<u16>,
     #[br(count = zeros.len() * 28)]
     pad: Vec<u8>,

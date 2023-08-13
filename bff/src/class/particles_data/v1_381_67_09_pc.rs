@@ -29,7 +29,6 @@ struct ObjectDatasFlags {
 #[derive(BinRead, Debug, Serialize)]
 pub struct LinkHeader {
     link_name: Name,
-    flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
@@ -42,6 +41,7 @@ struct FadeDistances {
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct ParticlesDataBodyV1_381_67_09PC {
+    flags: ObjectDatasFlags,
     position: Vec3f,
     fade: FadeDistances,
     shorts: DynArray<u16>,
