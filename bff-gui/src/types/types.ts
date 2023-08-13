@@ -7,7 +7,7 @@ export interface BigFileData {
 
 export interface BFFObject {
   name: number;
-  class_name: number;
+  real_class_name?: string;
   is_implemented: boolean;
 }
 

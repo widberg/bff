@@ -8,6 +8,13 @@ use crate::{error::GuiError, traits::Export};
 impl Export for Box<Bitmap> {
     fn export(&self, export_path: &PathBuf, _name: u32) -> Result<String, GuiError> {
         match **self {
+            Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
+                let buf = BufReader::new(Cursor::new(bitmap.body().data()));
+                let dds = ddsfile::Dds::read(buf)?;
+                let image = image_dds::image_from_dds(&dds, 0)?;
+                image.save(export_path)?;
+                Ok(serde_json::to_string_pretty(bitmap.body())?)
+            }
             Bitmap::BitmapV1_291_03_06PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(bitmap.body().data()));
                 let dds = ddsfile::Dds::read(buf)?;

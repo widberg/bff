@@ -28,8 +28,20 @@ pub struct LinkHeader {
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(link_header: &LinkHeader))]
 pub struct SoundBodyV1_381_67_09PC {
-    #[br(count = link_header.sound_data_size)]
-    data: Vec<u8>,
+    #[br(count = link_header.sound_data_size / 2)]
+    data: Vec<i16>,
+}
+
+impl LinkHeader {
+    pub fn sample_rate(&self) -> u32 {
+        self.sample_rate
+    }
+}
+
+impl SoundBodyV1_381_67_09PC {
+    pub fn data(&self) -> &Vec<i16> {
+        &self.data
+    }
 }
 
 pub type SoundV1_381_67_09PC = TrivialClass<LinkHeader, SoundBodyV1_381_67_09PC>;

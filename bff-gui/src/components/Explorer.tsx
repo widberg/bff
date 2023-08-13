@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { CLASS_NAMES } from "../constants/constants";
 import {
   BFFObject,
   BigFileData,
@@ -54,20 +53,27 @@ function ObjectList({
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
   let objectsCopy = [...bffObjects];
-  if (sort == 1) objectsCopy.sort((a, b) => a.name - b.name);
-  else if (sort == 2)
-    objectsCopy.sort((a, b) =>
-      (CLASS_NAMES.get(a.class_name) as string).localeCompare(
-        CLASS_NAMES.get(b.class_name) as string
-      )
-    );
+  if (sort != Sort.Block) objectsCopy.sort((a, b) => a.name - b.name);
+  if (sort == Sort.Extension)
+    objectsCopy.sort((a, b) => {
+      if (a.real_class_name !== null) {
+        if (b.real_class_name !== null)
+          return (a.real_class_name as string).localeCompare(
+            b.real_class_name as string
+          );
+        else return -1;
+      } else if (b.real_class_name !== null) return 1;
+      else return 0;
+    });
   if (sortBackward) objectsCopy.reverse();
 
   let btns: JSX.Element[] = objectsCopy.map((v: BFFObject, i: number) => (
     <BFFObjectButton
       key={i}
       implemented={v.is_implemented}
-      bffObjectName={String(v.name) + "." + CLASS_NAMES.get(v.class_name)}
+      bffObjectName={`${v.name}.${
+        v.real_class_name ? v.real_class_name : "unimplemented"
+      }`}
       name={v.name}
       onClick={onClick}
       setPreviewObject={setPreviewObject}

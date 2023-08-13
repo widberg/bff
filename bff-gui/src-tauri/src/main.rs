@@ -54,7 +54,7 @@ struct BigFileData {
 #[derive(Serialize)]
 struct ObjectData {
     name: u32,
-    class_name: u32,
+    real_class_name: Option<String>,
     is_implemented: bool,
 }
 
@@ -111,14 +111,18 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
         .iter()
         .flat_map(|block| block.objects())
         .map(|obj| {
-            let class: Result<Class, _> =
-                obj.try_into_version_platform(bigfile.header().version().unwrap(), platform);
+            // let class: Result<Class, _> =
+            //     obj.try_into_version_platform(bigfile.header().version().unwrap(), platform);
+            let real_name = obj.real_class_name();
             return ObjectData {
                 name: obj.name(),
-                class_name: obj.class_name(),
-                is_implemented: match class {
+                real_class_name: match real_name {
+                    Ok(n) => Some(n.to_string()),
+                    Err(_) => None,
+                },
+                is_implemented: match real_name {
                     Err(_) => false,
-                    _ => true,
+                    Ok(_) => true,
                 },
             };
         })

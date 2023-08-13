@@ -364,7 +364,7 @@ impl Export for Box<Mesh> {
                 File::create(&export_path)?.write_all(&buffer)?;
                 Ok(serde_json::to_string_pretty(mesh.link_header())?)
             }
-            Mesh::MeshV1_06_63_02PC(_) => Err(GuiError::Simple(SimpleError(
+            _ => Err(GuiError::Simple(SimpleError(
                 "Unimplemented class".to_string(),
             ))),
         }
