@@ -17,12 +17,12 @@ struct Unknown2 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct WorldBodyV1_381_67_09PC {
     node_name0: Name,
     warp_name: Name,
@@ -48,4 +48,4 @@ pub struct WorldBodyV1_381_67_09PC {
     material_anim_name: DynArray<Name>,
 }
 
-pub type WorldV1_381_67_09PC = TrivialClass<ResourceObject, WorldBodyV1_381_67_09PC>;
+pub type WorldV1_381_67_09PC = TrivialClass<LinkHeader, WorldBodyV1_381_67_09PC>;
