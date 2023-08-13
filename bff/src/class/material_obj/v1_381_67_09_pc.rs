@@ -7,14 +7,14 @@ use crate::map::BffMap;
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct MaterialObjBodyV1_381_67_09PC {
     entries: BffMap<Name, DynArray<Name>>,
 }
 
-pub type MaterialObjV1_381_67_09PC = TrivialClass<ResourceObject, MaterialObjBodyV1_381_67_09PC>;
+pub type MaterialObjV1_381_67_09PC = TrivialClass<LinkHeader, MaterialObjBodyV1_381_67_09PC>;

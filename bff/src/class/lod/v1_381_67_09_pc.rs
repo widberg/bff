@@ -64,7 +64,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -82,7 +82,7 @@ struct FadeDistances {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct LodBodyV1_381_67_09PC {
     collision_spheres: DynArray<DynSphere>,
     collision_boxes: DynArray<DynBox>,
@@ -94,4 +94,4 @@ pub struct LodBodyV1_381_67_09PC {
     user_define_name: Name,
 }
 
-pub type LodV1_381_67_09PC = TrivialClass<Object, LodBodyV1_381_67_09PC>;
+pub type LodV1_381_67_09PC = TrivialClass<LinkHeader, LodBodyV1_381_67_09PC>;

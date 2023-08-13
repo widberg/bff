@@ -150,7 +150,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -161,7 +161,7 @@ pub struct Object {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct ParticlesBodyV1_381_67_09PC {
     particles_emitters: DynArray<ParticlesEmitter>,
     mats: DynArray<Mat4f>,
@@ -169,4 +169,4 @@ pub struct ParticlesBodyV1_381_67_09PC {
     unknown3: u16,
 }
 
-pub type ParticlesV1_381_67_09PC = TrivialClass<Object, ParticlesBodyV1_381_67_09PC>;
+pub type ParticlesV1_381_67_09PC = TrivialClass<LinkHeader, ParticlesBodyV1_381_67_09PC>;

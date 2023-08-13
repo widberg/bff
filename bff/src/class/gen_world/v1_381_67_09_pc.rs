@@ -119,7 +119,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -130,7 +130,7 @@ pub struct Object {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct GenWorldBodyV1_381_67_09PC {
     node_name: Name,
     user_define_name: Name,
@@ -148,4 +148,4 @@ pub struct GenWorldBodyV1_381_67_09PC {
     regions: BffMap<FixedStringNull<31>, Region>,
 }
 
-pub type GenWorldV1_381_67_09PC = TrivialClass<Object, GenWorldBodyV1_381_67_09PC>;
+pub type GenWorldV1_381_67_09PC = TrivialClass<LinkHeader, GenWorldBodyV1_381_67_09PC>;

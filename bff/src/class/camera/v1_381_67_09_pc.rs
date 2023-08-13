@@ -61,7 +61,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -72,11 +72,11 @@ pub struct Object {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct CameraBodyV1_381_67_09PC {
     angle_of_view: f32,
     zero: f32,
     node_name: Name,
 }
 
-pub type CameraV1_381_67_09PC = TrivialClass<Object, CameraBodyV1_381_67_09PC>;
+pub type CameraV1_381_67_09PC = TrivialClass<LinkHeader, CameraBodyV1_381_67_09PC>;

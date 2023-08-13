@@ -61,7 +61,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -72,7 +72,7 @@ pub struct Object {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct OmniBodyV1_381_67_09PC {
     scale_matrix: Mat4f,
     translation_matrix: Mat4f,
@@ -81,4 +81,4 @@ pub struct OmniBodyV1_381_67_09PC {
     material_anim_name1: Name,
 }
 
-pub type OmniV1_381_67_09PC = TrivialClass<Object, OmniBodyV1_381_67_09PC>;
+pub type OmniV1_381_67_09PC = TrivialClass<LinkHeader, OmniBodyV1_381_67_09PC>;

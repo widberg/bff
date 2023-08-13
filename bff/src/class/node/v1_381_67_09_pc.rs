@@ -14,12 +14,12 @@ struct Rect {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct NodeBodyV1_381_67_09PC {
     parent_name: Name,
     head_child_name: Name,
@@ -47,4 +47,4 @@ pub struct NodeBodyV1_381_67_09PC {
     world_transform_mat4: Mat4f,
 }
 
-pub type NodeV1_381_67_09PC = TrivialClass<ResourceObject, NodeBodyV1_381_67_09PC>;
+pub type NodeV1_381_67_09PC = TrivialClass<LinkHeader, NodeBodyV1_381_67_09PC>;

@@ -37,7 +37,7 @@ enum BmTransp {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct BitmapLinkHeader {
+pub struct LinkHeader {
     link_name: Name,
     bitmap_class: BitmapClass,
     width: u32,
@@ -56,10 +56,10 @@ pub struct BitmapLinkHeader {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &BitmapLinkHeader))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]
     data: Vec<u8>,
 }
 
-pub type BitmapV1_381_67_09PC = TrivialClass<BitmapLinkHeader, BitmapBodyV1_381_67_09PC>;
+pub type BitmapV1_381_67_09PC = TrivialClass<LinkHeader, BitmapBodyV1_381_67_09PC>;

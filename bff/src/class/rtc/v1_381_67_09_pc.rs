@@ -132,12 +132,12 @@ struct Unknown9 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct RtcBodyV1_381_67_09PC {
     duration: f32,
     unknown1s: DynArray<RtcAnimationNode>,
@@ -151,4 +151,4 @@ pub struct RtcBodyV1_381_67_09PC {
     unknown30: KeyframerMessage,
 }
 
-pub type RtcV1_381_67_09PC = TrivialClass<ResourceObject, RtcBodyV1_381_67_09PC>;
+pub type RtcV1_381_67_09PC = TrivialClass<LinkHeader, RtcBodyV1_381_67_09PC>;

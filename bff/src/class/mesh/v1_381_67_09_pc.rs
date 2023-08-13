@@ -79,7 +79,7 @@ struct FadeDistances {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct MeshLinkHeader {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -316,7 +316,7 @@ struct MeshBuffers {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &MeshLinkHeader))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct MeshBodyV1_381_67_09PC {
     strip_vertices: DynArray<Vec3f>,
     unused0s: DynArray<Unused0>,
@@ -332,4 +332,4 @@ pub struct MeshBodyV1_381_67_09PC {
     short_vec_weirds: DynArray<ShortVecWeird>,
 }
 
-pub type MeshV1_381_67_09PC = TrivialClass<MeshLinkHeader, MeshBodyV1_381_67_09PC>;
+pub type MeshV1_381_67_09PC = TrivialClass<LinkHeader, MeshBodyV1_381_67_09PC>;

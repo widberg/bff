@@ -27,7 +27,7 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ObjectDatas {
+pub struct LinkHeader {
     link_name: Name,
     flags: ObjectDatasFlags,
 }
@@ -40,7 +40,7 @@ struct FadeDistances {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ObjectDatas))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct ParticlesDataBodyV1_381_67_09PC {
     position: Vec3f,
     fade: FadeDistances,
@@ -48,4 +48,4 @@ pub struct ParticlesDataBodyV1_381_67_09PC {
     zero: u32,
 }
 
-pub type ParticlesDataV1_381_67_09PC = TrivialClass<ObjectDatas, ParticlesDataBodyV1_381_67_09PC>;
+pub type ParticlesDataV1_381_67_09PC = TrivialClass<LinkHeader, ParticlesDataBodyV1_381_67_09PC>;

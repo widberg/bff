@@ -26,17 +26,17 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ObjectDatas {
+pub struct LinkHeader {
     link_name: Name,
     flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ObjectDatas))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct RotShapeDataBodyV1_381_67_09PC {
     zeros: DynArray<u16>,
     #[br(count = zeros.len() * 28)]
     pad: Vec<u8>,
 }
 
-pub type RotShapeDataV1_381_67_09PC = TrivialClass<ObjectDatas, RotShapeDataBodyV1_381_67_09PC>;
+pub type RotShapeDataV1_381_67_09PC = TrivialClass<LinkHeader, RotShapeDataBodyV1_381_67_09PC>;

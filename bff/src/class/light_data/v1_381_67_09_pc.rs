@@ -26,13 +26,13 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ObjectDatas {
+pub struct LinkHeader {
     link_name: Name,
     flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ObjectDatas))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct LightDataBodyV1_381_67_09PC {
     facing: Vec3f,
     local_collision_sphere: Vec3f,
@@ -41,4 +41,4 @@ pub struct LightDataBodyV1_381_67_09PC {
     local_collision_sphere_facing: Vec3f,
 }
 
-pub type LightDataV1_381_67_09PC = TrivialClass<ObjectDatas, LightDataBodyV1_381_67_09PC>;
+pub type LightDataV1_381_67_09PC = TrivialClass<LinkHeader, LightDataBodyV1_381_67_09PC>;

@@ -129,7 +129,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Points {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -140,7 +140,7 @@ pub struct Points {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Points))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct SurfaceBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,
     vec4fs: DynArray<Vec4f>,
@@ -156,4 +156,4 @@ pub struct SurfaceBodyV1_381_67_09PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_381_67_09PC = TrivialClass<Points, SurfaceBodyV1_381_67_09PC>;
+pub type SurfaceV1_381_67_09PC = TrivialClass<LinkHeader, SurfaceBodyV1_381_67_09PC>;

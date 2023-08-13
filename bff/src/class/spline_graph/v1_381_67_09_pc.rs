@@ -77,7 +77,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -88,7 +88,7 @@ pub struct Object {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct SplineGraphBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,
     spline_segments: DynArray<SplineSegment>,
@@ -99,4 +99,4 @@ pub struct SplineGraphBodyV1_381_67_09PC {
     spline_segment_datas: DynArray<DynArray<u8>>,
 }
 
-pub type SplineGraphV1_381_67_09PC = TrivialClass<Object, SplineGraphBodyV1_381_67_09PC>;
+pub type SplineGraphV1_381_67_09PC = TrivialClass<LinkHeader, SplineGraphBodyV1_381_67_09PC>;

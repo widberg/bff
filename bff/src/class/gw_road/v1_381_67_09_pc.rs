@@ -34,12 +34,12 @@ struct Unused5 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,
     gen_road_min: Vec2f,
@@ -54,4 +54,4 @@ pub struct GwRoadBodyV1_381_67_09PC {
     gen_world_name: Name,
 }
 
-pub type GwRoadV1_381_67_09PC = TrivialClass<ResourceObject, GwRoadBodyV1_381_67_09PC>;
+pub type GwRoadV1_381_67_09PC = TrivialClass<LinkHeader, GwRoadBodyV1_381_67_09PC>;

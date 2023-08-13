@@ -62,7 +62,7 @@ enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct Object {
+pub struct LinkHeader {
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -79,7 +79,7 @@ struct CollisionVolInfo {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &Object))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct CollisionVolBodyV1_381_67_09PC {
     collision_vol_info: DynArray<CollisionVolInfo>,
     in_message_id: Name,
@@ -92,4 +92,4 @@ pub struct CollisionVolBodyV1_381_67_09PC {
     delay: f32,
 }
 
-pub type CollisionVolV1_381_67_09PC = TrivialClass<Object, CollisionVolBodyV1_381_67_09PC>;
+pub type CollisionVolV1_381_67_09PC = TrivialClass<LinkHeader, CollisionVolBodyV1_381_67_09PC>;

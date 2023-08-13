@@ -94,12 +94,12 @@ struct MaterialAnimFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct MaterialAnimBodyV1_381_67_09PC {
     bitmap_name_keyframer: KeyframerHdl,
     scroll_keyframer: KeyframerVec2fLinear,
@@ -117,4 +117,4 @@ pub struct MaterialAnimBodyV1_381_67_09PC {
     flags: MaterialAnimFlags,
 }
 
-pub type MaterialAnimV1_381_67_09PC = TrivialClass<ResourceObject, MaterialAnimBodyV1_381_67_09PC>;
+pub type MaterialAnimV1_381_67_09PC = TrivialClass<LinkHeader, MaterialAnimBodyV1_381_67_09PC>;

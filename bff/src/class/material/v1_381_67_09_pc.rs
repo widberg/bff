@@ -30,12 +30,12 @@ struct MaterialRdrFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct MaterialBodyV1_381_67_09PC {
     diffuse: RGB,
     opacity: f32,
@@ -70,4 +70,4 @@ pub struct MaterialBodyV1_381_67_09PC {
     unused_bitmap_name1: Name,
 }
 
-pub type MaterialV1_381_67_09PC = TrivialClass<ResourceObject, MaterialBodyV1_381_67_09PC>;
+pub type MaterialV1_381_67_09PC = TrivialClass<LinkHeader, MaterialBodyV1_381_67_09PC>;

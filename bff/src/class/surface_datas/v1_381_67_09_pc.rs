@@ -25,13 +25,13 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ObjectDatas {
+pub struct LinkHeader {
     link_name: Name,
     flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ObjectDatas))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct SurfaceDatasBodyV1_381_67_09PC {}
 
-pub type SurfaceDatasV1_381_67_09PC = TrivialClass<ObjectDatas, SurfaceDatasBodyV1_381_67_09PC>;
+pub type SurfaceDatasV1_381_67_09PC = TrivialClass<LinkHeader, SurfaceDatasBodyV1_381_67_09PC>;

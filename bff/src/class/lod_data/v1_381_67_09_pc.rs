@@ -48,17 +48,17 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ObjectDatas {
+pub struct LinkHeader {
     link_name: Name,
     flags: ObjectDatasFlags,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ObjectDatas))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct LodDataBodyV1_381_67_09PC {
     mesh_data_names: DynArray<Name>,
     zero: u32,
     extended: BffOption<Extended>,
 }
 
-pub type LodDataV1_381_67_09PC = TrivialClass<ObjectDatas, LodDataBodyV1_381_67_09PC>;
+pub type LodDataV1_381_67_09PC = TrivialClass<LinkHeader, LodDataBodyV1_381_67_09PC>;

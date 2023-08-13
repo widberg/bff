@@ -18,15 +18,15 @@ struct Character {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct FontsBodyV1_381_67_09PC {
     characters: BffMap<CharacterID, Character>,
     material_names: DynArray<Name>,
 }
 
-pub type FontsV1_381_67_09PC = TrivialClass<ResourceObject, FontsBodyV1_381_67_09PC>;
+pub type FontsV1_381_67_09PC = TrivialClass<LinkHeader, FontsBodyV1_381_67_09PC>;

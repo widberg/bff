@@ -14,14 +14,14 @@ struct Prefab {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct ResourceObject {
+pub struct LinkHeader {
     link_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &ResourceObject))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct GameObjBodyV1_381_67_09PC {
     prefabs: DynArray<Prefab>,
 }
 
-pub type GameObjV1_381_67_09PC = TrivialClass<ResourceObject, GameObjBodyV1_381_67_09PC>;
+pub type GameObjV1_381_67_09PC = TrivialClass<LinkHeader, GameObjBodyV1_381_67_09PC>;
