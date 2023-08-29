@@ -8,7 +8,15 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::map::BffMap;
 use crate::math::{
-    DynBox, DynSphere, Mat4f, NumeratorFloat, Quat, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f,
+    DynBox,
+    DynSphere,
+    Mat4f,
+    NumeratorFloat,
+    Quat,
+    RangeBeginSize,
+    RangeFirstLast,
+    Vec2f,
+    Vec3f,
 };
 use crate::name::Name;
 use crate::strings::PascalString;

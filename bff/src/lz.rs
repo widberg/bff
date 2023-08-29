@@ -1,4 +1,6 @@
-use std::{io::SeekFrom, cmp::{min, max}, ptr::null_mut};
+use std::cmp::{max, min};
+use std::io::SeekFrom;
+use std::ptr::null_mut;
 
 use binrw::{BinReaderExt, BinResult, BinWriterExt};
 
@@ -233,126 +235,132 @@ fn encode_packet(
 
 #[binrw::writer(writer)]
 pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
-        let uncompressed_buffer_size = data.len();
-        let mut uncompressed_buffer = data.to_vec();
-        uncompressed_buffer.push(0);
-        uncompressed_buffer.push(0);
-        let uncompressed_buffer = uncompressed_buffer.as_slice();
+    let uncompressed_buffer_size = data.len();
+    let mut uncompressed_buffer = data.to_vec();
+    uncompressed_buffer.push(0);
+    uncompressed_buffer.push(0);
+    let uncompressed_buffer = uncompressed_buffer.as_slice();
 
-        assert_eq!(uncompressed_buffer.len(), uncompressed_buffer_size + 2);
+    assert_eq!(uncompressed_buffer.len(), uncompressed_buffer_size + 2);
 
-        let mut g_window_buffer = vec![Match::default(); 0x8000];
-        let mut short_lookup = vec![Match::default(); 0x10000];
-        // I wish there was a cleaner way to do this at compile time.
-        // https://stackoverflow.com/q/26757355/3997768
-        let mut packets = [Packet::with_match_length(2), Packet::with_match_length(3),
-            Packet::with_match_length(4), Packet::with_match_length(5)];
-        
-        let window_size: u32 = min(uncompressed_buffer_size as u32, 0x8000u32);
-        let mut window_index = 0u32;
+    let mut g_window_buffer = vec![Match::default(); 0x8000];
+    let mut short_lookup = vec![Match::default(); 0x10000];
+    // I wish there was a cleaner way to do this at compile time.
+    // https://stackoverflow.com/q/26757355/3997768
+    let mut packets = [
+        Packet::with_match_length(2),
+        Packet::with_match_length(3),
+        Packet::with_match_length(4),
+        Packet::with_match_length(5),
+    ];
 
-        for i in 0..window_size {
-            let match_index: u16 = u16::from_be_bytes(
-                uncompressed_buffer[i as usize..i as usize + 2]
-                    .try_into()
-                    .unwrap(),
-            );
-            let current: *mut Match = &mut g_window_buffer[i as usize];
-            let next: *mut Match = &mut short_lookup[match_index as usize];
-            unsafe {
-                current.as_mut().unwrap().pos = i as u64;
-                next.as_mut().unwrap().push_back(current);
+    let window_size: u32 = min(uncompressed_buffer_size as u32, 0x8000u32);
+    let mut window_index = 0u32;
+
+    for i in 0..window_size {
+        let match_index: u16 = u16::from_be_bytes(
+            uncompressed_buffer[i as usize..i as usize + 2]
+                .try_into()
+                .unwrap(),
+        );
+        let current: *mut Match = &mut g_window_buffer[i as usize];
+        let next: *mut Match = &mut short_lookup[match_index as usize];
+        unsafe {
+            current.as_mut().unwrap().pos = i as u64;
+            next.as_mut().unwrap().push_back(current);
+        }
+    }
+
+    let mut uncompressed_buffer_ptr = 0u64;
+
+    let mut buffer_size_2: u32 = 0x8000u32;
+    let mut k: i32 = 0x7000;
+
+    while uncompressed_buffer_ptr < uncompressed_buffer_size as u64 {
+        packets.iter_mut().for_each(|p| p.reset_total_length());
+
+        // If hashes don't match, this is probably where the problem is.
+        // I hand re-rolled this loop to make it easier to read.
+        // for loops aren't allowed to return values via break so I used an immediately invoked lambda expression.
+        // https://rust-lang.github.io/rfcs/1624-loop-break-value.html#extension-to-for-while-while-let
+        // https://users.rust-lang.org/t/how-to-return-value-from-for-loop/79225/2
+        let len: i32 = || -> i32 {
+            let mut len = 3;
+            let limits = [0, 180, 300, 540];
+            for i in (0i32..=3).rev() {
+                if !encode_packet(
+                    uncompressed_buffer_ptr,
+                    &mut packets[i as usize],
+                    window_index,
+                    uncompressed_buffer,
+                    uncompressed_buffer_size,
+                    &g_window_buffer,
+                ) {
+                    return i;
+                }
+
+                if packets[i as usize].total_length > packets[len as usize].total_length
+                    || (i == 0
+                        && packets[i as usize].total_length >= packets[len as usize].total_length)
+                {
+                    len = i;
+                }
+
+                if packets[len as usize].total_length > limits[i as usize] {
+                    return len;
+                }
+            }
+
+            len
+        }();
+
+        let current_packet: &Packet = &packets[len as usize];
+
+        let mut flag: u32 = 0;
+        for i in 0..current_packet.matches.len() {
+            if current_packet.matches[i].length >= 0 {
+                flag |= 0x80000000u32 >> i;
             }
         }
 
-        let mut uncompressed_buffer_ptr = 0u64;
+        writer.write_be::<u32>(&(flag | len as u32))?;
 
-        let mut buffer_size_2: u32 = 0x8000u32;
-        let mut k: i32 = 0x7000;
-
-        while uncompressed_buffer_ptr < uncompressed_buffer_size as u64 {
-            packets.iter_mut().for_each(|p| p.reset_total_length());
-
-            // If hashes don't match, this is probably where the problem is.
-            // I hand re-rolled this loop to make it easier to read.
-            // for loops aren't allowed to return values via break so I used an immediately invoked lambda expression.
-            // https://rust-lang.github.io/rfcs/1624-loop-break-value.html#extension-to-for-while-while-let
-            // https://users.rust-lang.org/t/how-to-return-value-from-for-loop/79225/2
-            let len: i32 = || -> i32 {
-                let mut len = 3;
-                let limits = [0, 180, 300, 540];
-                for i in (0i32..=3).rev() {
-                    if !encode_packet(
-                        uncompressed_buffer_ptr,
-                        &mut packets[i as usize],
-                        window_index,
-                        uncompressed_buffer,
-                        uncompressed_buffer_size,
-                        &g_window_buffer,
-                    ) {
-                        return i;
-                    }
-                    
-                    if packets[i as usize].total_length > packets[len as usize].total_length || (i == 0 && packets[i as usize].total_length >= packets[len as usize].total_length) {
-                        len = i;
-                    }
-                    
-                    if packets[len as usize].total_length > limits[i as usize] {
-                        return len;
-                    }
-                }
-
-                len
-            }();
-
-            let current_packet: &Packet = &packets[len as usize];
-
-            let mut flag: u32 = 0;
-            for i in 0..current_packet.matches.len() {
-                if current_packet.matches[i].length >= 0 {
-                    flag |= 0x80000000u32 >> i;
-                }
-            }
-
-            writer.write_be::<u32>(&(flag | len as u32))?;
-
-            for m in current_packet.matches.iter() {
-                if m.length == -1 {
-                    writer.write_be::<u8>(&(m.data as u8))?;
-                } else {
-                    writer
-                        .write_be::<u16>(&((m.data + (m.length << (0xE - len)) - 1) as u16))?;
-                }
-            }
-
-            uncompressed_buffer_ptr += current_packet.total_length as u64;
-
-            window_index = (window_index + current_packet.total_length as u32) % 0x8000u32;
-
-            k -= current_packet.total_length;
-            if k < 0 {
-                let window_size_1: u32 =
-                    min(uncompressed_buffer_size as u32, buffer_size_2 + 0x1000u32);
-                for i in buffer_size_2..window_size_1 {
-                    let ptr: u32 = i;
-                    let match_index: u16 = u16::from_be_bytes(
-                        uncompressed_buffer[ptr as usize..ptr as usize + 2]
-                            .try_into()
-                            .unwrap(),
-                    );
-                    let current: *mut Match = &mut g_window_buffer[i as usize % 0x8000usize];
-                    let next: *mut Match = &mut short_lookup[match_index as usize];
-                    
-                    unsafe {
-                        current.as_mut().unwrap().next.as_mut().unwrap().orphan();
-                        current.as_mut().unwrap().pos = ptr as u64;
-                        next.as_mut().unwrap().push_back(current);
-                    }
-                }
-                k += 0x1000i32;
-                buffer_size_2 = window_size_1;
+        for m in current_packet.matches.iter() {
+            if m.length == -1 {
+                writer.write_be::<u8>(&(m.data as u8))?;
+            } else {
+                writer.write_be::<u16>(&((m.data + (m.length << (0xE - len)) - 1) as u16))?;
             }
         }
+
+        uncompressed_buffer_ptr += current_packet.total_length as u64;
+
+        window_index = (window_index + current_packet.total_length as u32) % 0x8000u32;
+
+        k -= current_packet.total_length;
+        if k < 0 {
+            let window_size_1: u32 =
+                min(uncompressed_buffer_size as u32, buffer_size_2 + 0x1000u32);
+            for i in buffer_size_2..window_size_1 {
+                let ptr: u32 = i;
+                let match_index: u16 = u16::from_be_bytes(
+                    uncompressed_buffer[ptr as usize..ptr as usize + 2]
+                        .try_into()
+                        .unwrap(),
+                );
+                let current: *mut Match = &mut g_window_buffer[i as usize % 0x8000usize];
+                let next: *mut Match = &mut short_lookup[match_index as usize];
+
+                unsafe {
+                    current.as_mut().unwrap().next.as_mut().unwrap().orphan();
+                    current.as_mut().unwrap().pos = ptr as u64;
+                    next.as_mut().unwrap().push_back(current);
+                }
+            }
+            k += 0x1000i32;
+            buffer_size_2 = window_size_1;
+        }
+    }
 
     Ok(())
 }

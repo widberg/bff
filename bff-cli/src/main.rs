@@ -8,8 +8,8 @@ mod crc32;
 mod crc64;
 mod extract;
 mod info;
-mod unlz;
 mod lz;
+mod unlz;
 
 #[derive(Subcommand)]
 enum Commands {

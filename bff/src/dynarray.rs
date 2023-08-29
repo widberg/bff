@@ -1,6 +1,6 @@
-use std::fmt::Debug;
+use std::convert::TryFrom;
+use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
-use std::{convert::TryFrom, fmt::Display};
 
 use binrw::{binread, BinRead, NamedArgs};
 use derive_more::Deref;

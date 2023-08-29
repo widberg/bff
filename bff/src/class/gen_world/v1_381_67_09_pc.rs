@@ -7,12 +7,9 @@ use serde::Serialize;
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::map::BffMap;
-use crate::math::Vec2f;
-use crate::math::Vec3f;
-use crate::math::{Mat4f, Quat};
+use crate::math::{Mat4f, Quat, Vec2f, Vec3f};
 use crate::name::Name;
-use crate::strings::FixedStringNull;
-use crate::strings::PascalStringNull;
+use crate::strings::{FixedStringNull, PascalStringNull};
 
 #[derive(BinRead, Debug, Serialize)]
 struct Category {
