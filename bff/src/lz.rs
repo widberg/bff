@@ -1,4 +1,6 @@
-use binrw::{BinReaderExt, BinResult};
+use std::{io::{SeekFrom}, cmp::{min, max}, ptr::null_mut};
+
+use binrw::{BinReaderExt, BinResult, BinWriterExt};
 
 #[binrw::parser(reader, endian)]
 pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -57,5 +59,326 @@ pub fn decompress_data_parser(decompressed_size: u32, _compressed_size: u32) -> 
 
             flags <<= 1;
         }
+    }
+}
+
+#[binrw::writer(writer, endian)]
+pub fn compress_data_with_header_writer(data: &[u8]) -> BinResult<()> {
+    // println!("{:?}", data);
+    let starting_position = writer.stream_position()?;
+    let decompressed_size = data.len() as u32;
+    writer.write_le::<u32>(&decompressed_size)?;
+    writer.write_le::<u32>(&0)?;
+
+    compress_data_writer(data, writer, endian, ())?;
+    let ending_position = writer.stream_position()?;
+
+    let compressed_size = (ending_position - starting_position) as u32;
+    writer.seek(SeekFrom::Start(4))?;
+    writer.write_le::<u32>(&compressed_size)?;
+    writer.seek(SeekFrom::Start(ending_position))?;
+    Ok(())
+}
+
+// TODO: Make the lz compression code pretty and safe
+
+#[derive(Clone)]
+struct PacketMatch {
+    length: i32,
+    data: i32,
+}
+
+#[derive(Clone)]
+struct Packet {
+    match_length: i32,
+    total_length: i32,
+    matches: Vec<PacketMatch>,
+}
+
+#[derive(Clone)]
+struct Match {
+    pos: u64,
+    prev: *mut Match,
+    next: *mut Match,
+}
+
+impl Match {
+    unsafe fn orphan(&mut self) {
+        self.prev.as_mut().unwrap().next = null_mut();
+        self.prev = null_mut();
+    }
+
+    unsafe fn push_back(&mut self, node: *mut Match) {
+        node.as_mut().unwrap().prev = self.prev;
+        if !node.as_mut().unwrap().prev.is_null() {
+            node.as_mut().unwrap().prev.as_mut().unwrap().next = node;
+        };
+        node.as_mut().unwrap().next = self;
+        node.as_mut().unwrap().next.as_mut().unwrap().prev = node;
+    }
+}
+
+unsafe fn encode_packet(
+    mut uncompressed_buffer_ptr: u64,
+    packet: &mut Packet,
+    mut window_index: u32,
+    uncompressed_buffer: &[u8],
+    uncompressed_buffer_size: usize,
+    g_window_buffer: &[Match],
+) -> bool {
+    let mut remaining_length: u32 = (1 << packet.match_length) + 2;
+    let v20: u32 = 0x10000 >> packet.match_length;
+
+    packet.matches.clear();
+    for _ in 0..30 {
+        let v5: u64 = max(0i64, uncompressed_buffer_ptr as i64 - v20 as i64) as u64;
+
+        remaining_length = min(
+            remaining_length,
+            (uncompressed_buffer_size - uncompressed_buffer_ptr as usize) as u32,
+        );
+
+        if remaining_length <= 2 {
+            packet.total_length += 1;
+            packet.matches.push(PacketMatch {
+                length: -1,
+                data: uncompressed_buffer[uncompressed_buffer_ptr as usize] as i32,
+            });
+            uncompressed_buffer_ptr += 1;
+            window_index += 1;
+        } else {
+            let mut ptr: u64 = 0;
+
+            let mut match_length: i32 = 2;
+            let mut cur: *const Match = g_window_buffer[window_index as usize].prev;
+            while !cur.is_null() && cur.as_ref().unwrap().pos >= v5 {
+                if uncompressed_buffer[uncompressed_buffer_ptr as usize + 2]
+                    == uncompressed_buffer[cur.as_ref().unwrap().pos as usize + 2]
+                {
+                    let mut j: i32 = 3;
+                    while uncompressed_buffer[cur.as_ref().unwrap().pos as usize + j as usize]
+                        == uncompressed_buffer[uncompressed_buffer_ptr as usize + j as usize]
+                        && remaining_length != j as u32
+                    {
+                        j += 1;
+                    }
+
+                    if match_length < j {
+                        if remaining_length == j as u32 {
+                            ptr = cur.as_ref().unwrap().pos;
+                            match_length = remaining_length as i32;
+                            break;
+                        }
+                        match_length = j;
+                        ptr = cur.as_ref().unwrap().pos;
+                    }
+                }
+                cur = cur.as_ref().unwrap().prev;
+            }
+
+            if match_length == 2 {
+                packet.total_length += 1;
+                packet.matches.push(PacketMatch {
+                    length: -1,
+                    data: uncompressed_buffer[uncompressed_buffer_ptr as usize] as i32,
+                });
+                uncompressed_buffer_ptr += 1;
+                window_index += 1;
+            } else {
+                packet.total_length += match_length;
+                packet.matches.push(PacketMatch {
+                    length: match_length - 3,
+                    data: uncompressed_buffer_ptr as i32 - ptr as i32,
+                });
+                uncompressed_buffer_ptr += match_length as u64;
+                window_index += match_length as u32;
+            }
+        }
+
+        window_index %= 0x8000;
+
+        if uncompressed_buffer_ptr >= uncompressed_buffer_size as u64 {
+            return false;
+        }
+    }
+
+    true
+}
+
+#[binrw::writer(writer)]
+pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
+    unsafe {
+        let uncompressed_buffer_size = data.len();
+        let mut uncompressed_buffer = data.to_vec();
+        uncompressed_buffer.push(0);
+        uncompressed_buffer.push(0);
+        let uncompressed_buffer = uncompressed_buffer.as_slice();
+
+        assert_eq!(uncompressed_buffer.len(), uncompressed_buffer_size + 2);
+
+        let mut g_window_buffer: Vec<Match> = std::iter::repeat(Match {
+            pos: 0,
+            prev: null_mut(),
+            next: null_mut(),
+        })
+        .take(0x8000)
+        .collect::<Vec<_>>();
+
+        let mut short_lookup: Vec<Match> = std::iter::repeat(Match {
+            pos: 0,
+            prev: null_mut(),
+            next: null_mut(),
+        })
+        .take(0x10000)
+        .collect::<Vec<_>>();
+
+        let window_size: u32 = min(uncompressed_buffer_size as u32, 0x8000u32);
+
+        let mut packets: Vec<Packet> = std::iter::repeat(Packet {
+            match_length: 0,
+            total_length: 0,
+            matches: vec![],
+        })
+        .take(4)
+        .collect::<Vec<_>>();
+        packets[0].match_length = 2;
+        packets[1].match_length = 3;
+        packets[2].match_length = 4;
+        packets[3].match_length = 5;
+
+        let mut window_index: u32 = 0;
+
+        for i in 0..window_size {
+            let ptr: u32 = i;
+            let match_index: u16 = u16::from_be_bytes(
+                uncompressed_buffer[ptr as usize..ptr as usize + 2]
+                    .try_into()
+                    .unwrap(),
+            );
+            let current: *mut Match = &mut g_window_buffer[i as usize];
+            let next: *mut Match = &mut short_lookup[match_index as usize];
+            current.as_mut().unwrap().pos = ptr as u64;
+            next.as_mut().unwrap().push_back(current);
+        }
+
+        let mut uncompressed_buffer_ptr = 0u64;
+
+        let mut buffer_size_2: u32 = 0x8000u32;
+        let mut k: i32 = 0x7000;
+
+        while uncompressed_buffer_ptr < uncompressed_buffer_size as u64 {
+            let mut len: u8;
+
+            packets[3].total_length = 0;
+            packets[2].total_length = 0;
+            packets[1].total_length = 0;
+            packets[0].total_length = 0;
+
+            if encode_packet(
+                uncompressed_buffer_ptr,
+                &mut packets[3],
+                window_index,
+                uncompressed_buffer,
+                uncompressed_buffer_size,
+                &g_window_buffer,
+            ) && packets[3].total_length <= 540
+            {
+                if encode_packet(
+                    uncompressed_buffer_ptr,
+                    &mut packets[2],
+                    window_index,
+                    uncompressed_buffer,
+                    uncompressed_buffer_size,
+                    &g_window_buffer,
+                ) {
+                    len = if packets[2].total_length <= packets[3].total_length {
+                        1
+                    } else {
+                        0
+                    } + 2;
+                    if packets[len as usize].total_length <= 300 {
+                        if encode_packet(
+                            uncompressed_buffer_ptr,
+                            &mut packets[1],
+                            window_index,
+                            uncompressed_buffer,
+                            uncompressed_buffer_size,
+                            &g_window_buffer,
+                        ) {
+                            if packets[1].total_length > packets[len as usize].total_length {
+                                len = 1;
+                            }
+
+                            if packets[len as usize].total_length <= 180 {
+                                encode_packet(
+                                    uncompressed_buffer_ptr,
+                                    &mut packets[0],
+                                    window_index,
+                                    uncompressed_buffer,
+                                    uncompressed_buffer_size,
+                                    &g_window_buffer,
+                                );
+                                if packets[0].total_length >= packets[len as usize].total_length {
+                                    len = 0;
+                                }
+                            }
+                        } else {
+                            len = 1;
+                        }
+                    }
+                } else {
+                    len = 2;
+                }
+            } else {
+                len = 3;
+            }
+
+            let current_packet: &Packet = &packets[len as usize];
+
+            let mut flag: u32 = 0;
+            for i in 0..current_packet.matches.len() {
+                if current_packet.matches[i].length >= 0 {
+                    flag |= 0x80000000u32 >> i;
+                }
+            }
+
+            writer.write_be::<u32>(&(flag | len as u32))?;
+
+            for m in current_packet.matches.iter() {
+                if m.length == -1 {
+                    writer.write_be::<u8>(&(m.data as u8))?;
+                } else {
+                    writer
+                        .write_be::<u16>(&((m.data + (m.length << (0xE - len)) - 1) as u16))?;
+                }
+            }
+
+            uncompressed_buffer_ptr += current_packet.total_length as u64;
+
+            window_index = (window_index + current_packet.total_length as u32) % 0x8000u32;
+
+            k -= current_packet.total_length;
+            if k < 0 {
+                let window_size_1: u32 =
+                    min(uncompressed_buffer_size as u32, buffer_size_2 + 0x1000u32);
+                for i in buffer_size_2..window_size_1 {
+                    let ptr: u32 = i;
+                    let match_index: u16 = u16::from_be_bytes(
+                        uncompressed_buffer[ptr as usize..ptr as usize + 2]
+                            .try_into()
+                            .unwrap(),
+                    );
+                    let current: *mut Match = &mut g_window_buffer[i as usize % 0x8000usize];
+                    let next: *mut Match = &mut short_lookup[match_index as usize];
+                    current.as_mut().unwrap().next.as_mut().unwrap().orphan();
+                    current.as_mut().unwrap().pos = ptr as u64;
+                    next.as_mut().unwrap().push_back(current);
+                }
+                k += 0x1000i32;
+                buffer_size_2 = window_size_1;
+            }
+        }
+
+        Ok(())
     }
 }
