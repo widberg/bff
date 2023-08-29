@@ -16,7 +16,7 @@ pub struct BitmapBodyV1_291_03_06PC {
     unknown: u8,
     #[br(count = precalculated_size)]
     #[serde(skip_serializing)]
-    data: Vec<u8>,
+    _data: Vec<u8>,
 }
 
 pub type BitmapV1_291_03_06PC = TrivialClass<(), BitmapBodyV1_291_03_06PC>;

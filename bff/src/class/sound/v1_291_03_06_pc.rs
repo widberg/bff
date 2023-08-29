@@ -24,7 +24,7 @@ pub struct SoundBodyV1_291_03_06PC {
     flags: SoundFlags,
     #[br(count = data_size / 2)]
     #[serde(skip_serializing)]
-    data: Vec<i16>,
+    _data: Vec<i16>,
 }
 
 pub type SoundV1_291_03_06PC = TrivialClass<(), SoundBodyV1_291_03_06PC>;
