@@ -111,6 +111,7 @@ impl Packet {
     }
 }
 
+// Oops I made a doubly linked list
 #[derive(Clone)]
 struct Match {
     pos: u64,
@@ -129,12 +130,14 @@ impl Default for Match {
 }
 
 impl Match {
-    unsafe fn orphan(&mut self) {
+    // Detach self from previous
+    unsafe fn split_off(&mut self) {
         self.prev.as_mut().unwrap().next = null_mut();
         self.prev = null_mut();
     }
 
-    unsafe fn push_back(&mut self, node: *mut Match) {
+    // Insert node between self and self.prev
+    unsafe fn insert_before(&mut self, node: *mut Match) {
         node.as_mut().unwrap().prev = self.prev;
         if !node.as_mut().unwrap().prev.is_null() {
             node.as_mut().unwrap().prev.as_mut().unwrap().next = node;
@@ -143,6 +146,8 @@ impl Match {
         node.as_mut().unwrap().next.as_mut().unwrap().prev = node;
     }
 }
+
+const MAXIMUM_WINDOW_SIZE: u32 = 0x8000;
 
 fn encode_packet(
     mut uncompressed_buffer_ptr: u64,
@@ -223,14 +228,14 @@ fn encode_packet(
             }
         }
 
-        window_index %= 0x8000;
+        window_index %= MAXIMUM_WINDOW_SIZE;
 
         if uncompressed_buffer_ptr >= uncompressed_buffer_size as u64 {
-            return false;
+            return true;
         }
     }
 
-    true
+    false
 }
 
 #[binrw::writer(writer)]
@@ -243,7 +248,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
 
     assert_eq!(uncompressed_buffer.len(), uncompressed_buffer_size + 2);
 
-    let mut g_window_buffer = vec![Match::default(); 0x8000];
+    let mut g_window_buffer = vec![Match::default(); MAXIMUM_WINDOW_SIZE as usize];
     let mut short_lookup = vec![Match::default(); 0x10000];
     // I wish there was a cleaner way to do this at compile time.
     // https://stackoverflow.com/q/26757355/3997768
@@ -254,7 +259,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
         Packet::with_match_length(5),
     ];
 
-    let window_size: u32 = min(uncompressed_buffer_size as u32, 0x8000u32);
+    let window_size: u32 = min(uncompressed_buffer_size as u32, MAXIMUM_WINDOW_SIZE);
     let mut window_index = 0u32;
 
     for i in 0..window_size {
@@ -267,13 +272,13 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
         let next: *mut Match = &mut short_lookup[match_index as usize];
         unsafe {
             current.as_mut().unwrap().pos = i as u64;
-            next.as_mut().unwrap().push_back(current);
+            next.as_mut().unwrap().insert_before(current);
         }
     }
 
     let mut uncompressed_buffer_ptr = 0u64;
 
-    let mut buffer_size_2: u32 = 0x8000u32;
+    let mut buffer_size_2: u32 = MAXIMUM_WINDOW_SIZE;
     let mut k: i32 = 0x7000;
 
     while uncompressed_buffer_ptr < uncompressed_buffer_size as u64 {
@@ -281,14 +286,15 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
 
         // If hashes don't match, this is probably where the problem is.
         // I hand re-rolled this loop to make it easier to read.
-        // for loops aren't allowed to return values via break so I used an immediately invoked lambda expression.
+        // for loops aren't allowed to return values via break so I used find_map.
         // https://rust-lang.github.io/rfcs/1624-loop-break-value.html#extension-to-for-while-while-let
         // https://users.rust-lang.org/t/how-to-return-value-from-for-loop/79225/2
-        let len: i32 = || -> i32 {
-            let mut len = 3;
-            let limits = [0, 180, 300, 540];
-            for i in (0i32..=3).rev() {
-                if !encode_packet(
+        let mut len = 3;
+        let limits = [0, 180, 300, 540];
+        let len = (0i32..=3)
+            .rev()
+            .find_map(|i| {
+                if encode_packet(
                     uncompressed_buffer_ptr,
                     &mut packets[i as usize],
                     window_index,
@@ -296,7 +302,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                     uncompressed_buffer_size,
                     &g_window_buffer,
                 ) {
-                    return i;
+                    return Some(i);
                 }
 
                 if packets[i as usize].total_length > packets[len as usize].total_length
@@ -307,12 +313,12 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                 }
 
                 if packets[len as usize].total_length > limits[i as usize] {
-                    return len;
+                    return Some(len);
                 }
-            }
 
-            len
-        }();
+                None
+            })
+            .unwrap_or(len);
 
         let current_packet: &Packet = &packets[len as usize];
 
@@ -335,7 +341,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
 
         uncompressed_buffer_ptr += current_packet.total_length as u64;
 
-        window_index = (window_index + current_packet.total_length as u32) % 0x8000u32;
+        window_index = (window_index + current_packet.total_length as u32) % MAXIMUM_WINDOW_SIZE;
 
         k -= current_packet.total_length;
         if k < 0 {
@@ -348,13 +354,13 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                         .try_into()
                         .unwrap(),
                 );
-                let current: *mut Match = &mut g_window_buffer[i as usize % 0x8000usize];
+                let current: *mut Match = &mut g_window_buffer[(i % MAXIMUM_WINDOW_SIZE) as usize];
                 let next: *mut Match = &mut short_lookup[match_index as usize];
 
                 unsafe {
-                    current.as_mut().unwrap().next.as_mut().unwrap().orphan();
+                    current.as_mut().unwrap().next.as_mut().unwrap().split_off();
                     current.as_mut().unwrap().pos = ptr as u64;
-                    next.as_mut().unwrap().push_back(current);
+                    next.as_mut().unwrap().insert_before(current);
                 }
             }
             k += 0x1000i32;
