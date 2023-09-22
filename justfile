@@ -1,3 +1,4 @@
+#!/usr/bin/env -S just --justfile
 # just (https://github.com/casey/just)
 # cargo-sort (https://github.com/DevinR528/cargo-sort)
 
@@ -7,7 +8,7 @@ cargo-command-prefix := env_var_or_default("CARGO_COMMAND_PREFIX", "")
 
 fmt:
 	cargo +nightly {{cargo-command-prefix}} fmt
-	cargo {{cargo-command-prefix}} sort
+	cargo {{cargo-command-prefix}} sort -w
 
 clippy:
 	cargo {{cargo-command-prefix}} clippy
