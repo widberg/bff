@@ -1,4 +1,5 @@
-use binrw::{until_eof, BinRead};
+use binrw::helpers::until_eof;
+use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;

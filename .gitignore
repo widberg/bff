@@ -12,6 +12,9 @@ target/
 # .vscode
 .vscode/
 
+# IntelliJ IDEA
+.idea/
+
 # data
 data/
 

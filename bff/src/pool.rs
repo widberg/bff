@@ -1,6 +1,3 @@
-// binrw casts all count directives to usize even when they already are.
-#![allow(clippy::useless_conversion)]
-
 use binrw::BinRead;
 use serde::Serialize;
 

@@ -14,7 +14,7 @@ pub struct BlockDescription {
     working_buffer_offset: u32,
     first_object_name: u32,
     #[br(temp)]
-    zero: u32,
+    _zero: u32,
 }
 
 impl BlockDescription {
@@ -45,26 +45,26 @@ pub struct Header {
     block_working_buffer_capacity_even: u32,
     block_working_buffer_capacity_odd: u32,
     #[br(temp)]
-    padded_size: u32,
+    _padded_size: u32,
     version_triple: VersionTriple,
     #[serde(skip)]
     #[br(count = block_count, pad_size_to = BlockDescription::SIZE * 64)]
     block_descriptions: Vec<BlockDescription>,
     #[br(temp)]
-    pool_manifest_padded_size: u32,
+    _pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
     pool_offset: Option<u32>,
     pool_manifest_unused0: u32,
     #[br(temp)]
-    pool_manifest_unused1: u32,
+    _pool_manifest_unused1: u32,
     #[br(temp)]
-    pool_object_decompression_buffer_capacity: u32,
+    _pool_object_decompression_buffer_capacity: u32,
     #[br(temp)]
-    block_sector_padding_size: u32,
+    _block_sector_padding_size: u32,
     #[br(temp)]
-    pool_sector_padding_size: u32,
+    _pool_sector_padding_size: u32,
     #[br(temp)]
-    file_size: u32,
+    _file_size: u32,
     #[brw(try, align_after = 2048)]
     incredi_builder_string: Option<FixedStringNull<128>>,
 }

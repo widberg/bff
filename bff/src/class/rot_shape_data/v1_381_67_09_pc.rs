@@ -1,6 +1,3 @@
-// binrw casts all count directives to usize even when they already are.
-#![allow(clippy::useless_conversion)]
-
 use bff_derive::serialize_bits;
 use bilge::prelude::{bitsize, u1, u19, Bitsized, DebugBits, Number};
 use binrw::BinRead;
