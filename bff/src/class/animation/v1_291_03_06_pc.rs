@@ -1,85 +1,18 @@
 use binrw::BinRead;
 use serde::Serialize;
-use serde_big_array::BigArray;
+use crate::keyframer::{KeyframerFloatComp, KeyframerVec3fComp, KeyframerMessage, KeyframerRot, KeyframerBezierRot};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
-struct RotFrame {
-    time: f32,
-    rot: [i16; 4],
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyframerRot {
-    rot_frames: DynArray<RotFrame>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct BezierRotFrame {
-    time: f32,
-    #[serde(with = "BigArray")]
-    data: [u8; 36],
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyframerBezierRot {
-    bezier_rot_frames: DynArray<BezierRotFrame>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct Vec3CompFrame {
-    time: f32,
-    i16s: [i16; 10],
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyframerVec3Comp {
-    unknown: u16,
-    vec3_comp_frames: DynArray<Vec3CompFrame>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct FloatCompFrame {
-    time: f32,
-    i16s: [i16; 4],
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyframerFloatComp {
-    unknown: u16,
-    float_comp_frames: DynArray<FloatCompFrame>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct Message {
-    unknown0: u32,
-    unknown1: u32,
-    unknown2: u32,
-    unknown3: f32,
-    crc32: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyMessage {
-    time: f32,
-    messages: DynArray<Message>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct KeyframerMessage {
-    key_messages: DynArray<KeyMessage>,
-}
-
-#[derive(BinRead, Debug, Serialize)]
 struct AnimationNode {
     unknown: u16,
     keyframer_rot: KeyframerRot,
     keyframer_bezier_rot: KeyframerBezierRot,
-    keyframer_scale: KeyframerVec3Comp,
-    keyframer_translation: KeyframerVec3Comp,
+    keyframer_scale: KeyframerVec3fComp,
+    keyframer_translation: KeyframerVec3fComp,
     keyframer_message: KeyframerMessage,
 }
 
@@ -104,8 +37,8 @@ struct AnimationNodeModifier {
 struct AnimationMaterial {
     keyframer_float_comp0: KeyframerFloatComp,
     keyframer_float_comp1: KeyframerFloatComp,
-    keyframer_vec3_comp0: KeyframerVec3Comp,
-    keyframer_vec3_comp1: KeyframerVec3Comp,
+    keyframer_vec3_comp0: KeyframerVec3fComp,
+    keyframer_vec3_comp1: KeyframerVec3fComp,
     keyframer_float_comp2: KeyframerFloatComp,
 }
 

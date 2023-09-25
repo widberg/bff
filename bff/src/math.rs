@@ -12,11 +12,13 @@ use crate::name::Name;
 pub type Vec<const SIZE: usize, InnerType = f32> = [InnerType; SIZE];
 pub type Vec2<T = f32> = Vec<2, T>;
 pub type Vec2f = Vec2;
+pub type Vec2i16 = Vec2<i16>;
 pub type Vec3<T = f32> = Vec<3, T>;
 pub type Vec3f = Vec3;
 pub type RGB = Vec3;
 pub type Vec4<T = f32> = Vec<4, T>;
 pub type Vec4f = Vec4;
+pub type Vec4i16 = Vec4<i16>;
 pub type Quat = Vec4;
 pub type RGBA = Vec4;
 

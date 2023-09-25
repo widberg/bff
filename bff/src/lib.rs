@@ -17,6 +17,7 @@ pub mod pool;
 pub mod strings;
 pub mod traits;
 pub mod versions;
+pub mod keyframer;
 
 pub type BffResult<T> = std::result::Result<T, crate::error::Error>;
 pub type Endian = binrw::Endian;
