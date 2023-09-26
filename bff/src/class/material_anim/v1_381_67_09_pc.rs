@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -15,9 +14,8 @@ use crate::keyframer::{
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
 
-#[serialize_bits]
 #[bitsize(8)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct MaterialAnimFlags {
     fl_mat_play: u1,
     fl_mat_played: u1,

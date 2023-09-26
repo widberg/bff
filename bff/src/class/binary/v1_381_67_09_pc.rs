@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -6,17 +5,15 @@ use serde::Serialize;
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ResourceObjectLinkHeader;
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct LookupDescription {
     horizon: u12,
     altitudes_index: u20,
 }
 
-#[serialize_bits]
 #[bitsize(8)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct AltitudePack {
     odd: u4,
     even: u4,

@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -133,9 +132,8 @@ enum Vertex {
     },
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct D3DFlags {
     d3d_pool_default: u1,
     d3d_pool_managed: u1,
@@ -183,9 +181,8 @@ struct Unused1 {
     unused6: u32,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct VertexGroupFlags {
     padding: u2,
     visible: u1,

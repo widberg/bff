@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -12,9 +11,8 @@ pub struct ResourceObjectLinkHeader {
     link_name: Name,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 pub struct ObjectDatasFlagsV1_381_67_09PC {
     fl_objectdatas_hide: u1,
     fl_objectdatas_code_control: u1,
@@ -32,9 +30,8 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
     padding: u19,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 pub struct ObjectFlagsV1_381_67_09PC {
     fl_object_init: u1,
     fl_object_max_bsphere: u1,

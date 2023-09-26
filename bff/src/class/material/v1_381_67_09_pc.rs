@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -8,9 +7,8 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::{Vec2f, RGB};
 use crate::name::Name;
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct MaterialEnabledBitmaps {
     diffuse: u1,
     unused0: u1,
@@ -24,9 +22,8 @@ struct MaterialEnabledBitmaps {
     padding: u23,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct MaterialRdrFlags {
     padding0: u5,
     transparency: u1,

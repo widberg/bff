@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -41,9 +40,8 @@ struct Edge {
     t: [u16; 2],
 }
 
-#[serialize_bits]
 #[bitsize(16)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct ShouldDrawBitfield {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,

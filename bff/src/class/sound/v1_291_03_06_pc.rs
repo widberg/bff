@@ -1,13 +1,11 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 
-#[serialize_bits]
 #[bitsize(16)]
-#[derive(DebugBits, BinRead)]
+#[derive(DebugBits, BinRead, SerializeBits)]
 struct SoundFlags {
     paused: u1,
     looping: u1,

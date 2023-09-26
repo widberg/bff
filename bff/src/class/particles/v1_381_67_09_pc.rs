@@ -1,4 +1,3 @@
-use bff_derive::serialize_bits;
 use bilge::prelude::*;
 use binrw::BinRead;
 use serde::Serialize;
@@ -15,9 +14,8 @@ use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::{Mat4f, Vec3f};
 use crate::name::Name;
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits)]
 struct ParticlesEmitterFlags {
     fl_particles_loop: u1,
     fl_particles_lock_h: u1,
