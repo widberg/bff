@@ -1,11 +1,10 @@
 use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u12, u20, u4, Bitsized, DebugBits, Number};
+use bilge::prelude::*;
 use binrw::BinRead;
-use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::name::Name;
+use crate::link_header::ResourceObjectLinkHeader;
 
 #[serialize_bits]
 #[bitsize(32)]
@@ -55,15 +54,10 @@ struct Internal {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct BinaryBodyV1_381_67_09PC {
     data_size: u32,
     data: Internal,
 }
 
-pub type BinaryV1_381_67_09PC = TrivialClass<LinkHeader, BinaryBodyV1_381_67_09PC>;
+pub type BinaryV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, BinaryBodyV1_381_67_09PC>;

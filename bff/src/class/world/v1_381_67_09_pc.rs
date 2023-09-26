@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Mat4f;
 use crate::name::Name;
 
@@ -17,12 +18,7 @@ struct Unknown2 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct WorldBodyV1_381_67_09PC {
     node_name0: Name,
     warp_name: Name,
@@ -48,4 +44,4 @@ pub struct WorldBodyV1_381_67_09PC {
     material_anim_name: DynArray<Name>,
 }
 
-pub type WorldV1_381_67_09PC = TrivialClass<LinkHeader, WorldBodyV1_381_67_09PC>;
+pub type WorldV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, WorldBodyV1_381_67_09PC>;

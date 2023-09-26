@@ -1,10 +1,10 @@
 use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, Bitsized, DebugBits, Number};
+use bilge::prelude::*;
 use binrw::BinRead;
-use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
 use crate::keyframer::{KeyframerFlag, KeyframerFloatLinearComp, KeyframerHdl, KeyframerVec2fLinear, KeyframerVec3fLinear, KeyframerVec4fLinear};
 
@@ -23,12 +23,7 @@ struct MaterialAnimFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MaterialAnimBodyV1_381_67_09PC {
     bitmap_name_keyframer: KeyframerHdl,
     scroll_keyframer: KeyframerVec2fLinear,
@@ -46,4 +41,4 @@ pub struct MaterialAnimBodyV1_381_67_09PC {
     flags: MaterialAnimFlags,
 }
 
-pub type MaterialAnimV1_381_67_09PC = TrivialClass<LinkHeader, MaterialAnimBodyV1_381_67_09PC>;
+pub type MaterialAnimV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MaterialAnimBodyV1_381_67_09PC>;

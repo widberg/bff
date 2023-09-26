@@ -3,27 +3,8 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{Mat, Sphere, Vec3f, Vec4f};
-use crate::name::Name;
-
-#[derive(BinRead, Debug, Serialize)]
-struct Box {
-    mat: Mat<3, 4>,
-    vec: Vec3f,
-    scale: f32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_name: Name,
-    links: DynArray<u32>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    b_box: Box,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
+use crate::math::{Vec3f, Vec4f};
 
 #[derive(BinRead, Debug, Serialize)]
 struct Segment {
@@ -41,7 +22,7 @@ struct Spline {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SplineBodyV1_06_63_02PC {
     points: DynArray<Vec3f>,
     splines: DynArray<Spline>,
@@ -49,4 +30,4 @@ pub struct SplineBodyV1_06_63_02PC {
     length: f32,
 }
 
-pub type SplineV1_06_63_02PC = TrivialClass<LinkInfo, SplineBodyV1_06_63_02PC>;
+pub type SplineV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SplineBodyV1_06_63_02PC>;

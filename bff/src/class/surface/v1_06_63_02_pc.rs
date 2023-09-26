@@ -1,7 +1,6 @@
 use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u3, u5, Bitsized, DebugBits, Number};
+use bilge::prelude::*;
 use binrw::BinRead;
-use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -9,23 +8,6 @@ use crate::dynarray::DynArray;
 use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
 use crate::option::BffOption;
-
-#[derive(BinRead, Debug, Serialize)]
-struct Box {
-    transformation: Mat4f,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    surface_data_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
 
 #[derive(BinRead, Debug, Serialize)]
 struct PointsRelated0 {
@@ -164,7 +146,7 @@ struct ShouldDrawRelated {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[br(import(_link_header: &ObjectV1_06_63_02PC))]
 pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
@@ -179,4 +161,4 @@ pub struct SurfaceBodyV1_06_63_02PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_06_63_02PC = TrivialClass<LinkInfo, SurfaceBodyV1_06_63_02PC>;
+pub type SurfaceV1_06_63_02PC = TrivialClass<ObjectV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;

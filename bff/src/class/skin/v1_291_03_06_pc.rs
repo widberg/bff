@@ -3,21 +3,9 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::map::BffMap;
-use crate::math::{Mat4f, Sphere};
 use crate::name::Name;
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    skel_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
 
 #[derive(BinRead, Debug, Serialize)]
 struct Unknown1 {
@@ -69,7 +57,7 @@ struct SkinSection {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SkinBodyV1_291_03_06PC {
     mesh_crc32s: DynArray<Name>,
     unknown0s: DynArray<Unknown1>,
@@ -83,4 +71,4 @@ pub struct SkinBodyV1_291_03_06PC {
     skin_sections: DynArray<SkinSection>,
 }
 
-pub type SkinV1_291_03_06PC = TrivialClass<LinkInfo, SkinBodyV1_291_03_06PC>;
+pub type SkinV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SkinBodyV1_291_03_06PC>;

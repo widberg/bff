@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
 use crate::keyframer::{KeyframerFloatComp, KeyframerVec3fComp, KeyframerMessage, KeyframerRot, KeyframerFloat, KeyframerVec3f};
 
@@ -57,12 +58,7 @@ struct Unknown9 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct RtcBodyV1_381_67_09PC {
     duration: f32,
     unknown1s: DynArray<RtcAnimationNode>,
@@ -76,4 +72,4 @@ pub struct RtcBodyV1_381_67_09PC {
     unknown30: KeyframerMessage,
 }
 
-pub type RtcV1_381_67_09PC = TrivialClass<LinkHeader, RtcBodyV1_381_67_09PC>;
+pub type RtcV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, RtcBodyV1_381_67_09PC>;

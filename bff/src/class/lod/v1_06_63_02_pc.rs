@@ -4,20 +4,9 @@ use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{DynBox, DynSphere, Mat4f, Sphere, Vec3f};
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
+use crate::math::{DynBox, DynSphere, Vec3f};
 use crate::name::Name;
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    linked_crc32: DynArray<Name>,
-    lod_data_crc32: Name,
-    b_sphere_local: Sphere,
-    unk_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
 
 #[derive(BinRead, Debug, Serialize)]
 struct ClassRes {
@@ -38,7 +27,7 @@ struct CylindreCol {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-#[br(import(link_header: &LinkInfo))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_06_63_02PC {
     b_sphere_col_node: Name,
     #[br(if(b_sphere_col_node != 0))]
@@ -50,9 +39,9 @@ pub struct LodBodyV1_06_63_02PC {
     component_crc32s: DynArray<Name>,
     shadow_crc32: Name,
     anims: DynArray<ClassRes>,
-    #[br(if(link_header.flags & 1048576 >= 1))]
+    #[br(if(link_header.flags() & 0x100000 != 0))]
     sounds: Option<DynArray<ClassRes>>,
     user_define_crc32: Name,
 }
 
-pub type LodV1_06_63_02PC = TrivialClass<LinkInfo, LodBodyV1_06_63_02PC>;
+pub type LodV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_06_63_02PC>;

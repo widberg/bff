@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Vec2f;
 use crate::name::Name;
 
@@ -34,12 +35,7 @@ struct Unused5 {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,
     gen_road_min: Vec2f,
@@ -54,4 +50,4 @@ pub struct GwRoadBodyV1_381_67_09PC {
     gen_world_name: Name,
 }
 
-pub type GwRoadV1_381_67_09PC = TrivialClass<LinkHeader, GwRoadBodyV1_381_67_09PC>;
+pub type GwRoadV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, GwRoadBodyV1_381_67_09PC>;

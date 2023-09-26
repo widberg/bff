@@ -1,7 +1,6 @@
 use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u13, Bitsized, DebugBits, Number};
+use bilge::prelude::*;
 use binrw::BinRead;
-use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;

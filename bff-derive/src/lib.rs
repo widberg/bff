@@ -154,6 +154,8 @@ pub fn serialize_bits(_attr: TokenStream, input: TokenStream) -> TokenStream {
             where
                 S: serde::Serializer,
             {
+                use serde::ser::SerializeStruct;
+                use serde::Serialize;
                 let mut state = serializer.serialize_struct(#name_str, #field_count)?;
                 #(#serialize_fields)*
                 state.end()

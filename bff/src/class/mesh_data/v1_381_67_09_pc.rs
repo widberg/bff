@@ -1,11 +1,10 @@
 use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u19, Bitsized, DebugBits, Number};
+use bilge::prelude::*;
 use binrw::BinRead;
-use serde::ser::SerializeStruct;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::name::Name;
+use crate::link_header::ResourceObjectLinkHeader;
 
 #[serialize_bits]
 #[bitsize(32)]
@@ -28,12 +27,7 @@ struct ObjectDatasFlags {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MeshDataBodyV1_381_67_09PC {
     flags: ObjectDatasFlags,
     zero0: u32,
@@ -42,4 +36,4 @@ pub struct MeshDataBodyV1_381_67_09PC {
     zero3: u32,
 }
 
-pub type MeshDataV1_381_67_09PC = TrivialClass<LinkHeader, MeshDataBodyV1_381_67_09PC>;
+pub type MeshDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MeshDataBodyV1_381_67_09PC>;

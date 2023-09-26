@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::map::BffMap;
 use crate::math::Vec2f;
 use crate::name::Name;
@@ -18,15 +19,10 @@ struct Character {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct FontsBodyV1_381_67_09PC {
     characters: BffMap<CharacterID, Character>,
     material_names: DynArray<Name>,
 }
 
-pub type FontsV1_381_67_09PC = TrivialClass<LinkHeader, FontsBodyV1_381_67_09PC>;
+pub type FontsV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, FontsBodyV1_381_67_09PC>;

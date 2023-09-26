@@ -7,36 +7,6 @@ use crate::math::{Mat, Sphere, Vec2f, Vec3f};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
-struct Box {
-    mat: Mat<3, 4>,
-    vec: Vec3f,
-    maybe_scale: f32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    linked_crc32: DynArray<Name>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    b_box: Box,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-struct ObjectHeader {
-    data_size: u32,
-    link_size: u32,
-    decompressed_size: u32,
-    compressed_size: u32,
-    class_crc32: Name,
-    name_crc32: Name,
-    link_info: LinkInfo,
-}
-
-#[derive(BinRead, Debug, Serialize)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
@@ -69,8 +39,8 @@ struct Morpher {
 }
 
 #[derive(BinRead, Debug, Serialize)]
-struct Points {
-    header: ObjectHeader,
+struct LinkInfo {
+    object_link_header: ObjectV1_06_63_02PC,
     vertices: DynArray<Vec3f>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
