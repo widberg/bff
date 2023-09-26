@@ -30,4 +30,5 @@ pub struct SplineBodyV1_381_67_09PC {
     length: f32,
 }
 
-pub type SplineV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SplineBodyV1_381_67_09PC>;
+pub type SplineV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SplineBodyV1_381_67_09PC>;

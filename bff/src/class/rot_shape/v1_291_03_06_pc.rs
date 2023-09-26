@@ -36,4 +36,5 @@ pub struct RotShapeBodyV1_291_03_06PC {
     rot_shape_type: u16,
 }
 
-pub type RotShapeV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;
+pub type RotShapeV1_291_03_06PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;

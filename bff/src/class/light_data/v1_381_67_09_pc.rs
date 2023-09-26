@@ -2,7 +2,7 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::link_header::{ResourceObjectLinkHeader, ObjectDatasFlagsV1_381_67_09PC};
+use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 use crate::math::{Vec3, Vec3f};
 
 #[derive(BinRead, Debug, Serialize)]
@@ -16,4 +16,5 @@ pub struct LightDataBodyV1_381_67_09PC {
     local_collision_sphere_facing: Vec3f,
 }
 
-pub type LightDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, LightDataBodyV1_381_67_09PC>;
+pub type LightDataV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, LightDataBodyV1_381_67_09PC>;

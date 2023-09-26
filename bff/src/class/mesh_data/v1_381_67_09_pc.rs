@@ -36,4 +36,5 @@ pub struct MeshDataBodyV1_381_67_09PC {
     zero3: u32,
 }
 
-pub type MeshDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MeshDataBodyV1_381_67_09PC>;
+pub type MeshDataV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, MeshDataBodyV1_381_67_09PC>;

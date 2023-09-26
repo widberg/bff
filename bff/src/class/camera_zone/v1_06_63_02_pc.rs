@@ -83,4 +83,5 @@ pub struct CameraZoneBodyV1_06_63_02PC {
     trigger_ids: DynArray<u16>,
 }
 
-pub type CameraZoneV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CameraZoneBodyV1_06_63_02PC>;
+pub type CameraZoneV1_06_63_02PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CameraZoneBodyV1_06_63_02PC>;

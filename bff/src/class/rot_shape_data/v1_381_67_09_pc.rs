@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::link_header::{ResourceObjectLinkHeader, ObjectDatasFlagsV1_381_67_09PC};
+use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
@@ -14,4 +14,5 @@ pub struct RotShapeDataBodyV1_381_67_09PC {
     pad: Vec<u8>,
 }
 
-pub type RotShapeDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, RotShapeDataBodyV1_381_67_09PC>;
+pub type RotShapeDataV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, RotShapeDataBodyV1_381_67_09PC>;

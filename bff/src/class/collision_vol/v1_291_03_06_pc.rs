@@ -26,4 +26,5 @@ pub struct CollisionVolBodyV1_291_03_06PC {
     anim_start_time: f32,
 }
 
-pub type CollisionVolV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CollisionVolBodyV1_291_03_06PC>;
+pub type CollisionVolV1_291_03_06PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CollisionVolBodyV1_291_03_06PC>;

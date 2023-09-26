@@ -27,4 +27,5 @@ pub struct RotShapeBodyV1_381_67_09PC {
     billboard_mode: BillboardMode,
 }
 
-pub type RotShapeV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, RotShapeBodyV1_381_67_09PC>;
+pub type RotShapeV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, RotShapeBodyV1_381_67_09PC>;

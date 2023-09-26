@@ -1,9 +1,15 @@
 use binrw::BinRead;
 use serde::Serialize;
-use crate::keyframer::{KeyframerFloatComp, KeyframerVec3fComp, KeyframerMessage, KeyframerRot, KeyframerBezierRot};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::keyframer::{
+    KeyframerBezierRot,
+    KeyframerFloatComp,
+    KeyframerMessage,
+    KeyframerRot,
+    KeyframerVec3fComp,
+};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]

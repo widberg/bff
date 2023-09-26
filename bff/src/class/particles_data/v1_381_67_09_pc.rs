@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::link_header::{ResourceObjectLinkHeader, ObjectDatasFlagsV1_381_67_09PC};
+use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 use crate::math::Vec3f;
 
 #[derive(BinRead, Debug, Serialize)]
@@ -23,4 +23,5 @@ pub struct ParticlesDataBodyV1_381_67_09PC {
     zero: u32,
 }
 
-pub type ParticlesDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, ParticlesDataBodyV1_381_67_09PC>;
+pub type ParticlesDataV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, ParticlesDataBodyV1_381_67_09PC>;

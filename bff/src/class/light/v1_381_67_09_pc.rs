@@ -15,4 +15,5 @@ pub struct LightBodyV1_381_67_09PC {
     position: Vec3f,
 }
 
-pub type LightV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC>;
+pub type LightV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC>;

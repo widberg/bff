@@ -33,4 +33,5 @@ pub struct SplineGraphBodyV1_381_67_09PC {
     spline_segment_datas: DynArray<DynArray<u8>>,
 }
 
-pub type SplineGraphV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SplineGraphBodyV1_381_67_09PC>;
+pub type SplineGraphV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SplineGraphBodyV1_381_67_09PC>;

@@ -94,4 +94,5 @@ pub struct SurfaceBodyV1_381_67_09PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SurfaceBodyV1_381_67_09PC>;
+pub type SurfaceV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SurfaceBodyV1_381_67_09PC>;

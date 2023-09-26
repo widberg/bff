@@ -3,8 +3,14 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::keyframer::{
+    KeyframerBezierRot,
+    KeyframerFloatComp,
+    KeyframerMessage,
+    KeyframerRot,
+    KeyframerVec3fComp,
+};
 use crate::link_header::ResourceObjectLinkHeader;
-use crate::keyframer::{KeyframerFloatComp, KeyframerVec3fComp, KeyframerMessage, KeyframerRot, KeyframerBezierRot};
 
 #[derive(BinRead, Debug, Serialize)]
 struct AnimationNode {
@@ -80,4 +86,5 @@ pub struct AnimationBodyV1_381_67_09PC {
     unknown15s: DynArray<Unknown14>,
 }
 
-pub type AnimationV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, AnimationBodyV1_381_67_09PC>;
+pub type AnimationV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, AnimationBodyV1_381_67_09PC>;

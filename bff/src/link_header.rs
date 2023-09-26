@@ -1,8 +1,11 @@
-use crate::{name::Name, math::{Quat, Mat4f, Sphere}, dynarray::DynArray};
 use bff_derive::serialize_bits;
 use bilge::prelude::*;
-use serde::Serialize;
 use binrw::BinRead;
+use serde::Serialize;
+
+use crate::dynarray::DynArray;
+use crate::math::{Mat4f, Quat, Sphere};
+use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]
 pub struct ResourceObjectLinkHeader {

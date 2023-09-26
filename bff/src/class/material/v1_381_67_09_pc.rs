@@ -69,4 +69,5 @@ pub struct MaterialBodyV1_381_67_09PC {
     unused_bitmap_name1: Name,
 }
 
-pub type MaterialV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MaterialBodyV1_381_67_09PC>;
+pub type MaterialV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, MaterialBodyV1_381_67_09PC>;

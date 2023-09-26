@@ -80,4 +80,5 @@ pub struct GenWorldBodyV1_381_67_09PC {
     regions: BffMap<FixedStringNull<31>, Region>,
 }
 
-pub type GenWorldV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, GenWorldBodyV1_381_67_09PC>;
+pub type GenWorldV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, GenWorldBodyV1_381_67_09PC>;

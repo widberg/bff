@@ -4,9 +4,16 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
+use crate::keyframer::{
+    KeyframerFlag,
+    KeyframerFloatLinearComp,
+    KeyframerHdl,
+    KeyframerVec2fLinear,
+    KeyframerVec3fLinear,
+    KeyframerVec4fLinear,
+};
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
-use crate::keyframer::{KeyframerFlag, KeyframerFloatLinearComp, KeyframerHdl, KeyframerVec2fLinear, KeyframerVec3fLinear, KeyframerVec4fLinear};
 
 #[serialize_bits]
 #[bitsize(8)]
@@ -41,4 +48,5 @@ pub struct MaterialAnimBodyV1_381_67_09PC {
     flags: MaterialAnimFlags,
 }
 
-pub type MaterialAnimV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MaterialAnimBodyV1_381_67_09PC>;
+pub type MaterialAnimV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, MaterialAnimBodyV1_381_67_09PC>;

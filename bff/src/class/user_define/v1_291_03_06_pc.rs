@@ -11,4 +11,5 @@ pub struct UserDefineBodyV1_291_03_06PC {
     data: PascalString,
 }
 
-pub type UserDefineV1_291_03_06PC = TrivialClass<ResourceObjectLinkHeader, UserDefineBodyV1_291_03_06PC>;
+pub type UserDefineV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeader, UserDefineBodyV1_291_03_06PC>;

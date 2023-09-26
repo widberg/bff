@@ -3,9 +3,16 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::keyframer::{
+    KeyframerFloat,
+    KeyframerFloatComp,
+    KeyframerMessage,
+    KeyframerRot,
+    KeyframerVec3f,
+    KeyframerVec3fComp,
+};
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
-use crate::keyframer::{KeyframerFloatComp, KeyframerVec3fComp, KeyframerMessage, KeyframerRot, KeyframerFloat, KeyframerVec3f};
 
 #[derive(BinRead, Debug, Serialize)]
 struct RtcAnimationNode {

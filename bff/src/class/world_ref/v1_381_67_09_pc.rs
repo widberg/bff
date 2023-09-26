@@ -34,4 +34,5 @@ pub struct WorldRefBodyV1_381_67_09PC {
     zero: u32,
 }
 
-pub type WorldRefV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, WorldRefBodyV1_381_67_09PC>;
+pub type WorldRefV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, WorldRefBodyV1_381_67_09PC>;

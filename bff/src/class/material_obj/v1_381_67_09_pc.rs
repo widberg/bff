@@ -13,4 +13,5 @@ pub struct MaterialObjBodyV1_381_67_09PC {
     entries: BffMap<Name, DynArray<Name>>,
 }
 
-pub type MaterialObjV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, MaterialObjBodyV1_381_67_09PC>;
+pub type MaterialObjV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, MaterialObjBodyV1_381_67_09PC>;

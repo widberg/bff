@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ResourceObjectLinkHeader;
-use crate::math::{Mat4f, Quat, Sphere, Vec3f, RGBA, Rect};
+use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize)]

@@ -1,7 +1,8 @@
 use binrw::BinRead;
 use serde::Serialize;
+
 use crate::dynarray::DynArray;
-use crate::math::{NumeratorFloat, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16, Vec};
+use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
 use crate::name::Name;
 
 type Key = f32;
@@ -113,4 +114,4 @@ pub type KeyframerVec4fComp = KeyframerTpl<KeyVec4fComp>;
 pub type KeyframerVec4fLinear = KeyframerTpl<KeyVec4fLinear>;
 pub type KeyframerVec4fLinearComp = KeyframerTpl<KeyVec4fLinearComp>;
 pub type KeyframerRot = KeyframerNoFlagsTpl<KeyRot>;
-pub type KeyframerBezierRot  = KeyframerNoFlagsTpl<KeyBezierRot>;
+pub type KeyframerBezierRot = KeyframerNoFlagsTpl<KeyBezierRot>;

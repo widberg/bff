@@ -5,10 +5,15 @@ use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::keyframer::{
+    KeyframerFloatLinear,
+    KeyframerVec2fLinear,
+    KeyframerVec3fLinear,
+    KeyframerVec4fLinear,
+};
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::{Mat4f, Vec3f};
 use crate::name::Name;
-use crate::keyframer::{KeyframerFloatLinear, KeyframerVec2fLinear, KeyframerVec3fLinear, KeyframerVec4fLinear};
 
 #[serialize_bits]
 #[bitsize(32)]
@@ -70,4 +75,5 @@ pub struct ParticlesBodyV1_381_67_09PC {
     unknown3: u16,
 }
 
-pub type ParticlesV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, ParticlesBodyV1_381_67_09PC>;
+pub type ParticlesV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, ParticlesBodyV1_381_67_09PC>;

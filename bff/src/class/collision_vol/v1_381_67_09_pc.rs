@@ -27,4 +27,5 @@ pub struct CollisionVolBodyV1_381_67_09PC {
     delay: f32,
 }
 
-pub type CollisionVolV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, CollisionVolBodyV1_381_67_09PC>;
+pub type CollisionVolV1_381_67_09PC =
+    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, CollisionVolBodyV1_381_67_09PC>;
