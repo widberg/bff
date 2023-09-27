@@ -21,12 +21,32 @@ pub struct ReferenceRecord {
     _placeholder_current_references_weak: u32,
 }
 
+impl ReferenceRecord {
+    pub fn objects_name_starting_index(&self) -> u32 {
+        self.objects_name_starting_index
+    }
+
+    pub fn objects_name_count(&self) -> u16 {
+        self.objects_name_count
+    }
+}
+
 #[derive(BinRead, Serialize, Debug)]
 pub struct ObjectDescription {
     name: Name,
     reference_count: u32,
     padded_size: u32,
     reference_records_index: u32,
+}
+
+impl ObjectDescription {
+    pub fn name(&self) -> Name {
+        self.name
+    }
+
+    pub fn reference_records_index(&self) -> u32 {
+        self.reference_records_index
+    }
 }
 
 #[derive(BinRead, Debug)]
@@ -75,10 +95,10 @@ pub struct PoolHeader {
     _equals2048: u32,
     #[serde(skip)]
     _objects_names_count_sum: u32,
-    object_descriptions_indices: DynArray<u32>,
+    pub object_descriptions_indices: DynArray<u32>,
     #[br(map = zip_object_description_soa)]
-    object_descriptions: Vec<ObjectDescription>,
-    reference_records: DynArray<ReferenceRecord>,
+    pub object_descriptions: Vec<ObjectDescription>,
+    pub reference_records: DynArray<ReferenceRecord>,
     #[br(align_after = 2048)]
     #[serde(skip)]
     _reference_records_sentinel: ReferenceRecord,
@@ -86,7 +106,7 @@ pub struct PoolHeader {
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct Pool {
-    header: PoolHeader,
+    pub header: PoolHeader,
     #[br(count = header.object_descriptions.len())]
-    objects: Vec<PoolObject>,
+    pub objects: Vec<PoolObject>,
 }

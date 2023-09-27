@@ -33,6 +33,8 @@ pub struct Object {
     decompressed_size: u32,
     #[br(temp)]
     compressed_size: u32,
+    #[br(calc = compressed_size != 0)]
+    compress: bool,
     class_name: Name,
     name: Name,
     #[br(count = link_header_size)]
@@ -40,7 +42,7 @@ pub struct Object {
     link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
     #[serde(skip_serializing)]
-    body: Vec<u8>,
+    pub body: Vec<u8>,
 }
 
 impl Object {
@@ -59,13 +61,17 @@ impl Object {
     pub fn body(&self) -> &Vec<u8> {
         &self.body
     }
+
+    pub fn compress(&self) -> bool {
+        self.compress
+    }
 }
 
 #[derive(BinRead, Serialize, Debug)]
 pub struct PoolObject {
     #[br(align_after(2048))]
     #[serde(flatten)]
-    object: Object,
+    pub object: Object,
 }
 
 impl Deref for PoolObject {

@@ -9,6 +9,7 @@ pub mod header;
 pub mod keyframer;
 pub mod link_header;
 pub mod lz;
+pub mod manifest;
 pub mod map;
 pub mod math;
 pub mod name;

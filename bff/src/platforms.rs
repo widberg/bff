@@ -2,12 +2,13 @@ use std::ffi::OsStr;
 
 use binrw::Endian;
 use derive_more::Display;
+use serde::Serialize;
 
 use crate::error::InvalidExtensionError;
 
 macro_rules! platforms_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display, Serialize)]
         pub enum Platform {
             $($i,)*
         }

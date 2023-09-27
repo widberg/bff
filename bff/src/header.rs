@@ -54,7 +54,7 @@ pub struct Header {
     _pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
     pool_offset: Option<u32>,
-    pool_manifest_unused0: u32,
+    pool_manifest_unused: u32,
     #[br(temp)]
     _pool_manifest_unused1: u32,
     #[br(temp)]
@@ -76,6 +76,26 @@ impl Header {
 
     pub fn version(&self) -> Result<Version, InvalidVersionError> {
         self.version_string.as_str().try_into()
+    }
+
+    pub fn version_string(&self) -> String {
+        self.version_string.as_str().to_string()
+    }
+
+    pub fn version_triple(&self) -> VersionTriple {
+        self.version_triple
+    }
+
+    pub fn is_rtc(&self) -> bool {
+        self.is_not_rtc == 0
+    }
+
+    pub fn pool_manifest_unused(&self) -> Option<u32> {
+        if self.pool_manifest_unused == 0 {
+            None
+        } else {
+            Some(self.pool_manifest_unused)
+        }
     }
 
     pub fn pool_offset(&self) -> Option<u32> {

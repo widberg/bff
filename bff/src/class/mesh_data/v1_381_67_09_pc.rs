@@ -2,7 +2,7 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::link_header::{ ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader };
+use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
