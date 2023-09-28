@@ -13,8 +13,8 @@ fmt:
 clippy:
 	cargo {{cargo-command-prefix}} clippy
 
-test:
-	cargo {{cargo-command-prefix}} test --release
+test +TEST="":
+	cargo {{cargo-command-prefix}} test --release {{TEST}}
 
 build:
 	cargo {{cargo-command-prefix}} build --release
