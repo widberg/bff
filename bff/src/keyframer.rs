@@ -8,35 +8,50 @@ use crate::name::Name;
 type Key = f32;
 
 #[derive(BinRead, Debug, Serialize)]
+#[br(stream = s)]
 pub struct KeyTgtTpl<T>
 where
     for<'a> T: BinRead + Serialize + 'a,
     for<'a> <T as BinRead>::Args<'a>: Clone + Default,
 {
     time: Key,
+    #[br(try_calc = s.stream_position())]
+    begin: u64,
     value: T,
     tangent_in: T,
-    #[br(align_after = 4)]
     tangent_out: T,
+    #[br(try_calc = s.stream_position())]
+    end: u64,
+    #[br(pad_after = (end - begin) % 4)]
+    _padding: (),
 }
 
 #[derive(BinRead, Debug, Serialize)]
+#[br(stream = s)]
 pub struct KeyLinearTpl<T>
 where
     for<'a> T: BinRead + Serialize + 'a,
     for<'a> <T as BinRead>::Args<'a>: Clone + Default,
 {
     time: Key,
-    #[br(align_after = 4)]
+    #[br(try_calc = s.stream_position())]
+    begin: u64,
     value: T,
+    #[br(try_calc = s.stream_position())]
+    end: u64,
+    #[br(pad_after = (end - begin) % 4)]
+    _padding: (),
 }
 
 #[derive(BinRead, Debug, Serialize)]
 #[br(repr = u16)]
 pub enum KeyframerInterpolationType {
-    Smooth = 0x01,
-    Linear = 0x02,
-    Square = 0x03,
+    Smooth = 1,
+    Linear = 2,
+    Square = 3,
+    Unknown4 = 4,   // scroll_keyframer in MaterialAnim uses this
+    Unknown8 = 8,   // scroll_keyframer in MaterialAnim uses this
+    Unknown17 = 17, // unknown1 in Rtc's RtcAnimationNode uses this
 }
 
 #[derive(BinRead, Debug, Serialize)]
