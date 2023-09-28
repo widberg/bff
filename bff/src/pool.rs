@@ -107,6 +107,6 @@ pub struct PoolHeader {
 #[derive(BinRead, Serialize, Debug)]
 pub struct Pool {
     pub header: PoolHeader,
-    #[br(count = header.object_descriptions.len())]
+    #[br(count = header.object_descriptions_indices.len())]
     pub objects: Vec<PoolObject>,
 }
