@@ -19,4 +19,7 @@ test +TEST="":
 build:
 	cargo {{cargo-command-prefix}} build --release
 
+doc:
+    cargo {{cargo-command-prefix}} doc
+
 check: fmt clippy test
