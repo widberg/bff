@@ -41,8 +41,11 @@ pub struct Manifest {
     pub version_triple: VersionTriple,
     pub platform: Platform,
     pub rtc: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub pool_manifest_unused: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub incredi_builder_string: Option<String>,
     pub blocks: Vec<ManifestBlock>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub pool: Option<ManifestPool>,
 }

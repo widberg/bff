@@ -30,6 +30,7 @@ where
     #[deref]
     #[br(if(condition != ConditionType::zero()))]
     #[br(args_raw = args.inner)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     data: Option<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<ConditionType>,
