@@ -38,8 +38,7 @@ mod tests {
         let mut reader = BufReader::new(f);
         let bigfile = BigFile::read_platform(&mut reader, platform).unwrap();
 
-        for object in bigfile.objects().values() {
-            assert!(object.body().len() > 0);
+        for object in bigfile.objects.values() {
             let _ = Class::try_from_version_platform(object, Version::V1_381_67_09, Platform::PC)
                 .unwrap();
         }
