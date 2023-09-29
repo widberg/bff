@@ -53,7 +53,7 @@ fn blocks_parser(
 fn pool_parser(objects: &mut HashMap<Name, Object>) -> BinResult<ManifestPool> {
     let mut pool = Pool::read_options(reader, endian, ())?;
 
-    let object_entry_indices = pool.header.object_descriptions_indices.into();
+    let object_entry_indices = pool.header.object_descriptions_indices.data;
     let object_entries = pool
         .header
         .object_descriptions

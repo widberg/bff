@@ -122,7 +122,7 @@ pub struct KeyframerTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> TKey: BinWrite<Args<'a> = ()>,
 {
     interpolation_type: KeyframerInterpolationType,
     keyframes: DynArray<TKey>,
@@ -132,7 +132,7 @@ impl<TKey> BinWrite for KeyframerTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> TKey: BinWrite<Args<'a> = ()>,
 {
     type Args<'a> = ();
 
@@ -155,7 +155,7 @@ pub struct KeyframerNoFlagsTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> TKey: BinWrite<Args<'a> = ()>,
 {
     keyframes: DynArray<TKey>,
 }
@@ -164,7 +164,7 @@ impl<TKey> BinWrite for KeyframerNoFlagsTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> TKey: BinWrite<Args<'a> = ()>,
 {
     type Args<'a> = ();
 

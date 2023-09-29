@@ -1,8 +1,8 @@
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Seek};
 use std::marker::PhantomData;
 use std::ops::{Add, Div, Mul, Range, RangeInclusive, Sub};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
 use num_traits::{cast, MulAdd, NumCast, PrimInt, Signed, Unsigned};
 use serde::{Deserialize, Serialize};
@@ -28,87 +28,41 @@ pub type Mat3f = Mat<3>;
 pub type Mat4f = Mat<4>;
 
 // A fixed precision float with a variable numerator and constant denominator.
-#[derive(BinRead, Deref, DerefMut, Debug, Serialize, Deserialize)]
+#[derive(BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct NumeratorFloat<
     T: NumCast + BinRead + BinWrite,
     const DENOMINATOR: usize,
-    F: NumCast + Div<Output = F> + Mul<Output = F> = f32,
+    F: NumCast + Div<Output = F> + Mul<Output = F> + Copy = f32,
 >(
     #[deref_mut]
     #[deref]
     #[br(map = |x: T| cast::<T, F>(x).unwrap() / cast::<usize, F>(DENOMINATOR).unwrap())]
+    #[bw(map = |x: &F| cast::<F, T>(*x * cast::<usize, F>(DENOMINATOR).unwrap()).unwrap())]
     F,
     #[serde(skip)] PhantomData<T>,
 )
 where
     for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Clone + Default;
-
-impl<
-        T: NumCast + BinRead + BinWrite,
-        const DENOMINATOR: usize,
-        F: NumCast + Div<Output = F> + Mul<Output = F> + Clone,
-    > BinWrite for NumeratorFloat<T, DENOMINATOR, F>
-where
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Clone + Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> BinResult<()> {
-        cast::<F, T>(self.0.clone() * cast::<usize, F>(DENOMINATOR).unwrap())
-            .unwrap()
-            .write_options(writer, endian, <_>::default())
-    }
-}
+    for<'a> T: BinWrite<Args<'a> = ()>;
 
 // A fixed precision normal float between -1 and 1. (x / x.max_value()) * 2 + -1.
-#[derive(BinRead, Deref, DerefMut, Debug, Serialize, Deserialize)]
+#[derive(BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct SignedNormalFloat<
     T: NumCast + Div<F, Output = F> + Unsigned + PrimInt + BinRead + BinWrite,
-    F: NumCast + MulAdd<f32, f32, Output = F> + Signed = f32,
+    F: NumCast + MulAdd<f32, f32, Output = F> + Signed + Copy = f32,
 >(
     #[deref_mut]
     #[deref]
     #[br(map = |x: T| (x / cast::<T, F>(T::max_value()).unwrap()).mul_add(2., -1.))]
+    #[bw(map = |x: &F| cast::<F, T>((*x + cast::<f32, F>(1.).unwrap()) / cast::<f32, F>(2.).unwrap() * cast::<T, F>(T::max_value()).unwrap()).unwrap())]
     F,
     #[serde(skip)] PhantomData<T>,
 )
 where
     for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Clone + Default;
-
-impl<
-        T: NumCast + Div<F, Output = F> + Unsigned + PrimInt + BinRead + BinWrite,
-        F: NumCast + MulAdd<f32, f32, Output = F> + Signed + Clone,
-    > BinWrite for SignedNormalFloat<T, F>
-where
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Clone + Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> BinResult<()> {
-        cast::<F, T>(
-            (self.0.clone() + cast::<f32, F>(1.).unwrap()) / cast::<f32, F>(2.).unwrap()
-                * cast::<T, F>(T::max_value()).unwrap(),
-        )
-        .unwrap()
-        .write_options(writer, endian, <_>::default())
-    }
-}
+    for<'a> T: BinWrite<Args<'a> = ()>;
 
 // Range whose first element is first and last element is last. [first, last].
 // We intentionally use the names first and last instead of begin and end to avoid confusion with
@@ -212,33 +166,12 @@ pub struct DynBox {
     pub name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, Deserialize)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize)]
 pub struct Rect<T: BinRead + BinWrite + 'static = i32>
 where
     for<'a> <T as BinRead>::Args<'a>: Default + Clone,
-    for<'a> <T as BinWrite>::Args<'a>: Default + Clone,
+    for<'a> T: BinWrite<Args<'a> = ()>,
 {
     pub top_left: Vec2<T>,
     pub bottom_right: Vec2<T>,
-}
-
-impl<T: BinRead + BinWrite + 'static> BinWrite for Rect<T>
-where
-    for<'a> <T as BinRead>::Args<'a>: Default + Clone,
-    for<'a> <T as BinWrite>::Args<'a>: Default + Clone,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> BinResult<()> {
-        self.top_left
-            .write_options(writer, endian, <_>::default())?;
-        self.bottom_right
-            .write_options(writer, endian, <_>::default())?;
-        Ok(())
-    }
 }
