@@ -1,5 +1,4 @@
-use bff_derive::{bff_class, NamedClass};
-use serde::Serialize;
+use bff_derive::bff_class;
 
 // mod v1_06_63_02_pc;
 mod v1_291_03_06_pc;

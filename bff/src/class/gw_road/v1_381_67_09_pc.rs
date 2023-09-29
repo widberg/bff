@@ -3,7 +3,7 @@ use std::io::{Read, Seek, Write};
 use bilge::prelude::*;
 use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian};
 use derive_more::{Deref, DerefMut};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
@@ -12,7 +12,7 @@ use crate::math::Vec2f;
 use crate::name::Name;
 
 #[bitsize(7)]
-#[derive(TryFromBits, Debug, Serialize)]
+#[derive(TryFromBits, Debug, Serialize, Deserialize)]
 enum SubType {
     ShortCutForest = 0,
     ShortCutField = 1,
@@ -36,13 +36,13 @@ enum SubType {
 }
 
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
 struct RoadType {
     sub_type: SubType,
     short_cut: bool,
 }
 
-#[derive(Debug, Serialize, Deref, DerefMut)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
 #[serde(transparent)]
 struct EncodedPoint(Vec2f);
 
@@ -81,13 +81,13 @@ impl BinWrite for EncodedPoint {
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Road {
     r#type: RoadType,
     points: DynArray<EncodedPoint, u16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused5 {
     unused0: u32,
     unused1: u32,
@@ -101,7 +101,7 @@ struct Unused5 {
     unused8s: Vec<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,

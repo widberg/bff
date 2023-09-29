@@ -4,11 +4,11 @@ use std::marker::PhantomData;
 use binrw::{BinRead, BinResult, BinWrite};
 use derive_more::Deref;
 use num_traits::{One, Zero};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::Endian;
 
-#[derive(Serialize, Deref, Debug)]
+#[derive(Serialize, Deref, Debug, Deserialize)]
 pub struct BffOption<InnerType, ConditionType = u8> {
     #[deref]
     #[serde(skip_serializing_if = "Option::is_none")]

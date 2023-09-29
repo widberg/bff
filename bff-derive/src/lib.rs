@@ -63,7 +63,7 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
 
     quote! {
-        #[derive(Serialize, Debug, NamedClass, derive_more::From, derive_more::IsVariant)]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, bff_derive::NamedClass, derive_more::From, derive_more::IsVariant)]
         pub enum #class {
             #(#variants),*
         }

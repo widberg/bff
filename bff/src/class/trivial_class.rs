@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
 use crate::object::Object;
@@ -13,7 +13,7 @@ trait TyEq {}
 
 impl<T: Sized> TyEq for (T, T) {}
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TrivialClass<LinkHeaderType, BodyType>
 where
     for<'a> LinkHeaderType: BinRead + BinWrite + Serialize + 'a,

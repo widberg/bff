@@ -1,5 +1,5 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,32 +7,32 @@ use crate::dynarray::DynArray;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Vec2, Vec2f, Vec3, Vec3f};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated2 {
     data: [u8; 4],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown1 {
     unknown1: [u8; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown2 {
     unknown2: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown3 {
     unknown4_count: u32,
     #[br(count = unknown4_count * 2)]
@@ -40,19 +40,19 @@ struct Unknown3 {
     unknown5: [u8; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown5 {
     unknown8_count: u32,
     #[br(count = unknown8_count * 8)]
     unknown8: Vec<u8>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown6 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown7 {
     // Big array helper for serde.
     // The purpose of this crate is to make (de-)serializing arrays of sizes > 32 easy.
@@ -62,12 +62,12 @@ struct Unknown7 {
     data: [u8; 44],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown8 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 pub struct LinkInfo {
     link_crc32: Name,
     links: DynArray<Name>,
@@ -79,26 +79,26 @@ pub struct LinkInfo {
     r#type: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Points {
     points_related0: DynArray<PointsRelated0>,
     points_related1: DynArray<PointsRelated1>,
     points_related2: DynArray<PointsRelated2>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct AABBColRelated {
     unknowns: [u16; 4],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct AABBCol {
     unknown1s: Vec3f,
     unknown2s: Vec2<i16>,
@@ -106,17 +106,17 @@ struct AABBCol {
     unknown4s: Vec2<i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Vertex {
     position: Vec3<i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Triangle {
     indices: Vec3<i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(length: u32))]
 enum VertexStruct {
     #[br(pre_assert(length == 24))]
@@ -162,7 +162,7 @@ enum VertexStruct {
     },
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct VertexBuffer {
     vertex_struct_count: u32,
     vertex_struct_length: u32,
@@ -171,7 +171,7 @@ struct VertexBuffer {
     vertex_structs: Vec<VertexStruct>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct IndexBuffer {
     index_count: u32,
     unknown: u32,
@@ -179,7 +179,7 @@ struct IndexBuffer {
     tris: Vec<Triangle>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct VertexGroup {
     zeroes: Vec3<u32>,
     primitive: u32,
@@ -194,29 +194,29 @@ struct VertexGroup {
     cdcdcdcd: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorpherTargetDesc {
     name: Name,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morpher_descs: DynArray<MorpherTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MeshBuffer {
     vertex_buffers: DynArray<VertexBuffer>,
     index_buffers: DynArray<IndexBuffer>,
@@ -225,7 +225,7 @@ struct MeshBuffer {
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(link_header: &LinkInfo))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,

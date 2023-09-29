@@ -1,5 +1,5 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
@@ -10,7 +10,7 @@ use crate::name::Name;
 
 type CharacterID = u32;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Character {
     material_index: u32,
     descent: f32,
@@ -18,7 +18,7 @@ struct Character {
     bottom_right_corner: Vec2f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct FontsBodyV1_381_67_09PC {
     characters: BffMap<CharacterID, Character>,

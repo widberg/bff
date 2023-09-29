@@ -1,7 +1,7 @@
 use std::io::Seek;
 
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::dynarray::DynArray;
 use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
@@ -10,7 +10,7 @@ use crate::Endian;
 
 type Key = f32;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, Deserialize)]
 #[br(stream = s)]
 pub struct KeyTgtTpl<T>
 where
@@ -61,7 +61,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, Deserialize)]
 #[br(stream = s)]
 pub struct KeyLinearTpl<T>
 where
@@ -106,7 +106,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[brw(repr = u16)]
 pub enum KeyframerInterpolationType {
     Smooth = 1,
@@ -117,7 +117,7 @@ pub enum KeyframerInterpolationType {
     Unknown17 = 17, // unknown1 in Rtc's RtcAnimationNode uses this
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, Deserialize)]
 pub struct KeyframerTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -150,7 +150,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, Deserialize)]
 pub struct KeyframerNoFlagsTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -180,7 +180,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 pub struct Message {
     message_class: u32,
     reciever_name: Name,

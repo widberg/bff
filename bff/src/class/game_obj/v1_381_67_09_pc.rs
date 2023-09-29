@@ -1,5 +1,5 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
@@ -7,14 +7,14 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
 use crate::strings::PascalStringNull;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Prefab {
     string: PascalStringNull,
     in_world: u32,
     names: DynArray<Name>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct GameObjBodyV1_381_67_09PC {
     prefabs: DynArray<Prefab>,

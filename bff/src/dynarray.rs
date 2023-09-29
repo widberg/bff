@@ -3,10 +3,10 @@ use std::marker::PhantomData;
 
 use binrw::{binread, BinRead, BinWrite};
 use derive_more::Deref;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[binread]
-#[derive(Debug, Serialize, Deref)]
+#[derive(Debug, Serialize, Deref, Deserialize)]
 #[serde(transparent)]
 #[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
 pub struct DynArray<InnerType: BinRead + 'static, SizeType: BinRead = u32>

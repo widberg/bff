@@ -1,12 +1,12 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(bone_name_count: u32))]
 struct SkinSubsection {
     animation_node_names: [Name; 4],
@@ -14,14 +14,14 @@ struct SkinSubsection {
     bone_names: Vec<Name>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(bone_name_count: u32))]
 struct SkinSection {
     #[br(args(bone_name_count))]
     skin_subsections: DynArray<SkinSubsection>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct SkinBodyV1_381_67_09PC {
     mesh_names: DynArray<Name>,

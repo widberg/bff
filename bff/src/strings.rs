@@ -4,10 +4,22 @@ use ascii::{AsciiChar, AsciiString};
 use binrw::io::{Read, Seek};
 use binrw::{BinRead, BinResult, BinWrite, Endian, Error, VecArgs};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(
-    Clone, PartialEq, Eq, Default, Deref, DerefMut, Display, Debug, From, Into, Serialize, Hash,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Deref,
+    DerefMut,
+    Display,
+    Debug,
+    From,
+    Into,
+    Serialize,
+    Hash,
+    Deserialize,
 )]
 #[serde(transparent)]
 pub struct FixedStringNull<const S: usize>(pub AsciiString);
@@ -78,7 +90,9 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize)]
+#[derive(
+    Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize, Deserialize,
+)]
 #[serde(transparent)]
 pub struct PascalString(pub AsciiString);
 
@@ -133,7 +147,20 @@ impl BinWrite for PascalString {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize, Hash)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Debug,
+    Deref,
+    DerefMut,
+    Display,
+    From,
+    Serialize,
+    Hash,
+    Deserialize,
+)]
 #[serde(transparent)]
 pub struct PascalStringNull(pub AsciiString);
 

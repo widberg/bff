@@ -1,6 +1,6 @@
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
@@ -10,17 +10,17 @@ use crate::math::{Mat4f, RangeBeginSize, Vec2f, Vec3f, Vec4f};
 use crate::name::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused2 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused3 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Patch {
     flag: u16,
     index_in_unk_short_da: u16,
@@ -34,31 +34,31 @@ struct Patch {
     material_anim_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
 }
 
 #[bitsize(16)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize)]
 struct ShouldDrawBitfield {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
     other: u8,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused12 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SeadVoxel {
     patches_indices_range: RangeBeginSize,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown15 {
     #[serde(with = "BigArray")]
     data: [u32; 48],
@@ -67,7 +67,7 @@ struct Unknown15 {
     unknown0s: [u32; 2],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patches_indices: DynArray<u16>,
@@ -75,7 +75,7 @@ struct SeadIndex {
     patch_count: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct SurfaceBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,

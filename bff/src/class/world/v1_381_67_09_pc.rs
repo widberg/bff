@@ -1,5 +1,5 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
@@ -7,7 +7,7 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Mat4f;
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown2 {
     placeholder0: u32,
     placeholder1: u32,
@@ -17,7 +17,7 @@ struct Unknown2 {
     zero: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct WorldBodyV1_381_67_09PC {
     node_name0: Name,

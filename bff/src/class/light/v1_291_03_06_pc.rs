@@ -1,11 +1,11 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::math::{Quat, Vec3f, RGBA};
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LightBodyV1_291_03_06PC {
     rotation: Quat,

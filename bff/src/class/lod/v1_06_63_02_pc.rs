@@ -1,5 +1,5 @@
 use binrw::{BinRead, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
@@ -8,25 +8,25 @@ use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::math::{DynBox, DynSphere, Vec3f};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct ClassRes {
     id: u32,
     crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SphereColNode {
     data: [u8; 28],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
     name_crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_06_63_02PC {
     b_sphere_col_node: Name,

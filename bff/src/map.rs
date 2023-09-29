@@ -5,9 +5,9 @@ use std::marker::PhantomData;
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use derive_more::Deref;
 use indexmap::IndexMap;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deref)]
+#[derive(Debug, Serialize, Deref, Deserialize)]
 #[serde(transparent)]
 pub struct BffMap<KeyType: Eq + Hash, ValueType, SizeType = u32> {
     #[deref]

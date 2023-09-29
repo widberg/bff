@@ -1,5 +1,5 @@
 use derive_more::{From, IsVariant};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use self::animation::Animation;
 use self::binary::Binary;
@@ -86,7 +86,7 @@ pub mod world_ref;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Serialize, Debug, From, IsVariant)]
+        #[derive(Serialize, Debug, From, IsVariant, Deserialize)]
         #[serde(untagged)]
         pub enum Class {
             $($i(Box<$i>),)*

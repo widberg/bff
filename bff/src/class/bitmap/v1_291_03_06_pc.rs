@@ -1,10 +1,10 @@
 use binrw::{binread, BinWrite};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
 #[binread]
-#[derive(Debug, Serialize, BinWrite)]
+#[derive(Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct BitmapBodyV1_291_03_06PC {
     size: (u32, u32),
