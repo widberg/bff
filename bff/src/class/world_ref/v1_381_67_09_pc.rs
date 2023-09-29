@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -8,13 +8,13 @@ use crate::math::{Mat4f, Vec3f};
 use crate::name::Name;
 use crate::strings::PascalStringNull;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct UUIDPair {
     uuid0: u32,
     uuid1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct WorldRefBodyV1_381_67_09PC {
     node_name0: Name,

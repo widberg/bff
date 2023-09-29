@@ -1,5 +1,5 @@
 use bilge::prelude::*;
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -15,7 +15,7 @@ use crate::math::{Mat4f, Vec3f};
 use crate::name::Name;
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 struct ParticlesEmitterFlags {
     fl_particles_loop: u1,
     fl_particles_lock_h: u1,
@@ -36,7 +36,7 @@ struct ParticlesEmitterFlags {
     padding: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct ParticlesEmitter {
     max_quantity: u16,
     p_cloud_type: u16,
@@ -64,7 +64,7 @@ struct ParticlesEmitter {
     material_anim_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct ParticlesBodyV1_381_67_09PC {
     particles_emitters: DynArray<ParticlesEmitter>,

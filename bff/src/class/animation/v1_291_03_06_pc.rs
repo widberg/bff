@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -12,7 +12,7 @@ use crate::keyframer::{
 };
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationNode {
     unknown: u16,
     keyframer_rot: KeyframerRot,
@@ -22,7 +22,7 @@ struct AnimationNode {
     keyframer_message: KeyframerMessage,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationNodeModifier {
     bone_name_crc32: Name,
     bone_id: u16,
@@ -39,7 +39,7 @@ struct AnimationNodeModifier {
     message_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMaterial {
     keyframer_float_comp0: KeyframerFloatComp,
     keyframer_float_comp1: KeyframerFloatComp,
@@ -48,7 +48,7 @@ struct AnimationMaterial {
     keyframer_float_comp2: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMaterialModifier {
     material_link_crc32: Name,
     material_id: u16,
@@ -65,12 +65,12 @@ struct AnimationMaterialModifier {
     keyframer_float_comp2_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMesh {
     keyframer_float_comp: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMeshModifier {
     mesh_link_crc32: Name,
     mesh_id: u16,
@@ -79,12 +79,12 @@ struct AnimationMeshModifier {
     keyframer_float_comp_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMorph {
     keyframer_float_comp: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMorphModifier {
     mesh_link_crc32: Name,
     mesh_id: u16,
@@ -93,7 +93,7 @@ struct AnimationMorphModifier {
     keyframer_float_comp_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &()))]
 pub struct AnimationBodyV1_291_03_06PC {
     duration: f32,

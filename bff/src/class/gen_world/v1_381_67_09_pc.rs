@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -9,13 +9,13 @@ use crate::math::{Mat4f, Vec2f, Vec3f};
 use crate::name::Name;
 use crate::strings::{FixedStringNull, PascalStringNull};
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Category {
     one: u32,
     node_name_arrays: DynArray<Name>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct CAFlatSurface {
     zero0: u32,
     mat: Mat4f,
@@ -40,7 +40,7 @@ struct CAFlatSurface {
     unknown2: u8,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unused10 {
     unused0: u32,
     unused1s: [u32; 8],
@@ -49,19 +49,19 @@ struct Unused10 {
     unused4: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct RegionEdge {
     region_vertices_index_a: u32,
     region_vertices_index_b: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Region {
     unknown: u8,
     region_edges_indices: DynArray<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct GenWorldBodyV1_381_67_09PC {
     node_name: Name,

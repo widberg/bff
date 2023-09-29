@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -14,7 +14,7 @@ use crate::keyframer::{
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct RtcAnimationNode {
     unknown_node_name: Name,
     rtc_animation_node_flag: u16,
@@ -24,7 +24,7 @@ struct RtcAnimationNode {
     unknown3: KeyframerMessage,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationCamera {
     unknown_node_name: Name,
     animation_camera_flag: u16,
@@ -34,7 +34,7 @@ struct AnimationCamera {
     unknown3: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationOmni {
     unknown_node_name_name: Name,
     animation_omni_flag: u16,
@@ -43,7 +43,7 @@ struct AnimationOmni {
     unknown2: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unknown8 {
     unknown_name_name0: Name,
     unknown_name_name1: Name,
@@ -54,7 +54,7 @@ struct Unknown8 {
     unknown_name1: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unknown9 {
     unknown0: u32,
     unknown_name_name0: Name,
@@ -64,7 +64,7 @@ struct Unknown9 {
     unknown_name1: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct RtcBodyV1_381_67_09PC {
     duration: f32,

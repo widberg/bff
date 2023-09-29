@@ -1,18 +1,18 @@
 use bilge::prelude::*;
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::dynarray::DynArray;
 use crate::math::{Mat4f, Quat, Sphere};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 pub struct ResourceObjectLinkHeader {
     link_name: Name,
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 pub struct ObjectDatasFlagsV1_381_67_09PC {
     fl_objectdatas_hide: u1,
     fl_objectdatas_code_control: u1,
@@ -31,7 +31,7 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 pub struct ObjectFlagsV1_381_67_09PC {
     fl_object_init: u1,
     fl_object_max_bsphere: u1,
@@ -53,8 +53,8 @@ pub struct ObjectFlagsV1_381_67_09PC {
     padding: u15,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u16)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[brw(repr = u16)]
 pub enum ObjectType {
     Points = 0,
     Surface = 1,
@@ -84,7 +84,7 @@ pub enum ObjectType {
     WorldRef = 26,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 pub struct ObjectLinkHeaderV1_381_67_09PC {
     link_name: Name,
     data_name: Name,
@@ -95,7 +95,7 @@ pub struct ObjectLinkHeaderV1_381_67_09PC {
     r#type: ObjectType,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 pub struct ObjectLinkHeaderV1_06_63_02PC {
     link_crc32: Name,
     links: DynArray<Name>,
@@ -103,12 +103,6 @@ pub struct ObjectLinkHeaderV1_06_63_02PC {
     b_sphere_local: Sphere,
     unknown_matrix: Mat4f,
     fade_out_distance: f32,
-    flags: u32,
+    pub flags: u32,
     r#type: u16,
-}
-
-impl ObjectLinkHeaderV1_06_63_02PC {
-    pub fn flags(&self) -> u32 {
-        self.flags
-    }
 }

@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -8,7 +8,7 @@ use crate::math::Vec3f;
 use crate::name::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Extended {
     pad: [u8; 24],
     flags1: u32,
@@ -28,7 +28,7 @@ struct Extended {
     zero11: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct LodDataBodyV1_381_67_09PC {
     flags: ObjectDatasFlagsV1_381_67_09PC,

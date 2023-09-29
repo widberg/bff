@@ -1,69 +1,89 @@
-use std::convert::TryFrom;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-use binrw::{BinRead, NamedArgs};
-use derive_more::{Deref, From, Into};
+use binrw::{BinRead, BinResult, BinWrite, Endian};
+use derive_more::Deref;
 use indexmap::IndexMap;
 use serde::Serialize;
 
-use crate::dynarray::DynArray;
-
-#[derive(Clone, Default, NamedArgs)]
-pub struct BffMapArgs<KeyArgs, ValueArgs> {
-    key: KeyArgs,
-    value: ValueArgs,
-}
-
-#[derive(BinRead, Clone, Debug, Serialize, From, Into)]
-#[br(import_raw(args: BffMapArgs<<KeyType as BinRead>::Args<'_>, <ValueType as BinRead>::Args<'_>>))]
-struct Pair<KeyType, ValueType>(
-    #[br(args_raw = args.key)] KeyType,
-    #[br(args_raw = args.value)] ValueType,
-)
-where
-    for<'a> KeyType: BinRead + Serialize + Hash + Eq + 'a,
-    for<'a> <KeyType as BinRead>::Args<'a>: Clone + Default,
-
-    for<'a> ValueType: BinRead + Serialize + 'a,
-    for<'a> <ValueType as BinRead>::Args<'a>: Clone + Default;
-
-#[derive(Debug, Serialize, BinRead, Deref)]
+#[derive(Debug, Serialize, Deref)]
 #[serde(transparent)]
-pub struct BffMap<KeyType, ValueType, SizeType = u32>
-where
-    for<'a> KeyType: BinRead + Serialize + Hash + Eq + 'a,
-    for<'a> <KeyType as BinRead>::Args<'a>: Clone + Default,
-
-    for<'a> ValueType: BinRead + Serialize + 'a,
-    for<'a> <ValueType as BinRead>::Args<'a>: Clone + Default,
-
-    SizeType: BinRead + Debug + Copy,
-    for<'a> <SizeType as BinRead>::Args<'a>: Default,
-    usize: TryFrom<SizeType>,
-    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
-{
+pub struct BffMap<KeyType: Eq + Hash, ValueType, SizeType = u32> {
     #[deref]
-    #[br(map = |pairs: DynArray<Pair<KeyType, ValueType>, SizeType>| <DynArray<Pair<KeyType, ValueType>, SizeType> as Into<Vec<Pair<KeyType, ValueType>>>>::into(pairs).into_iter().map(<Pair<KeyType, ValueType> as Into<(KeyType, ValueType)>>::into).collect::<IndexMap<_, _>>())]
     map: IndexMap<KeyType, ValueType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
 }
 
-impl<KeyType, ValueType, SizeType> From<IndexMap<KeyType, ValueType>>
+impl<KeyType: Eq + Hash + BinRead, ValueType: BinRead, SizeType: BinRead> BinRead
     for BffMap<KeyType, ValueType, SizeType>
 where
-    for<'a> KeyType: BinRead + Serialize + Hash + Eq + 'a,
     for<'a> <KeyType as BinRead>::Args<'a>: Clone + Default,
-
-    for<'a> ValueType: BinRead + Serialize + 'a,
     for<'a> <ValueType as BinRead>::Args<'a>: Clone + Default,
-
-    SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
-    usize: TryFrom<SizeType>,
-    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+{
+    type Args<'a> = ();
+
+    fn read_options<R: binrw::io::Read + binrw::io::Seek>(
+        reader: &mut R,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<Self> {
+        let size = SizeType::read_options(reader, endian, <_>::default())?;
+
+        let mut map = IndexMap::new();
+
+        for _ in 0..size.try_into().unwrap() {
+            let key = KeyType::read_options(reader, endian, <_>::default())?;
+            let value = ValueType::read_options(reader, endian, <_>::default())?;
+            map.insert(key, value);
+        }
+
+        Ok(BffMap {
+            map,
+            _phantom: PhantomData,
+        })
+    }
+}
+
+impl<KeyType: Eq + Hash + BinWrite, ValueType: BinWrite, SizeType: BinWrite> BinWrite
+    for BffMap<KeyType, ValueType, SizeType>
+where
+    for<'a> <KeyType as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> <ValueType as BinWrite>::Args<'a>: Clone + Default,
+    for<'a> <SizeType as BinWrite>::Args<'a>: Default,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
+    type Args<'a> = ();
+
+    fn write_options<R: binrw::io::Write + binrw::io::Seek>(
+        &self,
+        reader: &mut R,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<()> {
+        SizeType::write_options(
+            &self.map.len().try_into().unwrap(),
+            reader,
+            endian,
+            <_>::default(),
+        )?;
+
+        for (key, value) in self.map.iter() {
+            KeyType::write_options(key, reader, endian, <_>::default())?;
+            ValueType::write_options(value, reader, endian, <_>::default())?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<KeyType: Eq + Hash, ValueType, SizeType> From<IndexMap<KeyType, ValueType>>
+    for BffMap<KeyType, ValueType, SizeType>
 {
     fn from(map: IndexMap<KeyType, ValueType>) -> Self {
         Self {

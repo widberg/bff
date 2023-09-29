@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -6,13 +6,13 @@ use crate::dynarray::DynArray;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct ObjectDatas {
     flag: u32,
     b_sphere_local: Sphere,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct BoneNode {
     user_define_crc32: Name,
     local_rotation: Quat,
@@ -42,24 +42,24 @@ struct BoneNode {
     bone_name_crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct BoneNodeGroup {
     bone_node_crc32s: DynArray<Name>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct SphereColBone {
     sphere_col: DynSphere,
     bone_node_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct BoxColBone {
     box_col: DynBox,
     bone_node_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &()))]
 pub struct SkelBodyV1_06_63_02PC {
     object_datas: ObjectDatas,

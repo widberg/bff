@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::error::Error;
@@ -16,10 +16,11 @@ impl<T: Sized> TyEq for (T, T) {}
 #[derive(Debug, Serialize)]
 pub struct TrivialClass<LinkHeaderType, BodyType>
 where
-    for<'a> LinkHeaderType: BinRead + Serialize + 'a,
+    for<'a> LinkHeaderType: BinRead + BinWrite + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
+    for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + BinWrite + Serialize + 'a,
 {
     link_header: LinkHeaderType,
     body: BodyType,
@@ -27,10 +28,11 @@ where
 
 impl<LinkHeaderType, BodyType> TrivialClass<LinkHeaderType, BodyType>
 where
-    for<'a> LinkHeaderType: BinRead + Serialize + 'a,
+    for<'a> LinkHeaderType: BinRead + BinWrite + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
+    for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + BinWrite + Serialize + 'a,
 {
     pub fn link_header(&self) -> &LinkHeaderType {
         &self.link_header
@@ -44,10 +46,11 @@ where
 impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&Object>
     for TrivialClass<LinkHeaderType, BodyType>
 where
-    for<'a> LinkHeaderType: BinRead + Serialize + 'a,
+    for<'a> LinkHeaderType: BinRead + BinWrite + Serialize + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
+    for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
 
-    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + Serialize + 'a,
+    for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + BinWrite + Serialize + 'a,
 {
     type Error = Error;
 

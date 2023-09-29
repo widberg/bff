@@ -22,8 +22,8 @@ enum SubType {
     GoatPath = 5,      // Bike trail lined with thin posts
     SmallDirtRoad = 6, // Vehicle trail lines with A-frames
     SnowyDirtRoad = 7,
-    NormalDirtRoad = 8, // Two vehicle roads lined with signs and guard rails
-    BigDirtRoad = 9,    // Even wider I guess
+    NormalDirtRoad = 8,     // Two vehicle roads lined with signs and guard rails
+    BigDirtRoad = 9,        // Even wider I guess
     SmallCircuitTrack = 10, // Thin track around Redrock Bluffs
     SmallTarmacRoad = 11,
     NormalTarmacRoad = 12,
@@ -36,13 +36,14 @@ enum SubType {
 }
 
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 struct RoadType {
     sub_type: SubType,
-    short_cut: u1,
+    short_cut: bool,
 }
 
 #[derive(Debug, Serialize, Deref, DerefMut)]
+#[serde(transparent)]
 struct EncodedPoint(Vec2f);
 
 impl BinRead for EncodedPoint {
@@ -80,13 +81,13 @@ impl BinWrite for EncodedPoint {
     }
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Road {
     r#type: RoadType,
     points: DynArray<EncodedPoint, u16>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unused5 {
     unused0: u32,
     unused1: u32,
@@ -100,7 +101,7 @@ struct Unused5 {
     unused8s: Vec<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,

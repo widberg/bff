@@ -6,7 +6,7 @@ use crate::strings::FixedStringNull;
 use crate::versions::{Version, VersionTriple};
 
 #[binread]
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, BinWrite)]
 pub struct BlockDescription {
     object_count: u32,
     padded_size: u32,
@@ -14,6 +14,7 @@ pub struct BlockDescription {
     working_buffer_offset: u32,
     first_object_name: u32,
     #[br(temp)]
+    #[bw(calc = 0)]
     _zero: u32,
 }
 

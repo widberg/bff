@@ -1,11 +1,11 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::dynarray::DynArray;
 use crate::name::Name;
 use crate::object::PoolObject;
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct ReferenceRecord {
     start_chunk_index: u32,
     end_chunk_index: u32,
@@ -31,7 +31,7 @@ impl ReferenceRecord {
     }
 }
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct ObjectDescription {
     name: Name,
     reference_count: u32,
@@ -49,7 +49,7 @@ impl ObjectDescription {
     }
 }
 
-#[derive(BinRead, Debug)]
+#[derive(BinRead, Debug, BinWrite)]
 pub struct ObjectDescriptionSOA {
     names: DynArray<Name>,
     reference_counts: DynArray<u32>,
@@ -87,7 +87,7 @@ fn zip_object_description_soa(
     result
 }
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct PoolHeader {
     #[serde(skip)]
     _equals524288: u32,
@@ -104,7 +104,7 @@ pub struct PoolHeader {
     _reference_records_sentinel: ReferenceRecord,
 }
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct Pool {
     pub header: PoolHeader,
     #[br(count = header.object_descriptions_indices.len())]

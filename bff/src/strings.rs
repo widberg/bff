@@ -1,6 +1,8 @@
+use std::io::Write;
+
 use ascii::{AsciiChar, AsciiString};
 use binrw::io::{Read, Seek};
-use binrw::{BinRead, BinResult, Endian, Error, VecArgs};
+use binrw::{BinRead, BinResult, BinWrite, Endian, Error, VecArgs};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::Serialize;
 
@@ -60,6 +62,22 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
     }
 }
 
+impl<const S: usize> BinWrite for FixedStringNull<S> {
+    type Args<'a> = ();
+
+    fn write_options<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        _endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<()> {
+        let bytes = self.as_bytes();
+        writer.write_all(bytes)?;
+        writer.write_all(vec![0; S - bytes.len()].as_slice())?;
+        Ok(())
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize)]
 #[serde(transparent)]
 pub struct PascalString(pub AsciiString);
@@ -96,6 +114,22 @@ impl BinRead for PascalString {
         };
 
         Ok(Self(values))
+    }
+}
+
+impl BinWrite for PascalString {
+    type Args<'a> = ();
+
+    fn write_options<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _: Self::Args<'_>,
+    ) -> BinResult<()> {
+        let bytes = self.as_bytes();
+        <u32>::write_options(&(bytes.len() as u32), writer, endian, ())?;
+        writer.write_all(bytes)?;
+        Ok(())
     }
 }
 
@@ -138,5 +172,22 @@ impl BinRead for PascalStringNull {
         };
 
         Ok(Self(values))
+    }
+}
+
+impl BinWrite for PascalStringNull {
+    type Args<'a> = ();
+
+    fn write_options<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _: Self::Args<'_>,
+    ) -> BinResult<()> {
+        let bytes = self.as_bytes();
+        <u32>::write_options(&(bytes.len() as u32 + 1), writer, endian, ())?;
+        writer.write_all(bytes)?;
+        writer.write_all(&[0u8])?;
+        Ok(())
     }
 }

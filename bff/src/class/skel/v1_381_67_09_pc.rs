@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,7 +7,7 @@ use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeade
 use crate::math::{Mat4f, Quat, Sphere, Vec3, Vec3f};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Bone {
     user_define_name: Name,
     transform_rotation_inverse0: Quat,
@@ -37,19 +37,19 @@ struct Bone {
     bone_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct SphereColBone {
     sphere: Sphere,
     names: [Name; 3],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct BoxColBone {
     mat: Mat4f,
     names: [Name; 3],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct SkelBodyV1_381_67_09PC {
     flags: ObjectDatasFlagsV1_381_67_09PC,

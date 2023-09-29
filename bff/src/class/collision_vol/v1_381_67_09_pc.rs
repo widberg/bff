@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,13 +7,13 @@ use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::Mat4f;
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct CollisionVolInfo {
     local_transform: Mat4f,
     local_transform_inverse: Mat4f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct CollisionVolBodyV1_381_67_09PC {
     collision_vol_info: DynArray<CollisionVolInfo>,

@@ -1,11 +1,11 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::strings::PascalString;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct UserDefineBodyV1_291_03_06PC {
     data: PascalString,

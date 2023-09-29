@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
@@ -12,7 +12,7 @@ use crate::keyframer::{
 };
 use crate::link_header::ResourceObjectLinkHeader;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationNode {
     unknown0: KeyframerRot,
     unknown1: KeyframerBezierRot,
@@ -21,7 +21,7 @@ struct AnimationNode {
     unknown4: KeyframerMessage,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMaterial {
     unknown0: KeyframerFloatComp,
     unknown1: KeyframerFloatComp,
@@ -30,17 +30,17 @@ struct AnimationMaterial {
     unknown4: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMesh {
     unknown: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AnimationMorph {
     unknown: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unknown12 {
     unknown0: u32,
     unknown1: u32,
@@ -51,7 +51,7 @@ struct Unknown12 {
     unknown6: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unknown13 {
     unknown0: u32,
     unknown1: u32,
@@ -62,14 +62,14 @@ struct Unknown13 {
     unknown6: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Unknown14 {
     unknown0: u32,
     unknown1: u32,
     unknown2: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct AnimationBodyV1_381_67_09PC {
     duration: f32,

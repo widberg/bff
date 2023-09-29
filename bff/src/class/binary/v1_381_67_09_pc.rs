@@ -1,30 +1,30 @@
 use bilge::prelude::*;
-use binrw::BinRead;
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ResourceObjectLinkHeader;
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 struct LookupDescription {
     horizon: u12,
     altitudes_index: u20,
 }
 
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite)]
 struct AltitudePack {
     odd: u4,
     even: u4,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AltitudesPacked {
     altitudes: [AltitudePack; 8],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct AltitudesUnpacked {
     altitudes: [u8; 16],
 }
@@ -33,7 +33,7 @@ impl AltitudesPacked {
     const SIZE: u32 = 8;
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 struct Internal {
     width: u32,
     height: u32,
@@ -50,7 +50,7 @@ struct Internal {
     lookup: Vec<LookupDescription>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct BinaryBodyV1_381_67_09PC {
     data_size: u32,

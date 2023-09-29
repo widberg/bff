@@ -1,9 +1,12 @@
-use binrw::BinRead;
+use std::io::Seek;
+
+use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::dynarray::DynArray;
 use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
 use crate::name::Name;
+use crate::Endian;
 
 type Key = f32;
 
@@ -11,8 +14,9 @@ type Key = f32;
 #[br(stream = s)]
 pub struct KeyTgtTpl<T>
 where
-    for<'a> T: BinRead + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Clone + Default,
+    for<'a> T: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> <T as BinWrite>::Args<'a>: Default,
 {
     time: Key,
     #[br(try_calc = s.stream_position())]
@@ -26,12 +30,44 @@ where
     _padding: (),
 }
 
+impl<T> BinWrite for KeyTgtTpl<T>
+where
+    for<'a> T: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> <T as BinWrite>::Args<'a>: Default,
+{
+    type Args<'a> = ();
+
+    fn write_options<W: std::io::Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> binrw::BinResult<()> {
+        self.time.write_options(writer, endian, <_>::default())?;
+
+        let begin = writer.stream_position()?;
+
+        self.value.write_options(writer, endian, <_>::default())?;
+        self.tangent_in
+            .write_options(writer, endian, <_>::default())?;
+        self.tangent_out
+            .write_options(writer, endian, <_>::default())?;
+
+        let end = writer.stream_position()?;
+
+        vec![0xffu8; ((end - begin) % 4) as usize].write_options(writer, endian, <_>::default())?;
+        Ok(())
+    }
+}
+
 #[derive(BinRead, Debug, Serialize)]
 #[br(stream = s)]
 pub struct KeyLinearTpl<T>
 where
-    for<'a> T: BinRead + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Clone + Default,
+    for<'a> T: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> <T as BinWrite>::Args<'a>: Default,
 {
     time: Key,
     #[br(try_calc = s.stream_position())]
@@ -43,8 +79,35 @@ where
     _padding: (),
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u16)]
+impl<T> BinWrite for KeyLinearTpl<T>
+where
+    for<'a> T: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> <T as BinWrite>::Args<'a>: Default,
+{
+    type Args<'a> = ();
+
+    fn write_options<W: std::io::Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> binrw::BinResult<()> {
+        self.time.write_options(writer, endian, <_>::default())?;
+
+        let begin = writer.stream_position()?;
+
+        self.value.write_options(writer, endian, <_>::default())?;
+
+        let end = writer.stream_position()?;
+
+        vec![0xffu8; ((end - begin) % 4) as usize].write_options(writer, endian, <_>::default())?;
+        Ok(())
+    }
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite)]
+#[brw(repr = u16)]
 pub enum KeyframerInterpolationType {
     Smooth = 1,
     Linear = 2,
@@ -57,23 +120,67 @@ pub enum KeyframerInterpolationType {
 #[derive(BinRead, Debug, Serialize)]
 pub struct KeyframerTpl<TKey>
 where
-    for<'a> TKey: BinRead + Serialize + 'a,
+    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
 {
     interpolation_type: KeyframerInterpolationType,
     keyframes: DynArray<TKey>,
 }
 
+impl<TKey> BinWrite for KeyframerTpl<TKey>
+where
+    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+{
+    type Args<'a> = ();
+
+    fn write_options<W: std::io::Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> binrw::BinResult<()> {
+        self.interpolation_type
+            .write_options(writer, endian, <_>::default())?;
+        self.keyframes
+            .write_options(writer, endian, <_>::default())?;
+        Ok(())
+    }
+}
+
 #[derive(BinRead, Debug, Serialize)]
 pub struct KeyframerNoFlagsTpl<TKey>
 where
-    for<'a> TKey: BinRead + Serialize + 'a,
+    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
     for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
 {
     keyframes: DynArray<TKey>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+impl<TKey> BinWrite for KeyframerNoFlagsTpl<TKey>
+where
+    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
+    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <TKey as BinWrite>::Args<'a>: Clone + Default,
+{
+    type Args<'a> = ();
+
+    fn write_options<W: std::io::Write + Seek>(
+        &self,
+        writer: &mut W,
+        endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> binrw::BinResult<()> {
+        self.keyframes
+            .write_options(writer, endian, <_>::default())?;
+        Ok(())
+    }
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite)]
 pub struct Message {
     message_class: u32,
     reciever_name: Name,
