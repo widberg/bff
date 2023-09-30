@@ -16,17 +16,18 @@ where
     SizeType: TryInto<usize>,
     <SizeType as TryInto<usize>>::Error: Debug,
 
+    // BinWrite derive doesnt support generics well because it assumes the Args type is always the unit type. We can work around this by forcing the Args type to be the unit type.
     for<'a> InnerType: BinWrite<Args<'a> = ()>,
     for<'a> SizeType: BinWrite<Args<'a> = ()>,
     usize: TryInto<SizeType>,
     <usize as TryInto<SizeType>>::Error: Debug,
 {
     #[br(temp)]
-    #[bw(calc = data.len().try_into().unwrap())]
+    #[bw(calc = inner.len().try_into().unwrap())]
     count: SizeType,
     #[deref]
     #[br(args { count: count.try_into().unwrap(), inner })]
-    pub data: Vec<InnerType>,
+    pub inner: Vec<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
 }

@@ -79,6 +79,7 @@ where
     _padding: (),
 }
 
+// TODO: This is a hack to get around the fact that BinWrite doesn't support try_calc + ignore so we can't get the stream position while deriving BinWrite.
 impl<T> BinWrite for KeyLinearTpl<T>
 where
     for<'a> T: BinRead + BinWrite + Serialize + 'a,
@@ -117,7 +118,7 @@ pub enum KeyframerInterpolationType {
     Unknown17 = 17, // unknown1 in Rtc's RtcAnimationNode uses this
 }
 
-#[derive(BinRead, Debug, Serialize, Deserialize)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize)]
 pub struct KeyframerTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -128,29 +129,7 @@ where
     keyframes: DynArray<TKey>,
 }
 
-impl<TKey> BinWrite for KeyframerTpl<TKey>
-where
-    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> TKey: BinWrite<Args<'a> = ()>,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        self.interpolation_type
-            .write_options(writer, endian, <_>::default())?;
-        self.keyframes
-            .write_options(writer, endian, <_>::default())?;
-        Ok(())
-    }
-}
-
-#[derive(BinRead, Debug, Serialize, Deserialize)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize)]
 pub struct KeyframerNoFlagsTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -158,26 +137,6 @@ where
     for<'a> TKey: BinWrite<Args<'a> = ()>,
 {
     keyframes: DynArray<TKey>,
-}
-
-impl<TKey> BinWrite for KeyframerNoFlagsTpl<TKey>
-where
-    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> TKey: BinWrite<Args<'a> = ()>,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        self.keyframes
-            .write_options(writer, endian, <_>::default())?;
-        Ok(())
-    }
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
