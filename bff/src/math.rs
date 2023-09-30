@@ -1,8 +1,7 @@
-use std::io::{Read, Seek};
 use std::marker::PhantomData;
 use std::ops::{Add, Div, Mul, Range, RangeInclusive, Sub};
 
-use binrw::{BinRead, BinWrite, Endian};
+use binrw::{binrw, BinRead, BinWrite};
 use derive_more::{Deref, DerefMut};
 use num_traits::{cast, MulAdd, NumCast, PrimInt, Signed, Unsigned};
 use serde::{Deserialize, Serialize};
@@ -67,83 +66,45 @@ where
 // Range whose first element is first and last element is last. [first, last].
 // We intentionally use the names first and last instead of begin and end to avoid confusion with
 // C++ iterators.
+#[binrw]
 #[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
 #[serde(rename = "range_inclusive")]
-pub struct RangeFirstLast<T = u16>(RangeInclusive<T>);
-
-impl<T: BinRead + Add<Output = T> + Copy> BinRead for RangeFirstLast<T>
+pub struct RangeFirstLast<T = u16>
 where
+    T: Copy,
     for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> T: BinRead + BinWrite<Args<'a> = ()>,
 {
-    type Args<'a> = ();
-
-    fn read_options<R: Read + Seek>(
-        reader: &mut R,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<Self> {
-        let first = T::read_options(reader, endian, <_>::default())?;
-        let last = T::read_options(reader, endian, <_>::default())?;
-        Ok(RangeFirstLast(first..=last))
-    }
-}
-
-impl<T: BinWrite> BinWrite for RangeFirstLast<T>
-where
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + std::io::Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        T::write_options(self.start(), writer, endian, <_>::default())?;
-        T::write_options(self.end(), writer, endian, <_>::default())?;
-        Ok(())
-    }
+    #[br(temp)]
+    #[bw(calc = *inner.start())]
+    start: T,
+    #[br(temp)]
+    #[bw(calc = *inner.end())]
+    end: T,
+    #[br(calc = start..=end)]
+    #[bw(ignore)]
+    inner: RangeInclusive<T>,
 }
 
 // Range whose first element is first and contains size elements. [first, first + size).
+#[binrw]
 #[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
 #[serde(rename = "range")]
-pub struct RangeBeginSize<T = u16>(Range<T>);
-
-impl<T: BinRead + Add<Output = T> + Copy> BinRead for RangeBeginSize<T>
+pub struct RangeBeginSize<T = u16>
 where
+    T: Copy + Add<Output = T> + Sub<Output = T>,
     for<'a> <T as BinRead>::Args<'a>: Default,
+    for<'a> T: BinRead + BinWrite<Args<'a> = ()>,
 {
-    type Args<'a> = ();
-
-    fn read_options<R: Read + Seek>(
-        reader: &mut R,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<Self> {
-        let first = T::read_options(reader, endian, <_>::default())?;
-        let size = T::read_options(reader, endian, <_>::default())?;
-        Ok(RangeBeginSize(first..first + size))
-    }
-}
-
-impl<T: BinWrite + Sub<Output = T> + Copy> BinWrite for RangeBeginSize<T>
-where
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + std::io::Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        T::write_options(&self.start, writer, endian, <_>::default())?;
-        T::write_options(&(self.end - self.start), writer, endian, <_>::default())?;
-        Ok(())
-    }
+    #[br(temp)]
+    #[bw(calc = inner.start)]
+    first: T,
+    #[br(temp)]
+    #[bw(calc = inner.end - inner.start)]
+    size: T,
+    #[br(calc = first..first + size)]
+    #[bw(ignore)]
+    inner: Range<T>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
