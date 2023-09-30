@@ -39,12 +39,12 @@ pub struct Object {
     compressed_size: u32,
     #[br(calc = compressed_size != 0)]
     #[bw(ignore)]
-    compress: bool,
-    class_name: Name,
-    name: Name,
+    pub compress: bool,
+    pub class_name: Name,
+    pub name: Name,
     #[br(count = link_header_size)]
     #[serde(skip_serializing)]
-    link_header: Vec<u8>,
+    pub link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
     #[serde(skip_serializing)]
     pub body: Vec<u8>,
