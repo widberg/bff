@@ -31,7 +31,7 @@ struct ClassRes {
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_291_03_06PC {
     b_sphere_col_node: Name,
-    #[br(if(b_sphere_col_node != 0))]
+    #[br(if(b_sphere_col_node != Name::default()))]
     sphere_col_node: Option<SphereColNode>,
     sphere_cols: DynArray<DynSphere>,
     box_cols: DynArray<DynBox>,

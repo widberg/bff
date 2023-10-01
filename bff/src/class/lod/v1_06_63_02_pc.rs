@@ -30,7 +30,7 @@ struct CylindreCol {
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_06_63_02PC {
     b_sphere_col_node: Name,
-    #[br(if(b_sphere_col_node != 0))]
+    #[br(if(b_sphere_col_node != Name::default()))]
     sphere_col_node: Option<SphereColNode>,
     spheres_cols: DynArray<DynSphere>,
     box_cols: DynArray<DynBox>,

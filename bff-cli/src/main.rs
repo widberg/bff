@@ -19,10 +19,13 @@ enum Commands {
     Extract {
         bigfile: PathBuf,
         directory: PathBuf,
+        in_names: Vec<PathBuf>,
+        out_names: Option<PathBuf>,
     },
     #[clap(alias = "t")]
     Info {
         bigfile: PathBuf,
+        in_names: Vec<PathBuf>,
     },
     Crc32 {
         string: Option<String>,
@@ -86,8 +89,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Args::parse();
 
     match &cli.command {
-        Commands::Extract { bigfile, directory } => extract::extract(bigfile, directory),
-        Commands::Info { bigfile } => info::info(bigfile),
+        Commands::Extract {
+            bigfile,
+            directory,
+            in_names,
+            out_names,
+        } => extract::extract(bigfile, directory, in_names, out_names),
+        Commands::Info { bigfile, in_names } => info::info(bigfile, in_names),
         Commands::Crc32 {
             string,
             starting,
