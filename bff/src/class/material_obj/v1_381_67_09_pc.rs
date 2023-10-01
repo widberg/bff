@@ -5,7 +5,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::map::BffMap;
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]

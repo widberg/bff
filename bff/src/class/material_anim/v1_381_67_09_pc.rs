@@ -12,7 +12,7 @@ use crate::keyframer::{
     KeyframerVec4fLinear,
 };
 use crate::link_header::ResourceObjectLinkHeader;
-use crate::name::Name;
+use crate::names::Name;
 
 #[bitsize(8)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]

@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::name::Name;
+use crate::names::Name;
 
 #[bitsize(16)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]

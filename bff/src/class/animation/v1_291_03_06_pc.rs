@@ -10,7 +10,7 @@ use crate::keyframer::{
     KeyframerRot,
     KeyframerVec3fComp,
 };
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct AnimationNode {

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dynarray::DynArray;
 use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
-use crate::name::Name;
+use crate::names::Name;
 use crate::Endian;
 
 type Key = f32;

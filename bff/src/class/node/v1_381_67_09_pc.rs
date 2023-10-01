@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]

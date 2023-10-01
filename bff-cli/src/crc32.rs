@@ -24,13 +24,13 @@ pub enum Crc32Format {
     Hexadecimal,
 }
 
-fn format_hash(hash: u32, format: &Crc32Format) -> String {
+fn format_hash(hash: i32, format: &Crc32Format) -> String {
     match format {
         Crc32Format::Signed => {
-            format!("{}", hash as i32)
+            format!("{}", hash)
         }
         Crc32Format::Unsigned => {
-            format!("{}", hash)
+            format!("{}", hash as u32)
         }
         Crc32Format::Hexadecimal => {
             format!("{:#08x}", hash)
@@ -40,7 +40,7 @@ fn format_hash(hash: u32, format: &Crc32Format) -> String {
 
 pub fn crc32(
     string: &Option<String>,
-    starting: &u32,
+    starting: &i32,
     algorithm: &Crc32Algorithm,
     mode: &Crc32Mode,
     format: &Crc32Format,

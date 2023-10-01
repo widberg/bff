@@ -6,7 +6,7 @@ use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::map::BffMap;
 use crate::math::{DynBox, DynSphere};
-use crate::name::Name;
+use crate::names::Name;
 use crate::option::BffOption;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]

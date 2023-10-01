@@ -12,7 +12,7 @@ use crate::keyframer::{
     KeyframerVec3fComp,
 };
 use crate::link_header::ResourceObjectLinkHeader;
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct RtcAnimationNode {

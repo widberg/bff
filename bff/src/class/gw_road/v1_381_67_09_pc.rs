@@ -9,7 +9,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Vec2f;
-use crate::name::Name;
+use crate::names::Name;
 
 #[bitsize(7)]
 #[derive(TryFromBits, Debug, Serialize, Deserialize)]

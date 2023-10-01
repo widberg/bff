@@ -12,7 +12,7 @@ use crate::keyframer::{
 };
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::{Mat4f, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]

@@ -258,7 +258,8 @@ const CRC64_TABLE: [u64; CRC64_TABLE_SIZE] = [
     0x9afce626ce85b507,
 ];
 
-pub const fn asobo_crc64_options(name: &[u8], mut hash: u64) -> u64 {
+pub const fn asobo_crc64_options(name: &[u8], hash: i64) -> u64 {
+    let mut hash = hash as u64;
     let mut i: usize = 0;
     while i < name.len() {
         let c = name[i];

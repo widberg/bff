@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dynarray::DynArray;
 use crate::math::{Mat4f, Quat, Sphere};
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 pub struct ResourceObjectLinkHeader {

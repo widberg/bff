@@ -4,7 +4,7 @@ use binrw::{binrw, BinRead, BinResult, BinWrite, VecArgs};
 use serde::Serialize;
 
 use crate::lz::decompress_body_parser;
-use crate::name::Name;
+use crate::names::Name;
 
 #[binrw::parser(reader, endian)]
 fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct ObjectDatas {

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]

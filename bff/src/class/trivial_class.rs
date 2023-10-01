@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
-use crate::name::Name;
+use crate::names::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
 use crate::traits::TryFromVersionPlatform;

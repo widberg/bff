@@ -12,7 +12,7 @@ pub mod lz;
 pub mod manifest;
 pub mod map;
 pub mod math;
-pub mod name;
+pub mod names;
 pub mod object;
 pub mod option;
 pub mod platforms;

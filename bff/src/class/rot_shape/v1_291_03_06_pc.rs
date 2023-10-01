@@ -5,7 +5,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::math::{Vec2f, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated0 {

@@ -7,7 +7,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::{Mat4f, RangeBeginSize, Vec2f, Vec3f, Vec4f};
-use crate::name::Name;
+use crate::names::Name;
 use crate::option::BffOption;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]

@@ -7,7 +7,7 @@ use serde::Serialize;
 use crate::block::Block;
 use crate::header::*;
 use crate::manifest::*;
-use crate::name::Name;
+use crate::names::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
 use crate::pool::Pool;

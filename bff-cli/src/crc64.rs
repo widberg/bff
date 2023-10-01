@@ -38,7 +38,7 @@ fn format_hash(hash: u64, format: &Crc64Format) -> String {
 
 pub fn crc64(
     string: &Option<String>,
-    starting: &u64,
+    starting: &i64,
     algorithm: &Crc64Algorithm,
     mode: &Crc64Mode,
     format: &Crc64Format,

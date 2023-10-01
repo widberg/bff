@@ -6,7 +6,7 @@ use crate::dynarray::DynArray;
 use crate::link_header::ResourceObjectLinkHeader;
 use crate::map::BffMap;
 use crate::math::Vec2f;
-use crate::name::Name;
+use crate::names::Name;
 
 type CharacterID = u32;
 

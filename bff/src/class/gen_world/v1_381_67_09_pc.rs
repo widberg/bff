@@ -6,7 +6,7 @@ use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::map::BffMap;
 use crate::math::{Mat4f, Vec2f, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 use crate::strings::{FixedStringNull, PascalStringNull};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]

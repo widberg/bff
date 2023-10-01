@@ -6,7 +6,7 @@ use derive_more::{Deref, DerefMut};
 use num_traits::{cast, MulAdd, NumCast, PrimInt, Signed, Unsigned};
 use serde::{Deserialize, Serialize};
 
-use crate::name::Name;
+use crate::names::Name;
 
 pub type Vec<const SIZE: usize, InnerType = f32> = [InnerType; SIZE];
 pub type Vec2<T = f32> = Vec<2, T>;

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::link_header::ResourceObjectLinkHeader;
-use crate::name::Name;
+use crate::names::Name;
 use crate::strings::PascalStringNull;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]

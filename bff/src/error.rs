@@ -2,7 +2,7 @@ use std::ffi::OsString;
 
 use derive_more::{Constructor, Display, Error, From};
 
-use crate::name::Name;
+use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::Version;
 

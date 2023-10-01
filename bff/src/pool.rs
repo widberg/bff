@@ -2,7 +2,7 @@ use binrw::{BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::dynarray::DynArray;
-use crate::name::Name;
+use crate::names::Name;
 use crate::object::PoolObject;
 
 #[derive(BinRead, Serialize, Debug, BinWrite)]

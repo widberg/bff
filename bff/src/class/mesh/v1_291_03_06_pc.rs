@@ -5,7 +5,7 @@ use serde_big_array::BigArray;
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::math::{DynBox, DynSphere, Mat4f, Quat, Vec2, Vec2f, Vec3, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated0 {

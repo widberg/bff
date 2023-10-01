@@ -15,7 +15,7 @@ use crate::math::{
     Vec2f,
     Vec3f,
 };
-use crate::name::Name;
+use crate::names::Name;
 use crate::strings::PascalString;
 
 type VertexVectorComponent = u8;

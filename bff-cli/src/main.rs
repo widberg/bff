@@ -11,6 +11,8 @@ mod info;
 mod lz;
 mod unlz;
 
+mod names;
+
 #[derive(Subcommand)]
 enum Commands {
     #[clap(alias = "x")]
@@ -19,7 +21,9 @@ enum Commands {
         directory: PathBuf,
     },
     #[clap(alias = "t")]
-    Info { bigfile: PathBuf },
+    Info {
+        bigfile: PathBuf,
+    },
     Crc32 {
         string: Option<String>,
         #[arg(
@@ -28,7 +32,7 @@ enum Commands {
             default_value_t = 0,
             help = "Starting value for the CRC-32 calculation"
         )]
-        starting: u32,
+        starting: i32,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = Crc32Algorithm::Asobo)]
         algorithm: Crc32Algorithm,
@@ -36,7 +40,7 @@ enum Commands {
         #[arg(short, long, default_value_t = Crc32Mode::Lines)]
         mode: Crc32Mode,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc32Format::Unsigned)]
+        #[arg(short, long, default_value_t = Crc32Format::Signed)]
         format: Crc32Format,
     },
     Crc64 {
@@ -47,7 +51,7 @@ enum Commands {
             default_value_t = 0,
             help = "Starting value for the CRC-32 calculation"
         )]
-        starting: u64,
+        starting: i64,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = Crc64Algorithm::Asobo)]
         algorithm: Crc64Algorithm,
@@ -55,7 +59,7 @@ enum Commands {
         #[arg(short, long, default_value_t = Crc64Mode::Lines)]
         mode: Crc64Mode,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc64Format::Unsigned)]
+        #[arg(short, long, default_value_t = Crc64Format::Signed)]
         format: Crc64Format,
     },
     Unlz {
@@ -68,6 +72,7 @@ enum Commands {
         #[arg(short, long, default_value_t = lz::LzEndian::Little)]
         endian: lz::LzEndian,
     },
+    Names {},
 }
 
 #[derive(Parser)]
@@ -99,5 +104,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => crc64::crc64(string, starting, algorithm, mode, format),
         Commands::Unlz { endian } => unlz::unlz(endian),
         Commands::Lz { endian } => lz::lz(endian),
+        Commands::Names {} => names::names(),
     }
 }

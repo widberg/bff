@@ -1,4 +1,4 @@
-use crate::name::Name;
+use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::Version;
 
