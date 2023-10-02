@@ -6,6 +6,9 @@ set windows-shell := ["cmd.exe", "/c"]
 
 cargo-command-prefix := env_var_or_default("CARGO_COMMAND_PREFIX", "")
 
+default:
+  just --list
+
 fmt:
 	cargo +nightly {{cargo-command-prefix}} fmt
 	cargo {{cargo-command-prefix}} sort -w
