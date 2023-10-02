@@ -5,5 +5,5 @@ mod v1_381_67_09_pc;
 use v1_381_67_09_pc::OmniV1_381_67_09PC;
 
 bff_class!(Omni {
-    (V1_381_67_09, PC) => OmniV1_381_67_09PC,
+    (Asobo(1, 381, 67, 9), PC) => OmniV1_381_67_09PC,
 });

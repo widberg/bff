@@ -8,11 +8,11 @@ use lz::LzEndian;
 
 mod crc32;
 mod crc64;
+mod error;
 mod extract;
 mod info;
 mod lz;
 mod unlz;
-mod error;
 
 #[derive(Subcommand)]
 enum Commands {
