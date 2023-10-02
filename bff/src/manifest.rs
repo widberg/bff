@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::names::Name;
 use crate::platforms::Platform;
-use crate::versions::VersionTriple;
+use crate::versions::{Version, VersionTriple};
 
 #[derive(Serialize, Debug)]
 pub struct ManifestPoolObjectEntry {
@@ -37,7 +37,7 @@ pub struct ManifestBlock {
 
 #[derive(Serialize, Debug)]
 pub struct Manifest {
-    pub version: String,
+    pub version: Version,
     pub version_triple: VersionTriple,
     pub platform: Platform,
     pub rtc: bool,

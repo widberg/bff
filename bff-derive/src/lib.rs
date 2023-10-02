@@ -102,7 +102,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
             ) -> crate::BffResult<#class> {
                 use crate::versions::Version::*;
                 use crate::platforms::Platform::*;
-                match (version, platform) {
+                match (version.clone(), platform) {
                     #(#arms)*
                     _ => Err(
                         crate::error::UnimplementedClassError::new(object.name(), <Self as crate::traits::NamedClass>::NAME, version, platform).into(),

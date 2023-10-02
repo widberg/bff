@@ -108,7 +108,7 @@ impl BigFile {
 
         Ok(BigFile {
             manifest: Manifest {
-                version: header.version_string,
+                version: header.version,
                 version_triple: header.version_triple,
                 platform,
                 rtc: header.is_rtc,

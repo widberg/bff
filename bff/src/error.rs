@@ -28,12 +28,6 @@ pub struct InvalidExtensionError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "Unknown BigFile version {}", version)]
-pub struct InvalidVersionError {
-    pub version: String,
-}
-
-#[derive(Debug, Constructor, Display, Error)]
 #[display(
     fmt = "CRC-32 mismatch for {}: expected {}, actual {}",
     string,
@@ -50,7 +44,6 @@ pub struct MismatchCrc32Error {
 pub enum Error {
     BinRW(binrw::Error),
     InvalidExtension(InvalidExtensionError),
-    InvalidVersion(InvalidVersionError),
     Io(std::io::Error),
     MismatchCrc32(MismatchCrc32Error),
     ParseInt(std::num::ParseIntError),
