@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use derive_more::{From, IsVariant};
 use serde::{Deserialize, Serialize};
 
@@ -39,6 +41,7 @@ use self::warp::Warp;
 use self::world::World;
 use self::world_ref::WorldRef;
 use crate::error::{Error, UnimplementedClassError};
+use crate::names::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
 use crate::traits::{NamedClass, TryFromVersionPlatform};
@@ -109,10 +112,21 @@ macro_rules! objects_to_classes {
     };
 }
 
+macro_rules! class_name_map {
+    ($($i:ident),* $(,)?) => {
+        pub fn class_name_map() -> HashMap<Name, String> {
+            let mut map = HashMap::new();
+            $(map.insert(<$i as NamedClass>::NAME, <$i as NamedClass>::NAME_STR.to_string());)*
+            map
+        }
+    };
+}
+
 macro_rules! classes {
     ($($i:ident),* $(,)?) => {
         classes_enum!($($i),*);
         objects_to_classes!($($i),*);
+        class_name_map!($($i),*);
     };
 }
 

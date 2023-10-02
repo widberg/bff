@@ -12,6 +12,7 @@ pub fn bff_named_class(input: TokenStream) -> TokenStream {
     quote! {
         impl crate::traits::NamedClass for #name {
             const NAME: crate::names::Name = crate::names::Name::new(crate::crc32::asobo(#class_name.as_bytes()));
+            const NAME_STR: &'static str = #class_name;
         }
     }
     .into()

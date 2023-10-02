@@ -1,37 +1,28 @@
 use std::collections::HashMap;
-use std::io;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
 use std::str::FromStr;
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinWrite};
-use derive_more::{Deref, DerefMut, Display, Error, From};
+use derive_more::{Deref, DerefMut, From};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::crc32;
+use crate::class::class_name_map;
+use crate::error::MismatchCrc32Error;
+use crate::{crc32, BffResult};
 
-#[derive(
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    Copy,
-    Clone,
-    Display,
-    From,
-    Deref,
-    DerefMut,
-    BinRead,
-    BinWrite,
-    Default,
-)]
+// If games with 64 bit names are added then this should be a generic and type aliases for Name32
+// and Name64 should be defined.
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, From, BinRead, BinWrite, Default)]
 pub struct Name(i32);
 
 #[derive(Serialize, Deserialize)]
 #[serde(untagged)]
 enum SerdeName {
-    Name(Name),
+    Name(i32),
     String(String),
 }
 
@@ -43,10 +34,9 @@ impl Name {
 
 impl Serialize for Name {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        if let Some(name) = NAMES.lock().unwrap().get(self) {
-            SerdeName::String(name.clone()).serialize(serializer)
-        } else {
-            SerdeName::Name(*self).serialize(serializer)
+        match NAMES.lock().unwrap().get(self) {
+            Some(name) => SerdeName::String(name.clone()).serialize(serializer),
+            None => SerdeName::Name(self.0).serialize(serializer),
         }
     }
 }
@@ -58,7 +48,7 @@ impl<'de> Deserialize<'de> for Name {
     {
         let serde_name = SerdeName::deserialize(deserializer)?;
         match serde_name {
-            SerdeName::Name(name) => Ok(name),
+            SerdeName::Name(name) => Ok(Name(name)),
             SerdeName::String(string) => {
                 NAMES
                     .lock()
@@ -71,8 +61,28 @@ impl<'de> Deserialize<'de> for Name {
     }
 }
 
-#[derive(Debug, Default, Deref, DerefMut)]
+impl Display for Name {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(name) = NAMES.lock().unwrap().get(self) {
+            write!(f, "{}", name)
+        } else {
+            write!(f, "{}", self.0)
+        }
+    }
+}
+
+#[derive(Debug, Deref, DerefMut)]
 pub struct Names(HashMap<Name, String>);
+
+impl Default for Names {
+    fn default() -> Self {
+        // By default Names should have all the class names and the empty string
+        let mut names = class_name_map();
+        names.insert(Name::default(), "".to_string());
+
+        Self(names)
+    }
+}
 
 static NAMES: Lazy<Mutex<Names>> = Lazy::new(|| Mutex::new(Names::default()));
 
@@ -80,26 +90,8 @@ pub fn names() -> &'static Mutex<Names> {
     &NAMES
 }
 
-#[derive(Debug, From, Display, Error)]
-pub enum NamesError {
-    Io(io::Error),
-    ParseInt(std::num::ParseIntError),
-    Utf8(std::string::FromUtf8Error),
-    #[display(
-        fmt = "CRC-32 mismatch for {}: expected {}, actual {}",
-        string,
-        expected,
-        actual
-    )]
-    MismatchCrc32 {
-        string: String,
-        expected: Name,
-        actual: Name,
-    },
-}
-
 impl Names {
-    pub fn read<R: BufRead>(&mut self, reader: R) -> Result<(), NamesError> {
+    pub fn read<R: BufRead>(&mut self, reader: R) -> BffResult<()> {
         let names = &mut self.0;
         for line in reader.lines() {
             let line = line?;
@@ -110,11 +102,7 @@ impl Names {
             let actual = i32::from_str(actual)?.into();
             let expected = crc32::asobo(name.as_bytes()).into();
             if actual != expected {
-                return Err(NamesError::MismatchCrc32 {
-                    string: name.to_string(),
-                    expected,
-                    actual,
-                });
+                return Err(MismatchCrc32Error::new(name.to_string(), expected, actual).into());
             }
             names.entry(actual).or_insert_with(|| name.to_string());
         }
@@ -122,17 +110,15 @@ impl Names {
         Ok(())
     }
 
-    pub fn write<W: Write>(&self, writer: &mut W) -> Result<(), NamesError> {
-        for (crc, name) in self.0.iter() {
+    pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
+        for (actual, name) in self.0.iter() {
             let expected = crc32::asobo(name.as_bytes());
-            if *crc != Name::from(expected) {
-                return Err(NamesError::MismatchCrc32 {
-                    string: name.to_string(),
-                    expected: expected.into(),
-                    actual: *crc,
-                });
+            if *actual != Name::from(expected) {
+                return Err(
+                    MismatchCrc32Error::new(name.to_string(), expected.into(), *actual).into(),
+                );
             }
-            writeln!(writer, r#"{} "{}""#, crc, name)?;
+            writeln!(writer, r#"{} "{}""#, actual, name)?;
         }
         Ok(())
     }
