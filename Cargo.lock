@@ -103,6 +103,7 @@ version = "0.1.0"
 dependencies = [
  "bff",
  "clap",
+ "derive_more",
  "serde_json",
 ]
 

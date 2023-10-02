@@ -1,8 +1,10 @@
 use std::path::PathBuf;
 
 use clap::*;
-use crc32::{Crc32Algorithm, Crc32Format, Crc32Mode};
-use crc64::{Crc64Algorithm, Crc64Format, Crc64Mode};
+use crc32::{Crc32Algorithm, CrcFormat, CrcMode};
+use crc64::Crc64Algorithm;
+use error::BffCliResult;
+use lz::LzEndian;
 
 mod crc32;
 mod crc64;
@@ -10,8 +12,7 @@ mod extract;
 mod info;
 mod lz;
 mod unlz;
-
-mod names;
+mod error;
 
 #[derive(Subcommand)]
 enum Commands {
@@ -19,12 +20,15 @@ enum Commands {
     Extract {
         bigfile: PathBuf,
         directory: PathBuf,
+        #[arg(long)]
         in_names: Vec<PathBuf>,
+        #[arg(long)]
         out_names: Option<PathBuf>,
     },
     #[clap(alias = "t")]
     Info {
         bigfile: PathBuf,
+        #[arg(long)]
         in_names: Vec<PathBuf>,
     },
     Crc32 {
@@ -40,11 +44,11 @@ enum Commands {
         #[arg(short, long, default_value_t = Crc32Algorithm::Asobo)]
         algorithm: Crc32Algorithm,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc32Mode::Lines)]
-        mode: Crc32Mode,
+        #[arg(short, long, default_value_t = CrcMode::Lines)]
+        mode: CrcMode,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc32Format::Signed)]
-        format: Crc32Format,
+        #[arg(short, long, default_value_t = CrcFormat::Signed)]
+        format: CrcFormat,
     },
     Crc64 {
         string: Option<String>,
@@ -59,23 +63,22 @@ enum Commands {
         #[arg(short, long, default_value_t = Crc64Algorithm::Asobo)]
         algorithm: Crc64Algorithm,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc64Mode::Lines)]
-        mode: Crc64Mode,
+        #[arg(short, long, default_value_t = CrcMode::Lines)]
+        mode: CrcMode,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc64Format::Signed)]
-        format: Crc64Format,
+        #[arg(short, long, default_value_t = CrcFormat::Signed)]
+        format: CrcFormat,
     },
     Unlz {
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = unlz::LzEndian::Little)]
-        endian: unlz::LzEndian,
+        #[arg(short, long, default_value_t = LzEndian::Little)]
+        endian: lz::LzEndian,
     },
     Lz {
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = lz::LzEndian::Little)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: lz::LzEndian,
     },
-    Names {},
 }
 
 #[derive(Parser)]
@@ -85,7 +88,7 @@ struct Args {
     command: Commands,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> BffCliResult<()> {
     let cli = Args::parse();
 
     match &cli.command {
@@ -112,6 +115,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => crc64::crc64(string, starting, algorithm, mode, format),
         Commands::Unlz { endian } => unlz::unlz(endian),
         Commands::Lz { endian } => lz::lz(endian),
-        Commands::Names {} => names::names(),
     }
 }

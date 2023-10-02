@@ -1,8 +1,10 @@
 use std::cmp::{max, min};
-use std::io::SeekFrom;
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::ptr::null_mut;
 
 use binrw::{BinReaderExt, BinResult, BinWriterExt};
+
+use crate::{BffResult, Endian};
 
 #[binrw::parser(reader, endian)]
 pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -21,12 +23,23 @@ pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> B
 }
 
 #[binrw::parser(reader, endian)]
-pub fn decompress_data_with_header_parser() -> BinResult<Vec<u8>> {
+fn decompress_data_with_header_parser_internal() -> BinResult<Vec<u8>> {
     // These fields are little endian even on big endian platforms.
     let decompressed_size = reader.read_le::<u32>()?;
     let compressed_size = reader.read_le::<u32>()?;
 
     decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
+}
+
+pub fn decompress_data_with_header_parser<R: Read + Seek>(
+    reader: &mut R,
+    endian: Endian,
+) -> BffResult<Vec<u8>> {
+    Ok(decompress_data_with_header_parser_internal(
+        reader,
+        endian,
+        (),
+    )?)
 }
 
 #[binrw::parser(reader)]
@@ -65,7 +78,7 @@ pub fn decompress_data_parser(decompressed_size: u32, _compressed_size: u32) -> 
 }
 
 #[binrw::writer(writer, endian)]
-pub fn compress_data_with_header_writer(data: &[u8]) -> BinResult<()> {
+fn compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
     // println!("{:?}", data);
     let starting_position = writer.stream_position()?;
     let decompressed_size = data.len() as u32;
@@ -80,6 +93,19 @@ pub fn compress_data_with_header_writer(data: &[u8]) -> BinResult<()> {
     writer.write_le::<u32>(&compressed_size)?;
     writer.seek(SeekFrom::Start(ending_position))?;
     Ok(())
+}
+
+pub fn compress_data_with_header_writer<W: Write + Seek>(
+    data: &[u8],
+    writer: &mut W,
+    endian: Endian,
+) -> BffResult<()> {
+    Ok(compress_data_with_header_writer_internal(
+        data,
+        writer,
+        endian,
+        (),
+    )?)
 }
 
 #[derive(Clone)]
