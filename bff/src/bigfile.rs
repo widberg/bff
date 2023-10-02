@@ -41,7 +41,7 @@ fn blocks_parser(
         }
 
         blocks.push(ManifestBlock {
-            offset: block_description.working_buffer_offset(),
+            offset: block_description.working_buffer_offset,
             objects: block_objects,
         });
     }

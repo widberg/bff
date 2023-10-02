@@ -7,10 +7,10 @@ use crate::versions::{Version, VersionTriple};
 #[binread]
 #[derive(Serialize, Debug, BinWrite)]
 pub struct BlockDescription {
-    object_count: u32,
+    pub object_count: u32,
     padded_size: u32,
     data_size: u32,
-    working_buffer_offset: u32,
+    pub working_buffer_offset: u32,
     first_object_name: u32,
     #[br(temp)]
     #[bw(calc = 0)]
@@ -25,14 +25,6 @@ impl BlockDescription {
     // are read. For this trivial struct it does not matter, but I do not want to introduce that
     // pattern into the code as more complex structs are added.
     pub const SIZE: usize = 0x18;
-
-    pub fn object_count(&self) -> u32 {
-        self.object_count
-    }
-
-    pub fn working_buffer_offset(&self) -> u32 {
-        self.working_buffer_offset
-    }
 }
 
 #[binread]
