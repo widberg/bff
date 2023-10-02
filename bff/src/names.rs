@@ -27,8 +27,22 @@ enum SerdeName {
 }
 
 impl Name {
+    // This is a const fn so it can be used in const contexts i.e. bff-derive generated NamedClass
+    // impl
     pub const fn new(name: i32) -> Self {
         Self(name)
+    }
+}
+
+impl From<&str> for Name {
+    fn from(value: &str) -> Self {
+        let name = crc32::asobo(value.as_bytes()).into();
+        NAMES
+            .lock()
+            .unwrap()
+            .entry(name)
+            .or_insert_with(|| value.to_string());
+        name
     }
 }
 
@@ -49,14 +63,7 @@ impl<'de> Deserialize<'de> for Name {
         let serde_name = SerdeName::deserialize(deserializer)?;
         match serde_name {
             SerdeName::Name(name) => Ok(Name(name)),
-            SerdeName::String(string) => {
-                NAMES
-                    .lock()
-                    .unwrap()
-                    .entry(crc32::asobo(string.as_bytes()).into())
-                    .or_insert_with(|| string.clone());
-                Ok(crc32::asobo(string.as_bytes()).into())
-            }
+            SerdeName::String(string) => Ok(Name::from(string.as_str())),
         }
     }
 }
