@@ -57,8 +57,14 @@ impl BinRead for EncodedPoint {
         let a = i32::read_be(reader)?;
         let b = u8::read_be(reader)?;
         Ok(EncodedPoint([
+            // 2 packed 20-bit signed integers this takes 5 bytes which is 3 less than the 8 it
+            // would take to store 2 floats. Sign extend and divide by 4 to get the float value.
+            // a           b
+            // 01 23 45 67 89
+            // \_____/\_____/
+            //    x      y
             (a >> 12) as f32 / 4.,
-            (((b as i32 | (a << 8)) << 12) >> 12) as f32 / 4.,
+            (((a << 20) >> 12) | b as i32) as f32 / 4.,
         ]))
     }
 }
@@ -72,9 +78,10 @@ impl BinWrite for EncodedPoint {
         _endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        let c: i32 = (self[1] * 4.).round() as i32;
-        let a: i32 = ((self[0] * 4.).round() as i32) << 12 | ((c >> 8) & 0x0FFF);
-        let b: u8 = (c & 0xFF) as u8;
+        let x = (self[0] * 4.).round() as i32;
+        let y = (self[1] * 4.).round() as i32;
+        let a: i32 = (x << 12) | ((y >> 8) & 0x0FFF);
+        let b: u8 = y as u8;
 
         writer.write_be(&a)?;
         writer.write_be(&b)?;
