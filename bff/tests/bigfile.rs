@@ -5,9 +5,9 @@ mod tests {
 
     use bff::bigfile::BigFile;
     use bff::class::Class;
+    use bff::object::Object;
     use bff::platforms::Platform;
-    use bff::traits::TryFromVersionPlatform;
-    use bff::versions::Version;
+    use bff::traits::{TryFromVersionPlatform, TryIntoVersionPlatform};
     use binrw::io::BufReader;
     use test_generator::test_resources;
 
@@ -39,12 +39,13 @@ mod tests {
         let bigfile = BigFile::read_platform(&mut reader, platform).unwrap();
 
         for object in bigfile.objects.values() {
-            let _ = Class::try_from_version_platform(
-                object,
-                Version::Asobo(1, 381, 67, 9),
-                Platform::PC,
-            )
-            .unwrap();
+            let class: Class = object
+                .try_into_version_platform(bigfile.manifest.version.clone(), platform)
+                .unwrap();
+
+            let _: Object = (&class)
+                .try_into_version_platform(bigfile.manifest.version.clone(), platform)
+                .unwrap();
         }
     }
 }

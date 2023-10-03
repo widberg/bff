@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::Deref;
 
 use derive_more::{From, IsVariant};
 use serde::{Deserialize, Serialize};
@@ -44,7 +45,7 @@ use crate::error::{Error, UnimplementedClassError};
 use crate::names::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
-use crate::traits::{NamedClass, TryFromVersionPlatform};
+use crate::traits::{NamedClass, TryFromVersionPlatform, TryIntoVersionPlatform};
 use crate::versions::Version;
 use crate::BffResult;
 
@@ -104,8 +105,22 @@ macro_rules! objects_to_classes {
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name() {
-                    $(<$i as NamedClass>::NAME => Ok(Box::new(<$i as TryFromVersionPlatform<&Object>>::try_from_version_platform(object, version, platform)?).into()),)*
-                    _ => Err(UnimplementedClassError::new(object.name(), object.class_name(), version, platform).into())
+                    $(<$i as NamedClass>::NAME => Ok(Box::new(<&Object as TryIntoVersionPlatform<$i>>::try_into_version_platform(object, version, platform)?).into()),)*
+                    _ => Err(UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
+                }
+            }
+        }
+    };
+}
+
+macro_rules! classes_to_objects {
+    ($($i:ident),* $(,)?) => {
+        impl TryFromVersionPlatform<&Class> for Object {
+            type Error = Error;
+
+            fn try_from_version_platform(class: &Class, version: Version, platform: Platform) -> BffResult<Object> {
+                match class {
+                    $(Class::$i(class) => Ok(<&$i as TryIntoVersionPlatform<Object>>::try_into_version_platform(class.deref(), version, platform)?),)*
                 }
             }
         }
@@ -126,6 +141,7 @@ macro_rules! classes {
     ($($i:ident),* $(,)?) => {
         classes_enum!($($i),*);
         objects_to_classes!($($i),*);
+        classes_to_objects!($($i),*);
         class_name_map!($($i),*);
     };
 }

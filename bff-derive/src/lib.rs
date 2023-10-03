@@ -43,10 +43,12 @@ pub fn bff_class(input: TokenStream) -> TokenStream {
     let enum_class = impl_enum_class(&input);
 
     let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input);
+    let from_shadow_class_to_object = impl_from_shadow_class_to_object(&input);
 
     quote! {
         #enum_class
         #from_object_to_shadow_class
+        #from_shadow_class_to_object
     }
     .into()
 }
@@ -85,7 +87,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         quote! {
             #(#attrs)*
             #pat #guard => {
-                let shadow_class: #body = <#body as crate::traits::TryFromVersionPlatform<&crate::object::Object>>::try_from_version_platform(object, version, platform)?;
+                let shadow_class: #body = <&crate::object::Object as crate::traits::TryIntoVersionPlatform<#body>>::try_into_version_platform(object, version, platform)?;
                 Ok(shadow_class.into())
             }
         }
@@ -107,6 +109,40 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
                     _ => Err(
                         crate::error::UnimplementedClassError::new(object.name(), <Self as crate::traits::NamedClass>::NAME, version, platform).into(),
                     ),
+                }
+            }
+        }
+    }
+}
+
+fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
+    let class = &input.class;
+
+    let arms = input.forms.iter().map(|form| {
+        let attrs = &form.attrs;
+        let body = &form.body;
+        quote! {
+            #(#attrs)*
+            #class::#body(class) => {
+                let object: crate::object::Object = <&#body as crate::traits::TryIntoVersionPlatform<crate::object::Object>>::try_into_version_platform(class, version, platform)?;
+                Ok(object)
+            }
+        }
+    }).collect::<Vec<_>>();
+
+    quote! {
+        impl crate::traits::TryFromVersionPlatform<&#class> for crate::object::Object {
+            type Error = crate::error::Error;
+
+            fn try_from_version_platform(
+                class: &#class,
+                version: crate::versions::Version,
+                platform: crate::platforms::Platform,
+            ) -> crate::BffResult<crate::object::Object> {
+                use crate::versions::Version::*;
+                use crate::platforms::Platform::*;
+                match class {
+                    #(#arms)*
                 }
             }
         }
