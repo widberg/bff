@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Range, RangeInclusive, Sub};
 
 use binrw::{binrw, BinRead, BinWrite};
 use derive_more::{Deref, DerefMut};
-use num_traits::{cast, MulAdd, NumCast, PrimInt, Signed, Unsigned};
+use num_traits::{cast, Float, NumCast, PrimInt, Signed, Unsigned};
 use serde::{Deserialize, Serialize};
 
 use crate::names::Name;
@@ -32,12 +32,12 @@ pub type Mat4f = Mat<4>;
 pub struct NumeratorFloat<
     T: NumCast + BinRead + BinWrite,
     const DENOMINATOR: usize,
-    F: NumCast + Div<Output = F> + Mul<Output = F> + Copy = f32,
+    F: NumCast + Div<Output = F> + Mul<Output = F> + Copy + Float = f32,
 >(
     #[deref_mut]
     #[deref]
     #[br(map = |x: T| cast::<T, F>(x).unwrap() / cast::<usize, F>(DENOMINATOR).unwrap())]
-    #[bw(map = |x: &F| cast::<F, T>(*x * cast::<usize, F>(DENOMINATOR).unwrap()).unwrap())]
+    #[bw(map = |x: &F| cast::<F, T>((*x * cast::<usize, F>(DENOMINATOR).unwrap()).round()).unwrap())]
     F,
     #[serde(skip)] PhantomData<T>,
 )
@@ -50,12 +50,12 @@ where
 #[serde(transparent)]
 pub struct SignedNormalFloat<
     T: NumCast + Div<F, Output = F> + Unsigned + PrimInt + BinRead + BinWrite,
-    F: NumCast + MulAdd<f32, f32, Output = F> + Signed + Copy = f32,
+    F: NumCast + Signed + Copy + Float = f32,
 >(
     #[deref_mut]
     #[deref]
-    #[br(map = |x: T| (x / cast::<T, F>(T::max_value()).unwrap()).mul_add(2., -1.))]
-    #[bw(map = |x: &F| cast::<F, T>((*x + cast::<f32, F>(1.).unwrap()) / cast::<f32, F>(2.).unwrap() * cast::<T, F>(T::max_value()).unwrap()).unwrap())]
+    #[br(map = |x: T| (x / cast::<T, F>(T::max_value()).unwrap()).mul_add(cast::<f32, F>(2.).unwrap(), cast::<f32, F>(-1.).unwrap()))]
+    #[bw(map = |x: &F| cast::<F, T>(((*x + cast::<f32, F>(1.).unwrap()) / cast::<f32, F>(2.).unwrap() * cast::<T, F>(T::max_value()).unwrap()).round()).unwrap())]
     F,
     #[serde(skip)] PhantomData<T>,
 )

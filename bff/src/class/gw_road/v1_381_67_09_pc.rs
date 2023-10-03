@@ -72,8 +72,9 @@ impl BinWrite for EncodedPoint {
         _endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        let a: i32 = ((self[0] * 4.) as i32) << 12;
-        let b: u8 = (self[1] * 4.) as u8;
+        let c: i32 = (self[1] * 4.).round() as i32;
+        let a: i32 = ((self[0] * 4.).round() as i32) << 12 | ((c >> 8) & 0x0FFF);
+        let b: u8 = (c & 0xFF) as u8;
 
         writer.write_be(&a)?;
         writer.write_be(&b)?;

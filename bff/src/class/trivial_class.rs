@@ -12,6 +12,7 @@ use crate::versions::Version;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {
+    pub compress: bool,
     pub name: Name,
     pub class_name: Name,
     pub link_header: LinkHeaderType,
@@ -42,6 +43,7 @@ where
         )?;
         let body = BodyType::read_options(&mut body_cursor, platform.into(), (&link_header,))?;
         Ok(Self {
+            compress: object.compress,
             name: object.name,
             class_name: object.class_name,
             link_header,
@@ -81,7 +83,7 @@ where
             <BodyType as BinWrite>::Args::default(),
         )?;
         Ok(Self {
-            compress: false,
+            compress: class.compress,
             name: class.name,
             class_name: class.class_name,
             link_header: link_header_cursor.into_inner(),

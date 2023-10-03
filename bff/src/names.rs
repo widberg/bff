@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::io::{BufRead, Write};
 use std::str::FromStr;
 use std::sync::Mutex;
@@ -16,7 +16,7 @@ use crate::{crc32, BffResult};
 
 // If games with 64 bit names are added then this should be a generic and type aliases for Name32
 // and Name64 should be defined.
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, From, BinRead, BinWrite, Default)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, From, BinRead, BinWrite, Default)]
 pub struct Name(i32);
 
 #[derive(Serialize, Deserialize)]
@@ -72,6 +72,16 @@ impl Display for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         if let Some(name) = NAMES.lock().unwrap().get(self) {
             write!(f, "{}", name)
+        } else {
+            write!(f, "{}", self.0)
+        }
+    }
+}
+
+impl Debug for Name {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(name) = NAMES.lock().unwrap().get(self) {
+            write!(f, r#""{}""#, name)
         } else {
             write!(f, "{}", self.0)
         }

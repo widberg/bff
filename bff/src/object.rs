@@ -23,7 +23,7 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
 }
 
 #[binrw]
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Debug, Default, Eq, PartialEq)]
 pub struct Object {
     #[br(temp)]
     #[bw(calc = link_header.len() as u32 + body.len() as u32)]

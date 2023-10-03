@@ -7,7 +7,7 @@ mod tests {
     use bff::class::Class;
     use bff::object::Object;
     use bff::platforms::Platform;
-    use bff::traits::{TryFromVersionPlatform, TryIntoVersionPlatform};
+    use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;
     use test_generator::test_resources;
 
@@ -43,9 +43,11 @@ mod tests {
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
 
-            let _: Object = (&class)
+            let new_object: Object = (&class)
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
+
+            assert_eq!(new_object, *object);
         }
     }
 }
