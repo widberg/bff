@@ -23,7 +23,7 @@ pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> B
 }
 
 #[binrw::parser(reader, endian)]
-fn decompress_data_with_header_parser_internal() -> BinResult<Vec<u8>> {
+pub fn decompress_data_with_header_parser_internal() -> BinResult<Vec<u8>> {
     // These fields are little endian even on big endian platforms.
     let decompressed_size = reader.read_le::<u32>()?;
     let compressed_size = reader.read_le::<u32>()?;
@@ -78,7 +78,7 @@ pub fn decompress_data_parser(decompressed_size: u32, _compressed_size: u32) -> 
 }
 
 #[binrw::writer(writer, endian)]
-fn compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
+pub fn compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
     // println!("{:?}", data);
     let starting_position = writer.stream_position()?;
     let decompressed_size = data.len() as u32;

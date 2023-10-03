@@ -79,7 +79,8 @@ where
     _padding: (),
 }
 
-// TODO: This is a hack to get around the fact that BinWrite doesn't support try_calc + ignore so we can't get the stream position while deriving BinWrite.
+// TODO: This is a hack to get around the fact that BinWrite doesn't support try_calc + ignore so
+// we can't get the stream position while deriving BinWrite.
 impl<T> BinWrite for KeyLinearTpl<T>
 where
     for<'a> T: BinRead + BinWrite + Serialize + 'a,

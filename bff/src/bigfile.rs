@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult};
 use serde::Serialize;
@@ -33,11 +33,11 @@ fn blocks_parser(
         let mut block_objects = Vec::with_capacity(block.objects.len());
         for object in block.objects.drain(..) {
             block_objects.push(ManifestObject {
-                name: object.name(),
-                compress: object.compress(),
+                name: object.name,
+                compress: object.compress,
             });
 
-            objects.insert(object.name(), object);
+            objects.insert(object.name, object);
         }
 
         blocks.push(ManifestBlock {
@@ -59,8 +59,8 @@ fn pool_parser(objects: &mut HashMap<Name, Object>) -> BinResult<ManifestPool> {
         .object_descriptions
         .iter()
         .map(|x| ManifestPoolObjectEntry {
-            name: x.name(),
-            reference_record_index: x.reference_records_index(),
+            name: x.name,
+            reference_record_index: x.reference_records_index,
         })
         .collect::<Vec<_>>();
     let reference_records = pool
@@ -68,13 +68,13 @@ fn pool_parser(objects: &mut HashMap<Name, Object>) -> BinResult<ManifestPool> {
         .reference_records
         .iter()
         .map(|x| ManifestPoolReferenceRecord {
-            object_entries_starting_index: x.objects_name_starting_index(),
-            object_entries_count: x.objects_name_count(),
+            object_entries_starting_index: x.objects_name_starting_index,
+            object_entries_count: x.objects_name_count,
         })
         .collect::<Vec<_>>();
 
     for pool_object in pool.objects.drain(..) {
-        let name = pool_object.object.name();
+        let name = pool_object.object.name;
         objects.get_mut(&name).unwrap().body = pool_object.object.body;
     }
 
@@ -119,5 +119,9 @@ impl BigFile {
             },
             objects,
         })
+    }
+
+    pub fn write_platform<W: Write + Seek>(_writer: &W, _platform: Platform) -> BffResult<()> {
+        todo!()
     }
 }

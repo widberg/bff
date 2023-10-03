@@ -9,10 +9,10 @@ use crate::object::PoolObject;
 pub struct ReferenceRecord {
     start_chunk_index: u32,
     end_chunk_index: u32,
-    objects_name_starting_index: u32,
+    pub objects_name_starting_index: u32,
     #[serde(skip)]
     _placeholder_bigfile_index: u16,
-    objects_name_count: u16,
+    pub objects_name_count: u16,
     #[serde(skip)]
     _placeholder_times_referenced: u32,
     #[serde(skip)]
@@ -21,32 +21,12 @@ pub struct ReferenceRecord {
     _placeholder_current_references_weak: u32,
 }
 
-impl ReferenceRecord {
-    pub fn objects_name_starting_index(&self) -> u32 {
-        self.objects_name_starting_index
-    }
-
-    pub fn objects_name_count(&self) -> u16 {
-        self.objects_name_count
-    }
-}
-
 #[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct ObjectDescription {
-    name: Name,
+    pub name: Name,
     reference_count: u32,
     padded_size: u32,
-    reference_records_index: u32,
-}
-
-impl ObjectDescription {
-    pub fn name(&self) -> Name {
-        self.name
-    }
-
-    pub fn reference_records_index(&self) -> u32 {
-        self.reference_records_index
-    }
+    pub reference_records_index: u32,
 }
 
 #[derive(BinRead, Debug, BinWrite)]
@@ -87,7 +67,7 @@ fn zip_object_description_soa(
     result
 }
 
-#[derive(BinRead, Serialize, Debug, BinWrite)]
+#[derive(BinRead, BinWrite, Serialize, Debug)]
 pub struct PoolHeader {
     #[serde(skip)]
     _equals524288: u32,
@@ -99,7 +79,7 @@ pub struct PoolHeader {
     #[br(map = zip_object_description_soa)]
     pub object_descriptions: Vec<ObjectDescription>,
     pub reference_records: DynArray<ReferenceRecord>,
-    #[br(align_after = 2048)]
+    #[brw(align_after = 2048)]
     #[serde(skip)]
     _reference_records_sentinel: ReferenceRecord,
 }

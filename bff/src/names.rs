@@ -112,9 +112,11 @@ impl Names {
         let names = &mut self.0;
         for line in reader.lines() {
             let line = line?;
+            // We really should only split on the first whitespace
             let mut line = line.split_whitespace();
             let actual = line.next().unwrap();
             let name = line.next().unwrap();
+            // We should also validate that the quotes are there
             let name = name.trim_matches('"');
             let actual = i32::from_str(actual)?.into();
             let expected = crc32::asobo(name.as_bytes()).into();

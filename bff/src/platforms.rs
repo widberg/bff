@@ -63,6 +63,8 @@ macro_rules! platforms {
     };
 }
 
+// TODO: Allow multiple extensions for a platform
+// This would require a way to specify the style of extension
 platforms! {
     (PC, "DPC", Little),
     (UWP, "DUA", Little),

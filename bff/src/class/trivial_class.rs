@@ -34,8 +34,8 @@ where
         _version: Version,
         platform: Platform,
     ) -> Result<Self, Self::Error> {
-        let mut link_header_cursor = Cursor::new(object.link_header());
-        let mut body_cursor = Cursor::new(object.body());
+        let mut link_header_cursor = Cursor::new(&object.link_header);
+        let mut body_cursor = Cursor::new(&object.body);
         let link_header = LinkHeaderType::read_options(
             &mut link_header_cursor,
             platform.into(),

@@ -104,7 +104,7 @@ macro_rules! objects_to_classes {
             type Error = Error;
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
-                match object.class_name() {
+                match object.class_name {
                     $(<$i as NamedClass>::NAME => Ok(Box::new(<&Object as TryIntoVersionPlatform<$i>>::try_into_version_platform(object, version, platform)?).into()),)*
                     _ => Err(UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
