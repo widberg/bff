@@ -18,36 +18,75 @@ pub enum Version {
         "_1"
     )]
     AsoboLegacy(u32, u32),
+    #[display(
+        fmt = "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
+        "_0",
+        "_1"
+    )]
+    Kalisto(u32, u32),
+    // The space is intentional :(
+    // This format is used in Shaun White Snowboarding: World Stage by Ubisoft as well
+    #[display(fmt = "Bigfile Data v{}.{} ", "_0", "_1")]
+    BlackSheep(u32, u32),
+    // Used in The Mighty Quest for Epic Loot by Ubisoft
+    #[display(
+        fmt = "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
+        "_0",
+        "_1",
+        "_2",
+        "_3",
+        "_4",
+        "_5",
+        "_6",
+        "_7"
+    )]
+    Ubisoft(u32, u32, u32, u32, u32, u32, u32, u32),
     Other(String),
 }
 
 impl From<&str> for Version {
     fn from(value: &str) -> Self {
-        let mut major = 0;
-        let mut minor = 0;
-        let mut patch = 0;
-        let mut tweak = 0;
+        #![allow(clippy::just_underscores_and_digits)]
+        let (mut _0, mut _1, mut _2, mut _3, mut _4, mut _5, mut _6, mut _7): (
+            u32,
+            u32,
+            u32,
+            u32,
+            u32,
+            u32,
+            u32,
+            u32,
+        ) = Default::default();
 
         if sscanf!(
             value,
             "v{}.{}.{}.{} - Asobo Studio - Internal Cross Technology",
-            major,
-            minor,
-            patch,
-            tweak
+            _0, _1, _2, _3,
         )
         .is_ok()
         {
-            Self::Asobo(major, minor, patch, tweak)
+            Self::Asobo(_0, _1, _2, _3)
         } else if sscanf!(
             value,
             "v{}.{} - Asobo Studio - Internal Cross Technology",
-            major,
-            minor,
+            _0, _1
         )
         .is_ok()
         {
-            Self::AsoboLegacy(major, minor)
+            Self::AsoboLegacy(_0, _1)
+        } else if sscanf!(
+            value,
+            "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
+            _0, _1
+        )
+        .is_ok()
+        {
+            Self::Kalisto(_0, _1)
+        } else if sscanf!(value, "Bigfile Data v{}.{} ", _0, _1).is_ok() {
+            Self::BlackSheep(_0, _1)
+        } else if sscanf!(value, "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
+            _0, _1, _2, _3, _4, _5, _6, _7).is_ok() {
+            Self::Ubisoft(_0, _1, _2, _3, _4, _5, _6, _7)
         } else {
             Self::Other(value.to_string())
         }
