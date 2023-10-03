@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+use std::ops::Deref;
+
 use derive_more::{From, IsVariant};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use self::animation::Animation;
 use self::binary::Binary;
@@ -38,11 +41,11 @@ use self::user_define::UserDefine;
 use self::warp::Warp;
 use self::world::World;
 use self::world_ref::WorldRef;
-
-use crate::error::{Error, UnimplementedClassError, UnknownClassError};
+use crate::error::{Error, UnimplementedClassError};
+use crate::names::Name;
 use crate::object::Object;
 use crate::platforms::Platform;
-use crate::traits::{NamedClass, TryFromVersionPlatform};
+use crate::traits::{NamedClass, TryFromVersionPlatform, TryIntoVersionPlatform};
 use crate::versions::Version;
 use crate::BffResult;
 
@@ -87,7 +90,7 @@ pub mod world_ref;
 
 macro_rules! classes_enum {
     ($($i:ident),* $(,)?) => {
-        #[derive(Serialize, Debug, From, IsVariant)]
+        #[derive(Serialize, Debug, From, IsVariant, Deserialize)]
         #[serde(untagged)]
         pub enum Class {
             $($i(Box<$i>),)*
@@ -102,35 +105,34 @@ macro_rules! objects_to_classes {
 
             fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name() {
-                    $(<$i as NamedClass>::NAME => Ok(Box::new(<$i as TryFromVersionPlatform<&Object>>::try_from_version_platform(object, version, platform)?).into()),)*
-                    _ => Err(UnimplementedClassError::new(object.name(), object.class_name(), version, platform).into())
+                    $(<$i as NamedClass>::NAME => Ok(Box::new(<&Object as TryIntoVersionPlatform<$i>>::try_into_version_platform(object, version, platform)?).into()),)*
+                    _ => Err(UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
             }
         }
     };
 }
 
-macro_rules! classes_to_names {
+macro_rules! classes_to_objects {
     ($($i:ident),* $(,)?) => {
-        impl From<Class> for &'static str {
-            fn from(class: Class) -> &'static str {
+        impl TryFromVersionPlatform<&Class> for Object {
+            type Error = Error;
+
+            fn try_from_version_platform(class: &Class, version: Version, platform: Platform) -> BffResult<Object> {
                 match class {
-                    $(Class::$i(_) => <$i as NamedClass>::REAL_NAME,)*
+                    $(Class::$i(class) => Ok(<&$i as TryIntoVersionPlatform<Object>>::try_into_version_platform(class.deref(), version, platform)?),)*
                 }
             }
         }
     };
 }
 
-macro_rules! hashes_to_names {
+macro_rules! class_name_map {
     ($($i:ident),* $(,)?) => {
-        impl Object {
-            pub fn real_class_name(&self) -> BffResult<&'static str> {
-                match self.class_name() {
-                    $(<$i as NamedClass>::NAME => Ok(<$i as NamedClass>::REAL_NAME),)*
-                    _ => Err(UnknownClassError::new(self.class_name()).into())
-                }
-            }
+        pub fn class_name_map() -> HashMap<Name, String> {
+            let mut map = HashMap::new();
+            $(map.insert(<$i as NamedClass>::NAME, <$i as NamedClass>::NAME_STR.to_string());)*
+            map
         }
     };
 }
@@ -139,8 +141,8 @@ macro_rules! classes {
     ($($i:ident),* $(,)?) => {
         classes_enum!($($i),*);
         objects_to_classes!($($i),*);
-        classes_to_names!($($i),*);
-        hashes_to_names!($($i),*);
+        classes_to_objects!($($i),*);
+        class_name_map!($($i),*);
     };
 }
 

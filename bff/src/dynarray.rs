@@ -1,70 +1,33 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::{convert::TryFrom, fmt::Display};
 
-use binrw::{binread, BinRead, NamedArgs};
+use binrw::{binrw, BinRead, BinWrite};
 use derive_more::Deref;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, NamedArgs, Default)]
-pub struct DynArrayArgs<Inner> {
-    inner: Inner,
-}
-
-#[binread]
-#[derive(Debug, Serialize, Deref)]
+#[binrw]
+#[derive(Debug, Serialize, Deref, Deserialize)]
 #[serde(transparent)]
-#[br(import_raw(args: DynArrayArgs<<InnerType as BinRead>::Args<'_>>))]
-pub struct DynArray<InnerType, SizeType = u32>
+#[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
+pub struct DynArray<InnerType: BinRead + BinWrite + 'static, SizeType: BinRead + BinWrite = u32>
 where
-    // This code is ugly but the pretty syntax isn't stable yet
-    // https://github.com/rust-lang/rust/issues/52662
-    for<'a> InnerType: BinRead + Serialize + 'a,
     for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
-
-    SizeType: BinRead + Debug + Copy,
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
-    usize: TryFrom<SizeType>,
-    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+
+    // BinWrite derive doesnt support generics well because it assumes the Args type is always the unit type. We can work around this by forcing the Args type to be the unit type.
+    for<'a> InnerType: BinWrite<Args<'a> = ()>,
+    for<'a> SizeType: BinWrite<Args<'a> = ()>,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
 {
-    #[br(temp, try_map = |count: SizeType| count.try_into())]
-    count: usize,
+    #[br(temp)]
+    #[bw(calc = inner.len().try_into().unwrap())]
+    count: SizeType,
     #[deref]
-    #[br(args { count, inner: args.inner })]
-    data: Vec<InnerType>,
+    #[br(args { count: count.try_into().unwrap(), inner })]
+    pub inner: Vec<InnerType>,
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
-}
-
-impl<InnerType, SizeType> From<DynArray<InnerType, SizeType>> for Vec<InnerType>
-where
-    for<'a> InnerType: BinRead + Serialize + 'a,
-    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
-
-    SizeType: BinRead + Debug + Copy,
-    for<'a> <SizeType as BinRead>::Args<'a>: Default,
-    usize: TryFrom<SizeType>,
-    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
-{
-    fn from(dynarray: DynArray<InnerType, SizeType>) -> Self {
-        dynarray.data
-    }
-}
-
-impl<InnerType, SizeType> From<Vec<InnerType>> for DynArray<InnerType, SizeType>
-where
-    for<'a> InnerType: BinRead + Serialize + 'a,
-    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
-
-    SizeType: BinRead + Debug + Copy,
-    for<'a> <SizeType as BinRead>::Args<'a>: Default,
-    usize: TryFrom<SizeType>,
-    for<'a> <usize as TryFrom<SizeType>>::Error: Debug + Display + Send + Sync + 'a,
-{
-    fn from(vec: Vec<InnerType>) -> Self {
-        Self {
-            data: vec,
-            _phantom: PhantomData,
-        }
-    }
 }

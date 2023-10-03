@@ -1,10 +1,10 @@
 use std::ops::Deref;
 
-use binrw::{binrw, BinRead, BinResult, VecArgs};
+use binrw::{binrw, BinRead, BinResult, BinWrite, VecArgs};
 use serde::Serialize;
 
 use crate::lz::decompress_body_parser;
-use crate::name::Name;
+use crate::names::Name;
 
 #[binrw::parser(reader, endian)]
 fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -23,26 +23,31 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
 }
 
 #[binrw]
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Debug, Default, Eq, PartialEq)]
 pub struct Object {
     #[br(temp)]
-    #[bw(try_calc(u32::try_from(link_header.len() + body.len())))]
-    data_size: u32,
+    #[bw(calc = link_header.len() as u32 + body.len() as u32)]
+    _data_size: u32,
     #[br(temp)]
-    #[bw(try_calc(u32::try_from(link_header.len())))]
+    #[bw(calc = link_header.len() as u32)]
     link_header_size: u32,
     #[br(temp)]
-    #[bw(try_calc(u32::try_from(body.len())))]
+    #[bw(calc = body.len() as u32)]
     decompressed_size: u32,
     #[br(temp)]
     #[bw(calc = 0)]
     compressed_size: u32,
-    class_name: Name,
-    name: Name,
+    #[br(calc = compressed_size != 0)]
+    #[bw(ignore)]
+    pub compress: bool,
+    pub class_name: Name,
+    pub name: Name,
     #[br(count = link_header_size)]
-    link_header: Vec<u8>,
+    #[serde(skip_serializing)]
+    pub link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
-    body: Vec<u8>,
+    #[serde(skip_serializing)]
+    pub body: Vec<u8>,
 }
 
 impl Object {
@@ -61,13 +66,17 @@ impl Object {
     pub fn body(&self) -> &Vec<u8> {
         &self.body
     }
+
+    pub fn compress(&self) -> bool {
+        self.compress
+    }
 }
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct PoolObject {
     #[br(align_after(2048))]
     #[serde(flatten)]
-    object: Object,
+    pub object: Object,
 }
 
 impl Deref for PoolObject {

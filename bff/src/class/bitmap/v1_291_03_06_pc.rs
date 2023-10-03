@@ -1,10 +1,10 @@
-use binrw::binread;
-use serde::Serialize;
+use binrw::{binread, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
 #[binread]
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct BitmapBodyV1_291_03_06PC {
     size: (u32, u32),
@@ -16,7 +16,7 @@ pub struct BitmapBodyV1_291_03_06PC {
     unknown: u8,
     #[br(count = precalculated_size)]
     #[serde(skip_serializing)]
-    data: Vec<u8>,
+    _data: Vec<u8>,
 }
 
 impl BitmapBodyV1_291_03_06PC {

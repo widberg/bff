@@ -1,61 +1,49 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::map::BffMap;
-use crate::math::{Mat4f, Sphere};
-use crate::name::Name;
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    skel_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unknown1 {
     unknown1: [u8; 8],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct BlendRelated {
     index: u32,
     blend: f32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct ObjectBlend {
     unknown: u16,
     blend_related1s: DynArray<BlendRelated>,
     blend_related2s: DynArray<BlendRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Bone {
     bone_name_crc32: Name,
     object_blends: DynArray<ObjectBlend>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorphPacketDA {
     size_capacity: u32,
     ptr: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorphPacket {
     unknown0_crc32: Name,
     unknown1_crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SkinSubSection {
     material_crc32: Name,
     bone_node_name_crc32s: [Name; 7],
@@ -63,13 +51,13 @@ struct SkinSubSection {
     morph_packets: DynArray<MorphPacket>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SkinSection {
     skin_sub_sections: DynArray<SkinSubSection>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SkinBodyV1_291_03_06PC {
     mesh_crc32s: DynArray<Name>,
     unknown0s: DynArray<Unknown1>,
@@ -83,4 +71,4 @@ pub struct SkinBodyV1_291_03_06PC {
     skin_sections: DynArray<SkinSection>,
 }
 
-pub type SkinV1_291_03_06PC = TrivialClass<LinkInfo, SkinBodyV1_291_03_06PC>;
+pub type SkinV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SkinBodyV1_291_03_06PC>;

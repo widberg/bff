@@ -1,15 +1,13 @@
-use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u19, Bitsized, DebugBits, Number};
-use binrw::BinRead;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 use crate::math::{Mat4f, Quat, Sphere, Vec3, Vec3f};
-use crate::name::Name;
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Bone {
     user_define_name: Name,
     transform_rotation_inverse0: Quat,
@@ -39,47 +37,22 @@ struct Bone {
     bone_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SphereColBone {
     sphere: Sphere,
     names: [Name; 3],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct BoxColBone {
     mat: Mat4f,
     names: [Name; 3],
 }
 
-#[serialize_bits]
-#[bitsize(32)]
-#[derive(BinRead, DebugBits)]
-struct ObjectDatasFlags {
-    fl_objectdatas_hide: u1,
-    fl_objectdatas_code_control: u1,
-    fl_objectdatas_cloned: u1,
-    fl_objectdatas_skinned: u1,
-    fl_objectdatas_morphed: u1,
-    fl_objectdatas_vreflect: u1,
-    fl_objectdatas_hide_shadow: u1,
-    fl_objectdatas_static_shadow: u1,
-    fl_objectdatas_vp0_hide: u1,
-    fl_objectdatas_vp1_hide: u1,
-    fl_objectdatas_vp2_hide: u1,
-    fl_objectdatas_vp3_hide: u1,
-    fl_objectdatas_last: u1,
-    padding: u19,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-    flags: ObjectDatasFlags,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct SkelBodyV1_381_67_09PC {
+    flags: ObjectDatasFlagsV1_381_67_09PC,
     bounding_sphere_center: Sphere,
     bones: DynArray<Bone>,
     material_names: DynArray<Name>,
@@ -91,4 +64,4 @@ pub struct SkelBodyV1_381_67_09PC {
     box_col_bones: DynArray<BoxColBone>,
 }
 
-pub type SkelV1_381_67_09PC = TrivialClass<LinkHeader, SkelBodyV1_381_67_09PC>;
+pub type SkelV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, SkelBodyV1_381_67_09PC>;

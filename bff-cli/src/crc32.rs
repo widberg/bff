@@ -3,6 +3,8 @@ use std::io::{self, BufRead, Read};
 use bff::crc32::{asobo_alternate_options, asobo_options};
 use clap::ValueEnum;
 
+use crate::error::BffCliResult;
+
 #[derive(ValueEnum, Clone)]
 pub enum Crc32Algorithm {
     Asobo,
@@ -11,28 +13,28 @@ pub enum Crc32Algorithm {
 }
 
 #[derive(ValueEnum, Clone)]
-pub enum Crc32Mode {
+pub enum CrcMode {
     Bytes,
     Lines,
 }
 
 #[derive(ValueEnum, Clone)]
-pub enum Crc32Format {
+pub enum CrcFormat {
     Signed,
     Unsigned,
     #[value(alias("hex"))]
     Hexadecimal,
 }
 
-fn format_hash(hash: u32, format: &Crc32Format) -> String {
+fn format_hash(hash: i32, format: &CrcFormat) -> String {
     match format {
-        Crc32Format::Signed => {
-            format!("{}", hash as i32)
-        }
-        Crc32Format::Unsigned => {
+        CrcFormat::Signed => {
             format!("{}", hash)
         }
-        Crc32Format::Hexadecimal => {
+        CrcFormat::Unsigned => {
+            format!("{}", hash as u32)
+        }
+        CrcFormat::Hexadecimal => {
             format!("{:#08x}", hash)
         }
     }
@@ -40,11 +42,11 @@ fn format_hash(hash: u32, format: &Crc32Format) -> String {
 
 pub fn crc32(
     string: &Option<String>,
-    starting: &u32,
+    starting: &i32,
     algorithm: &Crc32Algorithm,
-    mode: &Crc32Mode,
-    format: &Crc32Format,
-) -> Result<(), Box<dyn std::error::Error>> {
+    mode: &CrcMode,
+    format: &CrcFormat,
+) -> BffCliResult<()> {
     let starting = *starting;
     let hash_function = match algorithm {
         Crc32Algorithm::Asobo => asobo_options,
@@ -52,24 +54,24 @@ pub fn crc32(
     };
 
     match (string, mode) {
-        (Some(string), Crc32Mode::Bytes) => {
+        (Some(string), CrcMode::Bytes) => {
             let hash = hash_function(string.as_bytes(), starting);
             println!("{} {:?}", format_hash(hash, format), string.as_bytes());
         }
-        (Some(string), Crc32Mode::Lines) => {
+        (Some(string), CrcMode::Lines) => {
             for line in string.lines() {
                 let hash = hash_function(line.as_bytes(), starting);
                 println!("{} \"{}\"", format_hash(hash, format), line);
             }
         }
-        (None, Crc32Mode::Bytes) => {
+        (None, CrcMode::Bytes) => {
             let stdin = io::stdin();
             let mut buf: Vec<u8> = Vec::new();
             stdin.lock().read_to_end(&mut buf)?;
             let hash = hash_function(buf.as_slice(), starting);
             println!("{} {:?}", format_hash(hash, format), buf);
         }
-        (None, Crc32Mode::Lines) => {
+        (None, CrcMode::Lines) => {
             let stdin = io::stdin();
             for line in stdin.lock().lines() {
                 let line = line?;

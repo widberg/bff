@@ -1,25 +1,12 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::math::{Mat4f, Quat, Sphere, Vec3f, RGBA};
-use crate::name::Name;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
+use crate::math::{Quat, Vec3f, RGBA};
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LightBodyV1_291_03_06PC {
     rotation: Quat,
     direction: Vec3f,
@@ -28,4 +15,4 @@ pub struct LightBodyV1_291_03_06PC {
     position: Vec3f,
 }
 
-pub type LightV1_291_03_06PC = TrivialClass<LinkInfo, LightBodyV1_291_03_06PC>;
+pub type LightV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LightBodyV1_291_03_06PC>;

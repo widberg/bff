@@ -1,8 +1,10 @@
 use std::io::{self, Cursor, Read, Write};
 
-use bff::lz::decompress_data_with_header_parser;
-use bff::{BufReader, Endian};
+use bff::lz::compress_data_with_header_writer;
+use bff::Endian;
 use clap::ValueEnum;
+
+use crate::error::BffCliResult;
 
 #[derive(ValueEnum, Clone)]
 pub enum LzEndian {
@@ -10,7 +12,7 @@ pub enum LzEndian {
     Little,
 }
 
-pub fn lz(endian: &LzEndian) -> Result<(), Box<dyn std::error::Error>> {
+pub fn lz(endian: &LzEndian) -> BffCliResult<()> {
     let endian = match endian {
         LzEndian::Big => Endian::Big,
         LzEndian::Little => Endian::Little,
@@ -19,10 +21,13 @@ pub fn lz(endian: &LzEndian) -> Result<(), Box<dyn std::error::Error>> {
     let stdin = io::stdin();
     let mut buf: Vec<u8> = Vec::new();
     stdin.lock().read_to_end(&mut buf)?;
-    let mut reader = BufReader::new(Cursor::new(buf));
 
-    let decompressed = decompress_data_with_header_parser(&mut reader, endian, ())?;
+    let mut compressed: Vec<u8> = Vec::new();
+    let mut writer = Cursor::new(&mut compressed);
+
+    compress_data_with_header_writer(&buf, &mut writer, endian)?;
 
     let stdout = io::stdout();
-    Ok(stdout.lock().write_all(decompressed.as_slice())?)
+    stdout.lock().write_all(writer.into_inner())?;
+    Ok(())
 }

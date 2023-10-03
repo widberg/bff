@@ -35,9 +35,10 @@ const CRC32_TABLE: [u32; CRC32_TABLE_SIZE] = [
     0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4,
 ];
 
-pub const fn asobo_options(name: &[u8], mut hash: u32) -> u32 {
+pub const fn asobo_options(name: &[u8], hash: i32) -> i32 {
     // Using a while loop here because for loops aren't allowed in const fn.
     // https://github.com/rust-lang/rust/issues/87575
+    let mut hash = hash as u32;
     let mut i: usize = 0;
     while i < name.len() {
         let c = name[i];
@@ -45,14 +46,15 @@ pub const fn asobo_options(name: &[u8], mut hash: u32) -> u32 {
         i += 1;
     }
 
-    hash
+    hash as i32
 }
 
-pub const fn asobo(name: &[u8]) -> u32 {
+pub const fn asobo(name: &[u8]) -> i32 {
     asobo_options(name, 0)
 }
 
-pub const fn asobo_alternate_options(name: &[u8], mut hash: u32) -> u32 {
+pub const fn asobo_alternate_options(name: &[u8], hash: i32) -> i32 {
+    let mut hash = hash as u32;
     let mut i: usize = 0;
     while i < name.len() {
         let c = name[i];
@@ -61,9 +63,9 @@ pub const fn asobo_alternate_options(name: &[u8], mut hash: u32) -> u32 {
         i += 1;
     }
 
-    hash
+    hash as i32
 }
 
-pub const fn asobo_alternate(name: &[u8]) -> u32 {
+pub const fn asobo_alternate(name: &[u8]) -> i32 {
     asobo_alternate_options(name, 0)
 }

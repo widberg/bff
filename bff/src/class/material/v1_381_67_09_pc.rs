@@ -1,16 +1,14 @@
-use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u23, u26, u5, Bitsized, DebugBits, Number};
-use binrw::BinRead;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use bilge::prelude::*;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::{Vec2f, RGB};
-use crate::name::Name;
+use crate::names::Name;
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
 struct MaterialEnabledBitmaps {
     diffuse: u1,
     unused0: u1,
@@ -24,22 +22,16 @@ struct MaterialEnabledBitmaps {
     padding: u23,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
 struct MaterialRdrFlags {
     padding0: u5,
     transparency: u1,
     padding1: u26,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MaterialBodyV1_381_67_09PC {
     diffuse: RGB,
     opacity: f32,
@@ -74,4 +66,5 @@ pub struct MaterialBodyV1_381_67_09PC {
     unused_bitmap_name1: Name,
 }
 
-pub type MaterialV1_381_67_09PC = TrivialClass<LinkHeader, MaterialBodyV1_381_67_09PC>;
+pub type MaterialV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeader, MaterialBodyV1_381_67_09PC>;

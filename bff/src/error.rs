@@ -2,7 +2,7 @@ use std::ffi::OsString;
 
 use derive_more::{Constructor, Display, Error, From};
 
-use crate::name::Name;
+use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::Version;
 
@@ -15,65 +15,38 @@ use crate::versions::Version;
     object_name
 )]
 pub struct UnimplementedClassError {
-    object_name: Name,
-    class_name: Name,
-    version: Version,
-    platform: Platform,
-}
-
-impl UnimplementedClassError {
-    pub fn object_name(&self) -> &Name {
-        &self.object_name
-    }
-
-    pub fn class_name(&self) -> &Name {
-        &self.class_name
-    }
-
-    pub fn version(&self) -> &Version {
-        &self.version
-    }
-
-    pub fn platform(&self) -> &Platform {
-        &self.platform
-    }
-}
-
-#[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "unknown class {}", class_name)]
-pub struct UnknownClassError {
-    class_name: Name,
-}
-
-impl UnknownClassError {
-    pub fn class_name(&self) -> &Name {
-        &self.class_name
-    }
+    pub object_name: Name,
+    pub class_name: Name,
+    pub version: Version,
+    pub platform: Platform,
 }
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(fmt = "Invalid BigFile extension {:#?}", extension)]
 pub struct InvalidExtensionError {
-    extension: OsString,
-}
-
-impl InvalidExtensionError {
-    pub fn extension(&self) -> &OsString {
-        &self.extension
-    }
+    pub extension: OsString,
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "Unknown BigFile version {}", version)]
-pub struct InvalidVersionError {
-    version: String,
+#[display(
+    fmt = "CRC-32 mismatch for {}: expected {}, actual {}",
+    string,
+    expected,
+    actual
+)]
+pub struct MismatchCrc32Error {
+    pub string: String,
+    pub expected: Name,
+    pub actual: Name,
 }
 
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
-    UnimplementedClass(UnimplementedClassError),
-    UnknownClass(UnknownClassError),
+    BinRW(binrw::Error),
     InvalidExtension(InvalidExtensionError),
-    InvalidVersion(InvalidVersionError),
-    BinRWError(binrw::Error),
+    Io(std::io::Error),
+    MismatchCrc32(MismatchCrc32Error),
+    ParseInt(std::num::ParseIntError),
+    UnimplementedClass(UnimplementedClassError),
+    Utf8(std::string::FromUtf8Error),
 }

@@ -1,25 +1,13 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::math::{Mat4f, Quat, Sphere, Vec3f, RGBA};
-use crate::name::Name;
+use crate::link_header::ResourceObjectLinkHeader;
+use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
-struct Rect {
-    x1: i32,
-    y1: i32,
-    x2: i32,
-    y2: i32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct NodeBodyV1_381_67_09PC {
     parent_name: Name,
     head_child_name: Name,
@@ -47,4 +35,4 @@ pub struct NodeBodyV1_381_67_09PC {
     world_transform_mat4: Mat4f,
 }
 
-pub type NodeV1_381_67_09PC = TrivialClass<LinkHeader, NodeBodyV1_381_67_09PC>;
+pub type NodeV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, NodeBodyV1_381_67_09PC>;

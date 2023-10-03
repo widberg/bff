@@ -1,14 +1,11 @@
-use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u13, Bitsized, DebugBits, Number};
-use binrw::BinRead;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use bilge::prelude::*;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
-#[serialize_bits]
 #[bitsize(16)]
-#[derive(DebugBits, BinRead)]
+#[derive(DebugBits, BinRead, SerializeBits, BinWrite, DeserializeBits)]
 struct SoundFlags {
     paused: u1,
     looping: u1,
@@ -16,7 +13,7 @@ struct SoundFlags {
     padding: u13,
 }
 
-#[derive(Debug, BinRead, Serialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct SoundBodyV1_291_03_06PC {
     sample_rate: u32,
@@ -24,7 +21,7 @@ pub struct SoundBodyV1_291_03_06PC {
     flags: SoundFlags,
     #[br(count = data_size / 2)]
     #[serde(skip_serializing)]
-    data: Vec<i16>,
+    _data: Vec<i16>,
 }
 
 impl SoundBodyV1_291_03_06PC {

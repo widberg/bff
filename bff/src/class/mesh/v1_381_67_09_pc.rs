@@ -1,16 +1,21 @@
-use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u1, u12, u15, u2, u24, Bitsized, DebugBits, Number};
-use binrw::BinRead;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use bilge::prelude::*;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::map::BffMap;
 use crate::math::{
-    DynBox, DynSphere, Mat4f, NumeratorFloat, Quat, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f,
+    DynBox,
+    DynSphere,
+    NumeratorFloat,
+    RangeBeginSize,
+    RangeFirstLast,
+    Vec2f,
+    Vec3f,
 };
-use crate::name::Name;
+use crate::names::Name;
 use crate::strings::PascalString;
 
 type VertexVectorComponent = u8;
@@ -19,84 +24,23 @@ type VertexBlendIndex = f32;
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
 
-#[serialize_bits]
-#[bitsize(32)]
-#[derive(BinRead, DebugBits)]
-struct ObjectFlags {
-    fl_object_init: u1,
-    fl_object_max_bsphere: u1,
-    fl_object_skinned: u1,
-    fl_object_morphed: u1,
-    fl_object_orientedbbox: u1,
-    fl_object_no_seaddisplay: u1,
-    fl_object_no_seadcollide: u1,
-    fl_object_no_display: u1,
-    fl_object_transparent: u1,
-    fl_object_optimized_vertex: u1,
-    fl_object_linear_mapping: u1,
-    fl_object_skinned_with_one_bone: u1,
-    fl_object_light_baked: u1,
-    fl_object_light_baked_with_material: u1,
-    fl_object_shadow_receiver: u1,
-    fl_object_no_tesselate: u1,
-    fl_object_last: u1,
-    padding: u15,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u16)]
-enum ObjectType {
-    Points = 0,
-    Surface = 1,
-    Spline = 2,
-    Skin = 3,
-    RotShape = 4,
-    Lod = 5,
-    Mesh = 6,
-    Camera = 7,
-    SplineZone = 9,
-    Occluder = 10,
-    CameraZone = 11,
-    Light = 12,
-    HFog = 13,
-    CollisionVol = 14,
-    Emiter = 15,
-    Omni = 16,
-    Graph = 17,
-    Particles = 18,
-    Flare = 19,
-    HField = 20,
-    Tree = 21,
-    GenWorld = 22,
-    Road = 23,
-    GenWorldSurface = 24,
-    SplineGraph = 25,
-    WorldRef = 26,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct FadeDistances {
     x: f32,
     y: f32,
     fade_close: f32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 pub struct LinkHeader {
-    link_name: Name,
-    data_name: Name,
-    rot: Quat,
-    transform: Mat4f,
-    radius: f32,
-    flags: ObjectFlags,
-    r#type: ObjectType,
+    object_link_header: ObjectLinkHeaderV1_381_67_09PC,
     names: DynArray<Name>,
     fade: FadeDistances,
     dyn_spheres: DynArray<DynSphere>,
     dyn_boxes: DynArray<DynBox>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused0 {
     unknown0: u32,
     unknown1: u32,
@@ -104,25 +48,25 @@ struct Unused0 {
     unknown3: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Strip {
     strip_vertices_indices: DynArray<u16>,
     material_name: Name,
     tri_order: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused00 {
     unused0: u32,
     unused1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused4 {
     unused0s: DynArray<Unused00>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct CollisionAABB {
     min: Vec3f,
     collision_aabb_range: RangeFirstLast,
@@ -130,13 +74,13 @@ struct CollisionAABB {
     collision_faces_range: RangeBeginSize,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct CollisionFace {
     short_vec_weirds_indices: [u16; 3],
     surface_type: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused8 {
     unused0: u32,
     unused1: u32,
@@ -148,7 +92,7 @@ struct Unused8 {
     unused7: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(vertex_layout: u32))]
 enum Vertex {
     #[br(pre_assert(vertex_layout == 12))]
@@ -188,9 +132,8 @@ enum Vertex {
     },
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize)]
 struct D3DFlags {
     d3d_pool_default: u1,
     d3d_pool_managed: u1,
@@ -204,7 +147,7 @@ struct D3DFlags {
     padding1: u24,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct VertexBufferExt {
     vertex_count: u32,
     vertex_layout: u32,
@@ -213,7 +156,7 @@ struct VertexBufferExt {
     vertices: Vec<Vertex>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct IndexBufferExt {
     index_count: u32,
     flags: D3DFlags,
@@ -221,13 +164,13 @@ struct IndexBufferExt {
     data: Vec<u16>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Quad {
     vertices: [Vec3f; 4],
     normal: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused1 {
     unused0: u32,
     unused1: u32,
@@ -238,9 +181,8 @@ struct Unused1 {
     unused6: u32,
 }
 
-#[serialize_bits]
 #[bitsize(32)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize)]
 struct VertexGroupFlags {
     padding: u2,
     visible: u1,
@@ -249,7 +191,7 @@ struct VertexGroupFlags {
     padding1: u12,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct VertexGroup {
     vertex_buffer_index: u32,
     index_buffer_index: u32,
@@ -266,7 +208,7 @@ struct VertexGroup {
     unused1s: DynArray<Unused1>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct AABBMorphTrigger {
     min: Vec3f,
     aabb_morph_triggers_range: RangeFirstLast,
@@ -274,13 +216,13 @@ struct AABBMorphTrigger {
     map_index_range: RangeBeginSize,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct DisplacementVector {
     displacement: [DisplacementVectorComponent; 3],
     displacement_vectors_self_index: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorphTargetDesc {
     name: PascalString,
     base_vertex_buffer_id: u32,
@@ -289,7 +231,7 @@ struct MorphTargetDesc {
     displacement_vectors: DynArray<DisplacementVector>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Morpher {
     aabb_morph_triggers: DynArray<AABBMorphTrigger>,
     map: BffMap<u16, u16>,
@@ -297,7 +239,7 @@ struct Morpher {
     morphs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MeshBuffers {
     vertex_buffers: DynArray<VertexBufferExt>,
     index_buffers: DynArray<IndexBufferExt>,
@@ -306,7 +248,7 @@ struct MeshBuffers {
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct MeshBodyV1_381_67_09PC {
     strip_vertices: DynArray<Vec3f>,

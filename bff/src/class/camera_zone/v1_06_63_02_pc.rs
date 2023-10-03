@@ -1,37 +1,18 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{Mat, Sphere, Vec2f, Vec3f, Vec4f, RGBA};
-use crate::name::Name;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
+use crate::math::{Vec2f, Vec3f, Vec4f, RGBA};
 
-#[derive(BinRead, Debug, Serialize)]
-struct Box {
-    mat: Mat<3, 4>,
-    vec: Vec3f,
-    scale: f32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_name: Name,
-    links: DynArray<u32>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    b_box: Box,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct RangeSizeOffset {
     size: u16,
     offset: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SplineZoneSead {
     p_min: Vec2f,
     p_max: Vec2f,
@@ -44,13 +25,13 @@ struct SplineZoneSead {
     zone_indices: DynArray<u16>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Spline {
     pt_0_id: u16,
     pt_1_id: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SplineZone {
     y: f32,
     spline_ids_ref: RangeSizeOffset,
@@ -59,7 +40,7 @@ struct SplineZone {
     unknown1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SplineZoneZ {
     unknown: Vec4f,
     points: DynArray<Vec3f>,
@@ -70,7 +51,7 @@ struct SplineZoneZ {
     spline_zone_sead: SplineZoneSead,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Trigger {
     rot: f32,
     fov: f32,
@@ -88,13 +69,13 @@ struct Trigger {
     unknown: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct ZoneTriggers {
     trigger_ids_ref: RangeSizeOffset,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct CameraZoneBodyV1_06_63_02PC {
     spline_zone: SplineZoneZ,
     triggers: DynArray<Trigger>,
@@ -102,4 +83,5 @@ pub struct CameraZoneBodyV1_06_63_02PC {
     trigger_ids: DynArray<u16>,
 }
 
-pub type CameraZoneV1_06_63_02PC = TrivialClass<LinkInfo, CameraZoneBodyV1_06_63_02PC>;
+pub type CameraZoneV1_06_63_02PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CameraZoneBodyV1_06_63_02PC>;

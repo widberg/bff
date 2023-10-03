@@ -11,8 +11,8 @@ pub fn bff_named_class(input: TokenStream) -> TokenStream {
 
     quote! {
         impl crate::traits::NamedClass for #name {
-            const NAME: crate::name::Name = crate::crc32::asobo(#class_name.as_bytes());
-            const REAL_NAME: &'static str = #class_name;
+            const NAME: crate::names::Name = crate::names::Name::new(crate::crc32::asobo(#class_name.as_bytes()));
+            const NAME_STR: &'static str = #class_name;
         }
     }
     .into()
@@ -43,10 +43,12 @@ pub fn bff_class(input: TokenStream) -> TokenStream {
     let enum_class = impl_enum_class(&input);
 
     let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input);
+    let from_shadow_class_to_object = impl_from_shadow_class_to_object(&input);
 
     quote! {
         #enum_class
         #from_object_to_shadow_class
+        #from_shadow_class_to_object
     }
     .into()
 }
@@ -64,7 +66,7 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
 
     quote! {
-        #[derive(Serialize, Debug, NamedClass, derive_more::From, derive_more::IsVariant)]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, bff_derive::NamedClass, derive_more::From, derive_more::IsVariant)]
         pub enum #class {
             #(#variants),*
         }
@@ -85,7 +87,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         quote! {
             #(#attrs)*
             #pat #guard => {
-                let shadow_class: #body = <#body as crate::traits::TryFromVersionPlatform<&crate::object::Object>>::try_from_version_platform(object, version, platform)?;
+                let shadow_class: #body = <&crate::object::Object as crate::traits::TryIntoVersionPlatform<#body>>::try_into_version_platform(object, version, platform)?;
                 Ok(shadow_class.into())
             }
         }
@@ -102,7 +104,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
             ) -> crate::BffResult<#class> {
                 use crate::versions::Version::*;
                 use crate::platforms::Platform::*;
-                match (version, platform) {
+                match (version.clone(), platform) {
                     #(#arms)*
                     _ => Err(
                         crate::error::UnimplementedClassError::new(object.name(), <Self as crate::traits::NamedClass>::NAME, version, platform).into(),
@@ -113,53 +115,36 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
     }
 }
 
-// bilge serialization is incorrect
-#[proc_macro_attribute]
-pub fn serialize_bits(_attr: TokenStream, input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    let name = &input.ident;
-    let name_str = LitStr::new(&name.to_string(), name.span());
+fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
+    let class = &input.class;
 
-    let data = if let syn::Data::Struct(data) = &input.data {
-        data
-    } else {
-        unimplemented!();
-    };
-
-    let field_count = data.fields.len();
-
-    let fields = data.fields.iter().filter(|f| {
-        if let Some(name) = &f.ident {
-            name != "reserved" && name != "_reserved" && name != "padding" && name != "_padding"
-        } else {
-            true
-        }
-    });
-
-    let serialize_fields = fields.map(|f| {
-        let name = &f.ident;
-        let name_str = if let Some(n) = name {
-            LitStr::new(&n.to_string(), n.span())
-        } else {
-            unimplemented!()
-        };
+    let arms = input.forms.iter().map(|form| {
+        let attrs = &form.attrs;
+        let body = &form.body;
         quote! {
-            state.serialize_field(#name_str, &self.#name().value())?;
+            #(#attrs)*
+            #class::#body(class) => {
+                let object: crate::object::Object = <&#body as crate::traits::TryIntoVersionPlatform<crate::object::Object>>::try_into_version_platform(class, version, platform)?;
+                Ok(object)
+            }
         }
-    });
+    }).collect::<Vec<_>>();
 
     quote! {
-        #input
-        impl serde::Serialize for #name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                let mut state = serializer.serialize_struct(#name_str, #field_count)?;
-                #(#serialize_fields)*
-                state.end()
+        impl crate::traits::TryFromVersionPlatform<&#class> for crate::object::Object {
+            type Error = crate::error::Error;
+
+            fn try_from_version_platform(
+                class: &#class,
+                version: crate::versions::Version,
+                platform: crate::platforms::Platform,
+            ) -> crate::BffResult<crate::object::Object> {
+                use crate::versions::Version::*;
+                use crate::platforms::Platform::*;
+                match class {
+                    #(#arms)*
+                }
             }
         }
     }
-    .into()
 }

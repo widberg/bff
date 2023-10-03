@@ -1,49 +1,31 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
-use crate::math::{Mat, Sphere, Vec2f, Vec3f};
-use crate::name::Name;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
+use crate::math::{Vec2f, Vec3f};
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
-struct Box {
-    matrix: Mat<3, 4>,
-    vector: Vec3f,
-    scale: f32,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated0 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated1 {
     data: [u8; 4],
 }
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    b_box: Box,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Points {
     vertices: DynArray<Vec3f>,
     points_related0s: DynArray<PointsRelated0>,
     points_related1s: DynArray<PointsRelated1>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct RotShapeBodyV1_291_03_06PC {
     points: Points,
     material_indices: DynArray<u32>,
@@ -54,4 +36,5 @@ pub struct RotShapeBodyV1_291_03_06PC {
     rot_shape_type: u16,
 }
 
-pub type RotShapeV1_291_03_06PC = TrivialClass<LinkInfo, RotShapeBodyV1_291_03_06PC>;
+pub type RotShapeV1_291_03_06PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;

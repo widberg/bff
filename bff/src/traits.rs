@@ -1,4 +1,4 @@
-use crate::name::Name;
+use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::Version;
 
@@ -39,5 +39,5 @@ where
 
 pub trait NamedClass {
     const NAME: Name;
-    const REAL_NAME: &'static str;
+    const NAME_STR: &'static str;
 }

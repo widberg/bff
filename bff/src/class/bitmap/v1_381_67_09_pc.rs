@@ -1,18 +1,19 @@
-use binrw::{until_eof, BinRead};
-use serde::Serialize;
+use binrw::helpers::until_eof;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::name::Name;
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u16)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[brw(repr = u16)]
 enum BitmapClass {
     Single = 0,
     Cubemap = 2,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u8)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[brw(repr = u8)]
 enum BmFormat {
     BmMultipleBitmaps = 0,
     BmA8l8 = 7,
@@ -20,15 +21,15 @@ enum BmFormat {
     BmDxt5 = 16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u8)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[brw(repr = u8)]
 enum BitmapClass2 {
     Cubemap2 = 0,
     Single2 = 3,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(repr = u8)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[brw(repr = u8)]
 enum BmTransp {
     NoTransp = 0,
     TranspOne = 1,
@@ -36,7 +37,7 @@ enum BmTransp {
     Cubemap = 255,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 pub struct LinkHeader {
     link_name: Name,
     bitmap_class: BitmapClass,
@@ -55,7 +56,7 @@ pub struct LinkHeader {
     transparency: BmTransp,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]

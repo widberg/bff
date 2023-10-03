@@ -1,25 +1,94 @@
-use binrw::BinRead;
-use serde::Serialize;
+use std::io::{Read, Seek, Write};
+
+use bilge::prelude::*;
+use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian};
+use derive_more::{Deref, DerefMut};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Vec2f;
-use crate::name::Name;
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
-struct Point {
-    #[br(big)]
-    encoded_vec2f_data0: i32,
-    encoded_vec2f_data1: i8,
+#[bitsize(7)]
+#[derive(TryFromBits, Debug, Serialize, Deserialize)]
+enum SubType {
+    ShortCutForest = 0,
+    ShortCutField = 1,
+    ShortCutShort = 2,
+    ShortCutLong = 3,
+    FieldRoad = 4,
+    GoatPath = 5,      // Bike trail lined with thin posts
+    SmallDirtRoad = 6, // Vehicle trail lines with A-frames
+    SnowyDirtRoad = 7,
+    NormalDirtRoad = 8,     // Two vehicle roads lined with signs and guard rails
+    BigDirtRoad = 9,        // Even wider I guess
+    SmallCircuitTrack = 10, // Thin track around Redrock Bluffs
+    SmallTarmacRoad = 11,
+    NormalTarmacRoad = 12,
+    BigTarmacRoad = 13,
+    River = 14,
+    CircuitTrack = 15, // Small tracks near Offshore Shack
+    SaltRoad = 16,
+    Bridge = 17,
+    HighWay = 18,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[bitsize(8)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
+struct RoadType {
+    sub_type: SubType,
+    short_cut: bool,
+}
+
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
+#[serde(transparent)]
+struct EncodedPoint(Vec2f);
+
+impl BinRead for EncodedPoint {
+    type Args<'a> = ();
+
+    fn read_options<R: Read + Seek>(
+        reader: &mut R,
+        _endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<Self> {
+        let a = i32::read_be(reader)?;
+        let b = u8::read_be(reader)?;
+        Ok(EncodedPoint([
+            (a >> 12) as f32 / 4.,
+            (((b as i32 | (a << 8)) << 12) >> 12) as f32 / 4.,
+        ]))
+    }
+}
+
+impl BinWrite for EncodedPoint {
+    type Args<'a> = ();
+
+    fn write_options<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        _endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<()> {
+        let c: i32 = (self[1] * 4.).round() as i32;
+        let a: i32 = ((self[0] * 4.).round() as i32) << 12 | ((c >> 8) & 0x0FFF);
+        let b: u8 = (c & 0xFF) as u8;
+
+        writer.write_be(&a)?;
+        writer.write_be(&b)?;
+        Ok(())
+    }
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Road {
-    r#type: u8,
-    points: DynArray<Point, u16>,
+    r#type: RoadType,
+    points: DynArray<EncodedPoint, u16>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Unused5 {
     unused0: u32,
     unused1: u32,
@@ -33,13 +102,8 @@ struct Unused5 {
     unused8s: Vec<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkHeader {
-    link_name: Name,
-}
-
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkHeader))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,
     gen_road_min: Vec2f,
@@ -54,4 +118,4 @@ pub struct GwRoadBodyV1_381_67_09PC {
     gen_world_name: Name,
 }
 
-pub type GwRoadV1_381_67_09PC = TrivialClass<LinkHeader, GwRoadBodyV1_381_67_09PC>;
+pub type GwRoadV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, GwRoadBodyV1_381_67_09PC>;

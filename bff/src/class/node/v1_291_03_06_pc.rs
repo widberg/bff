@@ -1,11 +1,11 @@
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
-use crate::name::Name;
+use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct NodeBodyV1_291_03_06PC {
     parent_crc32: Name,

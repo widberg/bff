@@ -1,12 +1,11 @@
-use binrw::binread;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::math::{Mat3f, RGB, RGBA};
 use crate::name::Name;
 
-#[binread]
-#[derive(Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct MaterialBodyV1_06_63_02PC {
     diffuse_color: RGBA,

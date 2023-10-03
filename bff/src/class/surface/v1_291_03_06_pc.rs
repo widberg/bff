@@ -1,55 +1,42 @@
-use bff_derive::serialize_bits;
-use bilge::prelude::{bitsize, u3, u5, Bitsized, DebugBits, Number};
-use binrw::BinRead;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use bilge::prelude::*;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
+use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
-use crate::name::Name;
+use crate::names::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    surface_data_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
-
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated0 {
     vector: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PointsRelated1 {
     vector: Vec4f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Points {
     points_related0s: DynArray<PointsRelated0>,
     points_related1s: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct MorpherRelated {
     data: [u8; 4],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct EdgeCol {
     sphere: Sphere,
     flag: u32,
@@ -58,7 +45,7 @@ struct EdgeCol {
     edge_id: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct ClingLineRelated {
     sphere: Sphere,
     flag: u32,
@@ -68,17 +55,17 @@ struct ClingLineRelated {
     unknown2: f32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct CullCone {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Box {
     transformation: Mat4f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Patch {
     flag: u16,
     should_draw_related_start_index: u16,
@@ -96,22 +83,21 @@ struct Patch {
     material_anim_crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
 }
 
-#[serialize_bits]
 #[bitsize(16)]
-#[derive(BinRead, DebugBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize)]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
     other: u8,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct PatchCol {
     sphere: Sphere,
     flag: u32,
@@ -120,13 +106,13 @@ struct PatchCol {
     cdcdcdcd: [u32; 2],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SeadVoxel {
     element_entry: u16,
     element_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patch_indices: DynArray<u16>,
@@ -150,8 +136,8 @@ struct SeadIndex {
     hit_patch_count: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-#[br(import(_link_header: &LinkInfo))]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SurfaceBodyV1_291_03_06PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
@@ -166,4 +152,5 @@ pub struct SurfaceBodyV1_291_03_06PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_291_03_06PC = TrivialClass<LinkInfo, SurfaceBodyV1_291_03_06PC>;
+pub type SurfaceV1_291_03_06PC =
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SurfaceBodyV1_291_03_06PC>;
