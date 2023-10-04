@@ -79,21 +79,23 @@ fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
 #[binread]
 #[derive(Debug)]
 #[br(import(version: Version, platform: Platform))]
-pub struct BigFileV1_22PC {
+pub struct BigFileV1_22PC<const HAS_VERSION_TRIPLE: bool = true> {
     #[br(calc = version)]
     version: Version,
     #[br(calc = platform)]
     platform: Platform,
     #[br(temp)]
     block_size: u32,
-    #[br(align_after = 2048)]
-    pub version_triple: VersionTriple,
-    #[br(parse_with = parse_blocks, args(block_size))]
+    #[br(if(HAS_VERSION_TRIPLE))]
+    pub version_triple: Option<VersionTriple>,
+    #[br(align_before = 2048, parse_with = parse_blocks, args(block_size))]
     blocks: Vec<Block>,
 }
 
-impl From<BigFileV1_22PC> for BigFile {
-    fn from(bigfile: BigFileV1_22PC) -> BigFile {
+pub type BigFileV1_22PCNoVersionTriple = BigFileV1_22PC<false>;
+
+impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> for BigFile {
+    fn from(bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE>) -> BigFile {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -126,7 +128,7 @@ impl From<BigFileV1_22PC> for BigFile {
         BigFile {
             manifest: Manifest {
                 version: bigfile.version,
-                version_triple: Some(bigfile.version_triple),
+                version_triple: bigfile.version_triple,
                 platform: bigfile.platform,
                 rtc: None,
                 pool_manifest_unused: None,
@@ -139,19 +141,20 @@ impl From<BigFileV1_22PC> for BigFile {
     }
 }
 
-impl BigFileRead for BigFileV1_22PC {
+impl<const HAS_VERSION_TRIPLE: bool> BigFileRead for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
     ) -> BffResult<BigFile> {
         let endian = platform.into();
-        let bigfile = BigFileV1_22PC::read_options(reader, endian, (version, platform))?;
+        let bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE> =
+            BigFileV1_22PC::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }
 }
 
-impl BigFileWrite for BigFileV1_22PC {
+impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
     fn write<W: Write + Seek>(_bigfile: &BigFile, _writer: &mut W) -> BffResult<()> {
         todo!()
     }
