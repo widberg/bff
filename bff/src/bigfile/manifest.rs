@@ -38,8 +38,8 @@ pub struct ManifestBlock {
 #[derive(Serialize, Debug)]
 pub struct Manifest {
     pub version: Version,
-    pub version_triple: VersionTriple,
     pub platform: Platform,
+    pub version_triple: Option<VersionTriple>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rtc: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -125,7 +125,7 @@ pub fn read_version_platform<R: Read + Seek>(
     Ok(BigFile {
         manifest: Manifest {
             version,
-            version_triple: header.version_triple,
+            version_triple: Some(header.version_triple),
             platform,
             rtc: Some(header.is_rtc),
             pool_manifest_unused: header.pool_manifest_unused,

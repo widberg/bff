@@ -106,7 +106,7 @@ pub fn read_version_platform<R: Read + Seek>(
     Ok(crate::bigfile::BigFile {
         manifest: Manifest {
             version,
-            version_triple: bigfile.header.version_triple,
+            version_triple: Some(bigfile.header.version_triple),
             platform,
             rtc: None,
             pool_manifest_unused: None,
