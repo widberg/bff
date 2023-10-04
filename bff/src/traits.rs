@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
 
 use crate::bigfile::BigFile;
@@ -56,4 +57,20 @@ pub trait BigFileRead {
 
 pub trait BigFileWrite {
     fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()>;
+}
+
+pub trait ReferencedNames {
+    fn names(&self) -> HashSet<Name>;
+}
+
+impl<T: ReferencedNames, const N: usize> ReferencedNames for [T; N] {
+    fn names(&self) -> HashSet<Name> {
+        self.iter().flat_map(ReferencedNames::names).collect()
+    }
+}
+
+impl<T: ReferencedNames> ReferencedNames for Vec<T> {
+    fn names(&self) -> HashSet<Name> {
+        self.iter().flat_map(ReferencedNames::names).collect()
+    }
 }
