@@ -21,6 +21,7 @@ pub struct BigFile {
 }
 
 bigfiles! {
-    (Asobo(1, _, _, _), _) => v1_06_63_02_pc,
-    (AsoboLegacy(1, _), _) => v1_22_pc,
+    (Kalisto(_, _), _) => v1_22_pc::BigFile,
+    (AsoboLegacy(_, _), _) => v1_22_pc::BigFile,
+    (Asobo(1, _, _, _), _) => v1_06_63_02_pc::BigFile,
 }

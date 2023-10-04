@@ -193,7 +193,7 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
             let body = &form.body;
             quote! {
                 #(#attrs)*
-                #pat #guard => { #body::read_version_platform(reader, version, platform) }
+                #pat #guard => { <#body as BigFileRead>::read(reader, version, platform) }
             }
         })
         .collect::<Vec<_>>();
@@ -203,6 +203,8 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
             use crate::versions::Version::*;
             use crate::platforms::Platform::*;
             use binrw::BinRead;
+            use crate::traits::BigFileRead;
+            let endian: crate::Endian = platform.into();
             let version: crate::versions::Version = crate::strings::FixedStringNull::<256>::read_be(reader)?.as_str().into();
             match (version.clone(), platform) {
                 #(#arms)*
@@ -226,7 +228,7 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             let body = &form.body;
             quote! {
                 #(#attrs)*
-                #pat #guard => { #body::write(self, writer) }
+                #pat #guard => { <#body as BigFileWrite>::write(self, writer) }
             }
         })
         .collect::<Vec<_>>();
@@ -235,6 +237,9 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
         pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W) -> crate::BffResult<()> {
             use crate::versions::Version::*;
             use crate::platforms::Platform::*;
+            use binrw::BinWrite;
+            use crate::traits::BigFileWrite;
+            let endian: crate::Endian = self.manifest.platform.into();
             match (self.manifest.version.clone(), self.manifest.platform) {
                 #(#arms)*
                 (version, platform) => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),

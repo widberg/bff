@@ -1,6 +1,10 @@
+use std::io::{Read, Seek, Write};
+
+use crate::bigfile::BigFile;
 use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::Version;
+use crate::BffResult;
 
 pub trait TryIntoVersionPlatform<T>: Sized {
     type Error;
@@ -40,4 +44,16 @@ where
 pub trait NamedClass {
     const NAME: Name;
     const NAME_STR: &'static str;
+}
+
+pub trait BigFileRead {
+    fn read<R: Read + Seek>(
+        reader: &mut R,
+        version: Version,
+        platform: Platform,
+    ) -> BffResult<BigFile>;
+}
+
+pub trait BigFileWrite {
+    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()>;
 }

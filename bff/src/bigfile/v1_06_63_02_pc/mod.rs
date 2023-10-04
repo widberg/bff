@@ -6,7 +6,7 @@ pub mod pool;
 use std::collections::HashMap;
 use std::io::{Read, Seek, Write};
 
-use binrw::{BinRead, BinResult};
+use binrw::{BinRead, BinResult, BinWrite, Endian};
 use block::Block;
 use header::*;
 use pool::Pool;
@@ -14,9 +14,9 @@ use pool::Pool;
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::ExtendedData;
-use crate::bigfile::BigFile;
 use crate::names::Name;
 use crate::platforms::Platform;
+use crate::traits::{BigFileRead, BigFileWrite};
 use crate::versions::Version;
 use crate::BffResult;
 
@@ -99,45 +99,53 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
     })
 }
 
-pub fn read_version_platform<R: Read + Seek>(
-    reader: &mut R,
-    version: Version,
-    platform: Platform,
-) -> BffResult<BigFile> {
-    let endian = platform.into();
+pub struct BigFile;
 
-    let header = Header::read_options(reader, endian, ())?;
+impl BigFileRead for BigFile {
+    fn read<R: Read + Seek>(
+        reader: &mut R,
+        version: Version,
+        platform: Platform,
+    ) -> BffResult<crate::bigfile::BigFile> {
+        let endian = platform.into();
+        let header = Header::read_options(reader, endian, ())?;
 
-    let mut objects = HashMap::new();
+        let mut objects = HashMap::new();
 
-    let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
 
-    let pool = if let Some(pool_offset) = header.pool_offset {
-        assert_eq!(pool_offset as u64, reader.stream_position().unwrap());
-        Some(pool_parser(reader, endian, (&mut objects,))?)
-    } else {
-        None
-    };
+        let pool = if let Some(pool_offset) = header.pool_offset {
+            assert_eq!(pool_offset as u64, reader.stream_position().unwrap());
+            Some(pool_parser(reader, endian, (&mut objects,))?)
+        } else {
+            None
+        };
 
-    let pos = reader.stream_position().unwrap();
-    let len = reader.seek(std::io::SeekFrom::End(0)).unwrap();
-    assert_eq!(pos, len);
+        let pos = reader.stream_position().unwrap();
+        let len = reader.seek(std::io::SeekFrom::End(0)).unwrap();
+        assert_eq!(pos, len);
 
-    Ok(BigFile {
-        manifest: Manifest {
-            version,
-            version_triple: Some(header.version_triple),
-            platform,
-            rtc: Some(header.is_rtc),
-            pool_manifest_unused: header.pool_manifest_unused,
-            incredi_builder_string: header.incredi_builder_string,
-            blocks,
-            pool,
-        },
-        objects,
-    })
+        Ok(crate::bigfile::BigFile {
+            manifest: Manifest {
+                version,
+                version_triple: Some(header.version_triple),
+                platform,
+                rtc: Some(header.is_rtc),
+                pool_manifest_unused: header.pool_manifest_unused,
+                incredi_builder_string: header.incredi_builder_string,
+                blocks,
+                pool,
+            },
+            objects,
+        })
+    }
 }
 
-pub fn write<W: Write + Seek>(_bigfile: &BigFile, _writer: &W) -> BffResult<()> {
-    todo!()
+impl BigFileWrite for BigFile {
+    fn write<W: Write + Seek>(
+        _bigfile: &crate::bigfile::BigFile,
+        _writer: &mut W,
+    ) -> BffResult<()> {
+        todo!()
+    }
 }
