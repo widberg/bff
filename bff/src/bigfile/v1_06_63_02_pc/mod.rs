@@ -6,7 +6,7 @@ pub mod pool;
 use std::collections::HashMap;
 use std::io::{Read, Seek, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinResult};
 use block::Block;
 use header::*;
 use pool::Pool;
@@ -14,6 +14,7 @@ use pool::Pool;
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::ExtendedData;
+use crate::bigfile::BigFile;
 use crate::names::Name;
 use crate::platforms::Platform;
 use crate::traits::{BigFileRead, BigFileWrite};
@@ -99,14 +100,14 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
     })
 }
 
-pub struct BigFile;
+pub struct BigFileV1_06_63_02PC;
 
-impl BigFileRead for BigFile {
+impl BigFileRead for BigFileV1_06_63_02PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
-    ) -> BffResult<crate::bigfile::BigFile> {
+    ) -> BffResult<BigFile> {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
@@ -125,7 +126,7 @@ impl BigFileRead for BigFile {
         let len = reader.seek(std::io::SeekFrom::End(0)).unwrap();
         assert_eq!(pos, len);
 
-        Ok(crate::bigfile::BigFile {
+        Ok(BigFile {
             manifest: Manifest {
                 version,
                 version_triple: Some(header.version_triple),
@@ -141,11 +142,8 @@ impl BigFileRead for BigFile {
     }
 }
 
-impl BigFileWrite for BigFile {
-    fn write<W: Write + Seek>(
-        _bigfile: &crate::bigfile::BigFile,
-        _writer: &mut W,
-    ) -> BffResult<()> {
+impl BigFileWrite for BigFileV1_06_63_02PC {
+    fn write<W: Write + Seek>(_bigfile: &BigFile, _writer: &mut W) -> BffResult<()> {
         todo!()
     }
 }

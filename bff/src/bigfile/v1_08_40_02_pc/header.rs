@@ -1,7 +1,6 @@
 use binrw::*;
 use serde::Serialize;
 
-use crate::strings::FixedStringNull;
 use crate::versions::VersionTriple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
@@ -14,16 +13,6 @@ pub struct BlockDescription {
     #[br(map = |checksum: i32| if checksum == 0 { None } else { Some(checksum) })]
     #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
     pub checksum: Option<i32>,
-}
-
-impl BlockDescription {
-    // binrw doesn't have a way to calculate the number of bytes read by even a simple structure.
-    // So we will calculate it ourselves and store it in this constant. We could mark the struct as
-    // #[repr(C)] and use `std::mem::size_of::<BlockDescription>()`, but that would imply that we
-    // care about the size of the struct in memory, which we don't; we care about how many bytes
-    // are read. For this trivial struct it does not matter, but I do not want to introduce that
-    // pattern into the code as more complex structs are added.
-    pub const SIZE: usize = 0x18;
 }
 
 #[binread]

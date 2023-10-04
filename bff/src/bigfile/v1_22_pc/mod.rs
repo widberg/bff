@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{args, binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
+use binrw::{binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::ResourceData::Data;
+use crate::bigfile::BigFile;
 use crate::dynarray::DynArray;
 use crate::names::Name;
 use crate::platforms::Platform;
@@ -78,7 +79,7 @@ fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
 #[binread]
 #[derive(Debug)]
 #[br(import(version: Version, platform: Platform))]
-pub struct BigFile {
+pub struct BigFileV1_22PC {
     #[br(calc = version)]
     version: Version,
     #[br(calc = platform)]
@@ -91,8 +92,8 @@ pub struct BigFile {
     blocks: Vec<Block>,
 }
 
-impl From<BigFile> for crate::bigfile::BigFile {
-    fn from(bigfile: BigFile) -> crate::bigfile::BigFile {
+impl From<BigFileV1_22PC> for BigFile {
+    fn from(bigfile: BigFileV1_22PC) -> BigFile {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -122,7 +123,7 @@ impl From<BigFile> for crate::bigfile::BigFile {
             });
         }
 
-        crate::bigfile::BigFile {
+        BigFile {
             manifest: Manifest {
                 version: bigfile.version,
                 version_triple: Some(bigfile.version_triple),
@@ -138,23 +139,20 @@ impl From<BigFile> for crate::bigfile::BigFile {
     }
 }
 
-impl BigFileRead for BigFile {
+impl BigFileRead for BigFileV1_22PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
-    ) -> BffResult<crate::bigfile::BigFile> {
+    ) -> BffResult<BigFile> {
         let endian = platform.into();
-        let bigfile = BigFile::read_options(reader, endian, (version, platform))?;
+        let bigfile = BigFileV1_22PC::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }
 }
 
-impl BigFileWrite for BigFile {
-    fn write<W: Write + Seek>(
-        _bigfile: &crate::bigfile::BigFile,
-        _writer: &mut W,
-    ) -> BffResult<()> {
+impl BigFileWrite for BigFileV1_22PC {
+    fn write<W: Write + Seek>(_bigfile: &BigFile, _writer: &mut W) -> BffResult<()> {
         todo!()
     }
 }

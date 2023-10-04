@@ -1,7 +1,6 @@
 use std::io::{Seek, SeekFrom, Write};
 
 use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
-use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
 use crate::lz::{compress_data_with_header_writer_internal, decompress_body_parser};

@@ -11,6 +11,9 @@ use serde::Serialize;
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::Resource;
+use crate::bigfile::v1_06_63_02_pc::BigFileV1_06_63_02PC;
+use crate::bigfile::v1_08_40_02_pc::BigFileV1_08_40_02PC;
+use crate::bigfile::v1_22_pc::BigFileV1_22PC;
 use crate::names::Name;
 
 #[derive(Serialize, Debug)]
@@ -22,8 +25,8 @@ pub struct BigFile {
 }
 
 bigfiles! {
-    (Kalisto(_, _), _) => v1_22_pc::BigFile,
-    (AsoboLegacy(_, _), _) => v1_22_pc::BigFile,
-    (Asobo(1, 8, _, _), _) => v1_08_40_02_pc::BigFile,
-    (Asobo(1, _, _, _), _) => v1_06_63_02_pc::BigFile,
+    (Kalisto(_, _), _) => BigFileV1_22PC,
+    (AsoboLegacy(_, _), _) => BigFileV1_22PC,
+    (Asobo(1, 8, _, _), _) => BigFileV1_08_40_02PC,
+    (Asobo(1, _, _, _), _) => BigFileV1_06_63_02PC,
 }
