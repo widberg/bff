@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::bigfile::resource::Resource;
-use crate::bigfile::resource::ResourceData::{Data, ExtendedData};
+use crate::bigfile::resource::ResourceData::{CompressibleData, Data, ExtendedData};
 use crate::error::Error;
 use crate::names::Name;
 use crate::platforms::Platform;
@@ -15,6 +15,7 @@ use crate::versions::Version;
 pub enum TrivialClassResourceDataType {
     Data,
     ExtendedData { compress: bool },
+    CompressibleData { compress: bool },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -83,6 +84,25 @@ where
                     body,
                 })
             }
+            CompressibleData { compress, data } => {
+                let mut data_cursor = Cursor::new(&data);
+                let link_header = LinkHeaderType::read_options(
+                    &mut data_cursor,
+                    platform.into(),
+                    <LinkHeaderType as binrw::BinRead>::Args::default(),
+                )?;
+                let body =
+                    BodyType::read_options(&mut data_cursor, platform.into(), (&link_header,))?;
+                Ok(Self {
+                    class_name: object.class_name,
+                    name: object.name,
+                    resource_data_type: TrivialClassResourceDataType::CompressibleData {
+                        compress: *compress,
+                    },
+                    link_header,
+                    body,
+                })
+            }
         }
     }
 }
@@ -147,6 +167,29 @@ where
                     class_name: class.class_name,
                     name: class.name,
                     data: Data(data_cursor.into_inner()),
+                })
+            }
+            TrivialClassResourceDataType::CompressibleData { compress } => {
+                let mut data_cursor = Cursor::new(Vec::new());
+                LinkHeaderType::write_options(
+                    &class.link_header,
+                    &mut data_cursor,
+                    platform.into(),
+                    <LinkHeaderType as BinWrite>::Args::default(),
+                )?;
+                BodyType::write_options(
+                    &class.body,
+                    &mut data_cursor,
+                    platform.into(),
+                    <BodyType as BinWrite>::Args::default(),
+                )?;
+                Ok(Self {
+                    class_name: class.class_name,
+                    name: class.name,
+                    data: CompressibleData {
+                        compress,
+                        data: data_cursor.into_inner(),
+                    },
                 })
             }
         }
