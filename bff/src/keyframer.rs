@@ -1,6 +1,6 @@
 use std::io::Seek;
 
-use binrw::{BinRead, BinWrite};
+use binrw::{binread, BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::dynarray::DynArray;
@@ -10,7 +10,8 @@ use crate::Endian;
 
 type Key = f32;
 
-#[derive(BinRead, Debug, Serialize, Deserialize)]
+#[binread]
+#[derive(Debug, Serialize, Deserialize)]
 #[br(stream = s)]
 pub struct KeyTgtTpl<T>
 where
@@ -19,14 +20,14 @@ where
     for<'a> <T as BinWrite>::Args<'a>: Default,
 {
     time: Key,
-    #[br(try_calc = s.stream_position())]
+    #[br(temp, try_calc = s.stream_position())]
     begin: u64,
     value: T,
     tangent_in: T,
     tangent_out: T,
-    #[br(try_calc = s.stream_position())]
+    #[br(temp, try_calc = s.stream_position())]
     end: u64,
-    #[br(pad_after = (end - begin) % 4)]
+    #[br(temp, pad_after = (end - begin) % 4)]
     _padding: (),
 }
 
@@ -61,7 +62,8 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize, Deserialize)]
+#[binread]
+#[derive(Debug, Serialize, Deserialize)]
 #[br(stream = s)]
 pub struct KeyLinearTpl<T>
 where
@@ -70,12 +72,12 @@ where
     for<'a> <T as BinWrite>::Args<'a>: Default,
 {
     time: Key,
-    #[br(try_calc = s.stream_position())]
+    #[br(temp, try_calc = s.stream_position())]
     begin: u64,
     value: T,
-    #[br(try_calc = s.stream_position())]
+    #[br(temp, try_calc = s.stream_position())]
     end: u64,
-    #[br(pad_after = (end - begin) % 4)]
+    #[br(temp, pad_after = (end - begin) % 4)]
     _padding: (),
 }
 

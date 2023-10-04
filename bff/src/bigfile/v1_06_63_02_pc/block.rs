@@ -1,8 +1,8 @@
 use binrw::{writer, BinRead, BinResult, BinWrite};
 use serde::Serialize;
 
-use crate::header::BlockDescription;
-use crate::object::Object;
+use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
+use crate::bigfile::v1_06_63_02_pc::object::Object;
 
 #[writer(writer, endian)]
 fn write_align_after<'a, T: BinWrite<Args<'a> = ()>>(

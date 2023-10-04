@@ -22,6 +22,17 @@ pub struct UnimplementedClassError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
+#[display(
+    fmt = "Unsupported BigFile version, platform combination: {}, {}",
+    version,
+    platform
+)]
+pub struct UnimplementedVersionPlatformError {
+    pub version: Version,
+    pub platform: Platform,
+}
+
+#[derive(Debug, Constructor, Display, Error)]
 #[display(fmt = "Invalid BigFile extension {:#?}", extension)]
 pub struct InvalidExtensionError {
     pub extension: OsString,
@@ -48,5 +59,6 @@ pub enum Error {
     MismatchCrc32(MismatchCrc32Error),
     ParseInt(std::num::ParseIntError),
     UnimplementedClass(UnimplementedClassError),
+    UnimplementedVersionPlatform(UnimplementedVersionPlatformError),
     Utf8(std::string::FromUtf8Error),
 }

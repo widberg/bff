@@ -26,12 +26,12 @@ pub struct ManifestPool {
 #[derive(Serialize, Debug)]
 pub struct ManifestObject {
     pub name: Name,
-    pub compress: bool,
+    pub compress: Option<bool>,
 }
 
 #[derive(Serialize, Debug)]
 pub struct ManifestBlock {
-    pub offset: u32,
+    pub offset: Option<u32>,
     pub objects: Vec<ManifestObject>,
 }
 
@@ -40,7 +40,8 @@ pub struct Manifest {
     pub version: Version,
     pub version_triple: VersionTriple,
     pub platform: Platform,
-    pub rtc: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rtc: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pool_manifest_unused: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]

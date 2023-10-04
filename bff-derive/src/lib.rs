@@ -87,18 +87,18 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         quote! {
             #(#attrs)*
             #pat #guard => {
-                let shadow_class: #body = <&crate::object::Object as crate::traits::TryIntoVersionPlatform<#body>>::try_into_version_platform(object, version, platform)?;
+                let shadow_class: #body = <&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<#body>>::try_into_version_platform(object, version, platform)?;
                 Ok(shadow_class.into())
             }
         }
     }).collect::<Vec<_>>();
 
     quote! {
-        impl crate::traits::TryFromVersionPlatform<&crate::object::Object> for #class {
+        impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for #class {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
-                object: &crate::object::Object,
+                object: &crate::bigfile::resource::Resource,
                 version: crate::versions::Version,
                 platform: crate::platforms::Platform,
             ) -> crate::BffResult<#class> {
@@ -124,21 +124,21 @@ fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::
         quote! {
             #(#attrs)*
             #class::#body(class) => {
-                let object: crate::object::Object = <&#body as crate::traits::TryIntoVersionPlatform<crate::object::Object>>::try_into_version_platform(class, version, platform)?;
+                let object: crate::bigfile::resource::Resource = <&#body as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)?;
                 Ok(object)
             }
         }
     }).collect::<Vec<_>>();
 
     quote! {
-        impl crate::traits::TryFromVersionPlatform<&#class> for crate::object::Object {
+        impl crate::traits::TryFromVersionPlatform<&#class> for crate::bigfile::resource::Resource {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
                 class: &#class,
                 version: crate::versions::Version,
                 platform: crate::platforms::Platform,
-            ) -> crate::BffResult<crate::object::Object> {
+            ) -> crate::BffResult<crate::bigfile::resource::Resource> {
                 use crate::versions::Version::*;
                 use crate::platforms::Platform::*;
                 match class {

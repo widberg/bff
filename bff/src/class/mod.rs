@@ -41,9 +41,9 @@ use self::user_define::UserDefine;
 use self::warp::Warp;
 use self::world::World;
 use self::world_ref::WorldRef;
+use crate::bigfile::resource::Resource;
 use crate::error::{Error, UnimplementedClassError};
 use crate::names::Name;
-use crate::object::Object;
 use crate::platforms::Platform;
 use crate::traits::{NamedClass, TryFromVersionPlatform, TryIntoVersionPlatform};
 use crate::versions::Version;
@@ -100,12 +100,12 @@ macro_rules! classes_enum {
 
 macro_rules! objects_to_classes {
     ($($i:ident),* $(,)?) => {
-        impl TryFromVersionPlatform<&Object> for Class {
+        impl TryFromVersionPlatform<&Resource> for Class {
             type Error = Error;
 
-            fn try_from_version_platform(object: &Object, version: Version, platform: Platform) -> BffResult<Class> {
+            fn try_from_version_platform(object: &Resource, version: Version, platform: Platform) -> BffResult<Class> {
                 match object.class_name {
-                    $(<$i as NamedClass>::NAME => Ok(Box::new(<&Object as TryIntoVersionPlatform<$i>>::try_into_version_platform(object, version, platform)?).into()),)*
+                    $(<$i as NamedClass>::NAME => Ok(Box::new(<&Resource as TryIntoVersionPlatform<$i>>::try_into_version_platform(object, version, platform)?).into()),)*
                     _ => Err(UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
             }
@@ -115,12 +115,12 @@ macro_rules! objects_to_classes {
 
 macro_rules! classes_to_objects {
     ($($i:ident),* $(,)?) => {
-        impl TryFromVersionPlatform<&Class> for Object {
+        impl TryFromVersionPlatform<&Class> for Resource {
             type Error = Error;
 
-            fn try_from_version_platform(class: &Class, version: Version, platform: Platform) -> BffResult<Object> {
+            fn try_from_version_platform(class: &Class, version: Version, platform: Platform) -> BffResult<Resource> {
                 match class {
-                    $(Class::$i(class) => Ok(<&$i as TryIntoVersionPlatform<Object>>::try_into_version_platform(class.deref(), version, platform)?),)*
+                    $(Class::$i(class) => Ok(<&$i as TryIntoVersionPlatform<Resource>>::try_into_version_platform(class.deref(), version, platform)?),)*
                 }
             }
         }

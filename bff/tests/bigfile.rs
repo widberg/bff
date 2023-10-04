@@ -3,9 +3,9 @@ mod tests {
     use std::fs::File;
     use std::path::PathBuf;
 
+    use bff::bigfile::resource::Resource;
     use bff::bigfile::BigFile;
     use bff::class::Class;
-    use bff::object::Object;
     use bff::platforms::Platform;
     use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;
@@ -43,7 +43,7 @@ mod tests {
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
 
-            let new_object: Object = (&class)
+            let new_object: Resource = (&class)
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
 

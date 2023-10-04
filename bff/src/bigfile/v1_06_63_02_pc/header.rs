@@ -2,7 +2,7 @@ use binrw::*;
 use serde::Serialize;
 
 use crate::strings::FixedStringNull;
-use crate::versions::{Version, VersionTriple};
+use crate::versions::VersionTriple;
 
 #[binread]
 #[derive(Serialize, Debug, BinWrite)]
@@ -30,9 +30,6 @@ impl BlockDescription {
 #[binread]
 #[derive(Serialize, Debug)]
 pub struct Header {
-    #[br(map = |version_string: FixedStringNull<256>| version_string.as_str().into())]
-    #[bw(map = |version: Version| FixedStringNull::<256>::from(version.to_string()))]
-    pub version: Version,
     #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
     pub is_rtc: bool,
     #[br(temp)]

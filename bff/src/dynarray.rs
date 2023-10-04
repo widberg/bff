@@ -2,11 +2,11 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use binrw::{binrw, BinRead, BinWrite};
-use derive_more::Deref;
+use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
 #[binrw]
-#[derive(Debug, Serialize, Deref, Deserialize)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
 #[serde(transparent)]
 #[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
 pub struct DynArray<InnerType: BinRead + BinWrite + 'static, SizeType: BinRead + BinWrite = u32>
@@ -26,6 +26,7 @@ where
     #[bw(calc = inner.len().try_into().unwrap())]
     count: SizeType,
     #[deref]
+    #[deref_mut]
     #[br(args { count: count.try_into().unwrap(), inner })]
     pub inner: Vec<InnerType>,
     #[serde(skip)]
