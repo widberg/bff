@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{args, binread, BinRead, BinWrite};
+use binrw::{args, binread, BinRead, BinResult, BinWrite, parser};
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::ResourceData::Data;
@@ -16,7 +16,7 @@ pub struct Resource {
     data_size: u32,
     class_name: Name,
     name: Name,
-    #[br(count = data_size)]
+    #[br(count = data_size - 12)]
     data: Vec<u8>,
 }
 
@@ -33,6 +33,26 @@ pub struct Block {
     _padding: (),
 }
 
+#[parser(reader, endian)]
+fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
+    let mut blocks = Vec::new();
+
+    loop {
+        let begin = reader.stream_position()?;
+        let block = Block::read_options(reader, endian, args! { block_size });
+        match block {
+            Ok(block) => blocks.push(block),
+            Err(_) => {
+                let end = reader.seek(SeekFrom::End(0))?;
+                assert_eq!(begin, end);
+                break;
+            },
+        }
+    }
+
+    Ok(blocks)
+}
+
 #[derive(Debug, BinRead)]
 pub struct Header {
     pub block_size: u32,
@@ -43,7 +63,7 @@ pub struct Header {
 #[derive(Debug, BinRead)]
 pub struct BigFile {
     pub header: Header,
-    #[br(args { count: header.block_size as usize, inner: args! { block_size: header.block_size } })]
+    #[br(parse_with = parse_blocks, args(header.block_size))]
     blocks: Vec<Block>,
 }
 

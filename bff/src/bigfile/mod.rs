@@ -43,8 +43,8 @@ impl BigFile {
 
     pub fn write<W: Write + Seek>(&self, writer: &mut W) -> BffResult<()> {
         match (self.manifest.version.clone(), self.manifest.platform) {
-            (Asobo(1, 6..=699, _, _), _) => v1_06_63_02_pc::write(self, writer),
-            (AsoboLegacy(_, _), _) => v1_22_pc::write(self, writer),
+            (Asobo(1, _, _, _), _) => v1_06_63_02_pc::write(self, writer),
+            (AsoboLegacy(1, _), _) => v1_22_pc::write(self, writer),
             (version, platform) => {
                 Err(UnimplementedVersionPlatformError::new(version, platform).into())
             }
