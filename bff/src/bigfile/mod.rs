@@ -1,6 +1,7 @@
 pub mod manifest;
 pub mod resource;
 mod v1_06_63_02_pc;
+mod v1_08_40_02_pc;
 mod v1_22_pc;
 
 use std::collections::HashMap;
@@ -23,5 +24,6 @@ pub struct BigFile {
 bigfiles! {
     (Kalisto(_, _), _) => v1_22_pc::BigFile,
     (AsoboLegacy(_, _), _) => v1_22_pc::BigFile,
+    (Asobo(1, 8, _, _), _) => v1_08_40_02_pc::BigFile,
     (Asobo(1, _, _, _), _) => v1_06_63_02_pc::BigFile,
 }
