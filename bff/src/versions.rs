@@ -31,16 +31,23 @@ pub enum Version {
     // Used in The Mighty Quest for Epic Loot by Ubisoft
     #[display(
         fmt = "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
-        "_0",
-        "_1",
-        "_2",
-        "_3",
-        "_4",
-        "_5",
-        "_6",
-        "_7"
+        "opal_version.0",
+        "opal_version.1",
+        "data_version.0",
+        "data_version.1",
+        "cvt",
+        "cvanim",
+        "cvmesh",
+        "cvshader"
     )]
-    Ubisoft(u32, u32, u32, u32, u32, u32, u32, u32),
+    Ubisoft {
+        opal_version: (u32, u32),
+        data_version: (u32, u32),
+        cvt: u32,
+        cvanim: u32,
+        cvmesh: u32,
+        cvshader: u32,
+    },
     Other(String),
 }
 
@@ -86,7 +93,14 @@ impl From<&str> for Version {
             Self::BlackSheep(_0, _1)
         } else if sscanf!(value, "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
             _0, _1, _2, _3, _4, _5, _6, _7).is_ok() {
-            Self::Ubisoft(_0, _1, _2, _3, _4, _5, _6, _7)
+            Self::Ubisoft {
+                opal_version: (_0, _1),
+                data_version: (_2, _3),
+                cvt: _4,
+                cvanim: _5,
+                cvmesh: _6,
+                cvshader: _7,
+            }
         } else {
             Self::Other(value.to_string())
         }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{args, binread, BinRead, BinResult, BinWrite, parser};
+use binrw::{args, binread, parser, BinRead, BinResult, BinWrite};
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::ResourceData::Data;
@@ -46,7 +46,7 @@ fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
                 let end = reader.seek(SeekFrom::End(0))?;
                 assert_eq!(begin, end);
                 break;
-            },
+            }
         }
     }
 
