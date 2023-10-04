@@ -32,6 +32,7 @@ pub struct ManifestObject {
 #[derive(Serialize, Debug)]
 pub struct ManifestBlock {
     pub offset: Option<u32>,
+    pub checksum: Option<i32>,
     pub objects: Vec<ManifestObject>,
 }
 

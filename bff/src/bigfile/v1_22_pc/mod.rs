@@ -99,6 +99,7 @@ pub fn read_version_platform<R: Read + Seek>(
 
         blocks.push(crate::bigfile::manifest::ManifestBlock {
             offset: None,
+            checksum: None,
             objects,
         });
     }

@@ -52,6 +52,7 @@ fn blocks_parser(
 
         blocks.push(ManifestBlock {
             offset: Some(block_description.working_buffer_offset),
+            checksum: block_description.checksum,
             objects: block_objects,
         });
     }

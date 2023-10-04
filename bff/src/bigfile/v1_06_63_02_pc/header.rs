@@ -4,17 +4,16 @@ use serde::Serialize;
 use crate::strings::FixedStringNull;
 use crate::versions::VersionTriple;
 
-#[binread]
-#[derive(Serialize, Debug, BinWrite)]
+#[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
     pub object_count: u32,
     padded_size: u32,
     data_size: u32,
     pub working_buffer_offset: u32,
     first_object_name: u32,
-    #[br(temp)]
-    #[bw(calc = 0)]
-    _zero: u32,
+    #[br(map = |checksum: i32| if checksum == 0 { None } else { Some(checksum) })]
+    #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
+    pub checksum: Option<i32>,
 }
 
 impl BlockDescription {
