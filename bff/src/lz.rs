@@ -278,7 +278,6 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
     let mut uncompressed_buffer = data.to_vec();
     uncompressed_buffer.push(0);
     uncompressed_buffer.push(0);
-    let uncompressed_buffer = uncompressed_buffer.as_slice();
 
     let mut g_window_buffer = vec![Match::default(); MAXIMUM_WINDOW_SIZE as usize];
     let mut short_lookup = vec![Match::default(); 0x10000];
@@ -327,7 +326,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                 if packets[i as usize].encode(
                     uncompressed_buffer_ptr,
                     window_index,
-                    uncompressed_buffer,
+                    &uncompressed_buffer,
                     &g_window_buffer,
                 ) {
                     return Some(i);

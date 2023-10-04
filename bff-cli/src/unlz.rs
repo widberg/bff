@@ -20,5 +20,5 @@ pub fn unlz(endian: &LzEndian) -> BffCliResult<()> {
     let decompressed = decompress_data_with_header_parser(&mut reader, endian)?;
 
     let stdout = io::stdout();
-    Ok(stdout.lock().write_all(decompressed.as_slice())?)
+    Ok(stdout.lock().write_all(&decompressed)?)
 }

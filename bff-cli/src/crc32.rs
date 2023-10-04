@@ -68,7 +68,7 @@ pub fn crc32(
             let stdin = io::stdin();
             let mut buf: Vec<u8> = Vec::new();
             stdin.lock().read_to_end(&mut buf)?;
-            let hash = hash_function(buf.as_slice(), starting);
+            let hash = hash_function(&buf, starting);
             println!("{} {:?}", format_hash(hash, format), buf);
         }
         (None, CrcMode::Lines) => {

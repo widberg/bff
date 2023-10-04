@@ -2,7 +2,7 @@ use std::io::Write;
 
 use ascii::{AsciiChar, AsciiString};
 use binrw::io::{Read, Seek};
-use binrw::{args, BinRead, BinResult, BinWrite, Endian, Error};
+use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::{Deserialize, Serialize};
 
@@ -85,7 +85,7 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
     ) -> BinResult<()> {
         let bytes = self.as_bytes();
         writer.write_all(bytes)?;
-        writer.write_all(vec![0; S - bytes.len()].as_slice())?;
+        writer.write_all(&vec![0; S - bytes.len()])?;
         Ok(())
     }
 }
@@ -212,7 +212,7 @@ impl BinWrite for PascalStringNull {
         let bytes = self.as_bytes();
         <u32>::write_options(&(bytes.len() as u32 + 1), writer, endian, ())?;
         writer.write_all(bytes)?;
-        writer.write_all(&[0u8])?;
+        writer.write_be(&0u8)?;
         Ok(())
     }
 }
