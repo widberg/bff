@@ -2,7 +2,7 @@ use std::io::Write;
 
 use ascii::{AsciiChar, AsciiString};
 use binrw::io::{Read, Seek};
-use binrw::{BinRead, BinResult, BinWrite, Endian, Error, VecArgs};
+use binrw::{args, BinRead, BinResult, BinWrite, Endian, Error};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::{Deserialize, Serialize};
 
@@ -111,9 +111,8 @@ impl BinRead for PascalString {
         let val = <Vec<u8>>::read_options(
             reader,
             endian,
-            VecArgs {
+            args! {
                 count,
-                inner: <_>::default(),
             },
         )?;
 
@@ -179,9 +178,8 @@ impl BinRead for PascalStringNull {
         let val = <Vec<u8>>::read_options(
             reader,
             endian,
-            VecArgs {
+            args! {
                 count: count - 1,
-                inner: <_>::default(),
             },
         )?;
 

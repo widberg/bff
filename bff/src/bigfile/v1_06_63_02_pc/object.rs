@@ -1,6 +1,6 @@
 use std::io::{Seek, SeekFrom, Write};
 
-use binrw::{binread, parser, BinRead, BinResult, BinWrite, Endian, VecArgs};
+use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
@@ -13,9 +13,8 @@ fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8
         Vec::<u8>::read_options(
             reader,
             endian,
-            VecArgs {
+            args! {
                 count: decompressed_size as usize,
-                inner: <_>::default(),
             },
         )
     } else {
