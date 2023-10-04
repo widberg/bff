@@ -37,17 +37,18 @@ pub struct Block {
 fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
     let mut blocks = Vec::new();
 
+    let begin = reader.stream_position()?;
+    let end = reader.seek(SeekFrom::End(0))?;
+    reader.seek(SeekFrom::Start(begin))?;
+
     loop {
         let begin = reader.stream_position()?;
-        let block = Block::read_options(reader, endian, args! { block_size });
-        match block {
-            Ok(block) => blocks.push(block),
-            Err(_) => {
-                let end = reader.seek(SeekFrom::End(0))?;
-                assert_eq!(begin, end);
-                break;
-            }
+
+        if begin == end {
+            break;
         }
+
+        blocks.push(Block::read_options(reader, endian, args! { block_size })?);
     }
 
     Ok(blocks)
