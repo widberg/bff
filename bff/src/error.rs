@@ -3,7 +3,7 @@ use std::ffi::OsString;
 use derive_more::{Constructor, Display, Error, From};
 
 use crate::names::Name;
-use crate::platforms::Platform;
+use crate::platforms::{Platform, Style};
 use crate::versions::Version;
 
 #[derive(Debug, Constructor, Display, Error)]
@@ -39,6 +39,13 @@ pub struct InvalidExtensionError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "Invalid Platform/Style combination: {} {}", platform, style)]
+pub struct InvalidPlatformStyleError {
+    pub platform: Platform,
+    pub style: Style,
+}
+
+#[derive(Debug, Constructor, Display, Error)]
 #[display(
     fmt = "CRC-32 mismatch for {}: expected {}, actual {}",
     string,
@@ -55,6 +62,7 @@ pub struct MismatchCrc32Error {
 pub enum Error {
     BinRW(binrw::Error),
     InvalidExtension(InvalidExtensionError),
+    InvalidPlatformStyle(InvalidPlatformStyleError),
     Io(std::io::Error),
     MismatchCrc32(MismatchCrc32Error),
     ParseInt(std::num::ParseIntError),
