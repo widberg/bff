@@ -7,6 +7,7 @@ pub mod error;
 pub mod keyframer;
 pub mod link_header;
 pub mod lz;
+pub mod macros;
 pub mod map;
 pub mod math;
 pub mod names;
