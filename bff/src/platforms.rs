@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 
 use binrw::Endian;
 
-use crate::macros::platforms::*;
+use crate::macros::platforms::platforms;
 use crate::BffResult;
 
 platforms! {

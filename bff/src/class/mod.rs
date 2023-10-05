@@ -35,7 +35,7 @@ use self::user_define::UserDefine;
 use self::warp::Warp;
 use self::world::World;
 use self::world_ref::WorldRef;
-use crate::macros::classes::*;
+use crate::macros::classes::classes;
 
 pub mod animation;
 pub mod binary;
