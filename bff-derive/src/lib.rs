@@ -240,7 +240,7 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             use binrw::BinWrite;
             use crate::traits::BigFileWrite;
             let endian: crate::Endian = self.manifest.platform.into();
-            let version_string = <ascii::AsciiString as std::str::FromStr>::from_str(&self.manifest.version.to_string()).unwrap();
+            let version_string = self.manifest.version.to_string();
             crate::strings::FixedStringNull::<256>::write_be(&version_string.into(), writer)?;
             match (self.manifest.version.clone(), self.manifest.platform) {
                 #(#arms)*

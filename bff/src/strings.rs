@@ -1,6 +1,6 @@
 use std::io::Write;
+use std::str::from_utf8;
 
-use ascii::{AsciiChar, AsciiString};
 use binrw::io::{Read, Seek};
 use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
     Deserialize,
 )]
 #[serde(transparent)]
-pub struct FixedStringNull<const S: usize>(pub AsciiString);
+pub struct FixedStringNull<const S: usize>(pub String);
 
 #[derive(Debug, Display, Error, Constructor)]
 #[display(
@@ -30,8 +30,19 @@ pub struct FixedStringNull<const S: usize>(pub AsciiString);
     expected_length,
     expected_length
 )]
-pub struct FixedStringNullUnterminated {
+pub struct FixedStringNullUnterminatedError {
     pub expected_length: usize,
+}
+
+#[derive(Debug, Display, Error, Constructor)]
+#[display(
+    fmt = "FixedStringNull: expected null terminated string of maximum length {} + 1 null terminator, string was {} bytes long + 1 null terminator",
+    maximum_length,
+    actual_length
+)]
+pub struct FixedStringNullTooLongError {
+    pub maximum_length: usize,
+    pub actual_length: usize,
 }
 
 impl<const S: usize> BinRead for FixedStringNull<S> {
@@ -42,35 +53,25 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
         endian: Endian,
         _: Self::Args<'_>,
     ) -> BinResult<Self> {
-        let mut values = AsciiString::with_capacity(S);
+        let begin = reader.stream_position()?;
+        let values = Vec::<u8>::read_options(reader, endian, args! { count: S })?;
 
-        loop {
-            let val = <u8>::read_options(reader, endian, ())?;
-            if val == 0 {
-                break;
+        let null_terminator = values.iter().position(|&c| c == b'\0');
+
+        if let Some(null_terminator) = null_terminator {
+            match from_utf8(&values[..null_terminator]) {
+                Ok(value) => Ok(Self(value.to_string())),
+                Err(e) => Err(Error::Custom {
+                    pos: begin + e.valid_up_to() as u64,
+                    err: Box::new(e),
+                }),
             }
-
-            if values.len() == S {
-                return Err(Error::Custom {
-                    pos: reader.stream_position()? - 1,
-                    err: Box::new(FixedStringNullUnterminated::new(S)),
-                });
-            }
-
-            values.push(match AsciiChar::from_ascii(val) {
-                Ok(val) => val,
-                Err(e) => {
-                    return Err(Error::Custom {
-                        pos: reader.stream_position()? - 1,
-                        err: Box::new(e),
-                    })
-                }
-            });
+        } else {
+            Err(Error::Custom {
+                pos: reader.stream_position()?,
+                err: Box::new(FixedStringNullUnterminatedError::new(S)),
+            })
         }
-
-        reader.seek(std::io::SeekFrom::Current((S - values.len() - 1) as i64))?;
-
-        Ok(Self(values))
     }
 }
 
@@ -84,6 +85,12 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
         let bytes = self.as_bytes();
+        if bytes.len() + 1 > S {
+            return Err(Error::Custom {
+                pos: writer.stream_position()?,
+                err: Box::new(FixedStringNullTooLongError::new(S - 1, bytes.len())),
+            });
+        }
         writer.write_all(bytes)?;
         writer.write_all(&vec![0; S - bytes.len()])?;
         Ok(())
@@ -94,7 +101,7 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
     Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize, Deserialize,
 )]
 #[serde(transparent)]
-pub struct PascalString(pub AsciiString);
+pub struct PascalString(pub String);
 
 impl BinRead for PascalString {
     type Args<'a> = ();
@@ -108,7 +115,7 @@ impl BinRead for PascalString {
 
         let ascii_string_position = reader.stream_position()?;
 
-        let val = <Vec<u8>>::read_options(
+        let value = <Vec<u8>>::read_options(
             reader,
             endian,
             args! {
@@ -116,17 +123,13 @@ impl BinRead for PascalString {
             },
         )?;
 
-        let values = match AsciiString::from_ascii(val) {
-            Ok(val) => val,
-            Err(e) => {
-                return Err(Error::Custom {
-                    pos: ascii_string_position + e.ascii_error().valid_up_to() as u64,
-                    err: Box::new(e),
-                })
-            }
-        };
-
-        Ok(Self(values))
+        match from_utf8(&value) {
+            Ok(value) => Ok(Self(value.to_string())),
+            Err(e) => Err(Error::Custom {
+                pos: ascii_string_position + e.valid_up_to() as u64,
+                err: Box::new(e),
+            }),
+        }
     }
 }
 
@@ -161,7 +164,7 @@ impl BinWrite for PascalString {
     Deserialize,
 )]
 #[serde(transparent)]
-pub struct PascalStringNull(pub AsciiString);
+pub struct PascalStringNull(pub String);
 
 impl BinRead for PascalStringNull {
     type Args<'a> = ();
@@ -173,9 +176,9 @@ impl BinRead for PascalStringNull {
     ) -> BinResult<Self> {
         let count: usize = <u32>::read_options(reader, endian, ())? as usize;
 
-        let ascii_string_position = reader.stream_position()?;
+        let begin = reader.stream_position()?;
 
-        let val = <Vec<u8>>::read_options(
+        let value = <Vec<u8>>::read_options(
             reader,
             endian,
             args! {
@@ -186,17 +189,15 @@ impl BinRead for PascalStringNull {
         // Consume the null terminator
         <u8>::read_options(reader, endian, ())?;
 
-        let values = match AsciiString::from_ascii(val) {
-            Ok(val) => val,
+        match from_utf8(&value) {
+            Ok(value) => Ok(Self(value.to_string())),
             Err(e) => {
                 return Err(Error::Custom {
-                    pos: ascii_string_position + e.ascii_error().valid_up_to() as u64,
+                    pos: begin + e.valid_up_to() as u64,
                     err: Box::new(e),
                 })
             }
-        };
-
-        Ok(Self(values))
+        }
     }
 }
 

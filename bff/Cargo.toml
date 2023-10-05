@@ -5,7 +5,6 @@ authors = ["widberg"]
 edition = "2021"
 
 [dependencies]
-ascii = { version = "1.1.0", features = ["serde"] }
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
 binrw = "0.12.0"

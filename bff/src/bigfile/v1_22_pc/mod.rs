@@ -119,10 +119,7 @@ impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> fo
                     name: resource.name,
                     compress: None,
                 });
-                resources.insert(
-                    resource.name,
-                    resource.into(),
-                );
+                resources.insert(resource.name, resource.into());
             }
 
             blocks.push(crate::bigfile::manifest::ManifestBlock {
