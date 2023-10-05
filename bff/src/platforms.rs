@@ -18,7 +18,7 @@ platforms! {
         Xbox([D("DXB")], Big),
         Xbox360([D("D36")], Big),
         GameCube([D("DGC")], Big),
-        Wii([D("DRV")], Big),
+        Wii([D("DRV"), BF("BFWii"), DB("DBR")], Big),
         Switch([D("DNX")], Little),
     ]
 }
