@@ -191,12 +191,10 @@ impl BinRead for PascalStringNull {
 
         match from_utf8(&value) {
             Ok(value) => Ok(Self(value.to_string())),
-            Err(e) => {
-                return Err(Error::Custom {
-                    pos: begin + e.valid_up_to() as u64,
-                    err: Box::new(e),
-                })
-            }
+            Err(e) => Err(Error::Custom {
+                pos: begin + e.valid_up_to() as u64,
+                err: Box::new(e),
+            }),
         }
     }
 }
