@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
@@ -23,6 +24,16 @@ pub struct Resource {
     name: Name,
     #[br(count = data_size - 12)]
     data: Vec<u8>,
+}
+
+impl From<Resource> for crate::bigfile::resource::Resource {
+    fn from(resource: Resource) -> crate::bigfile::resource::Resource {
+        crate::bigfile::resource::Resource {
+            class_name: resource.class_name,
+            name: resource.name,
+            data: Data(resource.data),
+        }
+    }
 }
 
 #[binread]
@@ -110,11 +121,7 @@ impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> fo
                 });
                 resources.insert(
                     resource.name,
-                    crate::bigfile::resource::Resource {
-                        class_name: resource.class_name,
-                        name: resource.name,
-                        data: Data(resource.data),
-                    },
+                    resource.into(),
                 );
             }
 
@@ -155,7 +162,39 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileRead for BigFileV1_22PC<HAS_VERSION_
 }
 
 impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
-    fn write<W: Write + Seek>(_bigfile: &BigFile, _writer: &mut W) -> BffResult<()> {
-        todo!()
+    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
+        let endian: Endian = bigfile.manifest.platform.into();
+
+        // Remember starting position for writing block size
+        let begin = writer.stream_position()?;
+        let mut block_size = 0u32;
+
+        for block in bigfile.manifest.blocks.iter() {
+            let block_begin = writer.stream_position()?;
+
+            for resource in block.objects.iter() {
+                let resource = bigfile.objects.get(&resource.name).unwrap();
+                let data = match resource.data {
+                    Data(ref data) => data,
+                    _ => unreachable!(),
+                };
+
+                (data.len() as u32 + 12).write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                data.write_options(writer, endian, ())?;
+            }
+
+            let block_end = writer.stream_position()?;
+            block_size = max(block_size, (block_end - block_begin) as u32);
+        }
+
+        // Write block size at the beginning of the file and restore position
+        let end = writer.stream_position()?;
+        writer.seek(SeekFrom::Start(begin))?;
+        block_size.write_options(writer, endian, ())?;
+        writer.seek(SeekFrom::Start(end))?;
+
+        Ok(())
     }
 }
