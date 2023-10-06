@@ -1,25 +1,11 @@
 use std::io::{Seek, SeekFrom, Write};
 
-use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
+use binrw::{binread, BinResult, BinWrite, Endian};
 use serde::Serialize;
 
-use crate::lz::{compress_data_with_header_writer_internal, decompress_body_parser};
+use crate::bigfile::v1_06_63_02_pc::object::body_parser;
+use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::Name;
-
-#[parser(reader, endian)]
-fn data_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
-    if compressed_size == 0 {
-        Vec::<u8>::read_options(
-            reader,
-            endian,
-            args! {
-                count: decompressed_size as usize,
-            },
-        )
-    } else {
-        decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
-    }
-}
 
 #[binread]
 #[derive(Serialize, Debug, Default, Eq, PartialEq)]
@@ -32,8 +18,7 @@ pub struct Object {
     pub compress: bool,
     pub class_name: Name,
     pub name: Name,
-    #[br(parse_with = data_parser, args(decompressed_size, compressed_size))]
-    // #[br(count = if compress { compressed_size } else { decompressed_size })]
+    #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
     #[serde(skip_serializing)]
     pub data: Vec<u8>,
 }

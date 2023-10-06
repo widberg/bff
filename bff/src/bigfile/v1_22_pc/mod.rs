@@ -5,6 +5,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
 
 use crate::bigfile::manifest::Manifest;
+use crate::bigfile::resource::ResourceData;
 use crate::bigfile::resource::ResourceData::Data;
 use crate::bigfile::BigFile;
 use crate::dynarray::DynArray;
@@ -169,17 +170,30 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
         for block in bigfile.manifest.blocks.iter() {
             let block_begin = writer.stream_position()?;
 
+            (block.objects.len() as u32).write_options(writer, endian, ())?;
+
             for resource in block.objects.iter() {
                 let resource = bigfile.objects.get(&resource.name).unwrap();
-                let data = match resource.data {
-                    Data(ref data) => data,
-                    _ => unreachable!(),
+                match resource.data {
+                    Data(ref data) | ResourceData::CompressibleData { ref data, .. } => {
+                        (data.len() as u32 + 12).write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        data.write_options(writer, endian, ())?;
+                    }
+                    ResourceData::ExtendedData {
+                        ref link_header,
+                        ref body,
+                        ..
+                    } => {
+                        let data_len = link_header.len() as u32 + body.len() as u32 + 12;
+                        data_len.write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        link_header.write_options(writer, endian, ())?;
+                        body.write_options(writer, endian, ())?;
+                    }
                 };
-
-                (data.len() as u32 + 12).write_options(writer, endian, ())?;
-                resource.class_name.write_options(writer, endian, ())?;
-                resource.name.write_options(writer, endian, ())?;
-                data.write_options(writer, endian, ())?;
             }
 
             let block_end = writer.stream_position()?;

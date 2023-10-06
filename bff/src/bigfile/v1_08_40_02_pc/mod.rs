@@ -12,6 +12,7 @@ use header::*;
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::CompressibleData;
+use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::BigFile;
 use crate::names::Name;
 use crate::platforms::Platform;

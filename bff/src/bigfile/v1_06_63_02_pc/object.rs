@@ -8,7 +8,7 @@ use crate::lz::{compress_data_with_header_writer_internal, decompress_body_parse
 use crate::names::Name;
 
 #[parser(reader, endian)]
-fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
+pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
     if compressed_size == 0 {
         Vec::<u8>::read_options(
             reader,

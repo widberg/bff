@@ -1,3 +1,5 @@
+use std::io::SeekFrom;
+
 use binrw::*;
 use serde::Serialize;
 
@@ -12,18 +14,7 @@ pub struct BlockDescription {
     pub working_buffer_offset: u32,
     first_object_name: u32,
     #[br(map = |checksum: i32| if checksum == 0 { None } else { Some(checksum) })]
-    #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
     pub checksum: Option<i32>,
-}
-
-impl BlockDescription {
-    // binrw doesn't have a way to calculate the number of bytes read by even a simple structure.
-    // So we will calculate it ourselves and store it in this constant. We could mark the struct as
-    // #[repr(C)] and use `std::mem::size_of::<BlockDescription>()`, but that would imply that we
-    // care about the size of the struct in memory, which we don't; we care about how many bytes
-    // are read. For this trivial struct it does not matter, but I do not want to introduce that
-    // pattern into the code as more complex structs are added.
-    pub const SIZE: usize = 0x18;
 }
 
 #[binread]
@@ -39,9 +30,9 @@ pub struct Header {
     _padded_size: u32,
     pub version_triple: VersionTriple,
     #[serde(skip)]
-    #[br(count = block_count, pad_size_to = BlockDescription::SIZE * 64)]
+    #[br(count = block_count)]
     pub block_descriptions: Vec<BlockDescription>,
-    #[br(temp)]
+    #[br(temp, seek_before = SeekFrom::Start(0x720))]
     _pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
     pub pool_offset: Option<u32>,
@@ -57,9 +48,7 @@ pub struct Header {
     _pool_sector_padding_size: u32,
     #[br(temp)]
     _file_size: u32,
-    #[brw(try, align_after = 2048)]
-    #[br(map = |incredi_builder_string: Option<FixedStringNull<128>>| incredi_builder_string
-    .as_ref()
-    .map(|x| x.as_str().to_string()))]
+    #[br(try, align_after = 2048)]
+    #[br(map = |incredi_builder_string: FixedStringNull<128>| Some(incredi_builder_string.into()))]
     pub incredi_builder_string: Option<String>,
 }
