@@ -10,8 +10,10 @@ bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
 binrw = "0.12.0"
 derive_more = "0.99.17"
 indexmap = { version = "2.0.0", features = ["serde"] }
+itertools = { version = "0.11.0", features = [] }
 num-traits = "0.2.15"
 once_cell = { version = "1.18.0", features = [] }
+rayon = { version = "1.8.0", features = [] }
 scanf = "1.2.1"
 serde = { version = "1.0", features = ["derive"] }
 serde-big-array = "0.5.1"

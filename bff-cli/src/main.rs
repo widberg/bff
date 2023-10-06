@@ -5,6 +5,7 @@ use crc32::{Crc32Algorithm, CrcFormat, CrcMode};
 use crc64::Crc64Algorithm;
 use error::BffCliResult;
 use lz::LzEndian;
+use reverse_crc32::DEFAULT_CHARACTER_SET;
 
 mod crc32;
 mod crc64;
@@ -66,6 +67,8 @@ enum Commands {
         min_filler_length: usize,
         #[arg(short, long, default_value_t = 10)]
         max_filler_length: usize,
+        #[arg(short, long, default_value_t = DEFAULT_CHARACTER_SET.to_string())]
+        character_set: String,
     },
     Crc64 {
         string: Option<String>,
@@ -138,12 +141,14 @@ fn main() -> BffCliResult<()> {
             starting,
             min_filler_length,
             max_filler_length,
+            character_set,
         } => reverse_crc32::reverse_crc32(
             string,
             target,
             starting,
             min_filler_length,
             max_filler_length,
+            character_set,
         ),
     }
 }

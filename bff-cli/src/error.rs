@@ -6,6 +6,15 @@ pub enum BffCliError {
     Bff(BffError),
     Io(std::io::Error),
     SerdeJson(serde_json::Error),
+    #[display(
+        fmt = "No filler found in length range [{}, {}], consider expanding the range",
+        "min_filler_length",
+        "max_filler_length"
+    )]
+    NoFillerFound {
+        min_filler_length: usize,
+        max_filler_length: usize,
+    },
 }
 
 pub type BffCliResult<T> = Result<T, BffCliError>;

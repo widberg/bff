@@ -80,8 +80,10 @@ dependencies = [
  "binrw",
  "derive_more",
  "indexmap",
+ "itertools",
  "num-traits",
  "once_cell",
+ "rayon",
  "scanf",
  "serde",
  "serde-big-array",
@@ -95,8 +97,6 @@ dependencies = [
  "bff",
  "clap",
  "derive_more",
- "itertools",
- "rayon",
  "serde_json",
 ]
 
