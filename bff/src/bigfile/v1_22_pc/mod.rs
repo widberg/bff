@@ -165,6 +165,10 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
 
         // Remember starting position for writing block size
         let begin = writer.stream_position()?;
+
+        let padding = [0xCD; 2048 - 256];
+        writer.write_all(&padding)?;
+
         let mut block_size = 0u32;
 
         for block in bigfile.manifest.blocks.iter() {
@@ -197,13 +201,20 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
             }
 
             let block_end = writer.stream_position()?;
-            block_size = max(block_size, (block_end - block_begin) as u32);
+            let unpadded_block_size = block_end - block_begin;
+
+            let padding = vec![0xCD; 0x20000 - (unpadded_block_size % 0x20000) as usize];
+            writer.write_all(&padding)?;
+
+            let padding_end = writer.stream_position()?;
+            block_size = max(block_size, (padding_end - block_begin) as u32);
         }
 
         // Write block size at the beginning of the file and restore position
         let end = writer.stream_position()?;
         writer.seek(SeekFrom::Start(begin))?;
         block_size.write_options(writer, endian, ())?;
+        bigfile.manifest.version_triple.unwrap_or(VersionTriple::default()).write_options(writer, endian, ())?;
         writer.seek(SeekFrom::Start(end))?;
 
         Ok(())
