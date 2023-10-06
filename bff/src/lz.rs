@@ -89,7 +89,7 @@ pub fn compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
     let ending_position = writer.stream_position()?;
 
     let compressed_size = (ending_position - starting_position) as u32;
-    writer.seek(SeekFrom::Start(4))?;
+    writer.seek(SeekFrom::Start(starting_position + 4))?;
     writer.write_le::<u32>(&compressed_size)?;
     writer.seek(SeekFrom::Start(ending_position))?;
     Ok(())
