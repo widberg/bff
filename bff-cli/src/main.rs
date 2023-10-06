@@ -12,6 +12,7 @@ mod error;
 mod extract;
 mod info;
 mod lz;
+mod reverse_crc32;
 mod unlz;
 
 #[derive(Subcommand)]
@@ -49,6 +50,22 @@ enum Commands {
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcFormat::Signed)]
         format: CrcFormat,
+    },
+    #[clap(alias = "rcrc32")]
+    ReverseCrc32 {
+        string: String,
+        target: i32,
+        #[arg(
+            short,
+            long,
+            default_value_t = 0,
+            help = "Starting value for the CRC-32 calculation"
+        )]
+        starting: i32,
+        #[arg(short, long, default_value_t = 0)]
+        min_filler_length: usize,
+        #[arg(short, long, default_value_t = 10)]
+        max_filler_length: usize,
     },
     Crc64 {
         string: Option<String>,
@@ -115,5 +132,18 @@ fn main() -> BffCliResult<()> {
         } => crc64::crc64(string, starting, algorithm, mode, format),
         Commands::Unlz { endian } => unlz::unlz(endian),
         Commands::Lz { endian } => lz::lz(endian),
+        Commands::ReverseCrc32 {
+            string,
+            target,
+            starting,
+            min_filler_length,
+            max_filler_length,
+        } => reverse_crc32::reverse_crc32(
+            string,
+            target,
+            starting,
+            min_filler_length,
+            max_filler_length,
+        ),
     }
 }
