@@ -15,6 +15,7 @@ mod info;
 mod lz;
 mod reverse_crc32;
 mod unlz;
+mod round_trip;
 
 #[derive(Subcommand)]
 enum Commands {
@@ -32,6 +33,9 @@ enum Commands {
         bigfile: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
+    },
+    RoundTrip {
+        bigfile: PathBuf,
     },
     Crc32 {
         string: Option<String>,
@@ -150,5 +154,8 @@ fn main() -> BffCliResult<()> {
             max_filler_length,
             character_set,
         ),
+        Commands::RoundTrip {
+            bigfile,
+        } => round_trip::round_trip(bigfile),
     }
 }
