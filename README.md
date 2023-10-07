@@ -10,7 +10,7 @@ A GUI/CLI utility to work with Zouna BigFiles.
 
 <sup>This repository is a relative of the main [FMTK repository](https://github.com/widberg/fmtk).</sup>
 
-## Support Matrix
+## Support
 
 A checkmark indicates that the game has been tested and is working. An x indicates that the game has not been tested or is not working.
 

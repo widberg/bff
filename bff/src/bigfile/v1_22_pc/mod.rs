@@ -75,13 +75,7 @@ fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
     let end = reader.seek(SeekFrom::End(0))?;
     reader.seek(SeekFrom::Start(begin))?;
 
-    loop {
-        let begin = reader.stream_position()?;
-
-        if begin == end {
-            break;
-        }
-
+    while reader.stream_position()? != end {
         blocks.push(Block::read_options(reader, endian, (block_size,))?);
     }
 
@@ -214,7 +208,11 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
         let end = writer.stream_position()?;
         writer.seek(SeekFrom::Start(begin))?;
         block_size.write_options(writer, endian, ())?;
-        bigfile.manifest.version_triple.unwrap_or(VersionTriple::default()).write_options(writer, endian, ())?;
+        bigfile
+            .manifest
+            .version_triple
+            .unwrap_or(VersionTriple::default())
+            .write_options(writer, endian, ())?;
         writer.seek(SeekFrom::Start(end))?;
 
         Ok(())

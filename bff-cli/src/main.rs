@@ -14,8 +14,8 @@ mod extract;
 mod info;
 mod lz;
 mod reverse_crc32;
-mod unlz;
 mod round_trip;
+mod unlz;
 
 #[derive(Subcommand)]
 enum Commands {
@@ -154,8 +154,6 @@ fn main() -> BffCliResult<()> {
             max_filler_length,
             character_set,
         ),
-        Commands::RoundTrip {
-            bigfile,
-        } => round_trip::round_trip(bigfile),
+        Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
     }
 }

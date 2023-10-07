@@ -14,7 +14,7 @@ platforms! {
         MacPPC([D("DBM")], Big),
         PS2([D("DPS")], Little),
         PS3([D("DP3")], Big),
-        PSP([D("DPP")], Little),
+        PSP([D("DPP"), BF("BFPSP")], Little),
         Xbox([D("DXB")], Big),
         Xbox360([D("D36")], Big),
         GameCube([D("DGC")], Big),

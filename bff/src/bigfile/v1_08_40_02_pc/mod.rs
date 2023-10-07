@@ -117,28 +117,27 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 match resource.data {
-                    CompressibleData { compress, ref data } => {
-                        if compress {
-                            let begin_header = writer.stream_position()?;
-                            writer.seek(SeekFrom::Current(16))?;
-                            let begin_data = writer.stream_position()?;
-                            compress_data_with_header_writer_internal(data, writer, endian, ())?;
-                            let end_data = writer.stream_position()?;
-                            writer.seek(SeekFrom::Start(begin_header))?;
-                            (data.len() as u32).write_options(writer, endian, ())?;
-                            ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            writer.seek(SeekFrom::Start(end_data))?;
-                        } else {
-                            (data.len() as u32).write_options(writer, endian, ())?;
-                            0u32.write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            data.write_options(writer, endian, ())?;
-                        }
+                    CompressibleData {
+                        compress: true,
+                        ref data,
+                    } => {
+                        let begin_header = writer.stream_position()?;
+                        writer.seek(SeekFrom::Current(16))?;
+                        let begin_data = writer.stream_position()?;
+                        compress_data_with_header_writer_internal(data, writer, endian, ())?;
+                        let end_data = writer.stream_position()?;
+                        writer.seek(SeekFrom::Start(begin_header))?;
+                        (data.len() as u32).write_options(writer, endian, ())?;
+                        ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.seek(SeekFrom::Start(end_data))?;
                     }
-                    ResourceData::Data(ref data) => {
+                    CompressibleData {
+                        compress: false,
+                        ref data,
+                    }
+                    | ResourceData::Data(ref data) => {
                         (data.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
@@ -195,8 +194,10 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
                     block_working_buffer_capacity,
                 );
             } else {
-                block_working_buffer_capacity_odd =
-                    max(block_working_buffer_capacity_odd, block_working_buffer_capacity);
+                block_working_buffer_capacity_odd = max(
+                    block_working_buffer_capacity_odd,
+                    block_working_buffer_capacity,
+                );
             }
 
             block_descriptions.push(BlockDescription {
@@ -220,8 +221,11 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
         let header = Header {
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
-            padded_size: end as u32 - 2048,
-            version_triple: bigfile.manifest.version_triple.unwrap_or(VersionTriple::default()),
+            total_padded_block_size: end as u32 - 2048,
+            version_triple: bigfile
+                .manifest
+                .version_triple
+                .unwrap_or(VersionTriple::default()),
             block_descriptions,
         };
         header.write_options(writer, endian, ())?;

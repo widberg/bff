@@ -1,4 +1,6 @@
-use binrw::{BinRead, BinWrite};
+use std::default::Default;
+
+use binrw::{binrw, BinRead, BinWrite};
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::object::PoolObject;
@@ -11,14 +13,29 @@ pub struct ReferenceRecord {
     end_chunk_index: u32,
     pub objects_name_starting_index: u32,
     #[serde(skip)]
-    _placeholder_bigfile_index: u16,
+    placeholder_bigfile_index: u16,
     pub objects_name_count: u16,
     #[serde(skip)]
-    _placeholder_times_referenced: u32,
+    placeholder_times_referenced: u32,
     #[serde(skip)]
-    _placeholder_current_references_shared: u32,
+    placeholder_current_references_shared: u32,
     #[serde(skip)]
-    _placeholder_current_references_weak: u32,
+    placeholder_current_references_weak: u32,
+}
+
+impl Default for ReferenceRecord {
+    fn default() -> Self {
+        Self {
+            start_chunk_index: 0,
+            end_chunk_index: 0,
+            objects_name_starting_index: 0,
+            placeholder_bigfile_index: 0,
+            objects_name_count: 0,
+            placeholder_times_referenced: 0xFFFFFFFF,
+            placeholder_current_references_shared: 0xFFFFFFFF,
+            placeholder_current_references_weak: 0xFFFFFFFF,
+        }
+    }
 }
 
 #[derive(BinRead, Serialize, Debug, BinWrite)]
@@ -67,20 +84,26 @@ fn zip_object_description_soa(
     result
 }
 
-#[derive(BinRead, BinWrite, Serialize, Debug)]
+#[binrw]
+#[derive(Serialize, Debug)]
 pub struct PoolHeader {
     #[serde(skip)]
+    #[br(temp)]
+    #[bw(calc = 0x80000)]
     _equals524288: u32,
     #[serde(skip)]
+    #[br(temp)]
+    #[bw(calc = 0x800)]
     _equals2048: u32,
     #[serde(skip)]
-    _objects_names_count_sum: u32,
+    pub objects_names_count_sum: u32,
     pub object_descriptions_indices: DynArray<u32>,
     #[br(map = zip_object_description_soa)]
     pub object_descriptions: Vec<ObjectDescription>,
     pub reference_records: DynArray<ReferenceRecord>,
     #[brw(align_after = 2048)]
     #[serde(skip)]
+    #[bw(calc = <_>::default())]
     _reference_records_sentinel: ReferenceRecord,
 }
 
