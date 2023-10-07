@@ -1,0 +1,117 @@
+@font-face {
+  font-family: "WorkSans";
+  src: url("../fonts/WorkSans.ttf");
+}
+
+:root {
+  --font: hsl(16, 100%, 97%);
+  --background: hsl(320, 6%, 9%);
+  --light1-background: hsl(300, 3%, 12%);
+  --light2-background: hsl(300, 3%, 15%);
+  --hover: hsla(0, 0%, 100%, 0.25);
+  --hover-weak: hsla(0, 0%, 100%, 0.05);
+  --shadow: hsla(0, 0%, 0%, 0.25);
+  --error: hsl(357, 97%, 75%);
+
+  font-family: WorkSans, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1rem;
+
+  color: var(--font);
+  background-color: var(--background);
+  color-scheme: dark;
+
+  overflow: hidden;
+  user-select: none;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  height: calc(100vh - 1.4em);
+  display: flex;
+  flex-direction: row;
+}
+
+.second-header {
+  display: flex;
+  position: fixed;
+  background-color: var(--light1-background);
+  border-bottom: var(--background) 3px solid;
+  z-index: 1;
+}
+
+.second-header button {
+  font-size: 0.95em;
+  padding-inline: 0.3em;
+  padding-block: 0.1em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-right: var(--background) 3px solid;
+}
+
+.second-header button:first-child {
+  border-inline: var(--background) 3px solid;
+}
+
+.explorer-header,
+.preview-header {
+  display: flex;
+  font-size: 1.07em;
+  padding-inline: 0.5em;
+  padding-block: 0.25em;
+  height: 1em;
+  background-color: var(--light1-background);
+  border-block: var(--background) 3px solid;
+}
+
+button {
+  font-size: 1em;
+  font-family: WorkSans;
+  text-align: start;
+  padding: 0;
+  border: none;
+  background-color: #00000000;
+}
+
+button:disabled {
+  background-color: #00000022;
+}
+
+button:enabled:hover {
+  background-color: var(--hover);
+}
+
+button:disabled:hover {
+  background-color: var(--hover-weak);
+}
+
+select {
+  font-size: 1em;
+  font-family: WorkSans;
+  border: none;
+  background-color: var(--light2-background);
+}
+
+select:hover {
+  background-color: var(--light1-background);
+}
+
+select option {
+  background-color: var(--light2-background);
+}

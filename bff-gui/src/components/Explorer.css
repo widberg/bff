@@ -1,0 +1,33 @@
+.explorer {
+  width: 40%;
+  resize: horizontal;
+}
+
+.bffobject-list {
+  height: calc(100vh - 4.79em);
+  padding-top: 1.4em;
+  overflow-y: scroll;
+}
+
+.bffobject {
+  white-space: nowrap;
+  width: 100%;
+  padding-left: 1em;
+}
+
+.bffobject:focus {
+  background-color: var(--hover);
+}
+
+.bffobject-unimpl {
+  color: var(--error);
+}
+
+.explorer-sort {
+  width: calc(40% - 0.95rem);
+}
+
+.explorer-sort-arrow {
+  text-align: right;
+  font-size: 0.8em;
+}
