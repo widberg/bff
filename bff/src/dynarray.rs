@@ -32,3 +32,24 @@ where
     #[serde(skip)]
     _phantom: PhantomData<SizeType>,
 }
+
+impl<InnerType: BinRead + BinWrite + 'static, SizeType: BinRead + BinWrite> From<Vec<InnerType>>
+    for DynArray<InnerType, SizeType>
+where
+    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <SizeType as BinRead>::Args<'a>: Default,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+
+    for<'a> InnerType: BinWrite<Args<'a> = ()>,
+    for<'a> SizeType: BinWrite<Args<'a> = ()>,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
+    fn from(value: Vec<InnerType>) -> Self {
+        Self {
+            inner: value,
+            _phantom: PhantomData,
+        }
+    }
+}

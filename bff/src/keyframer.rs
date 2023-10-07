@@ -4,6 +4,7 @@ use binrw::{binread, BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::dynarray::DynArray;
+use crate::helpers::calculate_padding;
 use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
 use crate::names::Name;
 use crate::Endian;
@@ -27,7 +28,7 @@ where
     tangent_out: T,
     #[br(temp, try_calc = s.stream_position())]
     end: u64,
-    #[br(temp, pad_after = (end - begin) % 4)]
+    #[br(temp, pad_after = calculate_padding((end - begin) as usize, 4))]
     _padding: (),
 }
 
@@ -57,7 +58,11 @@ where
 
         let end = writer.stream_position()?;
 
-        vec![0xffu8; ((end - begin) % 4) as usize].write_options(writer, endian, <_>::default())?;
+        vec![0xffu8; calculate_padding((end - begin) as usize, 4)].write_options(
+            writer,
+            endian,
+            <_>::default(),
+        )?;
         Ok(())
     }
 }
@@ -77,7 +82,7 @@ where
     value: T,
     #[br(temp, try_calc = s.stream_position())]
     end: u64,
-    #[br(temp, pad_after = (end - begin) % 4)]
+    #[br(temp, pad_after = calculate_padding((end - begin) as usize, 4))]
     _padding: (),
 }
 
@@ -105,7 +110,11 @@ where
 
         let end = writer.stream_position()?;
 
-        vec![0xffu8; ((end - begin) % 4) as usize].write_options(writer, endian, <_>::default())?;
+        vec![0xffu8; calculate_padding((end - begin) as usize, 4)].write_options(
+            writer,
+            endian,
+            <_>::default(),
+        )?;
         Ok(())
     }
 }

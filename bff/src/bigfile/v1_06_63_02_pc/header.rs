@@ -38,6 +38,7 @@ pub struct Header {
     #[brw(seek_before = SeekFrom::Start(0x720))]
     pub pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
+    #[bw(map = |pool_offset: &Option<u32>| pool_offset.map(|pool_offset| pool_offset / 2048).unwrap_or(0))]
     pub pool_offset: Option<u32>,
     #[br(map = |pool_manifest_unused: u32| if pool_manifest_unused != u32::MAX { Some(pool_manifest_unused) } else { None })]
     pub pool_manifest_unused: Option<u32>,

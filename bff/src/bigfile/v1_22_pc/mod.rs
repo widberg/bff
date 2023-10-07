@@ -9,6 +9,7 @@ use crate::bigfile::resource::ResourceData;
 use crate::bigfile::resource::ResourceData::Data;
 use crate::bigfile::BigFile;
 use crate::dynarray::DynArray;
+use crate::helpers::write_align_to;
 use crate::names::Name;
 use crate::platforms::Platform;
 use crate::traits::{BigFileRead, BigFileWrite};
@@ -194,11 +195,7 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
                 };
             }
 
-            let block_end = writer.stream_position()?;
-            let unpadded_block_size = block_end - block_begin;
-
-            let padding = vec![0xCD; 0x20000 - (unpadded_block_size % 0x20000) as usize];
-            writer.write_all(&padding)?;
+            write_align_to(writer, 0x20000, 0xCD)?;
 
             let padding_end = writer.stream_position()?;
             block_size = max(block_size, (padding_end - block_begin) as u32);

@@ -4,6 +4,7 @@ pub mod crc32;
 pub mod crc64;
 pub mod dynarray;
 pub mod error;
+pub mod helpers;
 pub mod keyframer;
 pub mod link_header;
 pub mod lz;

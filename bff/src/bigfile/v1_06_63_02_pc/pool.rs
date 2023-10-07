@@ -5,44 +5,39 @@ use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::object::PoolObject;
 use crate::dynarray::DynArray;
+use crate::helpers::{calculate_padding, calculated_padded};
 use crate::names::Name;
 
-#[derive(BinRead, Serialize, Debug, BinWrite)]
+#[binrw]
+#[derive(Serialize, Debug, Default)]
 pub struct ReferenceRecord {
-    start_chunk_index: u32,
-    end_chunk_index: u32,
+    pub start_chunk_index: u32,
+    pub end_chunk_index: u32,
     pub objects_name_starting_index: u32,
     #[serde(skip)]
-    placeholder_bigfile_index: u16,
+    #[br(temp)]
+    #[bw(calc = 0)]
+    _placeholder_bigfile_index: u16,
     pub objects_name_count: u16,
     #[serde(skip)]
-    placeholder_times_referenced: u32,
+    #[br(temp)]
+    #[bw(calc = 0xFFFFFFFF)]
+    _placeholder_times_referenced: u32,
     #[serde(skip)]
-    placeholder_current_references_shared: u32,
+    #[br(temp)]
+    #[bw(calc = 0xFFFFFFFF)]
+    _placeholder_current_references_shared: u32,
     #[serde(skip)]
-    placeholder_current_references_weak: u32,
-}
-
-impl Default for ReferenceRecord {
-    fn default() -> Self {
-        Self {
-            start_chunk_index: 0,
-            end_chunk_index: 0,
-            objects_name_starting_index: 0,
-            placeholder_bigfile_index: 0,
-            objects_name_count: 0,
-            placeholder_times_referenced: 0xFFFFFFFF,
-            placeholder_current_references_shared: 0xFFFFFFFF,
-            placeholder_current_references_weak: 0xFFFFFFFF,
-        }
-    }
+    #[br(temp)]
+    #[bw(calc = 0xFFFFFFFF)]
+    _placeholder_current_references_weak: u32,
 }
 
 #[derive(BinRead, Serialize, Debug, BinWrite)]
 pub struct ObjectDescription {
     pub name: Name,
-    reference_count: u32,
-    padded_size: u32,
+    pub reference_count: u32,
+    pub padded_size: u32,
     pub reference_records_index: u32,
 }
 
@@ -52,6 +47,29 @@ pub struct ObjectDescriptionSOA {
     reference_counts: DynArray<u32>,
     padded_sizes: DynArray<u32>,
     reference_records_indices: DynArray<u32>,
+}
+
+fn unzip_object_description_soa(
+    object_descriptions: &Vec<ObjectDescription>,
+) -> ObjectDescriptionSOA {
+    let mut names = Vec::new();
+    let mut reference_counts = Vec::new();
+    let mut padded_sizes = Vec::new();
+    let mut reference_records_indices = Vec::new();
+
+    for object_description in object_descriptions {
+        names.push(object_description.name);
+        reference_counts.push(object_description.reference_count);
+        padded_sizes.push(object_description.padded_size);
+        reference_records_indices.push(object_description.reference_records_index);
+    }
+
+    ObjectDescriptionSOA {
+        names: names.into(),
+        reference_counts: reference_counts.into(),
+        padded_sizes: padded_sizes.into(),
+        reference_records_indices: reference_records_indices.into(),
+    }
 }
 
 fn zip_object_description_soa(
@@ -99,12 +117,30 @@ pub struct PoolHeader {
     pub objects_names_count_sum: u32,
     pub object_descriptions_indices: DynArray<u32>,
     #[br(map = zip_object_description_soa)]
+    #[bw(map = unzip_object_description_soa)]
     pub object_descriptions: Vec<ObjectDescription>,
     pub reference_records: DynArray<ReferenceRecord>,
     #[brw(align_after = 2048)]
     #[serde(skip)]
     #[bw(calc = <_>::default())]
     _reference_records_sentinel: ReferenceRecord,
+}
+
+pub fn calculate_padded_pool_header_size(
+    object_descriptions_indices_size: usize,
+    object_descriptions_size: usize,
+    reference_records_size: usize,
+) -> usize {
+    let size = 4
+        + 4
+        + 4
+        + 4
+        + object_descriptions_indices_size * 4
+        + 4 * 4
+        + object_descriptions_size * 4
+        + 4
+        + (reference_records_size + 1) * (4 + 4 + 4 + 2 + 2 + 4 + 4 + 4);
+    calculated_padded(size, 2048)
 }
 
 #[derive(BinRead, Serialize, Debug, BinWrite)]

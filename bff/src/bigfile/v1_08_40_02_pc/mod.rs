@@ -15,6 +15,7 @@ use crate::bigfile::resource::ResourceData::CompressibleData;
 use crate::bigfile::resource::{Resource, ResourceData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::BigFile;
+use crate::helpers::write_align_to;
 use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::Name;
 use crate::platforms::Platform;
@@ -180,9 +181,8 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
 
             let block_end = writer.stream_position()?;
             let data_size = (block_end - block_begin) as u32;
-            let padding = vec![0x00; (2048 - (data_size % 2048)) as usize];
-            writer.write_all(&padding)?;
-            let padded_size = data_size + padding.len() as u32;
+            let padding = write_align_to(writer, 2048, 0x00)?;
+            let padded_size = data_size + padding as u32;
 
             let working_buffer_offset = block.offset.unwrap_or(0);
 
