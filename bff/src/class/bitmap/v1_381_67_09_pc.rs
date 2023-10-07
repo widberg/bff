@@ -41,8 +41,7 @@ enum BmTransp {
 pub struct LinkHeader {
     link_name: Name,
     bitmap_class: BitmapClass,
-    width: u32,
-    height: u32,
+    pub size: (u32, u32),
     bitmap_data_size: u32,
     flags: u8,
     bitmap_type: u8,
@@ -60,7 +59,7 @@ pub struct LinkHeader {
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 pub type BitmapV1_381_67_09PC = TrivialClass<LinkHeader, BitmapBodyV1_381_67_09PC>;

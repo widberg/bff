@@ -7,7 +7,7 @@ use crate::class::trivial_class::TrivialClass;
 #[derive(Debug, Serialize, BinWrite, Deserialize)]
 #[br(import(_link_header: &()))]
 pub struct BitmapBodyV1_291_03_06PC {
-    size: (u32, u32),
+    pub size: (u32, u32),
     #[br(temp)]
     precalculated_size: u32,
     flag: u16,
@@ -16,7 +16,7 @@ pub struct BitmapBodyV1_291_03_06PC {
     unknown: u8,
     #[br(count = precalculated_size)]
     #[serde(skip_serializing)]
-    _data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 pub type BitmapV1_291_03_06PC = TrivialClass<(), BitmapBodyV1_291_03_06PC>;

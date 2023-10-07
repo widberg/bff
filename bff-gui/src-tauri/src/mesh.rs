@@ -172,13 +172,13 @@ impl Export for Box<Mesh> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh
-                    .body()
-                    .mesh_buffer()
-                    .vertex_buffers()
+                    .body
+                    .mesh_buffer
+                    .vertex_buffers
                     .iter()
                     .map(|buf| {
                         let (positions, normals): (Vec<&[f32; 3]>, Vec<&[u8; 3]>) = buf
-                            .vertex_structs()
+                            .vertex_structs
                             .iter()
                             .map(|vstr| match vstr {
                                 v1_291_03_06_pc::VertexStruct::VertexStruct24 {
@@ -217,12 +217,12 @@ impl Export for Box<Mesh> {
                     })
                     .collect();
                 let indices: Vec<i16> = mesh
-                    .body()
-                    .mesh_buffer()
-                    .index_buffers()
+                    .body
+                    .mesh_buffer
+                    .index_buffers
                     .iter()
-                    .flat_map(|i| i.tris())
-                    .flat_map(|tri| tri.indices().iter().rev().map(|i| *i).collect::<Vec<i16>>())
+                    .flat_map(|i| i.tris)
+                    .flat_map(|tri| tri.indices.iter().rev().map(|i| *i).collect::<Vec<i16>>())
                     .collect();
                 let geometries: Vec<ColladaGeometry> = buffers
                     .iter()
@@ -282,16 +282,15 @@ impl Export for Box<Mesh> {
                                     },
                                 },
                                 triangles: mesh
-                                    .body()
-                                    .mesh_buffer()
-                                    .vertex_groups()
+                                    .body
+                                    .mesh_buffer
+                                    .vertex_groups
                                     .iter()
                                     .map(|group| {
-                                        let offset_indices = &indices[*group
-                                            .index_buffer_offset_in_shorts()
-                                            as usize
-                                            ..*group.index_buffer_offset_in_shorts() as usize
-                                                + *group.face_count() as usize * 3];
+                                        let offset_indices =
+                                            &indices[group.index_buffer_offset_in_shorts as usize
+                                                ..group.index_buffer_offset_in_shorts as usize
+                                                    + group.face_count as usize * 3];
                                         ColladaTriangles {
                                             count: offset_indices.len() / 3,
                                             material: None,
@@ -362,7 +361,7 @@ impl Export for Box<Mesh> {
                 let mut writer = Writer::new_with_indent(&mut buffer, b' ', 2);
                 writer.write_serializable("COLLADA", &collada)?;
                 File::create(&export_path)?.write_all(&buffer)?;
-                Ok(serde_json::to_string_pretty(mesh.link_header())?)
+                Ok(serde_json::to_string_pretty(&mesh.link_header)?)
             }
             _ => Err(GuiError::Simple(SimpleError(
                 "Unimplemented class".to_string(),

@@ -28,7 +28,7 @@ pub enum GuiError {
     #[error(transparent)]
     De(#[from] quick_xml::DeError),
     #[error(transparent)]
-    InvalidVersion(#[from] bff::error::InvalidVersionError),
+    UnimplementedVersionPlatform(#[from] bff::error::UnimplementedVersionPlatformError),
     #[error(transparent)]
     AnsiToHtml(#[from] ansi_to_html::Error),
     #[error(transparent)]
