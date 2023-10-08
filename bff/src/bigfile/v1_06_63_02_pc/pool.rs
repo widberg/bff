@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::object::PoolObject;
 use crate::dynarray::DynArray;
-use crate::helpers::{calculate_padding, calculated_padded};
+use crate::helpers::calculated_padded;
 use crate::names::Name;
 
 #[binrw]

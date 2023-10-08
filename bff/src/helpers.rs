@@ -1,6 +1,6 @@
 use std::io::{Seek, Write};
 
-use binrw::{writer, BinResult};
+use binrw::BinResult;
 
 pub fn calculate_padding(position: usize, alignment: usize) -> usize {
     let remainder = position % alignment;

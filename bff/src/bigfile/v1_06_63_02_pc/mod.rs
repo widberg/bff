@@ -23,7 +23,7 @@ use crate::bigfile::v1_06_63_02_pc::pool::{
     ReferenceRecord,
 };
 use crate::bigfile::BigFile;
-use crate::helpers::{calculate_padding, calculated_padded, write_align_to};
+use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::Name;
 use crate::platforms::Platform;
@@ -101,7 +101,7 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
             ExtendedData { body, compress, .. } => {
                 *body = pool_object.object.body;
                 *compress = pool_object.object.compress;
-            },
+            }
             _ => unreachable!(),
         }
     }
@@ -457,7 +457,10 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
             is_rtc: bigfile.manifest.rtc.unwrap_or(false),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
-            padded_size: block_descriptions.iter().map(|x| x.padded_size).sum::<u32>(),
+            padded_size: block_descriptions
+                .iter()
+                .map(|x| x.padded_size)
+                .sum::<u32>(),
             version_triple: bigfile
                 .manifest
                 .version_triple
