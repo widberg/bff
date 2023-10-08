@@ -1,4 +1,5 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::ffi::OsString;
 use std::io::{Read, Seek, Write};
 
 use crate::bigfile::BigFile;
@@ -57,6 +58,23 @@ pub trait BigFileRead {
 
 pub trait BigFileWrite {
     fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()>;
+}
+
+pub enum Artifact {
+    Binary(Vec<u8>),
+    Text(String),
+    Json(String),
+}
+
+pub trait Export {
+    fn export(&self) -> BffResult<HashMap<OsString, Artifact>>;
+}
+
+pub trait Import
+where
+    Self: Sized,
+{
+    fn import(artifacts: &HashMap<OsString, Artifact>) -> BffResult<Self>;
 }
 
 pub trait ReferencedNames {
