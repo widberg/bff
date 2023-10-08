@@ -1,9 +1,9 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use bff::names::Name;
 
 use crate::error::BffGuiResult;
 
 pub trait Export {
-    fn export(&self, export_path: &PathBuf, name: Name) -> BffGuiResult<String>;
+    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<String>;
 }

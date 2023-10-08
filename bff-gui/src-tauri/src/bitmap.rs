@@ -1,13 +1,14 @@
 use std::io::{BufReader, Cursor};
-use std::path::PathBuf;
+use std::path::Path;
 
 use bff::class::bitmap::Bitmap;
 use bff::names::Name;
 
-use crate::{error::BffGuiResult, traits::Export};
+use crate::error::BffGuiResult;
+use crate::traits::Export;
 
 impl Export for Box<Bitmap> {
-    fn export(&self, export_path: &PathBuf, _name: Name) -> BffGuiResult<String> {
+    fn export(&self, export_path: &Path, _name: Name) -> BffGuiResult<String> {
         match **self {
             Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(&bitmap.body.data));
@@ -40,9 +41,7 @@ impl Export for Box<Bitmap> {
                                     .as_ref()
                                     .unwrap()
                                     .chunks(3)
-                                    .flat_map(|rgb| {
-                                        rgb.iter().rev().map(|i| *i).collect::<Vec<u8>>()
-                                    })
+                                    .flat_map(|rgb| rgb.iter().rev().copied().collect::<Vec<u8>>())
                                     .collect();
                                 image::RgbaImage::from_raw(
                                     bitmap.body.size.0,
@@ -61,7 +60,7 @@ impl Export for Box<Bitmap> {
                                     .flat_map(|rgba| {
                                         let rgb = &rgba[..3];
                                         let mut rev_rgba =
-                                            rgb.iter().rev().map(|i| *i).collect::<Vec<u8>>();
+                                            rgb.iter().rev().copied().collect::<Vec<u8>>();
                                         rev_rgba.push(*rgba.last().unwrap());
                                         rev_rgba
                                     })

@@ -195,8 +195,10 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
                     block_working_buffer_capacity,
                 );
             } else {
-                block_working_buffer_capacity_odd =
-                    max(block_working_buffer_capacity_odd, block_working_buffer_capacity);
+                block_working_buffer_capacity_odd = max(
+                    block_working_buffer_capacity_odd,
+                    block_working_buffer_capacity,
+                );
             }
 
             block_descriptions.push(BlockDescription {
@@ -221,7 +223,10 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
             padded_size: end as u32 - 2048,
-            version_triple: bigfile.manifest.version_triple.unwrap_or(VersionTriple::default()),
+            version_triple: bigfile
+                .manifest
+                .version_triple
+                .unwrap_or(VersionTriple::default()),
             block_descriptions,
         };
         header.write_options(writer, endian, ())?;

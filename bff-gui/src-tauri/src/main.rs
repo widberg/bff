@@ -7,18 +7,16 @@ use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use bff::bigfile::BigFile;
 use bff::bigfile::resource::Resource;
+use bff::bigfile::BigFile;
 use bff::class::user_define::UserDefine;
 use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
-
 use error::{BffGuiResult, InternalError, SimpleError};
-use traits::Export;
-
 use serde::Serialize;
+use traits::Export;
 
 mod bitmap;
 mod error;
@@ -35,11 +33,7 @@ pub struct ResourcePreview {
 
 impl std::fmt::Display for ResourcePreview {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.preview_data
-        )
+        write!(f, "{}", self.preview_data)
     }
 }
 
@@ -213,7 +207,7 @@ fn export_one_object(
 }
 
 fn write_class(path: &PathBuf, class: &Class) -> Result<(), InternalError> {
-    File::create(path)?.write(serde_json::to_string_pretty(&class)?.as_bytes())?;
+    File::create(path)?.write_all(serde_json::to_string_pretty(&class)?.as_bytes())?;
     Ok(())
 }
 
@@ -225,7 +219,14 @@ fn export_preview(
 ) -> Result<(), InternalError> {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
-    let preview_object: &ResourcePreview = state.resource_previews.get(&name).ok_or(SimpleError(format!("preview for resource {} not found", name)))?;
+    let preview_object: &ResourcePreview =
+        state
+            .resource_previews
+            .get(&name)
+            .ok_or(SimpleError(format!(
+                "preview for resource {} not found",
+                name
+            )))?;
     std::fs::copy(preview_object.preview_path.as_ref().unwrap(), path)?;
     Ok(())
 }

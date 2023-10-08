@@ -1,15 +1,13 @@
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
-
-use quick_xml::writer::Writer;
-use serde::Serialize;
+use std::path::Path;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
 use bff::names::Name;
+use quick_xml::writer::Writer;
+use serde::Serialize;
 
-use crate::error::InternalError;
-use crate::error::{BffGuiResult, SimpleError};
+use crate::error::{BffGuiResult, InternalError, SimpleError};
 use crate::traits::Export;
 
 #[derive(Serialize)]
@@ -170,7 +168,7 @@ struct SimpleMesh {
 }
 
 impl Export for Box<Mesh> {
-    fn export(&self, export_path: &PathBuf, name: Name) -> BffGuiResult<String> {
+    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<String> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh
@@ -224,7 +222,7 @@ impl Export for Box<Mesh> {
                     .index_buffers
                     .iter()
                     .flat_map(|i| &i.tris)
-                    .flat_map(|tri| tri.indices.iter().rev().map(|i| *i).collect::<Vec<i16>>())
+                    .flat_map(|tri| tri.indices.iter().rev().copied().collect::<Vec<i16>>())
                     .collect();
                 let geometries: Vec<ColladaGeometry> = buffers
                     .iter()
@@ -304,19 +302,13 @@ impl Export for Box<Mesh> {
                                             .enumerate()
                                             .map(|(i, p)| ColladaInput {
                                                 semantic: p.0.to_string(),
-                                                source: format!(
-                                                    "#{}-{}",
-                                                    geometry_id,
-                                                    p.1.to_string()
-                                                ),
+                                                source: format!("#{}-{}", geometry_id, p.1),
                                                 offset: Some(i),
                                             })
                                             .collect(),
                                             p: offset_indices
                                                 .iter()
-                                                .map(|i| {
-                                                    format!("{} {}", i.to_string(), i.to_string())
-                                                })
+                                                .map(|i| format!("{} {}", i, i))
                                                 .collect::<Vec<String>>()
                                                 .join(" "),
                                         }
@@ -339,7 +331,7 @@ impl Export for Box<Mesh> {
                     library_visual_scenes: ColladaLibraryVisualScenes {
                         visual_scene: vec![ColladaVisualScene {
                             id: "scene".to_string(),
-                            node: (&geometries)
+                            node: geometries
                                 .iter()
                                 .map(|g| ColladaNode {
                                     instance_geometry: ColladaInstanceGeometry {
@@ -362,7 +354,7 @@ impl Export for Box<Mesh> {
                 let mut buffer = Vec::new();
                 let mut writer = Writer::new_with_indent(&mut buffer, b' ', 2);
                 writer.write_serializable("COLLADA", &collada)?;
-                File::create(&export_path)?.write_all(&buffer)?;
+                File::create(export_path)?.write_all(&buffer)?;
                 Ok(serde_json::to_string_pretty(&mesh.link_header)?)
             }
             _ => Err(InternalError::Simple(SimpleError(

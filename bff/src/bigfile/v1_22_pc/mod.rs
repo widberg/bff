@@ -214,7 +214,11 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
         let end = writer.stream_position()?;
         writer.seek(SeekFrom::Start(begin))?;
         block_size.write_options(writer, endian, ())?;
-        bigfile.manifest.version_triple.unwrap_or(VersionTriple::default()).write_options(writer, endian, ())?;
+        bigfile
+            .manifest
+            .version_triple
+            .unwrap_or(VersionTriple::default())
+            .write_options(writer, endian, ())?;
         writer.seek(SeekFrom::Start(end))?;
 
         Ok(())
