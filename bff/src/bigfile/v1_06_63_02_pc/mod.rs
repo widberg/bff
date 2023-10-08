@@ -98,7 +98,10 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
     for pool_object in pool.objects.into_iter() {
         let name = pool_object.object.name;
         match &mut objects.get_mut(&name).unwrap().data {
-            ExtendedData { ref mut body, .. } => *body = pool_object.object.body,
+            ExtendedData { body, compress, .. } => {
+                *body = pool_object.object.body;
+                *compress = pool_object.object.compress;
+            },
             _ => unreachable!(),
         }
     }
@@ -382,7 +385,7 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
                         .iter()
                         .filter(|y| pool.object_entries.get(**y as usize).unwrap().name == x.name)
                         .count() as u32,
-                    padded_size: object_padded_sizes.get(&x.name).unwrap() / 2048,
+                    padded_size: *object_padded_sizes.get(&x.name).unwrap(),
                     reference_records_index: x.reference_record_index,
                 })
                 .collect::<Vec<_>>();

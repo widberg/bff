@@ -120,7 +120,7 @@ pub struct PoolHeader {
     #[bw(map = unzip_object_description_soa)]
     pub object_descriptions: Vec<ObjectDescription>,
     pub reference_records: DynArray<ReferenceRecord>,
-    #[brw(align_after = 2048)]
+    #[br(align_after = 2048)]
     #[serde(skip)]
     #[bw(calc = <_>::default())]
     _reference_records_sentinel: ReferenceRecord,
@@ -131,13 +131,19 @@ pub fn calculate_padded_pool_header_size(
     object_descriptions_size: usize,
     reference_records_size: usize,
 ) -> usize {
-    let size = 4
+    let size =
+        // equals524288
+        4
+        // equals2048
         + 4
+        // objectsCRC32CountSum
         + 4
+        // objectsCRC32s
         + 4
         + object_descriptions_indices_size * 4
-        + 4 * 4
-        + object_descriptions_size * 4
+        // crc32s, referenceCounts, paddedSizes, referenceRecordsIndices
+        + 4 * (4 + object_descriptions_size * 4)
+        // referenceRecords
         + 4
         + (reference_records_size + 1) * (4 + 4 + 4 + 2 + 2 + 4 + 4 + 4);
     calculated_padded(size, 2048)
