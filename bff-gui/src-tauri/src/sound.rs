@@ -1,12 +1,13 @@
 use std::path::PathBuf;
 
 use bff::class::sound::Sound;
+use bff::names::Name;
 
-use crate::error::GuiError;
+use crate::error::BffGuiResult;
 use crate::traits::Export;
 
 impl Export for Box<Sound> {
-    fn export(&self, export_path: &PathBuf, _name: u32) -> Result<String, GuiError> {
+    fn export(&self, export_path: &PathBuf, _name: Name) -> BffGuiResult<String> {
         match **self {
             Sound::SoundV1_291_03_06PC(ref sound) => {
                 let spec = hound::WavSpec {

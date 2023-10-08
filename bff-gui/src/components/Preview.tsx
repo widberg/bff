@@ -2,7 +2,7 @@ import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
 import { Canvas, useLoader } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Grid } from "@react-three/drei";
 import {
   DoubleSide,
   FrontSide,
@@ -16,7 +16,7 @@ import parse from "html-react-parser";
 
 import "./preview.css";
 
-import { MeshMaterial, PreviewObject, PreviewTab } from "../types/types";
+import { MeshMaterial, ResourcePreview, PreviewTab } from "../types/types";
 import { IMAGE_EXT, MESH_EXT, SOUND_EXT } from "../constants/constants";
 
 function PreviewInner({ previewPath }: { previewPath: string }) {
@@ -93,7 +93,7 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
             <option value="wireframe">Wireframe</option>
           </select>
           <div>
-            <label htmlFor="sided">Double sided</label>
+            <label htmlFor="sided">No culling</label>
             <input
               type="checkbox"
               id="sided"
@@ -110,6 +110,7 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
           <ambientLight intensity={0.1} />
           <directionalLight color="white" position={[10, 10, 10]} />
           <directionalLight color="white" position={[-10, -10, -10]} />
+          <Grid infiniteGrid={true} fadeDistance={10} cellColor="#444444" sectionColor="#888888"/>
           <group>
             <primitive object={scene} children-0-material={material.material} />
           </group>
@@ -126,15 +127,15 @@ function PreviewContainer({
   previewObject,
 }: {
   openTab: number;
-  previewObject: PreviewObject;
+  previewObject: ResourcePreview;
 }) {
-  if (openTab == 0)
+  if (openTab == PreviewTab.Data)
     return (
       <div className="preview-data preview-text">
         <p>{previewObject.preview_data}</p>
       </div>
     );
-  if (openTab == 1) {
+  if (openTab == PreviewTab.Preview) {
     if (previewObject.preview_path !== null)
       return (
         <PreviewInner
@@ -142,10 +143,11 @@ function PreviewContainer({
         />
       );
   }
-  if (openTab == 2) {
-    if (previewObject.error)
-      return <p className="preview-text">{parse(previewObject.error)}</p>;
-  }
+  // if (openTab == PreviewTab.Error) {
+  //   if (previewObject.error)
+  //     return <p className="preview-text">{parse(previewObject.error)}</p>;
+  // }
+  return <></>;
 }
 
 export function Preview({
@@ -153,7 +155,7 @@ export function Preview({
   openPreviewTab,
   setOpenPreviewTab,
 }: {
-  previewObject: PreviewObject | null;
+  previewObject: ResourcePreview | null;
   openPreviewTab: PreviewTab;
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
@@ -187,13 +189,13 @@ export function Preview({
           >
             Preview
           </button>
-          <button
-            onClick={() => setOpenPreviewTab(PreviewTab.Error)}
-            disabled={previewObject === null || previewObject?.error === null}
-            className={openPreviewTab == PreviewTab.Error ? "selected-tab" : ""}
-          >
-            Error
-          </button>
+          {/*<button*/}
+          {/*  onClick={() => setOpenPreviewTab(PreviewTab.Error)}*/}
+          {/*  disabled={previewObject === null || previewObject?.error === null}*/}
+          {/*  className={openPreviewTab == PreviewTab.Error ? "selected-tab" : ""}*/}
+          {/*>*/}
+          {/*  Error*/}
+          {/*</button>*/}
         </span>
       </div>
       {previewObject !== null && (

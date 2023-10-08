@@ -10,7 +10,7 @@ impl std::fmt::Display for SimpleError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum GuiError {
+pub enum InternalError {
     #[error(transparent)]
     Dds(#[from] ddsfile::Error),
     #[error(transparent)]
@@ -35,7 +35,7 @@ pub enum GuiError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl serde::Serialize for GuiError {
+impl serde::Serialize for InternalError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -43,3 +43,5 @@ impl serde::Serialize for GuiError {
         serializer.serialize_str(&ansi_to_html::convert_escaped(self.to_string().as_ref()).unwrap())
     }
 }
+
+pub type BffGuiResult<T> = Result<T, InternalError>;

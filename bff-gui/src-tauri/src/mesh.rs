@@ -6,8 +6,10 @@ use quick_xml::writer::Writer;
 use serde::Serialize;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
+use bff::names::Name;
 
-use crate::error::{GuiError, SimpleError};
+use crate::error::InternalError;
+use crate::error::{BffGuiResult, SimpleError};
 use crate::traits::Export;
 
 #[derive(Serialize)]
@@ -168,7 +170,7 @@ struct SimpleMesh {
 }
 
 impl Export for Box<Mesh> {
-    fn export(&self, export_path: &PathBuf, name: u32) -> Result<String, GuiError> {
+    fn export(&self, export_path: &PathBuf, name: Name) -> BffGuiResult<String> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh
@@ -221,7 +223,7 @@ impl Export for Box<Mesh> {
                     .mesh_buffer
                     .index_buffers
                     .iter()
-                    .flat_map(|i| i.tris)
+                    .flat_map(|i| &i.tris)
                     .flat_map(|tri| tri.indices.iter().rev().map(|i| *i).collect::<Vec<i16>>())
                     .collect();
                 let geometries: Vec<ColladaGeometry> = buffers
@@ -363,7 +365,7 @@ impl Export for Box<Mesh> {
                 File::create(&export_path)?.write_all(&buffer)?;
                 Ok(serde_json::to_string_pretty(&mesh.link_header)?)
             }
-            _ => Err(GuiError::Simple(SimpleError(
+            _ => Err(InternalError::Simple(SimpleError(
                 "Unimplemented class".to_string(),
             ))),
         }

@@ -4,14 +4,14 @@ import { Preview } from "./components/Preview";
 import { Explorer } from "./components/Explorer";
 import { Menubar } from "./components/Menubar";
 
-import { BigFileData, PreviewObject, PreviewTab } from "./types/types";
+import { BigFileData, ResourcePreview, PreviewTab } from "./types/types";
 
 function App() {
   const [bigfile, setBigfile] = useState<BigFileData>({
-    name: "",
-    objects: [],
+    filename: "",
+    resource_infos: [],
   });
-  const [previewObject, setPreviewObject] = useState<PreviewObject | null>(
+  const [previewObject, setPreviewObject] = useState<ResourcePreview | null>(
     null
   );
   const [openPreviewTab, setOpenPreviewTab] = useState<PreviewTab>(
@@ -21,7 +21,7 @@ function App() {
   return (
     <div className="container">
       <Menubar
-        bigfileLoaded={bigfile.name !== ""}
+        bigfileLoaded={bigfile.filename !== ""}
         previewObject={previewObject}
         setPreviewObject={setPreviewObject}
         setBigfile={setBigfile}

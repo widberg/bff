@@ -1,35 +1,34 @@
 import { useState } from "react";
 import {
-  BFFObject,
   BigFileData,
-  PreviewObject,
-  PreviewTab,
+  ResourcePreview,
+  PreviewTab, ResourceInfo,
   Sort,
 } from "../types/types";
 
 import "./Explorer.css";
 import { updatePreview } from "../functions/preview";
 
-function BFFObjectButton({
+function ResourceButton({
   bffObjectName = "",
   implemented = true,
   name = 0,
-  onClick,
+  // onClick,
   setPreviewObject,
   setOpenPreviewTab,
 }: {
   bffObjectName: string;
   implemented: boolean;
   name: number;
-  onClick: any;
-  setPreviewObject: React.Dispatch<React.SetStateAction<PreviewObject | null>>;
+  // onClick: any;
+  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
   return (
     <button
       className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
       onClick={() => {
-        onClick(name, setPreviewObject, setOpenPreviewTab);
+        updatePreview(name, setPreviewObject, setOpenPreviewTab);
       }}
     >
       {bffObjectName}
@@ -38,44 +37,45 @@ function BFFObjectButton({
 }
 
 function ObjectList({
-  bffObjects,
-  onClick,
+  resources,
+  // onClick,
   sort,
   sortBackward,
   setPreviewObject,
   setOpenPreviewTab,
 }: {
-  bffObjects: BFFObject[];
-  onClick: any;
+  resources: ResourceInfo[];
+  // onClick: any;
   sort: number;
   sortBackward: boolean;
-  setPreviewObject: React.Dispatch<React.SetStateAction<PreviewObject | null>>;
+  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
-  let objectsCopy = [...bffObjects];
+  let objectsCopy = [...resources];
   if (sort != Sort.Block) objectsCopy.sort((a, b) => a.name - b.name);
   if (sort == Sort.Extension)
     objectsCopy.sort((a, b) => {
-      if (a.real_class_name !== null) {
-        if (b.real_class_name !== null)
-          return (a.real_class_name as string).localeCompare(
-            b.real_class_name as string
+      if (a.class_name !== null) {
+        if (b.class_name !== null)
+          return (a.class_name as string).localeCompare(
+            b.class_name as string
           );
         else return -1;
-      } else if (b.real_class_name !== null) return 1;
+      } else if (b.class_name !== null) return 1;
       else return 0;
     });
   if (sortBackward) objectsCopy.reverse();
 
-  let btns: JSX.Element[] = objectsCopy.map((v: BFFObject, i: number) => (
-    <BFFObjectButton
+  let btns: JSX.Element[] = objectsCopy.map((v: ResourceInfo, i: number) => (
+    <ResourceButton
       key={i}
-      implemented={v.is_implemented}
+      // implemented={v.is_implemented}
+      implemented={true}
       bffObjectName={`${v.name}.${
-        v.real_class_name ? v.real_class_name : "unimplemented"
+        v.class_name ? v.class_name : "unimplemented"
       }`}
       name={v.name}
-      onClick={onClick}
+      // onClick={onClick}
       setPreviewObject={setPreviewObject}
       setOpenPreviewTab={setOpenPreviewTab}
     />
@@ -112,7 +112,7 @@ export function Explorer({
   setOpenPreviewTab,
 }: {
   bigfile: BigFileData;
-  setPreviewObject: React.Dispatch<React.SetStateAction<PreviewObject | null>>;
+  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
   const [sort, setSort] = useState<Sort>(Sort.Block);
@@ -126,13 +126,13 @@ export function Explorer({
   return (
     <div className="explorer">
       <span className="explorer-header">
-        {bigfile.name !== "" ? bigfile.name : "BigFile structure"}
+        {bigfile.filename !== "" ? bigfile.filename : "BigFile structure"}
       </span>
       <span className="explorer-sort second-header">
         <SortButton
           onClick={sortButtonPress}
           id={Sort.Block}
-          name="Block"
+          name="Default"
           sort={sort}
           sortBackward={sortBackward}
         />
@@ -153,8 +153,8 @@ export function Explorer({
       </span>
       <div className="bffobject-list">
         <ObjectList
-          bffObjects={bigfile.objects}
-          onClick={updatePreview}
+          resources={bigfile.resource_infos}
+          // onClick={updatePreview}
           sort={sort}
           sortBackward={sortBackward}
           setPreviewObject={setPreviewObject}

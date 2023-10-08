@@ -1,21 +1,19 @@
 import { Material } from "three";
 
 export interface BigFileData {
-  name: string;
-  objects: BFFObject[];
+  filename: string;
+  resource_infos: ResourceInfo[];
 }
 
-export interface BFFObject {
+export interface ResourceInfo {
   name: number;
-  real_class_name?: string;
-  is_implemented: boolean;
+  class_name: string;
 }
 
-export interface PreviewObject {
+export interface ResourcePreview {
   name: number;
-  preview_data?: string;
+  preview_data: string;
   preview_path?: string;
-  error?: string;
 }
 
 export interface MeshMaterial {

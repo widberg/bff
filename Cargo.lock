@@ -267,6 +267,7 @@ dependencies = [
  "bff",
  "binrw 0.11.2",
  "ddsfile",
+ "derive_more",
  "hound",
  "image",
  "image_dds",

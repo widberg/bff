@@ -1,10 +1,10 @@
 import { message, open } from "@tauri-apps/api/dialog";
 import { BIGFILE_EXTENSIONS } from "../constants/constants";
 import { invoke } from "@tauri-apps/api";
-import { BigFileData, PreviewObject } from "../types/types";
+import { BigFileData, ResourcePreview } from "../types/types";
 
 export async function selectBigfile(
-  setPreviewObject: React.Dispatch<React.SetStateAction<PreviewObject | null>>,
+  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>,
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>
 ) {
   open({
@@ -23,7 +23,7 @@ export async function selectBigfile(
 
 export async function openBigfile(
   path: string,
-  setPreviewObject: React.Dispatch<React.SetStateAction<PreviewObject | null>>,
+  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>,
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>
 ) {
   setPreviewObject(null);
@@ -31,6 +31,7 @@ export async function openBigfile(
     path: path,
   })
     .then((bfData) => {
+      console.log(bfData);
       setBigfile(bfData as BigFileData);
     })
     .catch((e) => message(e, { type: "warning" }));
