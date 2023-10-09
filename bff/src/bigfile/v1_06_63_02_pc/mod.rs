@@ -217,11 +217,12 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
                         resource.name.write_options(writer, endian, ())?;
                         writer.seek(SeekFrom::Start(end_body))?;
 
-                        let needed_working_buffer_offset = if body.len() > (begin_resource - block_begin) as usize {
-                            body.len()
-                        } else {
-                            0
-                        };
+                        let needed_working_buffer_offset =
+                            if body.len() > (begin_resource - block_begin) as usize {
+                                body.len()
+                            } else {
+                                0
+                            };
 
                         calculated_working_buffer_offset = max(
                             needed_working_buffer_offset,
@@ -269,7 +270,9 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
 
             block_sector_padding_size += padding as u32;
 
-            let working_buffer_offset = block.offset.unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
+            let working_buffer_offset = block
+                .offset
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 

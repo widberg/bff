@@ -1,12 +1,13 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+use bff_derive::ReferencedNames;
 use binrw::{binrw, BinRead, BinWrite};
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
 #[binrw]
-#[derive(Debug, Serialize, Deref, DerefMut, Deserialize)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames)]
 #[serde(transparent)]
 #[br(import_raw(inner: <InnerType as BinRead>::Args<'_>))]
 pub struct DynArray<InnerType: BinRead + BinWrite + 'static, SizeType: BinRead + BinWrite = u32>

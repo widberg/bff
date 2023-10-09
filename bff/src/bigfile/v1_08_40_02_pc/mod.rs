@@ -137,11 +137,12 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
                         resource.name.write_options(writer, endian, ())?;
                         writer.seek(SeekFrom::Start(end_data))?;
 
-                        let needed_working_buffer_offset = if data.len() > (begin_resource - block_begin) as usize {
-                            data.len()
-                        } else {
-                            0
-                        };
+                        let needed_working_buffer_offset =
+                            if data.len() > (begin_resource - block_begin) as usize {
+                                data.len()
+                            } else {
+                                0
+                            };
 
                         calculated_working_buffer_offset = max(
                             needed_working_buffer_offset,
@@ -177,11 +178,12 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
                         resource.name.write_options(writer, endian, ())?;
                         writer.seek(SeekFrom::Start(end_data))?;
 
-                        let needed_working_buffer_offset = if data.len() > (begin_resource - block_begin) as usize {
-                            data.len()
-                        } else {
-                            0
-                        };
+                        let needed_working_buffer_offset =
+                            if data.len() > (begin_resource - block_begin) as usize {
+                                data.len()
+                            } else {
+                                0
+                            };
 
                         calculated_working_buffer_offset = max(
                             needed_working_buffer_offset,
@@ -212,7 +214,9 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
             let padding = write_align_to(writer, 2048, 0x00)?;
             let padded_size = data_size + padding as u32;
 
-            let working_buffer_offset = block.offset.unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
+            let working_buffer_offset = block
+                .offset
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 
