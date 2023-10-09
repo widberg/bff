@@ -182,9 +182,12 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
         for (i, block) in bigfile.manifest.blocks.iter().enumerate() {
             let block_begin = writer.stream_position()?;
 
+            let mut calculated_working_buffer_offset = 0usize;
+
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let is_pooled = pooled.contains(&object.name);
+                let begin_resource = writer.stream_position()?;
                 match (&resource.data, is_pooled) {
                     (
                         ExtendedData {
@@ -213,6 +216,17 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
                         writer.seek(SeekFrom::Start(end_body))?;
+
+                        let needed_working_buffer_offset = if body.len() > (begin_resource - block_begin) as usize {
+                            body.len()
+                        } else {
+                            0
+                        };
+
+                        calculated_working_buffer_offset = max(
+                            needed_working_buffer_offset,
+                            calculated_working_buffer_offset,
+                        );
                     }
                     (
                         ExtendedData {
@@ -255,7 +269,7 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
 
             block_sector_padding_size += padding as u32;
 
-            let working_buffer_offset = block.offset.unwrap_or(0);
+            let working_buffer_offset = block.offset.unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 
