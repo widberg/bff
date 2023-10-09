@@ -29,6 +29,10 @@ jobs:
         profile: minimal
         toolchain: stable
 
+    - name: Install GTK3
+      run: sudo apt-get install -y libgtk-3-dev
+      if: matrix.os == 'ubuntu-latest'
+
     - name: Build
       run: cargo build --release --locked
 
