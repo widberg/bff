@@ -30,6 +30,8 @@ jobs:
           profile: minimal
           toolchain: stable
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: setup node
         uses: actions/setup-node@v3
 
@@ -40,11 +42,13 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.bin == 'bff-gui'
 
       - name: Install frontend dependencies
-        run: npm --prefix ./bff-gui install ./bff-gui
+        run: npm install
+        working-directory: ./bff-gui
         if: matrix.bin == 'bff-gui'
 
       - name: Build GUI
-        run: npm run --prefix ./bff-gui tauri build
+        run: npm run tauri build
+        working-directory: ./bff-gui
         if: matrix.bin == 'bff-gui'
 
       - name: Build CLI
