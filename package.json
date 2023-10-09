@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "html-react-parser": "^4.2.0",
-    "react-zoom-pan-pinch": "^3.1.0"
-  }
-}
