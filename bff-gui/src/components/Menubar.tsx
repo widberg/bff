@@ -45,7 +45,7 @@ function ExportMenu({
             setIsComponentVisible(false);
             exportOne(previewObject?.name as number);
           }}
-          disabled={previewObject === null || previewObject?.error !== null}
+          disabled={previewObject === null}
         >
           Export current object as JSON...
         </button>

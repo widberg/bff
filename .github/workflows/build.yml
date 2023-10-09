@@ -9,35 +9,51 @@ jobs:
     strategy:
       matrix:
         name: [linux, windows, macos]
+        bin: [bff-cli, bff-gui]
 
         include:
           - name: linux
             os: ubuntu-latest
-            bff_cli_executable_name: bff-cli
+            executable_name_ext: ""
           - name: windows
             os: windows-latest
-            bff_cli_executable_name: bff-cli.exe
+            executable_name_ext: .exe
           - name: macos
             os: macos-latest
-            bff_cli_executable_name: bff-cli
+            executable_name_ext: ""
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v1
 
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
 
-    - name: Install GTK3
-      run: sudo apt-get install -y libgtk-3-dev libsoup2.4-dev
-      if: matrix.os == 'ubuntu-latest'
+      - name: setup node
+        uses: actions/setup-node@v3
 
-    - name: Build
-      run: cargo build --release --locked
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev librsvg2-dev patchelf
+        if: matrix.os == 'ubuntu-latest' && matrix.bin == 'bff-gui'
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: bff-${{ matrix.name }}-${{ github.sha }}
-        path: ./target/release/${{ matrix.bff_cli_executable_name }}
+      - name: Install frontend dependencies
+        run: npm --prefix ./bff-gui install ./bff-gui
+        if: matrix.bin == 'bff-gui'
+
+      - name: Build GUI
+        run: npm run --prefix ./bff-gui tauri build
+        if: matrix.bin == 'bff-gui'
+
+      - name: Build CLI
+        run: cargo build --release --locked --bin ${{ matrix.bin }}
+        if: matrix.bin == 'bff-cli'
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.bin }}-${{ matrix.name }}-${{ github.sha }}
+          path: |
+            ./target/release/${{ matrix.bin }}${{ matrix.executable_name_ext }}

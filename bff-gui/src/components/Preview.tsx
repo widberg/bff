@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import parse from "html-react-parser";
 
-import "./preview.css";
+import "./Preview.css";
 
 import { MeshMaterial, ResourcePreview, PreviewTab } from "../types/types";
 import { IMAGE_EXT, MESH_EXT, SOUND_EXT } from "../constants/constants";
@@ -110,7 +110,12 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
           <ambientLight intensity={0.1} />
           <directionalLight color="white" position={[10, 10, 10]} />
           <directionalLight color="white" position={[-10, -10, -10]} />
-          <Grid infiniteGrid={true} fadeDistance={10} cellColor="#444444" sectionColor="#888888"/>
+          <Grid
+            infiniteGrid={true}
+            fadeDistance={10}
+            cellColor="#444444"
+            sectionColor="#888888"
+          />
           <group>
             <primitive object={scene} children-0-material={material.material} />
           </group>
