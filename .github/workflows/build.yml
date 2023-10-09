@@ -21,6 +21,9 @@ jobs:
           - name: macos
             os: macos-latest
             executable_name_ext: ""
+        exclude:
+          - name: linux
+            bin: bff-gui
 
     steps:
       - uses: actions/checkout@v1
@@ -32,14 +35,15 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: setup node
+      - name: Setup Node
         uses: actions/setup-node@v3
+        if: matrix.bin == 'bff-gui'
 
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev librsvg2-dev patchelf
-        if: matrix.os == 'ubuntu-latest' && matrix.bin == 'bff-gui'
+      # - name: Install Linux dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev librsvg2-dev patchelf glibc-source
+      #   if: matrix.os == 'ubuntu-latest' && matrix.bin == 'bff-gui'
 
       - name: Install frontend dependencies
         run: npm install
