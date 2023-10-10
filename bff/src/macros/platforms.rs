@@ -4,8 +4,8 @@ macro_rules! extensions_to_platforms {
             type Error = crate::error::Error;
 
             fn try_from(extension: &std::ffi::OsStr) -> Result<Self, Self::Error> {
-                match extension.to_ascii_uppercase().to_str() {
-                    $($(Some($extension) => Ok(Platform::$platform),)*)*
+                match extension {
+                    $($(extension if extension.eq_ignore_ascii_case($extension) => Ok(Platform::$platform),)*)*
                     _ => Err(crate::error::InvalidExtensionError::new(extension.to_os_string()).into()),
                 }
             }
@@ -15,8 +15,8 @@ macro_rules! extensions_to_platforms {
             type Error = crate::error::Error;
 
             fn try_from(extension: &std::ffi::OsStr) -> Result<Self, Self::Error> {
-                match extension.to_ascii_uppercase().to_str() {
-                    $($(Some($extension) => Ok(Style::$style),)*)*
+                match extension {
+                    $($(extension if extension.eq_ignore_ascii_case($extension) => Ok(Style::$style),)*)*
                     _ => Err(crate::error::InvalidExtensionError::new(extension.to_os_string()).into()),
                 }
             }
@@ -27,6 +27,12 @@ macro_rules! extensions_to_platforms {
                 $($((Platform::$platform, Style::$style) => Ok(std::ffi::OsStr::new($extension)),)*)*
                 _ => Err(crate::error::InvalidPlatformStyleError::new(platform, style).into()),
             }
+        }
+
+        pub fn extensions() -> Vec<&'static std::ffi::OsStr> {
+            Vec::from([
+                $($(std::ffi::OsStr::new($extension),)*)*
+            ])
         }
     };
 }
