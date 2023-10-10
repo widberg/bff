@@ -21,4 +21,4 @@ export const DEFAULT_MAT = new MeshStandardMaterial();
 export const NORMAL_MAT = new MeshNormalMaterial();
 export const WIREFRAME_MAT = new MeshBasicMaterial({ wireframe: true });
 
-export const BIGFILE_EXTENSIONS = await invoke("get_extensions");
+export const BIGFILE_EXTENSIONS: string[] = await invoke("get_extensions");
