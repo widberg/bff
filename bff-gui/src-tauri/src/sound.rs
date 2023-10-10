@@ -11,7 +11,10 @@ impl Export for Box<Sound> {
         match **self {
             Sound::SoundV1_291_03_06PC(ref sound) => {
                 let spec = hound::WavSpec {
-                    channels: 1,
+                    channels: match sound.body.flags.stereo().value() {
+                        1 => 2,
+                        _ => 1,
+                    },
                     sample_rate: sound.body.sample_rate,
                     bits_per_sample: 16,
                     sample_format: hound::SampleFormat::Int,
@@ -30,7 +33,10 @@ impl Export for Box<Sound> {
             }
             Sound::SoundV1_381_67_09PC(ref sound) => {
                 let spec = hound::WavSpec {
-                    channels: 1,
+                    channels: match sound.link_header.flags.stereo().value() {
+                        1 => 2,
+                        _ => 1,
+                    },
                     sample_rate: sound.link_header.sample_rate,
                     bits_per_sample: 16,
                     sample_format: hound::SampleFormat::Int,

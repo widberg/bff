@@ -7,10 +7,10 @@ use crate::names::Name;
 
 #[bitsize(16)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
-struct SoundFlags {
+pub struct SoundFlags {
     paused: u1,
     looping: u1,
-    stereo: u1,
+    pub stereo: u1,
     padding: u13,
 }
 
@@ -19,7 +19,7 @@ pub struct LinkHeader {
     link_name: Name,
     pub sample_rate: u32,
     sound_data_size: u32,
-    flags: SoundFlags,
+    pub flags: SoundFlags,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]

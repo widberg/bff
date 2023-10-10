@@ -6,10 +6,10 @@ use crate::class::trivial_class::TrivialClass;
 
 #[bitsize(16)]
 #[derive(DebugBits, BinRead, SerializeBits, BinWrite, DeserializeBits)]
-struct SoundFlags {
+pub struct SoundFlags {
     paused: u1,
     looping: u1,
-    stereo: u1,
+    pub stereo: u1,
     padding: u13,
 }
 
@@ -18,7 +18,7 @@ struct SoundFlags {
 pub struct SoundBodyV1_291_03_06PC {
     pub sample_rate: u32,
     data_size: u32,
-    flags: SoundFlags,
+    pub flags: SoundFlags,
     #[br(count = data_size / 2)]
     #[serde(skip_serializing)]
     pub data: Vec<i16>,

@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api";
 import {
   MeshBasicMaterial,
   MeshNormalMaterial,
@@ -20,5 +19,3 @@ export const EXTENSION_DESCRIPTIONS: Map<string, string> = new Map([
 export const DEFAULT_MAT = new MeshStandardMaterial();
 export const NORMAL_MAT = new MeshNormalMaterial();
 export const WIREFRAME_MAT = new MeshBasicMaterial({ wireframe: true });
-
-export const BIGFILE_EXTENSIONS: string[] = await invoke("get_extensions");

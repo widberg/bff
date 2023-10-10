@@ -1,10 +1,11 @@
 import { message, open } from "@tauri-apps/api/dialog";
-import { BIGFILE_EXTENSIONS } from "../constants/constants";
 import { invoke } from "@tauri-apps/api";
 import { BigFileData, ResourcePreview } from "../types/types";
 
 export async function selectBigfile(
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>,
+  setPreviewObject: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >,
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>
 ) {
   open({
@@ -12,7 +13,7 @@ export async function selectBigfile(
     filters: [
       {
         name: "BigFile",
-        extensions: BIGFILE_EXTENSIONS,
+        extensions: await invoke("get_extensions"),
       },
     ],
   }).then((path) => {
@@ -23,7 +24,9 @@ export async function selectBigfile(
 
 export async function openBigfile(
   path: string,
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>,
+  setPreviewObject: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >,
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>
 ) {
   setPreviewObject(null);
