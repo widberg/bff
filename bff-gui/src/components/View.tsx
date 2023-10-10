@@ -16,6 +16,7 @@ import {
   MaterialType,
   PreviewData,
   DataType,
+  Nickname,
 } from "../types/types";
 import { DEFAULT_MAT, NORMAL_MAT, WIREFRAME_MAT } from "../constants/constants";
 
@@ -23,7 +24,7 @@ function PreviewInner({ previewData }: { previewData: PreviewData }) {
   const [rendering, setRendering] = useState<string>("pixelated");
   const [material, setMaterial] = useState<MeshMaterial>({
     name: "default",
-    material: new MeshStandardMaterial(),
+    material: DEFAULT_MAT,
   });
 
   function setFilter(enabled: boolean) {
@@ -158,18 +159,67 @@ function PreviewContainer({
   return <></>;
 }
 
+function NicknameInput({
+  resourcePreview,
+  nicknames,
+  currentNickname,
+  setNicknames,
+  setCurrentNickname,
+}: {
+  resourcePreview: ResourcePreview;
+  nicknames: Nickname[];
+  currentNickname: string;
+  setNicknames: React.Dispatch<React.SetStateAction<Nickname[]>>;
+  setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  return (
+    <input
+      className="nicknamebox"
+      type="text"
+      placeholder="Enter nickname..."
+      value={currentNickname}
+      onChange={(e) => setCurrentNickname(e.target.value)}
+      onBlur={() =>
+        setNicknames([
+          ...nicknames.filter((n) => {
+            return n.name !== resourcePreview.name;
+          }),
+          { name: resourcePreview.name, nickname: currentNickname },
+        ])
+      }
+    ></input>
+  );
+}
+
 export function View({
   resourcePreview,
+  nicknames,
+  currentNickname,
   openTab,
   setOpenTab,
+  setNicknames,
+  setCurrentNickname,
 }: {
   resourcePreview: ResourcePreview | null;
+  nicknames: Nickname[];
+  currentNickname: string;
   openTab: ViewTab;
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
+  setNicknames: React.Dispatch<React.SetStateAction<Nickname[]>>;
+  setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
 }) {
   return (
     <div className="preview">
       <span className="preview-header">
+        {resourcePreview !== null && (
+          <NicknameInput
+            resourcePreview={resourcePreview}
+            nicknames={nicknames}
+            currentNickname={currentNickname}
+            setNicknames={setNicknames}
+            setCurrentNickname={setCurrentNickname}
+          />
+        )}
         {resourcePreview !== null ? resourcePreview.name : "Object preview"}
       </span>
       <div>

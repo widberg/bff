@@ -25,12 +25,19 @@ pub struct UnimplementedExporterError {
     pub class_name: Name,
 }
 
+#[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "failed to find nickname for {}", resource_name)]
+pub struct InvalidNicknameError {
+    pub resource_name: Name,
+}
+
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     Bff(BffError),
     InvalidResource(InvalidResourceError),
     InvalidPreview(InvalidPreviewError),
     UnimplementedExporter(UnimplementedExporterError),
+    InvalidNickname(InvalidNicknameError),
     Io(std::io::Error),
     SerdeJson(serde_json::Error),
     AnsiToHtml(ansi_to_html::Error),

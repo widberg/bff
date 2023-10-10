@@ -42,7 +42,7 @@ function ExportMenu({
         <button
           onClick={() => {
             setIsComponentVisible(false);
-            exportOne(resourcePreview?.name as number);
+            exportOne(resourcePreview?.name ?? 0);
           }}
           disabled={resourcePreview === null}
         >
@@ -52,7 +52,7 @@ function ExportMenu({
           onClick={() => {
             setIsComponentVisible(false);
             exportPreview(
-              resourcePreview?.name as number,
+              resourcePreview?.name ?? 0,
               resourcePreview?.preview_data?.data_type as DataType
             );
           }}

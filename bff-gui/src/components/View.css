@@ -70,3 +70,9 @@
 .selected-tab {
   background-color: var(--hover-weak);
 }
+
+.nicknamebox {
+  font-family: WorkSans, system-ui;
+  border: none;
+  margin-right: 1em;
+}

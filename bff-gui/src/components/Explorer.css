@@ -3,24 +3,32 @@
   resize: horizontal;
 }
 
-.bffobject-list {
+.resource-list {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
   height: calc(100vh - 4.79em);
   padding-top: 1.4em;
   overflow-y: scroll;
 }
 
-.bffobject {
-  white-space: nowrap;
+.resource {
   width: 100%;
+  white-space: nowrap;
   padding-left: 1em;
 }
 
-.bffobject:focus {
+.resource:focus {
   background-color: var(--hover);
 }
 
-.bffobject-unimpl {
+.resource-unimpl {
   color: var(--error);
+}
+
+.resource-realname {
+  margin-left: 1em;
+  color: var(--dark-font);
 }
 
 .explorer-sort {

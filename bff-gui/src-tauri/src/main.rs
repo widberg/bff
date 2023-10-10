@@ -16,7 +16,7 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
-use error::{BffGuiResult, InvalidPreviewError, InvalidResourceError};
+use error::{BffGuiResult, InvalidNicknameError, InvalidPreviewError, InvalidResourceError};
 use serde::Serialize;
 use serde_repr::Serialize_repr;
 use traits::Export;
@@ -72,13 +72,16 @@ struct ResourceInfo {
 
 pub struct InnerAppState {
     pub bigfile: BigFile,
-    pub platform: Platform,
     pub resource_previews: HashMap<Name, ResourcePreview>,
+    pub nicknames: HashMap<Name, String>,
 }
 
 impl InnerAppState {
     pub fn add_preview(&mut self, preview: ResourcePreview) {
         self.resource_previews.insert(preview.name, preview);
+    }
+    pub fn add_nickname(&mut self, name: Name, nickname: String) {
+        self.nicknames.insert(name, nickname);
     }
 }
 
@@ -94,6 +97,8 @@ fn main() {
             export_one_json,
             export_preview,
             get_extensions,
+            add_nickname,
+            get_nickname,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -122,8 +127,8 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
     let mut state_guard = state.0.lock().unwrap();
     *state_guard = Some(InnerAppState {
         bigfile,
-        platform,
         resource_previews: HashMap::new(),
+        nicknames: HashMap::new(),
     });
 
     Ok(BigFileData {
@@ -147,13 +152,13 @@ fn parse_resource(
     if let Some(resource_preview) = state.resource_previews.get(&resource_name) {
         return Ok(resource_preview.clone());
     }
-    let bf = &state.bigfile;
-    let version = &bf.manifest.version;
-    let platform = state.platform;
 
-    let resource: &Resource = bf.objects.get(&resource_name).unwrap();
+    let resource: &Resource = state.bigfile.objects.get(&resource_name).unwrap();
 
-    let class = resource.try_into_version_platform(version.clone(), platform)?;
+    let class = resource.try_into_version_platform(
+        state.bigfile.manifest.version.clone(),
+        state.bigfile.manifest.platform,
+    )?;
     let data = match class {
         Class::Bitmap(ref bitmap) => Some(bitmap.export(resource_name)?),
         Class::Sound(ref sound) => Some(sound.export(resource_name)?),
@@ -187,8 +192,10 @@ fn export_all_json(path: &Path, state: tauri::State<AppState>) -> BffGuiResult<(
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
     for resource in state.bigfile.objects.values() {
-        let class_res: bff::BffResult<Class> = resource
-            .try_into_version_platform(state.bigfile.manifest.version.clone(), state.platform);
+        let class_res: bff::BffResult<Class> = resource.try_into_version_platform(
+            state.bigfile.manifest.version.clone(),
+            state.bigfile.manifest.platform,
+        );
         match class_res {
             Ok(class) => write_class(&path.join(format!("{}.json", resource.name)), &class)?,
             Err(_) => println!("skipped {}", resource.name),
@@ -208,12 +215,11 @@ fn export_one_json(path: &Path, name: Name, state: tauri::State<AppState>) -> Bf
         .ok_or(InvalidResourceError {
             resource_name: name,
         })?;
-    let class_res: bff::BffResult<Class> =
-        resource.try_into_version_platform(state.bigfile.manifest.version.clone(), state.platform);
-    match class_res {
-        Ok(class) => write_class(&path.join(format!("{}.json", resource.name)), &class)?,
-        Err(_) => println!("skipped {}", resource.name),
-    }
+    let class = resource.try_into_version_platform(
+        state.bigfile.manifest.version.clone(),
+        state.bigfile.manifest.platform,
+    )?;
+    write_class(&path.join(format!("{}.json", resource.name)), &class)?;
     Ok(())
 }
 
@@ -249,4 +255,22 @@ fn get_extensions() -> Vec<String> {
         .into_iter()
         .map(|s| s.to_str().unwrap().into())
         .collect()
+}
+
+#[tauri::command]
+fn add_nickname(name: Name, nickname: String, state: tauri::State<AppState>) {
+    let mut state_guard = state.0.lock().unwrap();
+    let state = state_guard.as_mut().unwrap();
+    state.add_nickname(name, nickname);
+}
+
+#[tauri::command]
+fn get_nickname(name: Name, state: tauri::State<AppState>) -> BffGuiResult<String> {
+    let mut state_guard = state.0.lock().unwrap();
+    let state = state_guard.as_mut().unwrap();
+    let nickname = state
+        .nicknames
+        .get(&name)
+        .ok_or(InvalidNicknameError::new(name))?;
+    Ok(nickname.clone())
 }

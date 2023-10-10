@@ -16,6 +16,11 @@ export interface ResourcePreview {
   preview_data?: PreviewData;
 }
 
+export interface Nickname {
+  name: number;
+  nickname: string;
+}
+
 export interface PreviewData {
   is_base64: boolean;
   data: string;
@@ -42,7 +47,7 @@ export enum MaterialType {
 }
 
 export enum Sort {
-  Block,
+  Default,
   Name,
   Extension,
 }

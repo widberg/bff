@@ -2,64 +2,81 @@ import React, { useState } from "react";
 import {
   BigFileData,
   ResourcePreview,
-  ViewTab, ResourceInfo,
+  ViewTab,
+  ResourceInfo,
   Sort,
+  Nickname,
 } from "../types/types";
 
 import "./Explorer.css";
 import { updateView } from "../functions/preview";
 
 function ResourceButton({
-  bffObjectName = "",
-  implemented = true,
+  // implemented = true,
   name = 0,
+  classN = "",
+  nickname = "",
   // onClick,
   setResourcePreview,
   setOpenTab,
+  setCurrentNickname,
 }: {
-  bffObjectName: string;
-  implemented: boolean;
+  // implemented: boolean;
   name: number;
+  classN: string;
+  nickname: string;
   // onClick: any;
-  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setResourcePreview: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >;
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
+  setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
 }) {
   return (
     <button
-      className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
+      // className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
+      className="resource"
       onClick={() => {
         updateView(name, setResourcePreview, setOpenTab);
+        setCurrentNickname(nickname);
       }}
     >
-      {bffObjectName}
+      <span>
+        {nickname !== "" ? `${nickname}.${classN}` : `${name}.${classN}`}
+      </span>
+      {nickname !== "" && <span className="resource-realname">({name})</span>}
     </button>
   );
 }
 
 function ObjectList({
   resources,
+  nicknames,
   // onClick,
   sort,
   sortBackward,
   setResourcePreview,
   setOpenTab,
+  setCurrentNickname,
 }: {
   resources: ResourceInfo[];
+  nicknames: Nickname[];
   // onClick: any;
   sort: number;
   sortBackward: boolean;
-  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setResourcePreview: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >;
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
+  setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
 }) {
   let objectsCopy = [...resources];
-  if (sort != Sort.Block) objectsCopy.sort((a, b) => a.name - b.name);
+  if (sort != Sort.Default) objectsCopy.sort((a, b) => a.name - b.name);
   if (sort == Sort.Extension)
     objectsCopy.sort((a, b) => {
       if (a.class_name !== null) {
         if (b.class_name !== null)
-          return (a.class_name as string).localeCompare(
-            b.class_name as string
-          );
+          return a.class_name.localeCompare(b.class_name);
         else return -1;
       } else if (b.class_name !== null) return 1;
       else return 0;
@@ -70,14 +87,18 @@ function ObjectList({
     <ResourceButton
       key={i}
       // implemented={v.is_implemented}
-      implemented={true}
-      bffObjectName={`${v.name}.${
-        v.class_name ? v.class_name : "unimplemented"
-      }`}
+      // implemented={true}
       name={v.name}
+      classN={v.class_name}
+      nickname={
+        nicknames.find((nickname: Nickname) => {
+          return nickname.name === v.name;
+        })?.nickname ?? ""
+      }
       // onClick={onClick}
       setResourcePreview={setResourcePreview}
       setOpenTab={setOpenTab}
+      setCurrentNickname={setCurrentNickname}
     />
   ));
   return <div>{btns}</div>;
@@ -108,14 +129,20 @@ function SortButton({
 
 export function Explorer({
   bigfile,
+  nicknames,
   setResourcePreview,
   setOpenTab,
+  setCurrentNickname,
 }: {
   bigfile: BigFileData;
-  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  nicknames: Nickname[];
+  setResourcePreview: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >;
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
+  setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
 }) {
-  const [sort, setSort] = useState<Sort>(Sort.Block);
+  const [sort, setSort] = useState<Sort>(Sort.Default);
   const [sortBackward, setSortBackward] = useState<boolean>(false);
 
   function sortButtonPress(type: number) {
@@ -131,7 +158,7 @@ export function Explorer({
       <span className="explorer-sort second-header">
         <SortButton
           onClick={sortButtonPress}
-          id={Sort.Block}
+          id={Sort.Default}
           name="Default"
           sort={sort}
           sortBackward={sortBackward}
@@ -151,14 +178,16 @@ export function Explorer({
           sortBackward={sortBackward}
         />
       </span>
-      <div className="bffobject-list">
+      <div className="resource-list">
         <ObjectList
           resources={bigfile.resource_infos}
+          nicknames={nicknames}
           // onClick={updatePreview}
           sort={sort}
           sortBackward={sortBackward}
           setResourcePreview={setResourcePreview}
           setOpenTab={setOpenTab}
+          setCurrentNickname={setCurrentNickname}
         />
       </div>
     </div>
