@@ -11,52 +11,91 @@ use serde::Serialize;
 use crate::error::{BffGuiResult, UnimplementedExporterError};
 use crate::traits::Export;
 
-#[derive(Serialize)]
-struct Collada {
-    #[serde(rename = "@xmlns")]
-    xmlns: String,
-    #[serde(rename = "@version")]
-    version: String,
-    #[serde(rename = "@xmlns:xsi")]
-    xmlnsxsi: String,
-    asset: ColladaAsset,
-    library_geometries: ColladaLibraryGeometries,
-    library_visual_scenes: ColladaLibraryVisualScenes,
-    scene: ColladaScene,
-}
-
-#[derive(Serialize)]
-struct ColladaAsset {
-    created: String,
-    modified: String,
-}
-
-#[derive(Serialize)]
-struct ColladaLibraryGeometries {
-    geometry: Vec<ColladaGeometry>,
-}
-
-#[derive(Serialize)]
-struct ColladaGeometry {
-    #[serde(rename = "@id")]
-    id: String,
-    #[serde(rename = "@name")]
-    name: String,
-    mesh: ColladaMesh,
-}
-
-#[derive(Serialize)]
-struct ColladaMesh {
-    source: Vec<ColladaSource>,
-    vertices: ColladaVertices,
-    triangles: Vec<ColladaTriangles>,
-}
-
-#[derive(Serialize)]
-struct ColladaVertices {
-    #[serde(rename = "@id")]
-    id: String,
-    input: ColladaInput,
+structstruck::strike! {
+    #[strikethrough[derive(Serialize)]]
+    struct Collada {
+        #[serde(rename = "@xmlns")]
+        xmlns: String,
+        #[serde(rename = "@version")]
+        version: String,
+        #[serde(rename = "@xmlns:xsi")]
+        xmlnsxsi: String,
+        asset: struct ColladaAsset {
+            created: String,
+            modified: String,
+        },
+        library_geometries: struct ColladaLibraryGeometries {
+            geometry: Vec<struct ColladaGeometry {
+                #[serde(rename = "@id")]
+                id: String,
+                #[serde(rename = "@name")]
+                name: String,
+                mesh: struct ColladaMesh {
+                    source: Vec<struct ColladaSource {
+                        #[serde(rename = "@id")]
+                        id: String,
+                        float_array: struct ColladaFloatArray {
+                            #[serde(rename = "@id")]
+                            id: String,
+                            #[serde(rename = "@count")]
+                            count: usize,
+                            #[serde(rename = "$text")]
+                            text: String,
+                        },
+                        technique_common: struct ColladaTechniqueCommon {
+                            accessor: struct ColladaAccessor {
+                                #[serde(rename = "@source")]
+                                source: String,
+                                #[serde(rename = "@count")]
+                                count: usize,
+                                #[serde(rename = "@stride")]
+                                stride: usize,
+                                param: Vec<struct ColladaParam {
+                                    #[serde(rename = "@name")]
+                                    name: String,
+                                    #[serde(rename = "@type")]
+                                    r#type: String,
+                                }>,
+                            },
+                        },
+                    }>,
+                    vertices: struct ColladaVertices {
+                        #[serde(rename = "@id")]
+                        id: String,
+                        input: ColladaInput,
+                    }
+                    ,
+                    triangles: Vec<
+                    struct ColladaTriangles {
+                        #[serde(rename = "@material")]
+                        material: Option<String>,
+                        #[serde(rename = "@count")]
+                        count: usize,
+                        input: Vec<ColladaInput>,
+                        p: String,
+                    }>,
+                },
+            }>,
+        },
+        library_visual_scenes: struct ColladaLibraryVisualScenes {
+            visual_scene: Vec<struct ColladaVisualScene {
+                #[serde(rename = "@id")]
+                id: String,
+                node: Vec<struct ColladaNode {
+                    instance_geometry: struct ColladaInstanceGeometry {
+                        #[serde(rename = "@url")]
+                        url: String,
+                    },
+                }>,
+            }>,
+        },
+        scene: struct ColladaScene {
+            instance_visual_scene: Vec<struct ColladaInstanceVisualScene {
+                #[serde(rename = "@url")]
+                url: String,
+            }>,
+        },
+    }
 }
 
 #[derive(Serialize)]
@@ -70,97 +109,11 @@ struct ColladaInput {
 }
 
 #[derive(Serialize)]
-struct ColladaTriangles {
-    #[serde(rename = "@material")]
-    material: Option<String>,
-    #[serde(rename = "@count")]
-    count: usize,
-    input: Vec<ColladaInput>,
-    p: String,
-}
-
-#[derive(Serialize)]
-struct ColladaSource {
-    #[serde(rename = "@id")]
-    id: String,
-    float_array: ColladaFloatArray,
-    technique_common: ColladaTechniqueCommon,
-}
-
-#[derive(Serialize)]
-struct ColladaFloatArray {
-    #[serde(rename = "@id")]
-    id: String,
-    #[serde(rename = "@count")]
-    count: usize,
-    #[serde(rename = "$text")]
-    text: String,
-}
-
-#[derive(Serialize)]
-struct ColladaTechniqueCommon {
-    accessor: ColladaAccessor,
-}
-
-#[derive(Serialize)]
-struct ColladaAccessor {
-    #[serde(rename = "@source")]
-    source: String,
-    #[serde(rename = "@count")]
-    count: usize,
-    #[serde(rename = "@stride")]
-    stride: usize,
-    param: Vec<ColladaParam>,
-}
-
-#[derive(Serialize)]
-struct ColladaParam {
-    #[serde(rename = "@name")]
-    name: String,
-    #[serde(rename = "@type")]
-    r#type: String,
-}
-
-#[derive(Serialize)]
-struct ColladaLibraryVisualScenes {
-    visual_scene: Vec<ColladaVisualScene>,
-}
-
-#[derive(Serialize)]
-struct ColladaVisualScene {
-    #[serde(rename = "@id")]
-    id: String,
-    node: Vec<ColladaNode>,
-}
-
-#[derive(Serialize)]
-struct ColladaNode {
-    instance_geometry: ColladaInstanceGeometry,
-}
-
-#[derive(Serialize)]
 struct ColladaMatrix {
     #[serde(rename = "@sid")]
     sid: String,
     #[serde(rename = "$text")]
     text: String,
-}
-
-#[derive(Serialize)]
-struct ColladaInstanceGeometry {
-    #[serde(rename = "@url")]
-    url: String,
-}
-
-#[derive(Serialize)]
-struct ColladaScene {
-    instance_visual_scene: Vec<ColladaInstanceVisualScene>,
-}
-
-#[derive(Serialize)]
-struct ColladaInstanceVisualScene {
-    #[serde(rename = "@url")]
-    url: String,
 }
 
 struct SimpleMesh {
