@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -11,14 +12,14 @@ use crate::platforms::Platform;
 use crate::traits::TryFromVersionPlatform;
 use crate::versions::Version;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub enum TrivialClassResourceDataType {
     Data,
     ExtendedData { compress: bool },
     CompressibleData { compress: bool },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub class_name: Name,
     pub name: Name,

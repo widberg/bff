@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::str::from_utf8;
 
+use bff_derive::ReferencedNames;
 use binrw::io::{Read, Seek};
 use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
@@ -20,6 +21,7 @@ use serde::{Deserialize, Serialize};
     Serialize,
     Hash,
     Deserialize,
+    ReferencedNames,
 )]
 #[serde(transparent)]
 pub struct FixedStringNull<const S: usize>(pub String);
@@ -98,7 +100,18 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
 }
 
 #[derive(
-    Clone, PartialEq, Eq, Default, Debug, Deref, DerefMut, Display, From, Serialize, Deserialize,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Debug,
+    Deref,
+    DerefMut,
+    Display,
+    From,
+    Serialize,
+    Deserialize,
+    ReferencedNames,
 )]
 #[serde(transparent)]
 pub struct PascalString(pub String);
@@ -162,6 +175,7 @@ impl BinWrite for PascalString {
     Serialize,
     Hash,
     Deserialize,
+    ReferencedNames,
 )]
 #[serde(transparent)]
 pub struct PascalStringNull(pub String);

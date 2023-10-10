@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -9,14 +10,14 @@ use crate::math::{DynBox, DynSphere};
 use crate::names::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct FadeDistances {
     x: f32,
     y: f32,
     fade_close: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct LodBodyV1_381_67_09PC {
     collision_spheres: DynArray<DynSphere>,

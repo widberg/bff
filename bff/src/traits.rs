@@ -2,6 +2,10 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::io::{Read, Seek, Write};
 use std::marker::PhantomData;
+use std::ops::{Range, RangeInclusive};
+
+use impl_trait_for_tuples::impl_for_tuples;
+use indexmap::IndexMap;
 
 use crate::bigfile::BigFile;
 use crate::names::Name;
@@ -106,43 +110,12 @@ impl ReferencedNames for Name {
     }
 }
 
-impl ReferencedNames for () {
+#[impl_for_tuples(12)]
+impl ReferencedNames for Tuple {
     fn names(&self) -> HashSet<Name> {
-        HashSet::new()
-    }
-}
-
-impl<T> ReferencedNames for (T,)
-where
-    T: ReferencedNames,
-{
-    fn names(&self) -> HashSet<Name> {
-        self.0.names()
-    }
-}
-
-impl<T, U> ReferencedNames for (T, U)
-where
-    T: ReferencedNames,
-    U: ReferencedNames,
-{
-    fn names(&self) -> HashSet<Name> {
-        let mut names = self.0.names();
-        names.extend(&self.1.names());
-        names
-    }
-}
-
-impl<T, U, V> ReferencedNames for (T, U, V)
-where
-    T: ReferencedNames,
-    U: ReferencedNames,
-    V: ReferencedNames,
-{
-    fn names(&self) -> HashSet<Name> {
-        let mut names = self.0.names();
-        names.extend(&self.1.names());
-        names.extend(&self.2.names());
+        let mut names = HashSet::new();
+        for_tuples!( #( names.extend(&self.Tuple.names()); )* );
+        #[allow(clippy::let_and_return)]
         names
     }
 }
@@ -163,3 +136,42 @@ where
             .unwrap_or_default()
     }
 }
+
+impl<T> ReferencedNames for Range<T> {
+    fn names(&self) -> HashSet<Name> {
+        HashSet::new()
+    }
+}
+
+impl<T> ReferencedNames for RangeInclusive<T> {
+    fn names(&self) -> HashSet<Name> {
+        HashSet::new()
+    }
+}
+
+impl<KeyType, ValueType> ReferencedNames for IndexMap<KeyType, ValueType>
+where
+    KeyType: ReferencedNames,
+    ValueType: ReferencedNames,
+{
+    fn names(&self) -> HashSet<Name> {
+        let mut names = HashSet::new();
+        for (k, v) in self.iter() {
+            names.extend(k.names());
+            names.extend(v.names());
+        }
+        names
+    }
+}
+
+macro_rules! impl_referenced_names {
+    ($($t:ty),+) => {
+        $(impl ReferencedNames for $t {
+            fn names(&self) -> HashSet<Name> {
+                HashSet::new()
+            }
+        })+
+    }
+}
+
+impl_referenced_names!(bool, f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, String);

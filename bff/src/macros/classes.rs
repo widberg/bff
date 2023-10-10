@@ -1,6 +1,6 @@
 macro_rules! classes {
     ($($class:ident),* $(,)?) => {
-        #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize)]
+        #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames)]
         #[serde(untagged)]
         pub enum Class {
             $($class(Box<$class>),)*

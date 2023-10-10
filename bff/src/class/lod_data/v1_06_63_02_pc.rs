@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -7,13 +8,13 @@ use crate::math::RGBA;
 use crate::names::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
     unknown: f32,
     color: RGBA,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct {
     unk1_crc32: Name,
     unk2_crc32: Name,
@@ -21,7 +22,7 @@ struct UnkStruct {
     unks: DynArray<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ActorData {
     placeholder1: [u32; 7],
     zero1: u32,
@@ -36,7 +37,7 @@ struct ActorData {
     unk_structs: DynArray<UnkStruct>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct LodDataBodyV1_06_63_02PC {
     obj_datas: ObjectDatas,

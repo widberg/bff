@@ -67,7 +67,7 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
 
     quote! {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, bff_derive::NamedClass, derive_more::From, derive_more::IsVariant)]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, bff_derive::NamedClass, derive_more::From, derive_more::IsVariant, bff_derive::ReferencedNames)]
         pub enum #class {
             #(#variants),*
         }
@@ -288,6 +288,7 @@ pub fn referenced_names(input: TokenStream) -> TokenStream {
                     .iter()
                     .enumerate()
                     .map(|(i, _)| {
+                        let i = syn::Index::from(i);
                         quote! {
                             names.extend(self.#i.names());
                         }
@@ -325,13 +326,13 @@ pub fn referenced_names(input: TokenStream) -> TokenStream {
                                 .unzip();
 
                             quote! {
-                                #variant_name { #(#names,)* } => {
+                                #name::#variant_name { #(#names,)* } => {
                                     #(#fields)*
                                 }
                             }
                         }
                         Fields::Unnamed(unnamed) => {
-                            let (names, fields): (Vec<_>, Vec<_>) = unnamed
+                            let (fields, names): (Vec<_>, Vec<_>) = unnamed
                                 .unnamed
                                 .iter()
                                 .enumerate()
@@ -339,22 +340,22 @@ pub fn referenced_names(input: TokenStream) -> TokenStream {
                                     let ident =
                                         Ident::new(format!("field_{}", i).as_str(), variant.span());
                                     (
-                                        ident,
                                         quote! {
-                                            names.extend(ident.names());
+                                            names.extend(#ident.names());
                                         },
+                                        ident,
                                     )
                                 })
                                 .unzip();
 
                             quote! {
-                                #variant_name { #(#names,)* } => {
+                                #name::#variant_name(#(#names,)*) => {
                                     #(#fields)*
                                 }
                             }
                         }
                         Fields::Unit => {
-                            quote! { #variant_name => {} }
+                            quote! { #name::#variant_name => {} }
                         }
                     }
                 })

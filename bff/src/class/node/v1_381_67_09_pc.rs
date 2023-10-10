@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +7,7 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct NodeBodyV1_381_67_09PC {
     parent_name: Name,

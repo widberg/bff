@@ -8,46 +8,46 @@ use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {
     vec3: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated1 {
     vec4: Vec4f,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct Points {
     points_relateds0: DynArray<PointsRelated0>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PatchCol {
     sphere: Sphere,
     flag: u32,
@@ -56,7 +56,7 @@ struct PatchCol {
     cdcdcdcd: [u32; 2],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct EdgeCol {
     sphere: Sphere,
     flag: u32,
@@ -65,7 +65,7 @@ struct EdgeCol {
     unk_placeholder_ptr3: u32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct ClingLineRelated {
     sphere: Sphere,
     flag: u32,
@@ -74,12 +74,12 @@ struct ClingLineRelated {
     unk_float: f32,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct CullCone {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct Patch {
     flag: u16,
     should_draw_related_start_index: u16,
@@ -97,19 +97,19 @@ struct Patch {
     material_anim_crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct SeadVoxel {
     element_entry: u16,
     element_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patch_indices: DynArray<u16>,
@@ -136,14 +136,14 @@ struct SeadIndex {
 }
 
 #[bitsize(16)]
-#[derive(BinRead, DebugBits, SerializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, ReferencedNames)]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
     other: u8,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectV1_06_63_02PC))]
 pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,

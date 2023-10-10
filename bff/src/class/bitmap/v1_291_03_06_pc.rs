@@ -1,10 +1,11 @@
+use bff_derive::ReferencedNames;
 use binrw::{binread, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
 #[binread]
-#[derive(Debug, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct BitmapBodyV1_291_03_06PC {
     size: (u32, u32),

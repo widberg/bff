@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -7,14 +8,14 @@ use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
 use crate::math::{Vec2f, Vec3f};
 use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u16)]
 enum BillboardMode {
     YBillboard = 0,
     CompleteBillboard = 1,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct RotShapeBodyV1_381_67_09PC {
     origins: DynArray<Vec3f>,

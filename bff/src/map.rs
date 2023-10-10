@@ -2,12 +2,13 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use derive_more::Deref;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deref, Deserialize)]
+#[derive(Debug, Serialize, Deref, Deserialize, ReferencedNames)]
 #[serde(transparent)]
 pub struct BffMap<KeyType: Eq + Hash, ValueType, SizeType = u32> {
     #[deref]

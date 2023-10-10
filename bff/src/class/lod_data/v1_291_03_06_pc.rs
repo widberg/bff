@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use crate::math::Vec3f;
 use crate::names::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Extended {
     padding: [u8; 24],
     flags: u32,
@@ -20,7 +21,7 @@ struct Extended {
     zero3s: [u32; 4],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct LodDataBodyV1_291_03_06PC {
     flags: u32,

@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +7,7 @@ use crate::dynarray::DynArray;
 use crate::math::Vec2f;
 use crate::names::Name;
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SeadEntry {
     next_object_of_entry: u32,
     prev_object_of_entry: u32,
@@ -15,7 +16,7 @@ struct SeadEntry {
     node_crc32: Name,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SeadHandle {
     p_min: Vec2f,
     p_max: Vec2f,
@@ -27,19 +28,19 @@ struct SeadHandle {
     sead_entries: DynArray<SeadEntry>,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown0 {
     data: [u8; 8],
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SubWorldRange {
     data: [u8; 24],
     unknown0s: DynArray<Unknown0>,
     unknown1: u32,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SubWorldData {
     data: [u8; 24],
     sub_world_range: SubWorldRange,
@@ -49,7 +50,7 @@ struct SubWorldData {
     unknown3s: DynArray<u32>,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct WorldBodyV1_291_03_06PC {
     root_node_crc32: Name,

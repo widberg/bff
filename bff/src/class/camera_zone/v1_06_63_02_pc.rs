@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -6,13 +7,13 @@ use crate::dynarray::DynArray;
 use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
 use crate::math::{Vec2f, Vec3f, Vec4f, RGBA};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct RangeSizeOffset {
     size: u16,
     offset: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SplineZoneSead {
     p_min: Vec2f,
     p_max: Vec2f,
@@ -25,13 +26,13 @@ struct SplineZoneSead {
     zone_indices: DynArray<u16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Spline {
     pt_0_id: u16,
     pt_1_id: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SplineZone {
     y: f32,
     spline_ids_ref: RangeSizeOffset,
@@ -40,7 +41,7 @@ struct SplineZone {
     unknown1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SplineZoneZ {
     unknown: Vec4f,
     points: DynArray<Vec3f>,
@@ -51,7 +52,7 @@ struct SplineZoneZ {
     spline_zone_sead: SplineZoneSead,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Trigger {
     rot: f32,
     fov: f32,
@@ -69,12 +70,12 @@ struct Trigger {
     unknown: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ZoneTriggers {
     trigger_ids_ref: RangeSizeOffset,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct CameraZoneBodyV1_06_63_02PC {
     spline_zone: SplineZoneZ,

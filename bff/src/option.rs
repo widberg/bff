@@ -1,13 +1,14 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+use bff_derive::ReferencedNames;
 use binrw::{binrw, BinRead, BinWrite};
 use derive_more::Deref;
 use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
 
 #[binrw]
-#[derive(Serialize, Deref, Debug, Deserialize)]
+#[derive(Serialize, Deref, Debug, Deserialize, ReferencedNames)]
 pub struct BffOption<
     InnerType: BinRead + BinWrite,
     ConditionType: BinRead + BinWrite + One + Zero + Eq = u8,

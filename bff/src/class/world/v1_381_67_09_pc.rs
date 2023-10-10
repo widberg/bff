@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::math::Mat4f;
 use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown2 {
     placeholder0: u32,
     placeholder1: u32,
@@ -17,7 +18,7 @@ struct Unknown2 {
     zero: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct WorldBodyV1_381_67_09PC {
     node_name0: Name,
