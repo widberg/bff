@@ -5,18 +5,16 @@ import { Explorer } from "./components/Explorer";
 import { Menubar } from "./components/Menubar";
 
 import { BigFileData, ResourcePreview, ViewTab } from "./types/types";
+import { invoke } from "@tauri-apps/api";
 
 function App() {
   const [bigfile, setBigfile] = useState<BigFileData>({
     filename: "",
     resource_infos: [],
   });
-  const [resourcePreview, setResourcePreview] = useState<ResourcePreview | null>(
-    null
-  );
-  const [openTab, setOpenTab] = useState<ViewTab>(
-    ViewTab.Preview
-  );
+  const [resourcePreview, setResourcePreview] =
+    useState<ResourcePreview | null>(null);
+  const [openTab, setOpenTab] = useState<ViewTab>(ViewTab.Preview);
 
   return (
     <div className="container">

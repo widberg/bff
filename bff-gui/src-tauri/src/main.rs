@@ -7,7 +7,6 @@ use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use crate::error::Error;
 use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
 use bff::class::user_define::UserDefine;
@@ -18,6 +17,8 @@ use bff::traits::TryIntoVersionPlatform;
 use error::{BffGuiResult, InvalidPreviewError, InvalidResourceError};
 use serde::Serialize;
 use traits::Export;
+
+use crate::error::Error;
 
 mod bitmap;
 mod error;
@@ -73,6 +74,7 @@ fn main() {
             export_all_objects,
             export_one_object,
             export_preview,
+            get_extensions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -217,4 +219,12 @@ fn export_preview(path: &Path, name: Name, state: tauri::State<AppState>) -> Bff
         .ok_or(InvalidPreviewError::new(name))?;
     std::fs::copy(preview_object.preview_path.as_ref().unwrap(), path)?;
     Ok(())
+}
+
+#[tauri::command]
+fn get_extensions() -> Vec<String> {
+    bff::platforms::extensions()
+        .into_iter()
+        .map(|s| s.to_str().unwrap().into())
+        .collect()
 }
