@@ -75,6 +75,14 @@ pub const fn asobo_alternate(name: &[u8]) -> i32 {
     asobo_alternate_options(name, 0)
 }
 
+pub const fn kalisto_options(name: &[u8], hash: i32) -> i32 {
+    !asobo_options(name, hash)
+}
+
+pub const fn kalisto(name: &[u8]) -> i32 {
+    kalisto_options(name, -1)
+}
+
 const REVERSE_CRC32_TABLE: [(u32, u8); 256] = [
     (0x00000000, 0x00),
     (0x018aeb13, 0x4c),

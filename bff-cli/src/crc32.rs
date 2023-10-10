@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc32::{asobo_alternate_options, asobo_options};
+use bff::crc32::{asobo_alternate_options, asobo_options, kalisto_options};
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;
@@ -10,6 +10,7 @@ pub enum Crc32Algorithm {
     Asobo,
     #[value(alias("alt"))]
     AsoboAlternate,
+    Kalisto,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -51,6 +52,7 @@ pub fn crc32(
     let hash_function = match algorithm {
         Crc32Algorithm::Asobo => asobo_options,
         Crc32Algorithm::AsoboAlternate => asobo_alternate_options,
+        Crc32Algorithm::Kalisto => kalisto_options,
     };
 
     match (string, mode) {
