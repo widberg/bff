@@ -7,17 +7,15 @@ import {
   DoubleSide,
   FrontSide,
   Material,
-  MeshBasicMaterial,
-  MeshNormalMaterial,
   MeshStandardMaterial,
 } from "three";
 import { useState } from "react";
-import parse from "html-react-parser";
+// import parse from "html-react-parser";
 
 import "./Preview.css";
 
-import { MeshMaterial, ResourcePreview, PreviewTab } from "../types/types";
-import { IMAGE_EXT, MESH_EXT, SOUND_EXT } from "../constants/constants";
+import {MeshMaterial, ResourcePreview, PreviewTab, MaterialType} from "../types/types";
+import {DEFAULT_MAT, IMAGE_EXT, MESH_EXT, NORMAL_MAT, SOUND_EXT, WIREFRAME_MAT} from "../constants/constants";
 
 function PreviewInner({ previewPath }: { previewPath: string }) {
   const [rendering, setRendering] = useState<string>("pixelated");
@@ -30,10 +28,9 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
     setRendering(enabled ? "auto" : "pixelated");
   }
   function changeMaterial(type: string) {
-    let mat: Material = new MeshStandardMaterial();
-    if (type == "normal") mat = new MeshNormalMaterial();
-    else if (type == "wireframe")
-      mat = new MeshBasicMaterial({ wireframe: true });
+    let mat: Material = DEFAULT_MAT;
+    if (type == MaterialType.Normal) mat = NORMAL_MAT;
+    else if (type == MaterialType.Wireframe) mat = WIREFRAME_MAT;
     mat.side = material.material.side;
     setMaterial({
       name: type,
@@ -88,9 +85,9 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
             defaultValue={material.name}
             onChange={(e) => changeMaterial(e.target.value)}
           >
-            <option value="default">Default</option>
-            <option value="normal">Normal</option>
-            <option value="wireframe">Wireframe</option>
+            <option value={MaterialType.Default}>Default</option>
+            <option value={MaterialType.Normal}>Normal</option>
+            <option value={MaterialType.Wireframe}>Wireframe</option>
           </select>
           <div>
             <label htmlFor="sided">No culling</label>
@@ -156,18 +153,18 @@ function PreviewContainer({
 }
 
 export function Preview({
-  previewObject,
+  resourcePreview,
   openPreviewTab,
   setOpenPreviewTab,
 }: {
-  previewObject: ResourcePreview | null;
+  resourcePreview: ResourcePreview | null;
   openPreviewTab: PreviewTab;
   setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
 }) {
   return (
     <div className="preview">
       <span className="preview-header">
-        {previewObject !== null ? previewObject.name : "Object preview"}
+        {resourcePreview !== null ? resourcePreview.name : "Object preview"}
       </span>
       <div>
         <span
@@ -178,7 +175,7 @@ export function Preview({
         >
           <button
             onClick={() => setOpenPreviewTab(PreviewTab.Data)}
-            disabled={previewObject === null}
+            disabled={resourcePreview === null}
             className={openPreviewTab == PreviewTab.Data ? "selected-tab" : ""}
           >
             Data
@@ -186,7 +183,7 @@ export function Preview({
           <button
             onClick={() => setOpenPreviewTab(PreviewTab.Preview)}
             disabled={
-              previewObject === null || previewObject?.preview_path === null
+              resourcePreview === null || resourcePreview?.preview_path === null
             }
             className={
               openPreviewTab == PreviewTab.Preview ? "selected-tab" : ""
@@ -203,11 +200,11 @@ export function Preview({
           {/*</button>*/}
         </span>
       </div>
-      {previewObject !== null && (
+      {resourcePreview !== null && (
         <div className="preview-inner">
           <PreviewContainer
             openTab={openPreviewTab}
-            previewObject={previewObject}
+            previewObject={resourcePreview}
           />
         </div>
       )}
