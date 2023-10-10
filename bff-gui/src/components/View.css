@@ -62,11 +62,11 @@
   padding-inline: 0.4em;
 }
 
-.preview-tabs-small {
+.tabs-small {
   width: calc(60% - 0.95rem);
 }
 
-.preview-tabs-big {
+.tabs-big {
   width: 60%;
 }
 

@@ -12,9 +12,9 @@ import {
 import { useState } from "react";
 // import parse from "html-react-parser";
 
-import "./Preview.css";
+import "./View.css";
 
-import {MeshMaterial, ResourcePreview, PreviewTab, MaterialType} from "../types/types";
+import {MeshMaterial, ResourcePreview, ViewTab, MaterialType} from "../types/types";
 import {DEFAULT_MAT, IMAGE_EXT, MESH_EXT, NORMAL_MAT, SOUND_EXT, WIREFRAME_MAT} from "../constants/constants";
 
 function PreviewInner({ previewPath }: { previewPath: string }) {
@@ -131,13 +131,13 @@ function PreviewContainer({
   openTab: number;
   previewObject: ResourcePreview;
 }) {
-  if (openTab == PreviewTab.Data)
+  if (openTab == ViewTab.Data)
     return (
       <div className="preview-data preview-text">
         <p>{previewObject.preview_data}</p>
       </div>
     );
-  if (openTab == PreviewTab.Preview) {
+  if (openTab == ViewTab.Preview) {
     if (previewObject.preview_path !== null)
       return (
         <PreviewInner
@@ -152,14 +152,14 @@ function PreviewContainer({
   return <></>;
 }
 
-export function Preview({
+export function View({
   resourcePreview,
-  openPreviewTab,
-  setOpenPreviewTab,
+  openTab,
+  setOpenTab,
 }: {
   resourcePreview: ResourcePreview | null;
-  openPreviewTab: PreviewTab;
-  setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
+  openTab: ViewTab;
+  setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
 }) {
   return (
     <div className="preview">
@@ -170,23 +170,23 @@ export function Preview({
         <span
           className={
             "second-header" +
-            (openPreviewTab == 0 ? " preview-tabs-small" : " preview-tabs-big")
+            (openTab == 0 ? " tabs-small" : " tabs-big")
           }
         >
           <button
-            onClick={() => setOpenPreviewTab(PreviewTab.Data)}
+            onClick={() => setOpenTab(ViewTab.Data)}
             disabled={resourcePreview === null}
-            className={openPreviewTab == PreviewTab.Data ? "selected-tab" : ""}
+            className={openTab == ViewTab.Data ? "selected-tab" : ""}
           >
             Data
           </button>
           <button
-            onClick={() => setOpenPreviewTab(PreviewTab.Preview)}
+            onClick={() => setOpenTab(ViewTab.Preview)}
             disabled={
               resourcePreview === null || resourcePreview?.preview_path === null
             }
             className={
-              openPreviewTab == PreviewTab.Preview ? "selected-tab" : ""
+              openTab == ViewTab.Preview ? "selected-tab" : ""
             }
           >
             Preview
@@ -203,7 +203,7 @@ export function Preview({
       {resourcePreview !== null && (
         <div className="preview-inner">
           <PreviewContainer
-            openTab={openPreviewTab}
+            openTab={openTab}
             previewObject={resourcePreview}
           />
         </div>

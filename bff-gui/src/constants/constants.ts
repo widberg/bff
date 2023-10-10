@@ -1,3 +1,5 @@
+import {MeshBasicMaterial, MeshNormalMaterial, MeshStandardMaterial} from "three";
+
 export const IMAGE_EXT = "png";
 export const MESH_EXT = "dae";
 export const SOUND_EXT = "wav";
@@ -9,6 +11,10 @@ export const EXTENSION_DESCRIPTIONS: Map<string, string> = new Map([
   [SOUND_EXT, "Sound"],
   [JSON_EXT, "JSON"],
 ]);
+
+export const DEFAULT_MAT = new MeshStandardMaterial();
+export const NORMAL_MAT = new MeshNormalMaterial();
+export const WIREFRAME_MAT = new MeshBasicMaterial({ wireframe: true });
 
 export const BIGFILE_EXTENSIONS = [
   "DPC",

@@ -1,41 +1,47 @@
-#[derive(Debug)]
-pub struct SimpleError(pub String);
+use bff::names::Name;
+use bff::BffError;
+use derive_more::{Constructor, Display, Error, From};
 
-impl std::error::Error for SimpleError {}
-
-impl std::fmt::Display for SimpleError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
+#[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "failed to find resource {}", resource_name)]
+pub struct InvalidResourceError {
+    pub resource_name: Name,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum InternalError {
-    #[error(transparent)]
-    Dds(#[from] ddsfile::Error),
-    #[error(transparent)]
-    CreateImage(#[from] image_dds::error::CreateImageError),
-    #[error(transparent)]
-    Image(#[from] image::error::ImageError),
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Hound(#[from] hound::Error),
-    #[error(transparent)]
-    Simple(#[from] SimpleError),
-    #[error(transparent)]
-    Bff(#[from] bff::error::Error),
-    #[error(transparent)]
-    De(#[from] quick_xml::DeError),
-    #[error(transparent)]
-    UnimplementedVersionPlatform(#[from] bff::error::UnimplementedVersionPlatformError),
-    #[error(transparent)]
-    AnsiToHtml(#[from] ansi_to_html::Error),
-    #[error(transparent)]
-    SerdeJson(#[from] serde_json::Error),
+#[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "failed to find preview for resource {}", resource_name)]
+pub struct InvalidPreviewError {
+    pub resource_name: Name,
 }
 
-impl serde::Serialize for InternalError {
+#[derive(Debug, Constructor, Display, Error)]
+#[display(
+    fmt = "unimplemented exporter for resource {} of class {}",
+    resource_name,
+    class_name
+)]
+pub struct UnimplementedExporterError {
+    pub resource_name: Name,
+    pub class_name: Name,
+}
+
+#[derive(Debug, Display, Error, From)]
+pub enum Error {
+    Bff(BffError),
+    InvalidResource(InvalidResourceError),
+    InvalidPreview(InvalidPreviewError),
+    UnimplementedExporter(UnimplementedExporterError),
+    Io(std::io::Error),
+    SerdeJson(serde_json::Error),
+    AnsiToHtml(ansi_to_html::Error),
+    Dds(ddsfile::Error),
+    CreateImage(image_dds::error::CreateImageError),
+    Image(image::error::ImageError),
+    Hound(hound::Error),
+    De(quick_xml::DeError),
+}
+
+impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -44,4 +50,4 @@ impl serde::Serialize for InternalError {
     }
 }
 
-pub type BffGuiResult<T> = Result<T, InternalError>;
+pub type BffGuiResult<T> = Result<T, Error>;

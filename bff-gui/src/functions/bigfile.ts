@@ -31,7 +31,6 @@ export async function openBigfile(
     path: path,
   })
     .then((bfData) => {
-      console.log(bfData);
       setBigfile(bfData as BigFileData);
     })
     .catch((e) => message(e, { type: "warning" }));

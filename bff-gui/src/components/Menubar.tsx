@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { useComponentVisible } from "../hooks/click-outside";
-import { BigFileData, ResourcePreview, Submenu } from "../types/types";
+import { BigFileData, ResourcePreview } from "../types/types";
 
 import "./Menubar.css";
 
@@ -70,21 +69,21 @@ function ExportMenu({
 
 export function Menubar({
   bigfileLoaded,
-  previewObject,
-  setPreviewObject,
+  resourcePreview,
+  setResourcePreview,
   setBigfile,
 }: {
   bigfileLoaded: boolean;
-  previewObject: ResourcePreview | null;
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  resourcePreview: ResourcePreview | null;
+  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>;
 }) {
   return (
     <div className="menubar">
-      <button onClick={() => selectBigfile(setPreviewObject, setBigfile)}>
+      <button onClick={() => selectBigfile(setResourcePreview, setBigfile)}>
         Open BigFile...
       </button>
-      <ExportMenu bigfileLoaded={bigfileLoaded} previewObject={previewObject} />
+      <ExportMenu bigfileLoaded={bigfileLoaded} previewObject={resourcePreview} />
     </div>
   );
 }

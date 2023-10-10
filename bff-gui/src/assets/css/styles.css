@@ -82,7 +82,7 @@ body {
 
 button {
   font-size: 1em;
-  font-family: WorkSans;
+  font-family: WorkSans, system-ui;
   text-align: start;
   padding: 0;
   border: none;
@@ -103,7 +103,7 @@ button:disabled:hover {
 
 select {
   font-size: 1em;
-  font-family: WorkSans;
+  font-family: WorkSans, system-ui;
   border: none;
   background-color: var(--light2-background);
 }

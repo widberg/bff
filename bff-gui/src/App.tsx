@@ -1,41 +1,41 @@
 import { useState } from "react";
 
-import { Preview } from "./components/Preview";
+import { View } from "./components/View";
 import { Explorer } from "./components/Explorer";
 import { Menubar } from "./components/Menubar";
 
-import { BigFileData, ResourcePreview, PreviewTab } from "./types/types";
+import { BigFileData, ResourcePreview, ViewTab } from "./types/types";
 
 function App() {
   const [bigfile, setBigfile] = useState<BigFileData>({
     filename: "",
     resource_infos: [],
   });
-  const [previewObject, setPreviewObject] = useState<ResourcePreview | null>(
+  const [resourcePreview, setResourcePreview] = useState<ResourcePreview | null>(
     null
   );
-  const [openPreviewTab, setOpenPreviewTab] = useState<PreviewTab>(
-    PreviewTab.Preview
+  const [openTab, setOpenTab] = useState<ViewTab>(
+    ViewTab.Preview
   );
 
   return (
     <div className="container">
       <Menubar
         bigfileLoaded={bigfile.filename !== ""}
-        previewObject={previewObject}
-        setPreviewObject={setPreviewObject}
+        resourcePreview={resourcePreview}
+        setResourcePreview={setResourcePreview}
         setBigfile={setBigfile}
       />
       <div className="main">
         <Explorer
           bigfile={bigfile}
-          setPreviewObject={setPreviewObject}
-          setOpenPreviewTab={setOpenPreviewTab}
+          setResourcePreview={setResourcePreview}
+          setOpenTab={setOpenTab}
         />
-        <Preview
-          previewObject={previewObject}
-          openPreviewTab={openPreviewTab}
-          setOpenPreviewTab={setOpenPreviewTab}
+        <View
+          resourcePreview={resourcePreview}
+          openTab={openTab}
+          setOpenTab={setOpenTab}
         />
       </div>
     </div>

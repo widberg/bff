@@ -21,8 +21,14 @@ export interface MeshMaterial {
   material: Material;
 }
 
+export enum MaterialType {
+  Default = "default",
+  Normal = "normal",
+  Wireframe = "wireframe",
+}
+
 export enum Sort {
-  Block = 0,
+  Block,
   Name,
   Extension,
 }
@@ -32,8 +38,8 @@ export enum Submenu {
   Export,
 }
 
-export enum PreviewTab {
-  Data = 0,
+export enum ViewTab {
+  Data,
   Preview,
   Error,
 }

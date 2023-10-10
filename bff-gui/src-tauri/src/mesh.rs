@@ -4,10 +4,11 @@ use std::path::Path;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
 use bff::names::Name;
+use bff::traits::NamedClass;
 use quick_xml::writer::Writer;
 use serde::Serialize;
 
-use crate::error::{BffGuiResult, InternalError, SimpleError};
+use crate::error::{BffGuiResult, UnimplementedExporterError};
 use crate::traits::Export;
 
 #[derive(Serialize)]
@@ -188,13 +189,13 @@ impl Export for Box<Mesh> {
                                     position,
                                     normal,
                                     ..
-                                } => (position, normal),
-                                v1_291_03_06_pc::VertexStruct::VertexStruct48 {
+                                }
+                                | v1_291_03_06_pc::VertexStruct::VertexStruct48 {
                                     position,
                                     normal,
                                     ..
-                                } => (position, normal),
-                                v1_291_03_06_pc::VertexStruct::VertexStruct60 {
+                                }
+                                | v1_291_03_06_pc::VertexStruct::VertexStruct60 {
                                     position,
                                     normal,
                                     ..
@@ -357,9 +358,7 @@ impl Export for Box<Mesh> {
                 File::create(export_path)?.write_all(&buffer)?;
                 Ok(serde_json::to_string_pretty(&mesh.link_header)?)
             }
-            _ => Err(InternalError::Simple(SimpleError(
-                "Unimplemented class".to_string(),
-            ))),
+            _ => Err(UnimplementedExporterError::new(name, Mesh::NAME).into()),
         }
     }
 }

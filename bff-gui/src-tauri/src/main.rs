@@ -7,6 +7,7 @@ use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+use crate::error::Error;
 use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
 use bff::class::user_define::UserDefine;
@@ -14,7 +15,7 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
-use error::{BffGuiResult, InternalError, SimpleError};
+use error::{BffGuiResult, InvalidPreviewError, InvalidResourceError};
 use serde::Serialize;
 use traits::Export;
 
@@ -68,7 +69,7 @@ fn main() {
         .manage(AppState(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             extract_bigfile,
-            parse_object,
+            parse_resource,
             export_all_objects,
             export_one_object,
             export_preview,
@@ -78,10 +79,7 @@ fn main() {
 }
 
 #[tauri::command]
-fn extract_bigfile(
-    path: &str,
-    state: tauri::State<AppState>,
-) -> Result<BigFileData, InternalError> {
+fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileData, Error> {
     let bigfile_path = Path::new(path);
     let platform = match bigfile_path.extension() {
         Some(extension) => extension.try_into().unwrap(),
@@ -119,7 +117,7 @@ fn extract_bigfile(
 }
 
 #[tauri::command]
-fn parse_object(
+fn parse_resource(
     resource_name: Name,
     temp_path: &Path,
     state: tauri::State<AppState>,
@@ -170,7 +168,7 @@ fn parse_object(
 }
 
 #[tauri::command]
-fn export_all_objects(path: &Path, state: tauri::State<AppState>) -> Result<(), InternalError> {
+fn export_all_objects(path: &Path, state: tauri::State<AppState>) -> BffGuiResult<()> {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
     for resource in state.bigfile.objects.values() {
@@ -185,18 +183,16 @@ fn export_all_objects(path: &Path, state: tauri::State<AppState>) -> Result<(), 
 }
 
 #[tauri::command]
-fn export_one_object(
-    path: &Path,
-    name: Name,
-    state: tauri::State<AppState>,
-) -> Result<(), InternalError> {
+fn export_one_object(path: &Path, name: Name, state: tauri::State<AppState>) -> BffGuiResult<()> {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
     let resource: &Resource = state
         .bigfile
         .objects
         .get(&name)
-        .ok_or(SimpleError("failed to find object in bigfile".to_string()))?;
+        .ok_or(InvalidResourceError {
+            resource_name: name,
+        })?;
     let class_res: bff::BffResult<Class> =
         resource.try_into_version_platform(state.bigfile.manifest.version.clone(), state.platform);
     match class_res {
@@ -206,27 +202,19 @@ fn export_one_object(
     Ok(())
 }
 
-fn write_class(path: &PathBuf, class: &Class) -> Result<(), InternalError> {
+fn write_class(path: &PathBuf, class: &Class) -> BffGuiResult<()> {
     File::create(path)?.write_all(serde_json::to_string_pretty(&class)?.as_bytes())?;
     Ok(())
 }
 
 #[tauri::command]
-fn export_preview(
-    path: &Path,
-    name: Name,
-    state: tauri::State<AppState>,
-) -> Result<(), InternalError> {
+fn export_preview(path: &Path, name: Name, state: tauri::State<AppState>) -> BffGuiResult<()> {
     let mut state_guard = state.0.lock().unwrap();
     let state = state_guard.as_mut().unwrap();
-    let preview_object: &ResourcePreview =
-        state
-            .resource_previews
-            .get(&name)
-            .ok_or(SimpleError(format!(
-                "preview for resource {} not found",
-                name
-            )))?;
+    let preview_object: &ResourcePreview = state
+        .resource_previews
+        .get(&name)
+        .ok_or(InvalidPreviewError::new(name))?;
     std::fs::copy(preview_object.preview_path.as_ref().unwrap(), path)?;
     Ok(())
 }

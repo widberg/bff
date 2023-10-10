@@ -1,34 +1,34 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   BigFileData,
   ResourcePreview,
-  PreviewTab, ResourceInfo,
+  ViewTab, ResourceInfo,
   Sort,
 } from "../types/types";
 
 import "./Explorer.css";
-import { updatePreview } from "../functions/preview";
+import { updateView } from "../functions/preview";
 
 function ResourceButton({
   bffObjectName = "",
   implemented = true,
   name = 0,
   // onClick,
-  setPreviewObject,
-  setOpenPreviewTab,
+  setResourcePreview,
+  setOpenTab,
 }: {
   bffObjectName: string;
   implemented: boolean;
   name: number;
   // onClick: any;
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
-  setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
+  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
 }) {
   return (
     <button
       className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
       onClick={() => {
-        updatePreview(name, setPreviewObject, setOpenPreviewTab);
+        updateView(name, setResourcePreview, setOpenTab);
       }}
     >
       {bffObjectName}
@@ -41,15 +41,15 @@ function ObjectList({
   // onClick,
   sort,
   sortBackward,
-  setPreviewObject,
-  setOpenPreviewTab,
+  setResourcePreview,
+  setOpenTab,
 }: {
   resources: ResourceInfo[];
   // onClick: any;
   sort: number;
   sortBackward: boolean;
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
-  setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
+  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
 }) {
   let objectsCopy = [...resources];
   if (sort != Sort.Block) objectsCopy.sort((a, b) => a.name - b.name);
@@ -76,8 +76,8 @@ function ObjectList({
       }`}
       name={v.name}
       // onClick={onClick}
-      setPreviewObject={setPreviewObject}
-      setOpenPreviewTab={setOpenPreviewTab}
+      setResourcePreview={setResourcePreview}
+      setOpenTab={setOpenTab}
     />
   ));
   return <div>{btns}</div>;
@@ -108,12 +108,12 @@ function SortButton({
 
 export function Explorer({
   bigfile,
-  setPreviewObject,
-  setOpenPreviewTab,
+  setResourcePreview,
+  setOpenTab,
 }: {
   bigfile: BigFileData;
-  setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
-  setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>;
+  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
 }) {
   const [sort, setSort] = useState<Sort>(Sort.Block);
   const [sortBackward, setSortBackward] = useState<boolean>(false);
@@ -157,8 +157,8 @@ export function Explorer({
           // onClick={updatePreview}
           sort={sort}
           sortBackward={sortBackward}
-          setPreviewObject={setPreviewObject}
-          setOpenPreviewTab={setOpenPreviewTab}
+          setResourcePreview={setResourcePreview}
+          setOpenTab={setOpenTab}
         />
       </div>
     </div>

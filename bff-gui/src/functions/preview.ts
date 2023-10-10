@@ -1,22 +1,23 @@
 import { invoke } from "@tauri-apps/api";
 import { tempdir } from "@tauri-apps/api/os";
-import { BigFileData, ResourcePreview, PreviewTab } from "../types/types";
+import { BigFileData, ResourcePreview, ViewTab } from "../types/types";
+import {message} from "@tauri-apps/api/dialog";
 
-export async function updatePreview(
+export async function updateView(
   resourceName: number,
   setPreviewObject: React.Dispatch<React.SetStateAction<ResourcePreview | null>>,
-  setOpenPreviewTab: React.Dispatch<React.SetStateAction<PreviewTab>>
+  setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>
 ) {
   let temp_dir = await tempdir();
-  invoke("parse_object", {
+  invoke("parse_resource", {
     resourceName: resourceName,
     tempPath: temp_dir,
   }).then((preview) => {
     let resourcePreview = preview as ResourcePreview;
     setPreviewObject(resourcePreview);
-    // if (resourcePreview.error !== null) setOpenPreviewTab(PreviewTab.Error);
+    // if (resourcePreview.error !== null) setOpenTab(PreviewTab.Error);
     if (resourcePreview.preview_path !== null)
-      setOpenPreviewTab(PreviewTab.Preview);
-    else setOpenPreviewTab(PreviewTab.Data);
-  }).catch((e) => console.error(e));
+      setOpenTab(ViewTab.Preview);
+    else setOpenTab(ViewTab.Data);
+  }).catch((e) => message(e, { type: "warning" }));
 }
