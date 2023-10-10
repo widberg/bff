@@ -1,7 +1,7 @@
 use std::io::Cursor;
-use std::path::Path;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::engine::general_purpose;
+use base64::Engine as _;
 use bff::class::sound::Sound;
 use bff::names::Name;
 
@@ -10,7 +10,7 @@ use crate::traits::Export;
 use crate::{DataType, PreviewData};
 
 impl Export for Box<Sound> {
-    fn export(&self, _export_path: &Path, _name: Name) -> BffGuiResult<PreviewData> {
+    fn export(&self, _name: Name) -> BffGuiResult<PreviewData> {
         match **self {
             Sound::SoundV1_291_03_06PC(ref sound) => {
                 let spec = hound::WavSpec {

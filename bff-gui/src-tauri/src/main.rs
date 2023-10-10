@@ -7,7 +7,8 @@ use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::engine::general_purpose;
+use base64::Engine as _;
 use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
 use bff::class::user_define::UserDefine;
@@ -139,7 +140,6 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
 #[tauri::command]
 fn parse_resource(
     resource_name: Name,
-    temp_path: &Path,
     state: tauri::State<AppState>,
 ) -> BffGuiResult<ResourcePreview> {
     let mut state_guard = state.0.lock().unwrap();
@@ -155,18 +155,9 @@ fn parse_resource(
 
     let class = resource.try_into_version_platform(version.clone(), platform)?;
     let data = match class {
-        Class::Bitmap(ref bitmap) => {
-            let new_path = temp_path.join(format!("{}.png", resource.name));
-            Some(bitmap.export(&new_path, resource_name)?)
-        }
-        Class::Sound(ref sound) => {
-            let new_path = temp_path.join(format!("{}.wav", resource.name));
-            Some(sound.export(&new_path, resource_name)?)
-        }
-        Class::Mesh(ref mesh) => {
-            let new_path = temp_path.join(format!("{}.dae", resource.name));
-            Some(mesh.export(&new_path, resource_name)?)
-        }
+        Class::Bitmap(ref bitmap) => Some(bitmap.export(resource_name)?),
+        Class::Sound(ref sound) => Some(sound.export(resource_name)?),
+        Class::Mesh(ref mesh) => Some(mesh.export(resource_name)?),
         Class::UserDefine(ref userdefine) => match **userdefine {
             UserDefine::UserDefineV1_291_03_06PC(ref userdefine) => Some(PreviewData {
                 is_base64: false,
@@ -248,7 +239,7 @@ fn export_preview(path: &Path, name: Name, state: tauri::State<AppState>) -> Bff
         true => &binding,
         false => preview_data.data.as_bytes(),
     };
-    File::create(path)?.write(written_data)?;
+    File::create(path)?.write_all(written_data)?;
     Ok(())
 }
 

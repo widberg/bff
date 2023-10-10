@@ -1,5 +1,4 @@
 use std::io::Cursor;
-use std::path::Path;
 use std::str::from_utf8;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
@@ -123,7 +122,7 @@ struct SimpleMesh {
 }
 
 impl Export for Box<Mesh> {
-    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<PreviewData> {
+    fn export(&self, name: Name) -> BffGuiResult<PreviewData> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh

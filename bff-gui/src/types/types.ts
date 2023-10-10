@@ -55,5 +55,4 @@ export enum Submenu {
 export enum ViewTab {
   Data,
   Preview,
-  Error,
 }

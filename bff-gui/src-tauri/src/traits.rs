@@ -1,9 +1,8 @@
-use std::path::Path;
-
 use bff::names::Name;
 
-use crate::{error::BffGuiResult, PreviewData};
+use crate::error::BffGuiResult;
+use crate::PreviewData;
 
 pub trait Export {
-    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<PreviewData>;
+    fn export(&self, name: Name) -> BffGuiResult<PreviewData>;
 }

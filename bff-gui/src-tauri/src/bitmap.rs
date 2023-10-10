@@ -1,7 +1,7 @@
 use std::io::{BufReader, Cursor};
-use std::path::Path;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::engine::general_purpose;
+use base64::Engine as _;
 use bff::class::bitmap::Bitmap;
 use bff::names::Name;
 
@@ -10,7 +10,7 @@ use crate::traits::Export;
 use crate::{DataType, PreviewData};
 
 impl Export for Box<Bitmap> {
-    fn export(&self, _export_path: &Path, _name: Name) -> BffGuiResult<PreviewData> {
+    fn export(&self, _name: Name) -> BffGuiResult<PreviewData> {
         match **self {
             Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(&bitmap.body.data));
