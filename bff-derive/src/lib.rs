@@ -1,7 +1,8 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{braced, parse_macro_input, Arm, DeriveInput, Ident, LitStr, Result};
+use syn::spanned::Spanned;
+use syn::{braced, parse_macro_input, Arm, Data, DeriveInput, Fields, Ident, LitStr, Result};
 
 #[proc_macro_derive(NamedClass)]
 pub fn bff_named_class(input: TokenStream) -> TokenStream {
@@ -248,4 +249,136 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             }
         }
     }
+}
+
+#[proc_macro_derive(ReferencedNames)]
+pub fn referenced_names(input: TokenStream) -> TokenStream {
+    let mut input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    for param in &mut input.generics.params {
+        if let syn::GenericParam::Type(ty) = param {
+            ty.bounds
+                .push(syn::parse_quote!(crate::traits::ReferencedNames));
+        }
+    }
+    let generics = &mut input.generics;
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    let body = match input.data {
+        Data::Struct(data) => match data.fields {
+            Fields::Named(named) => {
+                let fields = named
+                    .named
+                    .iter()
+                    .map(|field| {
+                        let name = field.ident.as_ref().unwrap();
+                        quote! {
+                            names.extend(self.#name.names());
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                quote! {
+                    #(#fields)*
+                }
+            }
+            Fields::Unnamed(unnamed) => {
+                let fields = unnamed
+                    .unnamed
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| {
+                        quote! {
+                            names.extend(self.#i.names());
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                quote! {
+                    #(#fields)*
+                }
+            }
+            Fields::Unit => {
+                quote! {}
+            }
+        },
+        Data::Enum(data) => {
+            let variants = data
+                .variants
+                .iter()
+                .map(|variant| {
+                    let variant_name = &variant.ident;
+                    match &variant.fields {
+                        Fields::Named(named) => {
+                            let (names, fields): (Vec<_>, Vec<_>) = named
+                                .named
+                                .iter()
+                                .map(|field| {
+                                    let name = field.ident.as_ref().unwrap();
+                                    (
+                                        name,
+                                        quote! {
+                                                names.extend(#name.names());
+                                        },
+                                    )
+                                })
+                                .unzip();
+
+                            quote! {
+                                #variant_name { #(#names,)* } => {
+                                    #(#fields)*
+                                }
+                            }
+                        }
+                        Fields::Unnamed(unnamed) => {
+                            let (names, fields): (Vec<_>, Vec<_>) = unnamed
+                                .unnamed
+                                .iter()
+                                .enumerate()
+                                .map(|(i, _)| {
+                                    let ident =
+                                        Ident::new(format!("field_{}", i).as_str(), variant.span());
+                                    (
+                                        ident,
+                                        quote! {
+                                            names.extend(ident.names());
+                                        },
+                                    )
+                                })
+                                .unzip();
+
+                            quote! {
+                                #variant_name { #(#names,)* } => {
+                                    #(#fields)*
+                                }
+                            }
+                        }
+                        Fields::Unit => {
+                            quote! { #variant_name => {} }
+                        }
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            quote! {
+                match self {
+                    #(#variants)*
+                }
+            }
+        }
+        Data::Union(_) => {
+            unimplemented!()
+        }
+    };
+
+    quote! {
+        impl #impl_generics crate::traits::ReferencedNames for #name #ty_generics #where_clause {
+            fn names(&self) -> std::collections::HashSet<crate::names::Name> {
+                let mut names = std::collections::HashSet::new();
+                #body
+                names
+            }
+        }
+    }
+    .into()
 }

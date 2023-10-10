@@ -15,6 +15,7 @@ use crate::bigfile::resource::ResourceData::CompressibleData;
 use crate::bigfile::resource::{Resource, ResourceData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::BigFile;
+use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::Name;
 use crate::platforms::Platform;
@@ -114,31 +115,45 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
         for (i, block) in bigfile.manifest.blocks.iter().enumerate() {
             let block_begin = writer.stream_position()?;
 
+            let mut calculated_working_buffer_offset = 0usize;
+
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
+                let begin_resource = writer.stream_position()?;
                 match resource.data {
-                    CompressibleData { compress, ref data } => {
-                        if compress {
-                            let begin_header = writer.stream_position()?;
-                            writer.seek(SeekFrom::Current(16))?;
-                            let begin_data = writer.stream_position()?;
-                            compress_data_with_header_writer_internal(data, writer, endian, ())?;
-                            let end_data = writer.stream_position()?;
-                            writer.seek(SeekFrom::Start(begin_header))?;
-                            (data.len() as u32).write_options(writer, endian, ())?;
-                            ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            writer.seek(SeekFrom::Start(end_data))?;
-                        } else {
-                            (data.len() as u32).write_options(writer, endian, ())?;
-                            0u32.write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            data.write_options(writer, endian, ())?;
-                        }
+                    CompressibleData {
+                        compress: true,
+                        ref data,
+                    } => {
+                        let begin_header = writer.stream_position()?;
+                        writer.seek(SeekFrom::Current(16))?;
+                        let begin_data = writer.stream_position()?;
+                        compress_data_with_header_writer_internal(data, writer, endian, ())?;
+                        let end_data = writer.stream_position()?;
+                        writer.seek(SeekFrom::Start(begin_header))?;
+                        (data.len() as u32).write_options(writer, endian, ())?;
+                        ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.seek(SeekFrom::Start(end_data))?;
+
+                        let needed_working_buffer_offset =
+                            if data.len() > (begin_resource - block_begin) as usize {
+                                data.len()
+                            } else {
+                                0
+                            };
+
+                        calculated_working_buffer_offset = max(
+                            needed_working_buffer_offset,
+                            calculated_working_buffer_offset,
+                        );
                     }
-                    ResourceData::Data(ref data) => {
+                    CompressibleData {
+                        compress: false,
+                        ref data,
+                    }
+                    | ResourceData::Data(ref data) => {
                         (data.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
@@ -146,46 +161,62 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
                         data.write_options(writer, endian, ())?;
                     }
                     ResourceData::ExtendedData {
-                        compress,
+                        compress: true,
                         ref link_header,
                         ref body,
                     } => {
-                        if compress {
-                            let data = [link_header.as_slice(), body.as_slice()].concat();
-                            let begin_header = writer.stream_position()?;
-                            writer.seek(SeekFrom::Current(16))?;
-                            let begin_data = writer.stream_position()?;
-                            compress_data_with_header_writer_internal(&data, writer, endian, ())?;
-                            let end_data = writer.stream_position()?;
-                            writer.seek(SeekFrom::Start(begin_header))?;
-                            (data.len() as u32).write_options(writer, endian, ())?;
-                            ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            writer.seek(SeekFrom::Start(end_data))?;
-                        } else {
-                            ((link_header.len() + body.len()) as u32).write_options(
-                                writer,
-                                endian,
-                                (),
-                            )?;
-                            0u32.write_options(writer, endian, ())?;
-                            resource.class_name.write_options(writer, endian, ())?;
-                            resource.name.write_options(writer, endian, ())?;
-                            link_header.write_options(writer, endian, ())?;
-                            body.write_options(writer, endian, ())?;
-                        }
+                        let data = [link_header.as_slice(), body.as_slice()].concat();
+                        let begin_header = writer.stream_position()?;
+                        writer.seek(SeekFrom::Current(16))?;
+                        let begin_data = writer.stream_position()?;
+                        compress_data_with_header_writer_internal(&data, writer, endian, ())?;
+                        let end_data = writer.stream_position()?;
+                        writer.seek(SeekFrom::Start(begin_header))?;
+                        (data.len() as u32).write_options(writer, endian, ())?;
+                        ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.seek(SeekFrom::Start(end_data))?;
+
+                        let needed_working_buffer_offset =
+                            if data.len() > (begin_resource - block_begin) as usize {
+                                data.len()
+                            } else {
+                                0
+                            };
+
+                        calculated_working_buffer_offset = max(
+                            needed_working_buffer_offset,
+                            calculated_working_buffer_offset,
+                        );
+                    }
+                    ResourceData::ExtendedData {
+                        compress: false,
+                        ref link_header,
+                        ref body,
+                    } => {
+                        ((link_header.len() + body.len()) as u32).write_options(
+                            writer,
+                            endian,
+                            (),
+                        )?;
+                        0u32.write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        link_header.write_options(writer, endian, ())?;
+                        body.write_options(writer, endian, ())?;
                     }
                 }
             }
 
             let block_end = writer.stream_position()?;
             let data_size = (block_end - block_begin) as u32;
-            let padding = vec![0x00; (2048 - (data_size % 2048)) as usize];
-            writer.write_all(&padding)?;
-            let padded_size = data_size + padding.len() as u32;
+            let padding = write_align_to(writer, 2048, 0x00)?;
+            let padded_size = data_size + padding as u32;
 
-            let working_buffer_offset = block.offset.unwrap_or(0);
+            let working_buffer_offset = block
+                .offset
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 
@@ -222,7 +253,7 @@ impl BigFileWrite for BigFileV1_08_40_02PC {
         let header = Header {
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
-            padded_size: end as u32 - 2048,
+            total_padded_block_size: end as u32 - 2048,
             version_triple: bigfile
                 .manifest
                 .version_triple

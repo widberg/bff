@@ -1,6 +1,6 @@
 use std::ffi::OsStr;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bff::bigfile::BigFile;
 
@@ -9,11 +9,11 @@ use crate::extract::read_bigfile;
 
 pub fn write_bigfile(bigfile_path: &Path, bigfile: &BigFile) -> BffCliResult<()> {
     let mut writer = File::create(bigfile_path)?;
-    // let mut writer = Writer::new(f);
+    // Intentionally use an unbuffered writer for debugging purposes.
     Ok(BigFile::write(bigfile, &mut writer)?)
 }
 
-pub fn round_trip(bigfile_path: &PathBuf) -> BffCliResult<()> {
+pub fn round_trip(bigfile_path: &Path) -> BffCliResult<()> {
     let bigfile = read_bigfile(bigfile_path)?;
     let mut new_extension = bigfile_path
         .extension()
