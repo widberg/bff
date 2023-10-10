@@ -39,6 +39,7 @@ pub enum Error {
     Image(image::error::ImageError),
     Hound(hound::Error),
     De(quick_xml::DeError),
+    Decode(base64::DecodeError),
 }
 
 impl serde::Serialize for Error {

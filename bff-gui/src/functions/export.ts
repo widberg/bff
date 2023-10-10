@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api";
 import { message, save, open } from "@tauri-apps/api/dialog";
 
-import { EXTENSION_DESCRIPTIONS, JSON_EXT } from "../constants/constants";
-import { extname } from "@tauri-apps/api/path";
+import { EXTENSIONS } from "../constants/constants";
+import { DataType } from "../types/types";
 
 export async function exportAll() {
   open({ directory: true }).then((path) => {
@@ -15,11 +15,13 @@ export async function exportAll() {
 
 export async function exportOne(objectName: number) {
   save({
-    defaultPath: `${objectName}.${JSON_EXT}`,
+    defaultPath: `${objectName}.${
+      (EXTENSIONS.get(DataType.Json) as string[])[0]
+    }`,
     filters: [
       {
-        name: EXTENSION_DESCRIPTIONS.get(JSON_EXT) as string,
-        extensions: [JSON_EXT],
+        name: (EXTENSIONS.get(DataType.Json) as string[])[1],
+        extensions: [(EXTENSIONS.get(DataType.Json) as string[])[0]],
       },
     ],
   }).then((path) => {
@@ -30,19 +32,19 @@ export async function exportOne(objectName: number) {
   });
 }
 
-export async function exportPreview(objectName: number, objectPath: string) {
-  let extension = await extname(objectPath);
+export async function exportPreview(resourceName: number, dataType: DataType) {
+  let ext_info = EXTENSIONS.get(dataType) as string[];
   save({
-    defaultPath: `${objectName}.${extension}`,
+    defaultPath: `${resourceName}.${ext_info[0]}`,
     filters: [
       {
-        name: EXTENSION_DESCRIPTIONS.get(extension) as string,
-        extensions: [extension],
+        name: ext_info[1],
+        extensions: [ext_info[0]],
       },
     ],
   }).then((path) => {
     if (path !== null)
-      invoke("export_preview", { path: path, name: objectName }).catch((e) =>
+      invoke("export_preview", { path: path, name: resourceName }).catch((e) =>
         message(e, { type: "warning" })
       );
   });

@@ -1,5 +1,5 @@
 import { useComponentVisible } from "../hooks/click-outside";
-import { BigFileData, ResourcePreview } from "../types/types";
+import { BigFileData, DataType, ResourcePreview } from "../types/types";
 
 import "./Menubar.css";
 
@@ -8,10 +8,10 @@ import { selectBigfile } from "../functions/bigfile";
 
 function ExportMenu({
   bigfileLoaded,
-  previewObject,
+  resourcePreview,
 }: {
   bigfileLoaded: boolean;
-  previewObject: ResourcePreview | null;
+  resourcePreview: ResourcePreview | null;
 }) {
   const { ref, isComponentVisible, setIsComponentVisible } =
     useComponentVisible(false);
@@ -37,27 +37,27 @@ function ExportMenu({
           }}
           disabled={!bigfileLoaded}
         >
-          Export objects as JSON...
+          Export all resources as JSON...
         </button>
         <button
           onClick={() => {
             setIsComponentVisible(false);
-            exportOne(previewObject?.name as number);
+            exportOne(resourcePreview?.name as number);
           }}
-          disabled={previewObject === null}
+          disabled={resourcePreview === null}
         >
-          Export current object as JSON...
+          Export resource as JSON...
         </button>
         <button
           onClick={() => {
             setIsComponentVisible(false);
             exportPreview(
-              previewObject?.name as number,
-              previewObject?.preview_path as string
+              resourcePreview?.name as number,
+              resourcePreview?.preview_data?.data_type as DataType
             );
           }}
           disabled={
-            previewObject === null || previewObject?.preview_path === null
+            resourcePreview === null || resourcePreview?.preview_data === null
           }
         >
           Export preview...
@@ -75,7 +75,9 @@ export function Menubar({
 }: {
   bigfileLoaded: boolean;
   resourcePreview: ResourcePreview | null;
-  setResourcePreview: React.Dispatch<React.SetStateAction<ResourcePreview | null>>;
+  setResourcePreview: React.Dispatch<
+    React.SetStateAction<ResourcePreview | null>
+  >;
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>;
 }) {
   return (
@@ -83,7 +85,10 @@ export function Menubar({
       <button onClick={() => selectBigfile(setResourcePreview, setBigfile)}>
         Open BigFile...
       </button>
-      <ExportMenu bigfileLoaded={bigfileLoaded} previewObject={resourcePreview} />
+      <ExportMenu
+        bigfileLoaded={bigfileLoaded}
+        resourcePreview={resourcePreview}
+      />
     </div>
   );
 }

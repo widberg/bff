@@ -1,28 +1,41 @@
 use std::io::{BufReader, Cursor};
 use std::path::Path;
 
+use base64::{engine::general_purpose, Engine as _};
 use bff::class::bitmap::Bitmap;
 use bff::names::Name;
 
 use crate::error::BffGuiResult;
 use crate::traits::Export;
+use crate::{DataType, PreviewData};
 
 impl Export for Box<Bitmap> {
-    fn export(&self, export_path: &Path, _name: Name) -> BffGuiResult<String> {
+    fn export(&self, _export_path: &Path, _name: Name) -> BffGuiResult<PreviewData> {
         match **self {
             Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(&bitmap.body.data));
                 let dds = ddsfile::Dds::read(buf)?;
                 let image = image_dds::image_from_dds(&dds, 0)?;
-                image.save(export_path)?;
-                Ok(serde_json::to_string_pretty(&bitmap.body)?)
+                let mut bytes: Vec<u8> = Vec::new();
+                image.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)?;
+                Ok(PreviewData {
+                    is_base64: true,
+                    data: general_purpose::STANDARD_NO_PAD.encode(bytes),
+                    data_type: DataType::Image,
+                })
             }
             Bitmap::BitmapV1_291_03_06PC(ref bitmap) => {
                 let buf = BufReader::new(Cursor::new(&bitmap.body.data));
                 let dds = ddsfile::Dds::read(buf)?;
                 let image = image_dds::image_from_dds(&dds, 0)?;
-                image.save(export_path)?;
-                Ok(serde_json::to_string_pretty(&bitmap.body)?)
+                // image.save(export_path)?;
+                let mut bytes: Vec<u8> = Vec::new();
+                image.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)?;
+                Ok(PreviewData {
+                    is_base64: true,
+                    data: general_purpose::STANDARD_NO_PAD.encode(bytes),
+                    data_type: DataType::Image,
+                })
             }
             Bitmap::BitmapV1_06_63_02PC(ref bitmap) => {
                 let image: image::ImageBuffer<_, _> = match &bitmap.body.dds {
@@ -78,8 +91,13 @@ impl Export for Box<Bitmap> {
                         }
                     }
                 };
-                image.save(export_path)?;
-                Ok(serde_json::to_string_pretty(&bitmap.body)?)
+                let mut bytes: Vec<u8> = Vec::new();
+                image.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)?;
+                Ok(PreviewData {
+                    is_base64: true,
+                    data: general_purpose::STANDARD_NO_PAD.encode(bytes),
+                    data_type: DataType::Image,
+                })
             }
         }
     }

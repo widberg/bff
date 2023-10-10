@@ -12,8 +12,22 @@ export interface ResourceInfo {
 
 export interface ResourcePreview {
   name: number;
-  preview_data: string;
-  preview_path?: string;
+  preview_json: string;
+  preview_data?: PreviewData;
+}
+
+export interface PreviewData {
+  is_base64: boolean;
+  data: string;
+  data_type: DataType;
+}
+
+export enum DataType {
+  Image,
+  Sound,
+  Mesh,
+  Text,
+  Json,
 }
 
 export interface MeshMaterial {

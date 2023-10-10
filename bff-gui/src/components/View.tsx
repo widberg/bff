@@ -1,23 +1,25 @@
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Grid } from "@react-three/drei";
-import {
-  DoubleSide,
-  FrontSide,
-  Material,
-  MeshStandardMaterial,
-} from "three";
+import { DoubleSide, FrontSide, Material, MeshStandardMaterial } from "three";
 import { useState } from "react";
 // import parse from "html-react-parser";
 
 import "./View.css";
 
-import {MeshMaterial, ResourcePreview, ViewTab, MaterialType} from "../types/types";
-import {DEFAULT_MAT, IMAGE_EXT, MESH_EXT, NORMAL_MAT, SOUND_EXT, WIREFRAME_MAT} from "../constants/constants";
+import {
+  MeshMaterial,
+  ResourcePreview,
+  ViewTab,
+  MaterialType,
+  PreviewData,
+  DataType,
+} from "../types/types";
+import { DEFAULT_MAT, NORMAL_MAT, WIREFRAME_MAT } from "../constants/constants";
 
-function PreviewInner({ previewPath }: { previewPath: string }) {
+function PreviewInner({ previewData }: { previewData: PreviewData }) {
   const [rendering, setRendering] = useState<string>("pixelated");
   const [material, setMaterial] = useState<MeshMaterial>({
     name: "default",
@@ -41,7 +43,7 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
     material.material.side = checked ? DoubleSide : FrontSide;
   }
 
-  if (previewPath.endsWith(IMAGE_EXT)) {
+  if (previewData.data_type == DataType.Image) {
     return (
       <TransformWrapper minScale={0.1} limitToBounds={false}>
         <div className="preview-overlay">
@@ -59,21 +61,21 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
           <img
             //@ts-ignore
             style={{ imageRendering: rendering }}
-            src={previewPath}
+            src={"data:image/png;base64," + previewData.data}
             alt="image"
             className="preview-image"
           />
         </TransformComponent>
       </TransformWrapper>
     );
-  } else if (previewPath.endsWith(SOUND_EXT))
+  } else if (previewData.data_type == DataType.Sound)
     return (
       <div className="preview-display">
-        <audio controls src={previewPath} />
+        <audio controls src={"data:audio/wav;base64," + previewData.data} />
       </div>
     );
-  else if (previewPath.endsWith(MESH_EXT)) {
-    const { scene } = useLoader(ColladaLoader, previewPath);
+  else if (previewData.data_type == DataType.Mesh) {
+    const scene = new ColladaLoader().parse(previewData.data, "/").scene;
 
     return (
       <div className="preview-scene">
@@ -109,7 +111,7 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
           <directionalLight color="white" position={[-10, -10, -10]} />
           <Grid
             infiniteGrid={true}
-            fadeDistance={10}
+            fadeDistance={30}
             cellColor="#444444"
             sectionColor="#888888"
           />
@@ -119,7 +121,13 @@ function PreviewInner({ previewPath }: { previewPath: string }) {
         </Canvas>
       </div>
     );
-  } else {
+  } else if (previewData.data_type == DataType.Text)
+    return (
+      <div className="preview-data preview-text">
+        <p>{previewData.data}</p>
+      </div>
+    );
+  else {
     return <></>;
   }
 }
@@ -134,15 +142,13 @@ function PreviewContainer({
   if (openTab == ViewTab.Data)
     return (
       <div className="preview-data preview-text">
-        <p>{previewObject.preview_data}</p>
+        <p>{previewObject.preview_json}</p>
       </div>
     );
   if (openTab == ViewTab.Preview) {
-    if (previewObject.preview_path !== null)
+    if (previewObject.preview_data !== null)
       return (
-        <PreviewInner
-          previewPath={convertFileSrc(previewObject.preview_path as string)}
-        />
+        <PreviewInner previewData={previewObject.preview_data as PreviewData} />
       );
   }
   // if (openTab == PreviewTab.Error) {
@@ -170,7 +176,10 @@ export function View({
         <span
           className={
             "second-header" +
-            (openTab == 0 ? " tabs-small" : " tabs-big")
+            (openTab == ViewTab.Data ||
+            resourcePreview?.preview_data?.data_type == DataType.Text
+              ? " tabs-small"
+              : " tabs-big")
           }
         >
           <button
@@ -183,11 +192,9 @@ export function View({
           <button
             onClick={() => setOpenTab(ViewTab.Preview)}
             disabled={
-              resourcePreview === null || resourcePreview?.preview_path === null
+              resourcePreview === null || resourcePreview?.preview_data === null
             }
-            className={
-              openTab == ViewTab.Preview ? "selected-tab" : ""
-            }
+            className={openTab == ViewTab.Preview ? "selected-tab" : ""}
           >
             Preview
           </button>
@@ -202,10 +209,7 @@ export function View({
       </div>
       {resourcePreview !== null && (
         <div className="preview-inner">
-          <PreviewContainer
-            openTab={openTab}
-            previewObject={resourcePreview}
-          />
+          <PreviewContainer openTab={openTab} previewObject={resourcePreview} />
         </div>
       )}
     </div>

@@ -3,17 +3,14 @@ import {
   MeshNormalMaterial,
   MeshStandardMaterial,
 } from "three";
+import { DataType } from "../types/types";
 
-export const IMAGE_EXT = "png";
-export const MESH_EXT = "dae";
-export const SOUND_EXT = "wav";
-export const JSON_EXT = "json";
-
-export const EXTENSION_DESCRIPTIONS: Map<string, string> = new Map([
-  [IMAGE_EXT, "Image"],
-  [MESH_EXT, "Mesh"],
-  [SOUND_EXT, "Sound"],
-  [JSON_EXT, "JSON"],
+export const EXTENSIONS: Map<DataType, string[]> = new Map([
+  [DataType.Image, ["png", "Image"]],
+  [DataType.Sound, ["wav", "Sound"]],
+  [DataType.Mesh, ["dae", "Mesh"]],
+  [DataType.Text, ["txt", "Text"]],
+  [DataType.Json, ["json", "JSON"]],
 ]);
 
 export const DEFAULT_MAT = new MeshStandardMaterial();

@@ -54,9 +54,6 @@
   line-height: 1.3rem;
   white-space: pre;
   user-select: text;
-}
-
-.preview-text {
   padding-top: 0.8em;
   font-family: monospace;
   padding-inline: 0.4em;

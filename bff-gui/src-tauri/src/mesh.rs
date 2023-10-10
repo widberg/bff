@@ -1,6 +1,6 @@
-use std::fs::File;
-use std::io::Write;
+use std::io::Cursor;
 use std::path::Path;
+use std::str::from_utf8;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
 use bff::names::Name;
@@ -10,6 +10,7 @@ use serde::Serialize;
 
 use crate::error::{BffGuiResult, UnimplementedExporterError};
 use crate::traits::Export;
+use crate::{DataType, PreviewData};
 
 structstruck::strike! {
     #[strikethrough[derive(Serialize)]]
@@ -122,7 +123,7 @@ struct SimpleMesh {
 }
 
 impl Export for Box<Mesh> {
-    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<String> {
+    fn export(&self, export_path: &Path, name: Name) -> BffGuiResult<PreviewData> {
         match **self {
             Mesh::MeshV1_291_03_06PC(ref mesh) => {
                 let buffers: Vec<SimpleMesh> = mesh
@@ -305,11 +306,14 @@ impl Export for Box<Mesh> {
                     },
                 };
 
-                let mut buffer = Vec::new();
-                let mut writer = Writer::new_with_indent(&mut buffer, b' ', 2);
+                let mut bytes = Vec::new();
+                let mut writer = Writer::new_with_indent(Cursor::new(&mut bytes), b' ', 2);
                 writer.write_serializable("COLLADA", &collada)?;
-                File::create(export_path)?.write_all(&buffer)?;
-                Ok(serde_json::to_string_pretty(&mesh.link_header)?)
+                Ok(PreviewData {
+                    is_base64: true,
+                    data: from_utf8(&bytes).unwrap().to_string(),
+                    data_type: DataType::Mesh,
+                })
             }
             _ => Err(UnimplementedExporterError::new(name, Mesh::NAME).into()),
         }
