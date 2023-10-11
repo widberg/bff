@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ use crate::math::{Vec2f, RGB};
 use crate::names::Name;
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 struct MaterialEnabledBitmaps {
     diffuse: u1,
     unused0: u1,
@@ -23,14 +24,14 @@ struct MaterialEnabledBitmaps {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 struct MaterialRdrFlags {
     padding0: u5,
     transparency: u1,
     padding1: u26,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MaterialBodyV1_381_67_09PC {
     diffuse: RGB,

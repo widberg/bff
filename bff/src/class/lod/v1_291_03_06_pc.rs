@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
@@ -9,25 +10,25 @@ use crate::math::{DynBox, DynSphere, Vec3f};
 use crate::names::Name;
 use crate::option::BffOption;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SphereColNode {
     data: [u8; 28],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ClassRes {
     id: u32,
     crc32: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_291_03_06PC {
     b_sphere_col_node: Name,

@@ -45,26 +45,12 @@ pub struct InvalidPlatformStyleError {
     pub style: Style,
 }
 
-#[derive(Debug, Constructor, Display, Error)]
-#[display(
-    fmt = "CRC-32 mismatch for {}: expected {}, actual {}",
-    string,
-    expected,
-    actual
-)]
-pub struct MismatchCrc32Error {
-    pub string: String,
-    pub expected: Name,
-    pub actual: Name,
-}
-
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     BinRW(binrw::Error),
     InvalidExtension(InvalidExtensionError),
     InvalidPlatformStyle(InvalidPlatformStyleError),
     Io(std::io::Error),
-    MismatchCrc32(MismatchCrc32Error),
     ParseInt(std::num::ParseIntError),
     UnimplementedClass(UnimplementedClassError),
     UnimplementedVersionPlatform(UnimplementedVersionPlatformError),

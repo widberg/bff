@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -5,33 +6,33 @@ use crate::class::trivial_class::TrivialClass;
 use crate::dynarray::DynArray;
 use crate::math::RGBA;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
     unknown: f32,
     color: RGBA,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct2 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct3 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct4 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct MeshVolume {
     unk_struct1s: DynArray<UnkStruct1>,
     unk_struct2s: DynArray<UnkStruct2>,
@@ -39,7 +40,7 @@ struct MeshVolume {
     unk_struct4s: DynArray<UnkStruct4>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct MeshDataBodyV1_06_63_02PC {
     object_datas: ObjectDatas,

@@ -5,7 +5,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::math::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct NodeBodyV1_06_63_02PC {
     parent_crc32: Name,

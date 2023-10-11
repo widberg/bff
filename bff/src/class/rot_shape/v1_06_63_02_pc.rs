@@ -6,27 +6,27 @@ use crate::dynarray::DynArray;
 use crate::math::{Mat, Sphere, Vec2f, Vec3f};
 use crate::name::Name;
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,

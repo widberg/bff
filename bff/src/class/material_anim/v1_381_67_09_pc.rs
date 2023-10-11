@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
@@ -15,7 +16,7 @@ use crate::link_header::ResourceObjectLinkHeader;
 use crate::names::Name;
 
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 struct MaterialAnimFlags {
     fl_mat_play: u1,
     fl_mat_played: u1,
@@ -27,7 +28,7 @@ struct MaterialAnimFlags {
     flag_7: u1,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MaterialAnimBodyV1_381_67_09PC {
     bitmap_name_keyframer: KeyframerHdl,

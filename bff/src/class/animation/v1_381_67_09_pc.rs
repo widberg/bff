@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +13,7 @@ use crate::keyframer::{
 };
 use crate::link_header::ResourceObjectLinkHeader;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationNode {
     unknown0: KeyframerRot,
     unknown1: KeyframerBezierRot,
@@ -21,7 +22,7 @@ struct AnimationNode {
     unknown4: KeyframerMessage,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMaterial {
     unknown0: KeyframerFloatComp,
     unknown1: KeyframerFloatComp,
@@ -30,17 +31,17 @@ struct AnimationMaterial {
     unknown4: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMesh {
     unknown: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMorph {
     unknown: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown12 {
     unknown0: u32,
     unknown1: u32,
@@ -51,7 +52,7 @@ struct Unknown12 {
     unknown6: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown13 {
     unknown0: u32,
     unknown1: u32,
@@ -62,14 +63,14 @@ struct Unknown13 {
     unknown6: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown14 {
     unknown0: u32,
     unknown1: u32,
     unknown2: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct AnimationBodyV1_381_67_09PC {
     duration: f32,

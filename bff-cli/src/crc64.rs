@@ -1,6 +1,7 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc64::asobo_crc64_options;
+use bff::crc64::Asobo64;
+use bff::traits::NameHashFunction;
 use clap::ValueEnum;
 
 use crate::crc32::{CrcFormat, CrcMode};
@@ -11,13 +12,13 @@ pub enum Crc64Algorithm {
     Asobo,
 }
 
-fn format_hash(hash: u64, format: &CrcFormat) -> String {
+fn format_hash(hash: i64, format: &CrcFormat) -> String {
     match format {
         CrcFormat::Signed => {
-            format!("{}", hash as i64)
+            format!("{}", hash)
         }
         CrcFormat::Unsigned => {
-            format!("{}", hash)
+            format!("{}", hash as u64)
         }
         CrcFormat::Hexadecimal => {
             format!("{:#08x}", hash)
@@ -34,7 +35,7 @@ pub fn crc64(
 ) -> BffCliResult<()> {
     let starting = *starting;
     let hash_function = match algorithm {
-        Crc64Algorithm::Asobo => asobo_crc64_options,
+        Crc64Algorithm::Asobo => Asobo64::hash_options,
     };
 
     match (string, mode) {

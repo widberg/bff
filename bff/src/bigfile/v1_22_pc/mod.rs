@@ -10,9 +10,10 @@ use crate::bigfile::resource::ResourceData::Data;
 use crate::bigfile::BigFile;
 use crate::dynarray::DynArray;
 use crate::helpers::write_align_to;
-use crate::names::Name;
+use crate::names::NameType::Kalisto32;
+use crate::names::{Name, NameType};
 use crate::platforms::Platform;
-use crate::traits::{BigFileRead, BigFileWrite};
+use crate::traits::BigFileIo;
 use crate::versions::{Version, VersionTriple};
 use crate::BffResult;
 
@@ -141,7 +142,7 @@ impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> fo
     }
 }
 
-impl<const HAS_VERSION_TRIPLE: bool> BigFileRead for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
+impl<const HAS_VERSION_TRIPLE: bool> BigFileIo for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
@@ -152,9 +153,7 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileRead for BigFileV1_22PC<HAS_VERSION_
             BigFileV1_22PC::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }
-}
 
-impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
     fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
@@ -208,10 +207,14 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileWrite for BigFileV1_22PC<HAS_VERSION
         bigfile
             .manifest
             .version_triple
-            .unwrap_or(VersionTriple::default())
+            .unwrap_or_default()
             .write_options(writer, endian, ())?;
         writer.seek(SeekFrom::Start(end))?;
 
         Ok(())
+    }
+
+    fn name_type(_version: Version, _platform: Platform) -> NameType {
+        Kalisto32
     }
 }

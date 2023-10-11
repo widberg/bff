@@ -1,3 +1,4 @@
+use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -8,13 +9,13 @@ use crate::math::{Mat4f, Vec3f};
 use crate::names::Name;
 use crate::strings::PascalStringNull;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UUIDPair {
     uuid0: u32,
     uuid1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct WorldRefBodyV1_381_67_09PC {
     node_name0: Name,
