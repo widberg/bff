@@ -10,6 +10,8 @@ import {
 
 import "./Explorer.css";
 import { updateView } from "../functions/preview";
+import { VariableSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 function ResourceButton({
   // implemented = true,
@@ -20,6 +22,7 @@ function ResourceButton({
   setResourcePreview,
   setOpenTab,
   setCurrentNickname,
+  style,
 }: {
   // implemented: boolean;
   name: number;
@@ -31,6 +34,7 @@ function ResourceButton({
   >;
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
   setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
+  style: any;
 }) {
   return (
     <button
@@ -40,6 +44,7 @@ function ResourceButton({
         updateView(name, setResourcePreview, setOpenTab);
         setCurrentNickname(nickname);
       }}
+      style={style}
     >
       <span>
         {nickname !== "" ? `${nickname}.${classN}` : `${name}.${classN}`}
@@ -83,25 +88,58 @@ function ObjectList({
     });
   if (sortBackward) objectsCopy.reverse();
 
-  let btns: JSX.Element[] = objectsCopy.map((v: ResourceInfo, i: number) => (
+  const Row = ({ index, style }: { index: any; style: any }) => (
     <ResourceButton
-      key={i}
+      key={index}
       // implemented={v.is_implemented}
       // implemented={true}
-      name={v.name}
-      classN={v.class_name}
+      name={objectsCopy[index].name}
+      classN={objectsCopy[index].class_name}
       nickname={
         nicknames.find((nickname: Nickname) => {
-          return nickname.name === v.name;
+          return nickname.name === objectsCopy[index].name;
         })?.nickname ?? ""
       }
       // onClick={onClick}
       setResourcePreview={setResourcePreview}
       setOpenTab={setOpenTab}
       setCurrentNickname={setCurrentNickname}
+      style={{ ...style, top: `${parseFloat(style.top) + 25}px` }}
     />
-  ));
-  return <div>{btns}</div>;
+  );
+
+  // let btns: JSX.Element[] = objectsCopy.map((v: ResourceInfo, i: number) => (
+  //   <ResourceButton
+  //     key={i}
+  //     // implemented={v.is_implemented}
+  //     // implemented={true}
+  //     name={v.name}
+  //     classN={v.class_name}
+  //     nickname={
+  //       nicknames.find((nickname: Nickname) => {
+  //         return nickname.name === v.name;
+  //       })?.nickname ?? ""
+  //     }
+  //     // onClick={onClick}
+  //     setResourcePreview={setResourcePreview}
+  //     setOpenTab={setOpenTab}
+  //     setCurrentNickname={setCurrentNickname}
+  //   />
+  // ));
+  return (
+    <AutoSizer>
+      {({ height, width }: { height: number; width: number }) => (
+        <List
+          width={width}
+          height={height}
+          itemCount={objectsCopy.length}
+          itemSize={() => 25}
+        >
+          {Row}
+        </List>
+      )}
+    </AutoSizer>
+  );
 }
 
 function SortButton({

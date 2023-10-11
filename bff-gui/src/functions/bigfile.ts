@@ -17,8 +17,9 @@ export async function selectBigfile(
       },
     ],
   }).then((path) => {
-    if (path !== null)
+    if (path !== null) {
       openBigfile(path as string, setPreviewObject, setBigfile);
+    }
   });
 }
 

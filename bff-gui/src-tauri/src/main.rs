@@ -16,7 +16,7 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
-use error::{BffGuiResult, InvalidNicknameError, InvalidPreviewError, InvalidResourceError};
+use error::{BffGuiResult, InvalidPreviewError, InvalidResourceError};
 use serde::Serialize;
 use serde_repr::Serialize_repr;
 use traits::Export;
@@ -30,7 +30,7 @@ mod sound;
 mod traits;
 
 #[derive(Debug, Serialize, Clone)]
-pub struct ResourcePreview {
+struct ResourcePreview {
     name: Name,
     preview_json: String,
     preview_data: Option<PreviewData>,
@@ -44,14 +44,14 @@ impl std::fmt::Display for ResourcePreview {
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PreviewData {
-    is_base64: bool,
-    data: String,
-    data_type: DataType,
+    pub is_base64: bool,
+    pub data: String,
+    pub data_type: DataType,
 }
 
 #[derive(Debug, Serialize_repr, Clone, Copy)]
 #[repr(u8)]
-enum DataType {
+pub enum DataType {
     Image = 0,
     Sound = 1,
     Mesh = 2,
@@ -70,22 +70,19 @@ struct ResourceInfo {
     class_name: String,
 }
 
-pub struct InnerAppState {
-    pub bigfile: BigFile,
-    pub resource_previews: HashMap<Name, ResourcePreview>,
-    pub nicknames: HashMap<Name, String>,
+struct InnerAppState {
+    bigfile: BigFile,
+    resource_previews: HashMap<Name, ResourcePreview>,
+    // nicknames: HashMap<Name, String>,
 }
 
 impl InnerAppState {
-    pub fn add_preview(&mut self, preview: ResourcePreview) {
+    fn add_preview(&mut self, preview: ResourcePreview) {
         self.resource_previews.insert(preview.name, preview);
-    }
-    pub fn add_nickname(&mut self, name: Name, nickname: String) {
-        self.nicknames.insert(name, nickname);
     }
 }
 
-pub struct AppState(pub Mutex<Option<InnerAppState>>);
+struct AppState(Mutex<Option<InnerAppState>>);
 
 fn main() {
     tauri::Builder::default()
@@ -97,8 +94,8 @@ fn main() {
             export_one_json,
             export_preview,
             get_extensions,
-            add_nickname,
-            get_nickname,
+            // add_nickname,
+            // get_nickname,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -113,7 +110,9 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
     };
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
+    // let start = std::time::Instant::now();
     let bigfile = BigFile::read_platform(&mut reader, platform)?;
+    // println!("elapsed: {:?}", start.elapsed());
 
     let resources: Vec<ResourceInfo> = bigfile
         .objects
@@ -128,7 +127,7 @@ fn extract_bigfile(path: &str, state: tauri::State<AppState>) -> Result<BigFileD
     *state_guard = Some(InnerAppState {
         bigfile,
         resource_previews: HashMap::new(),
-        nicknames: HashMap::new(),
+        // nicknames: HashMap::new(),
     });
 
     Ok(BigFileData {
@@ -257,20 +256,20 @@ fn get_extensions() -> Vec<String> {
         .collect()
 }
 
-#[tauri::command]
-fn add_nickname(name: Name, nickname: String, state: tauri::State<AppState>) {
-    let mut state_guard = state.0.lock().unwrap();
-    let state = state_guard.as_mut().unwrap();
-    state.add_nickname(name, nickname);
-}
+// #[tauri::command]
+// fn add_nickname(name: Name, nickname: String, state: tauri::State<AppState>) {
+//     let mut state_guard = state.0.lock().unwrap();
+//     let state = state_guard.as_mut().unwrap();
+//     state.add_nickname(name, nickname);
+// }
 
-#[tauri::command]
-fn get_nickname(name: Name, state: tauri::State<AppState>) -> BffGuiResult<String> {
-    let mut state_guard = state.0.lock().unwrap();
-    let state = state_guard.as_mut().unwrap();
-    let nickname = state
-        .nicknames
-        .get(&name)
-        .ok_or(InvalidNicknameError::new(name))?;
-    Ok(nickname.clone())
-}
+// #[tauri::command]
+// fn get_nickname(name: Name, state: tauri::State<AppState>) -> BffGuiResult<String> {
+//     let mut state_guard = state.0.lock().unwrap();
+//     let state = state_guard.as_mut().unwrap();
+//     let nickname = state
+//         .nicknames
+//         .get(&name)
+//         .ok_or(InvalidNicknameError::new(name))?;
+//     Ok(nickname.clone())
+// }
