@@ -1,3 +1,5 @@
+use crate::traits::NameHashFunction;
+
 const CRC64_TABLE_SIZE: usize = 256;
 const CRC64_TABLE: [u64; CRC64_TABLE_SIZE] = [
     0x0000000000000000,
@@ -258,19 +260,33 @@ const CRC64_TABLE: [u64; CRC64_TABLE_SIZE] = [
     0x9afce626ce85b507,
 ];
 
-pub const fn asobo_crc64_options(name: &[u8], hash: i64) -> u64 {
-    let mut hash = hash as u64;
+pub const fn asobo(bytes: &[u8]) -> i64 {
+    asobo_options(bytes, 0)
+}
+
+pub const fn asobo_options(bytes: &[u8], starting: i64) -> i64 {
+    let mut hash = starting as u64;
     let mut i: usize = 0;
-    while i < name.len() {
-        let c = name[i];
+    while i < bytes.len() {
+        let c = bytes[i];
         hash = (hash << 8)
             ^ CRC64_TABLE[((c.to_ascii_lowercase() as u64 ^ (hash >> 0x38)) & 0xff) as usize];
         i += 1;
     }
 
-    hash
+    hash as i64
 }
 
-pub const fn asobo_crc64_alternate(name: &[u8]) -> u64 {
-    asobo_crc64_options(name, 0)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Asobo64;
+impl NameHashFunction for Asobo64 {
+    type Target = i64;
+
+    fn hash(bytes: &[u8]) -> Self::Target {
+        asobo(bytes)
+    }
+
+    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
+        asobo_options(bytes, starting)
+    }
 }

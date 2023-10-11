@@ -25,9 +25,10 @@ use crate::bigfile::v1_06_63_02_pc::pool::{
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::compress_data_with_header_writer_internal;
-use crate::names::Name;
+use crate::names::NameType::Asobo32;
+use crate::names::{Name, NameType};
 use crate::platforms::Platform;
-use crate::traits::{BigFileRead, BigFileWrite};
+use crate::traits::BigFileIo;
 use crate::versions::{Version, VersionTriple};
 use crate::BffResult;
 
@@ -115,7 +116,7 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
 
 pub struct BigFileV1_06_63_02PC;
 
-impl BigFileRead for BigFileV1_06_63_02PC {
+impl BigFileIo for BigFileV1_06_63_02PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
@@ -153,9 +154,7 @@ impl BigFileRead for BigFileV1_06_63_02PC {
             objects,
         })
     }
-}
 
-impl BigFileWrite for BigFileV1_06_63_02PC {
     fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
@@ -499,5 +498,9 @@ impl BigFileWrite for BigFileV1_06_63_02PC {
 
         writer.seek(SeekFrom::Start(end))?;
         Ok(())
+    }
+
+    fn name_type(_version: Version, _platform: Platform) -> NameType {
+        Asobo32
     }
 }

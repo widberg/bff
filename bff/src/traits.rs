@@ -8,7 +8,7 @@ use impl_trait_for_tuples::impl_for_tuples;
 use indexmap::IndexMap;
 
 use crate::bigfile::BigFile;
-use crate::names::Name;
+use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::versions::Version;
 use crate::BffResult;
@@ -48,21 +48,20 @@ where
     }
 }
 
-pub trait NamedClass {
-    const NAME: Name;
-    const NAME_STR: &'static str;
+pub trait NamedClass<N> {
+    const NAME: N;
 }
 
-pub trait BigFileRead {
+pub trait BigFileIo {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
     ) -> BffResult<BigFile>;
-}
 
-pub trait BigFileWrite {
     fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()>;
+
+    fn name_type(version: Version, platform: Platform) -> NameType;
 }
 
 pub enum Artifact {
@@ -175,3 +174,10 @@ macro_rules! impl_referenced_names {
 }
 
 impl_referenced_names!(bool, f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, String);
+
+// this should be const https://github.com/rust-lang/rust/issues/67792
+pub trait NameHashFunction {
+    type Target;
+    fn hash(bytes: &[u8]) -> Self::Target;
+    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target;
+}

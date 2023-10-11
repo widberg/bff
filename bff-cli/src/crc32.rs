@@ -1,6 +1,7 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc32::{asobo_alternate_options, asobo_options, kalisto_options};
+use bff::crc32::{Asobo32, AsoboAlternate32, Kalisto32};
+use bff::traits::NameHashFunction;
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;
@@ -50,9 +51,9 @@ pub fn crc32(
 ) -> BffCliResult<()> {
     let starting = *starting;
     let hash_function = match algorithm {
-        Crc32Algorithm::Asobo => asobo_options,
-        Crc32Algorithm::AsoboAlternate => asobo_alternate_options,
-        Crc32Algorithm::Kalisto => kalisto_options,
+        Crc32Algorithm::Asobo => Asobo32::hash_options,
+        Crc32Algorithm::AsoboAlternate => AsoboAlternate32::hash_options,
+        Crc32Algorithm::Kalisto => Kalisto32::hash_options,
     };
 
     match (string, mode) {

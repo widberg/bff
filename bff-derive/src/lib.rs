@@ -10,10 +10,26 @@ pub fn bff_named_class(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let class_name = LitStr::new(format!("{}_Z", name).as_str(), name.span());
 
+    // This mess can go away once https://github.com/rust-lang/rust/issues/76001 is stabilized
     quote! {
-        impl crate::traits::NamedClass for #name {
-            const NAME: crate::names::Name = crate::names::Name::new(crate::crc32::asobo(#class_name.as_bytes()));
-            const NAME_STR: &'static str = #class_name;
+        impl crate::traits::NamedClass<crate::names::NameAsobo32> for #name {
+            const NAME: crate::names::NameAsobo32 = crate::names::NameAsobo32::new(crate::crc32::asobo(#class_name.as_bytes()));
+        }
+
+        impl crate::traits::NamedClass<crate::names::NameAsoboAlternate32> for #name {
+            const NAME: crate::names::NameAsoboAlternate32 = crate::names::NameAsoboAlternate32::new(crate::crc32::asobo_alternate(#class_name.as_bytes()));
+        }
+
+        impl crate::traits::NamedClass<crate::names::NameKalisto32> for #name {
+            const NAME: crate::names::NameKalisto32 = crate::names::NameKalisto32::new(crate::crc32::kalisto(#class_name.as_bytes()));
+        }
+
+        impl crate::traits::NamedClass<crate::names::NameAsobo64> for #name {
+            const NAME: crate::names::NameAsobo64 = crate::names::NameAsobo64::new(crate::crc64::asobo(#class_name.as_bytes()));
+        }
+
+        impl crate::traits::NamedClass<&'static str> for #name {
+            const NAME: &'static str = #class_name;
         }
     }
     .into()
@@ -108,7 +124,13 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
                 match (version.clone(), platform) {
                     #(#arms)*
                     _ => Err(
-                        crate::error::UnimplementedClassError::new(object.name, <Self as crate::traits::NamedClass>::NAME, version, platform).into(),
+                        crate::error::UnimplementedClassError::new(object.name,
+                            match crate::names::names().lock().unwrap().name_type {
+                                crate::names::NameType::Asobo32 => <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(),
+                                crate::names::NameType::AsoboAlternate32 => <Self as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME.into(),
+                                crate::names::NameType::Kalisto32 => <Self as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME.into(),
+                                crate::names::NameType::Asobo64 => <Self as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME.into(),
+                            }, version, platform).into(),
                     ),
                 }
             }
@@ -194,7 +216,10 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
             let body = &form.body;
             quote! {
                 #(#attrs)*
-                #pat #guard => { <#body as BigFileRead>::read(reader, version, platform) }
+                #pat #guard => {
+                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
+                    <#body as BigFileIo>::read(reader, version, platform)
+                }
             }
         })
         .collect::<Vec<_>>();
@@ -204,7 +229,7 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
             use crate::versions::Version::*;
             use crate::platforms::Platform::*;
             use binrw::BinRead;
-            use crate::traits::BigFileRead;
+            use crate::traits::BigFileIo;
             let endian: crate::Endian = platform.into();
             let version: crate::versions::Version = crate::strings::FixedStringNull::<256>::read_be(reader)?.as_str().into();
             match (version.clone(), platform) {
@@ -229,7 +254,10 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             let body = &form.body;
             quote! {
                 #(#attrs)*
-                #pat #guard => { <#body as BigFileWrite>::write(self, writer) }
+                #pat #guard => {
+                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
+                    <#body as BigFileIo>::write(self, writer)
+                }
             }
         })
         .collect::<Vec<_>>();
@@ -239,11 +267,13 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             use crate::versions::Version::*;
             use crate::platforms::Platform::*;
             use binrw::BinWrite;
-            use crate::traits::BigFileWrite;
-            let endian: crate::Endian = self.manifest.platform.into();
-            let version_string = self.manifest.version.to_string();
+            use crate::traits::BigFileIo;
+            let platform = self.manifest.platform;
+            let endian: crate::Endian = platform.into();
+            let version = &self.manifest.version;
+            let version_string = version.to_string();
             crate::strings::FixedStringNull::<256>::write_be(&version_string.into(), writer)?;
-            match (self.manifest.version.clone(), self.manifest.platform) {
+            match (version.clone(), platform) {
                 #(#arms)*
                 (version, platform) => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
             }

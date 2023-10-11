@@ -11,7 +11,10 @@ macro_rules! classes {
 
             fn try_from_version_platform(object: &crate::bigfile::resource::Resource, version: crate::versions::Version, platform: crate::platforms::Platform) -> crate::BffResult<Class> {
                 match object.class_name {
-                    $(<$class as crate::traits::NamedClass>::NAME => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
+                    $(crate::names::Name::Asobo32(<$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME)
+                    | crate::names::Name::AsoboAlternate32(<$class as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME)
+                    | crate::names::Name::Kalisto32(<$class as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME)
+                    | crate::names::Name::Asobo64(<$class as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME) => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
                     _ => Err(crate::error::UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
             }
@@ -28,10 +31,10 @@ macro_rules! classes {
             }
         }
 
-        pub fn class_name_map() -> std::collections::HashMap<crate::names::Name, String> {
-            let mut map = std::collections::HashMap::new();
-            $(map.insert(<$class as crate::traits::NamedClass>::NAME, <$class as crate::traits::NamedClass>::NAME_STR.to_string());)*
-            map
+        pub fn class_names() -> Vec<&'static str> {
+            let mut names = Vec::new();
+            $(names.push(<$class as crate::traits::NamedClass<&'static str>>::NAME);)*
+            names
         }
     };
 }

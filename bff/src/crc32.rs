@@ -3,6 +3,8 @@ use std::str::from_utf8;
 use itertools::Itertools;
 use rayon::prelude::*;
 
+use crate::traits::NameHashFunction;
+
 const _CRC32_POLYNOMIAL: u32 = 0x04C11DB7;
 const CRC32_TABLE_SIZE: usize = 256;
 const CRC32_TABLE: [u32; CRC32_TABLE_SIZE] = [
@@ -40,13 +42,17 @@ const CRC32_TABLE: [u32; CRC32_TABLE_SIZE] = [
     0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4,
 ];
 
-pub const fn asobo_options(name: &[u8], hash: i32) -> i32 {
+pub const fn asobo(bytes: &[u8]) -> i32 {
+    asobo_options(bytes, 0)
+}
+
+pub const fn asobo_options(bytes: &[u8], starting: i32) -> i32 {
     // Using a while loop here because for loops aren't allowed in const fn.
     // https://github.com/rust-lang/rust/issues/87575
-    let mut hash = hash as u32;
+    let mut hash = starting as u32;
     let mut i: usize = 0;
-    while i < name.len() {
-        let c = name[i];
+    while i < bytes.len() {
+        let c = bytes[i];
         hash = (hash >> 8) ^ CRC32_TABLE[((c.to_ascii_lowercase() as u32 ^ hash) & 0xff) as usize];
         i += 1;
     }
@@ -54,15 +60,29 @@ pub const fn asobo_options(name: &[u8], hash: i32) -> i32 {
     hash as i32
 }
 
-pub const fn asobo(name: &[u8]) -> i32 {
-    asobo_options(name, 0)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Asobo32;
+impl NameHashFunction for Asobo32 {
+    type Target = i32;
+
+    fn hash(bytes: &[u8]) -> Self::Target {
+        asobo(bytes)
+    }
+
+    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
+        asobo_options(bytes, starting)
+    }
 }
 
-pub const fn asobo_alternate_options(name: &[u8], hash: i32) -> i32 {
-    let mut hash = hash as u32;
+pub const fn asobo_alternate(bytes: &[u8]) -> i32 {
+    asobo_alternate_options(bytes, 0)
+}
+
+pub const fn asobo_alternate_options(bytes: &[u8], starting: i32) -> i32 {
+    let mut hash = starting as u32;
     let mut i: usize = 0;
-    while i < name.len() {
-        let c = name[i];
+    while i < bytes.len() {
+        let c = bytes[i];
         hash = (hash << 8)
             ^ CRC32_TABLE[((c.to_ascii_lowercase() as u32 ^ (hash >> 0x18)) & 0xff) as usize];
         i += 1;
@@ -70,17 +90,40 @@ pub const fn asobo_alternate_options(name: &[u8], hash: i32) -> i32 {
 
     hash as i32
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AsoboAlternate32;
+impl NameHashFunction for AsoboAlternate32 {
+    type Target = i32;
 
-pub const fn asobo_alternate(name: &[u8]) -> i32 {
-    asobo_alternate_options(name, 0)
+    fn hash(bytes: &[u8]) -> Self::Target {
+        asobo_alternate(bytes)
+    }
+
+    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
+        asobo_alternate_options(bytes, starting)
+    }
 }
 
-pub const fn kalisto_options(name: &[u8], hash: i32) -> i32 {
-    !asobo_options(name, hash)
+pub const fn kalisto(bytes: &[u8]) -> i32 {
+    kalisto_options(bytes, -1)
 }
 
-pub const fn kalisto(name: &[u8]) -> i32 {
-    kalisto_options(name, -1)
+pub const fn kalisto_options(bytes: &[u8], starting: i32) -> i32 {
+    !asobo_options(bytes, starting)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Kalisto32;
+impl NameHashFunction for Kalisto32 {
+    type Target = i32;
+
+    fn hash(bytes: &[u8]) -> Self::Target {
+        kalisto(bytes)
+    }
+
+    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
+        kalisto_options(bytes, starting)
+    }
 }
 
 const REVERSE_CRC32_TABLE: [(u32, u8); 256] = [
@@ -353,7 +396,8 @@ pub fn reverse_asobo(
 ) -> Option<String> {
     let character_set = character_set.to_ascii_lowercase();
     let character_set_bytes = character_set.bytes().unique();
-    let starting_prefixed = asobo_options(string[..insert_position].as_bytes(), starting);
+    // TODO: Add reverse for more of the algorithms
+    let starting_prefixed = Asobo32::hash_options(string[..insert_position].as_bytes(), starting);
     let mut target_suffixed = target as u32;
 
     for c in string[insert_position..].to_ascii_lowercase().bytes().rev() {
@@ -366,7 +410,7 @@ pub fn reverse_asobo(
         .par_bridge()
         .into_par_iter()
         .find_map_any(|filler| {
-            let hash = asobo_options(&filler, starting_prefixed);
+            let hash = Asobo32::hash_options(&filler, starting_prefixed);
             if hash == target_suffixed as i32 {
                 Some(filler)
             } else {
