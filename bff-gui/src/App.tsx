@@ -26,6 +26,7 @@ function App() {
         nicknames={nicknames}
         setResourcePreview={setResourcePreview}
         setBigfile={setBigfile}
+        setNicknames={setNicknames}
       />
       <div className="main">
         <Explorer

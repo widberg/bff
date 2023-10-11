@@ -75,10 +75,10 @@ function ResourceList({
   setOpenTab: React.Dispatch<React.SetStateAction<ViewTab>>;
   setCurrentNickname: React.Dispatch<React.SetStateAction<string>>;
 }) {
-  let objectsCopy = [...resources];
-  if (sort != Sort.Default) objectsCopy.sort((a, b) => a.name - b.name);
+  let resourcesCopy = [...resources];
+  if (sort != Sort.Default) resourcesCopy.sort((a, b) => a.name - b.name);
   if (sort == Sort.Extension)
-    objectsCopy.sort((a, b) => {
+    resourcesCopy.sort((a, b) => {
       if (a.class_name !== null) {
         if (b.class_name !== null)
           return a.class_name.localeCompare(b.class_name);
@@ -86,16 +86,16 @@ function ResourceList({
       } else if (b.class_name !== null) return 1;
       else return 0;
     });
-  if (sortBackward) objectsCopy.reverse();
+  if (sortBackward) resourcesCopy.reverse();
 
   const Row = ({ index, style }: { index: any; style: any }) => (
     <ResourceButton
       key={index}
-      name={objectsCopy[index].name}
-      classN={objectsCopy[index].class_name}
+      name={resourcesCopy[index].name}
+      classN={resourcesCopy[index].class_name}
       nickname={
         nicknames.find((nickname: Nickname) => {
-          return nickname.name === objectsCopy[index].name;
+          return nickname.name == resourcesCopy[index].name;
         })?.nickname ?? ""
       }
       selected={false}
@@ -115,7 +115,7 @@ function ResourceList({
         <List
           width={width}
           height={height}
-          itemCount={objectsCopy.length}
+          itemCount={resourcesCopy.length}
           itemSize={() => 25}
         >
           {Row}

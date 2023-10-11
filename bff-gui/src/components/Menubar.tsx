@@ -8,19 +8,17 @@ import {
 
 import "./Menubar.css";
 
-import {
-  exportAll,
-  exportNicknames,
-  exportOne,
-  exportPreview,
-} from "../functions/export";
+import { exportAll, exportOne, exportPreview } from "../functions/export";
 import { selectBigfile } from "../functions/bigfile";
+import {
+  clearNicknames,
+  exportNicknames,
+  importNicknames,
+} from "../functions/nicknames";
 
 function ExportMenu({
   bigfileLoaded,
-  bigfileName,
   resourcePreview,
-  nicknames,
 }: {
   bigfileLoaded: boolean;
   bigfileName: string;
@@ -76,6 +74,48 @@ function ExportMenu({
         >
           Export preview...
         </button>
+      </div>
+    </div>
+  );
+}
+
+function NicknameMenu({
+  bigfileLoaded,
+  bigfileName,
+  nicknames,
+  setNicknames,
+}: {
+  bigfileLoaded: boolean;
+  bigfileName: string;
+  nicknames: Nickname[];
+  setNicknames: React.Dispatch<React.SetStateAction<Nickname[]>>;
+}) {
+  const { ref, isComponentVisible, setIsComponentVisible } =
+    useComponentVisible(false);
+  return (
+    <div ref={ref}>
+      <button
+        onClick={() => {
+          setIsComponentVisible(!isComponentVisible);
+        }}
+        disabled={!bigfileLoaded}
+      >
+        Nicknames
+      </button>
+      <div
+        className="submenu"
+        style={{
+          display: isComponentVisible ? "flex" : "none",
+        }}
+      >
+        <button
+          onClick={() => {
+            setIsComponentVisible(false);
+            importNicknames(setNicknames);
+          }}
+        >
+          Import nicknames...
+        </button>
         <button
           onClick={() => {
             setIsComponentVisible(false);
@@ -84,6 +124,15 @@ function ExportMenu({
           disabled={nicknames.length == 0}
         >
           Export nicknames...
+        </button>
+        <button
+          onClick={() => {
+            setIsComponentVisible(false);
+            clearNicknames(setNicknames);
+          }}
+          disabled={nicknames.length == 0}
+        >
+          Clear nicknames
         </button>
       </div>
     </div>
@@ -97,6 +146,7 @@ export function Menubar({
   nicknames,
   setResourcePreview,
   setBigfile,
+  setNicknames,
 }: {
   bigfileLoaded: boolean;
   bigfileName: string;
@@ -106,6 +156,7 @@ export function Menubar({
     React.SetStateAction<ResourcePreview | null>
   >;
   setBigfile: React.Dispatch<React.SetStateAction<BigFileData>>;
+  setNicknames: React.Dispatch<React.SetStateAction<Nickname[]>>;
 }) {
   return (
     <div className="menubar">
@@ -117,6 +168,12 @@ export function Menubar({
         bigfileName={bigfileName}
         resourcePreview={resourcePreview}
         nicknames={nicknames}
+      />
+      <NicknameMenu
+        bigfileLoaded={bigfileLoaded}
+        bigfileName={bigfileName}
+        nicknames={nicknames}
+        setNicknames={setNicknames}
       />
     </div>
   );
