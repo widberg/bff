@@ -2,7 +2,7 @@ use std::io::Cursor;
 use std::str::from_utf8;
 
 use bff::class::mesh::{v1_291_03_06_pc, Mesh};
-use bff::names::Name;
+use bff::names::{Name, NameAsobo32};
 use bff::traits::NamedClass;
 use quick_xml::writer::Writer;
 use serde::Serialize;
@@ -314,7 +314,11 @@ impl Export for Box<Mesh> {
                     data_type: DataType::Mesh,
                 })
             }
-            _ => Err(UnimplementedExporterError::new(name, Mesh::NAME).into()),
+            _ => Err(UnimplementedExporterError::new(
+                name,
+                <Mesh as NamedClass<NameAsobo32>>::NAME.into(),
+            )
+            .into()),
         }
     }
 }
