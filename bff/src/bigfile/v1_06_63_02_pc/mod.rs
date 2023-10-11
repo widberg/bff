@@ -29,7 +29,7 @@ use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::{Version, VersionTriple};
+use crate::versions::Version;
 use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
@@ -292,11 +292,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 padded_size,
                 data_size,
                 working_buffer_offset,
-                first_object_name: block
-                    .objects
-                    .first()
-                    .map(|r| r.name)
-                    .unwrap_or(Name::default()),
+                first_object_name: block.objects.first().map(|r| r.name).unwrap_or_default(),
                 // TODO: Calculate checksum using Asobo Alternate on the unpadded block while writing
                 checksum: block.checksum,
             });
@@ -477,10 +473,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 .iter()
                 .map(|x| x.padded_size)
                 .sum::<u32>(),
-            version_triple: bigfile
-                .manifest
-                .version_triple
-                .unwrap_or(VersionTriple::default()),
+            version_triple: bigfile.manifest.version_triple.unwrap_or_default(),
             block_descriptions,
             pool_manifest_padded_size,
             pool_offset,

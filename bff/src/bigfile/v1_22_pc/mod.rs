@@ -207,7 +207,7 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileIo for BigFileV1_22PC<HAS_VERSION_TR
         bigfile
             .manifest
             .version_triple
-            .unwrap_or(VersionTriple::default())
+            .unwrap_or_default()
             .write_options(writer, endian, ())?;
         writer.seek(SeekFrom::Start(end))?;
 

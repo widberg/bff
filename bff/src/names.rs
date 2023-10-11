@@ -274,7 +274,7 @@ impl Names {
     }
 }
 
-impl<'a> Default for Names {
+impl Default for Names {
     fn default() -> Self {
         let mut names = Self {
             name_type: NameType::Asobo32,
@@ -291,6 +291,10 @@ impl<'a> Default for Names {
     }
 }
 
+// TODO: This should NOT be a global. It should be passed around as a parameter to the serialize
+// and deserialize functions. Doing that with derive is a bit tricky though.
+// https://docs.rs/serde_state/latest/serde_state/ outdated.
+// Until this is done bff is not thread safe.
 static NAMES: Lazy<Mutex<Names>> = Lazy::new(|| Mutex::new(Names::default()));
 
 pub fn names() -> &'static Mutex<Names> {

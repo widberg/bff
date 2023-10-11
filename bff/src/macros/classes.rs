@@ -32,9 +32,7 @@ macro_rules! classes {
         }
 
         pub fn class_names() -> Vec<&'static str> {
-            let mut names = Vec::new();
-            $(names.push(<$class as crate::traits::NamedClass<&'static str>>::NAME);)*
-            names
+            vec![$(<$class as crate::traits::NamedClass<&'static str>>::NAME,)*]
         }
     };
 }
