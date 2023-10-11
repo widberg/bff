@@ -18,6 +18,7 @@ function ResourceButton({
   name = 0,
   classN = "",
   nickname = "",
+  selected = false,
   // onClick,
   setResourcePreview,
   setOpenTab,
@@ -28,6 +29,7 @@ function ResourceButton({
   name: number;
   classN: string;
   nickname: string;
+  selected: boolean;
   // onClick: any;
   setResourcePreview: React.Dispatch<
     React.SetStateAction<ResourcePreview | null>
@@ -39,7 +41,7 @@ function ResourceButton({
   return (
     <button
       // className={`bffobject ${implemented ? "" : "bffobject-unimpl"}`}
-      className="resource"
+      className={`resource ${selected ? "resource-open" : ""}`}
       onClick={() => {
         updateView(name, setResourcePreview, setOpenTab);
         setCurrentNickname(nickname);
@@ -54,10 +56,9 @@ function ResourceButton({
   );
 }
 
-function ObjectList({
+function ResourceList({
   resources,
   nicknames,
-  // onClick,
   sort,
   sortBackward,
   setResourcePreview,
@@ -66,7 +67,6 @@ function ObjectList({
 }: {
   resources: ResourceInfo[];
   nicknames: Nickname[];
-  // onClick: any;
   sort: number;
   sortBackward: boolean;
   setResourcePreview: React.Dispatch<
@@ -91,8 +91,6 @@ function ObjectList({
   const Row = ({ index, style }: { index: any; style: any }) => (
     <ResourceButton
       key={index}
-      // implemented={v.is_implemented}
-      // implemented={true}
       name={objectsCopy[index].name}
       classN={objectsCopy[index].class_name}
       nickname={
@@ -100,32 +98,17 @@ function ObjectList({
           return nickname.name === objectsCopy[index].name;
         })?.nickname ?? ""
       }
+      selected={false}
       // onClick={onClick}
       setResourcePreview={setResourcePreview}
       setOpenTab={setOpenTab}
       setCurrentNickname={setCurrentNickname}
-      style={{ ...style, top: `${parseFloat(style.top) + 25}px` }}
+      style={{
+        ...style,
+        top: `${parseFloat(style.top) + 25}px`,
+      }}
     />
   );
-
-  // let btns: JSX.Element[] = objectsCopy.map((v: ResourceInfo, i: number) => (
-  //   <ResourceButton
-  //     key={i}
-  //     // implemented={v.is_implemented}
-  //     // implemented={true}
-  //     name={v.name}
-  //     classN={v.class_name}
-  //     nickname={
-  //       nicknames.find((nickname: Nickname) => {
-  //         return nickname.name === v.name;
-  //       })?.nickname ?? ""
-  //     }
-  //     // onClick={onClick}
-  //     setResourcePreview={setResourcePreview}
-  //     setOpenTab={setOpenTab}
-  //     setCurrentNickname={setCurrentNickname}
-  //   />
-  // ));
   return (
     <AutoSizer>
       {({ height, width }: { height: number; width: number }) => (
@@ -217,7 +200,7 @@ export function Explorer({
         />
       </span>
       <div className="resource-list">
-        <ObjectList
+        <ResourceList
           resources={bigfile.resource_infos}
           nicknames={nicknames}
           // onClick={updatePreview}

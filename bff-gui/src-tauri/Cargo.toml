@@ -16,7 +16,7 @@ tauri-build = { version = "1.3", features = [] }
 ansi-to-html = "0.1.3"
 base64 = "0.21.4"
 bff = { path = "../../bff" }
-binrw = "0.11.2"
+binrw = "0.12.0"
 ddsfile = "0.5.1"
 derive_more = "0.99.17"
 hound = "3.5.0"
@@ -37,7 +37,6 @@ tauri = { version = "1.3", features = [
     "dialog-open",
     "shell-open",
 ] }
-thiserror = "1.0.44"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

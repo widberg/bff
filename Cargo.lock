@@ -227,7 +227,7 @@ version = "0.1.0"
 dependencies = [
  "bff-derive",
  "bilge",
- "binrw 0.12.0",
+ "binrw",
  "derive_more",
  "indexmap 2.0.2",
  "itertools",
@@ -266,7 +266,7 @@ dependencies = [
  "ansi-to-html",
  "base64 0.21.4",
  "bff",
- "binrw 0.11.2",
+ "binrw",
  "ddsfile",
  "derive_more",
  "hound",
@@ -279,7 +279,6 @@ dependencies = [
  "structstruck",
  "tauri",
  "tauri-build",
- "thiserror",
 ]
 
 [[package]]
@@ -329,37 +328,13 @@ dependencies = [
 
 [[package]]
 name = "binrw"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab81d22cbd2d745852348b2138f3db2103afa8ce043117a374581926a523e267"
-dependencies = [
- "array-init",
- "binrw_derive 0.11.2",
- "bytemuck",
-]
-
-[[package]]
-name = "binrw"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e8318fda24dc135cdd838f57a2b5ccb6e8f04ff6b6c65528c4bd9b5fcdc5cf6"
 dependencies = [
  "array-init",
- "binrw_derive 0.12.0",
+ "binrw_derive",
  "bytemuck",
-]
-
-[[package]]
-name = "binrw_derive"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6b019a3efebe7f453612083202887b6f1ace59e20d010672e336eea4ed5be97"
-dependencies = [
- "either",
- "owo-colors",
- "proc-macro2 1.0.68",
- "quote 1.0.33",
- "syn 1.0.109",
 ]
 
 [[package]]

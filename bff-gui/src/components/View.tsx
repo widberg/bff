@@ -1,9 +1,8 @@
-import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Grid } from "@react-three/drei";
-import { DoubleSide, FrontSide, Material, MeshStandardMaterial } from "three";
+import { DoubleSide, FrontSide, Material } from "three";
 import { useState } from "react";
 // import parse from "html-react-parser";
 
@@ -103,7 +102,7 @@ function PreviewInner({ previewData }: { previewData: PreviewData }) {
           </div>
         </div>
         <Canvas
-          camera={{ fov: 70, position: [0, 0, 5] }}
+          camera={{ fov: 70, position: [0, 5, 5] }}
           resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
         >
           <OrbitControls rotateSpeed={0.7} dampingFactor={0.1} makeDefault />
@@ -152,10 +151,6 @@ function PreviewContainer({
         <PreviewInner previewData={previewObject.preview_data as PreviewData} />
       );
   }
-  // if (openTab == PreviewTab.Error) {
-  //   if (previewObject.error)
-  //     return <p className="preview-text">{parse(previewObject.error)}</p>;
-  // }
   return <></>;
 }
 
@@ -179,14 +174,24 @@ function NicknameInput({
       placeholder="Enter nickname..."
       value={currentNickname}
       onChange={(e) => setCurrentNickname(e.target.value)}
-      onBlur={() =>
-        setNicknames([
-          ...nicknames.filter((n) => {
-            return n.name !== resourcePreview.name;
-          }),
-          { name: resourcePreview.name, nickname: currentNickname },
-        ])
-      }
+      onBlur={() => {
+        if (currentNickname !== "")
+          setNicknames([
+            ...nicknames.filter((n) => {
+              return n.name !== resourcePreview.name;
+            }),
+            {
+              name: resourcePreview.name,
+              nickname: currentNickname,
+            },
+          ]);
+        else
+          setNicknames([
+            ...nicknames.filter((n) => {
+              return n.name !== resourcePreview.name;
+            }),
+          ]);
+      }}
     ></input>
   );
 }
@@ -248,13 +253,6 @@ export function View({
           >
             Preview
           </button>
-          {/*<button*/}
-          {/*  onClick={() => setOpenPreviewTab(PreviewTab.Error)}*/}
-          {/*  disabled={previewObject === null || previewObject?.error === null}*/}
-          {/*  className={openPreviewTab == PreviewTab.Error ? "selected-tab" : ""}*/}
-          {/*>*/}
-          {/*  Error*/}
-          {/*</button>*/}
         </span>
       </div>
       {resourcePreview !== null && (

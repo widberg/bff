@@ -17,7 +17,7 @@ use bff::names::Name;
 use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
 use error::{BffGuiResult, InvalidPreviewError, InvalidResourceError};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_repr::Serialize_repr;
 use traits::Export;
 
@@ -70,6 +70,12 @@ struct ResourceInfo {
     class_name: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Nickname {
+    name: Name,
+    nickname: String,
+}
+
 struct InnerAppState {
     bigfile: BigFile,
     resource_previews: HashMap<Name, ResourcePreview>,
@@ -94,6 +100,8 @@ fn main() {
             export_one_json,
             export_preview,
             get_extensions,
+            export_nicknames,
+            import_nicknames,
             // add_nickname,
             // get_nickname,
         ])
@@ -273,3 +281,25 @@ fn get_extensions() -> Vec<String> {
 //         .ok_or(InvalidNicknameError::new(name))?;
 //     Ok(nickname.clone())
 // }
+
+#[tauri::command]
+fn export_nicknames(path: &Path, nicknames: HashMap<Name, String>) -> BffGuiResult<()> {
+    let nicknames_json = serde_json::to_string_pretty(&nicknames)?;
+    File::create(path)?.write_all(nicknames_json.as_bytes())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn import_nicknames(path: &Path) -> BffGuiResult<Vec<Nickname>> {
+    let f = File::open(path)?;
+    let mut reader = BufReader::new(f);
+    let nickname_map: HashMap<Name, String> = serde_json::de::from_reader(&mut reader)?;
+    let nicknames = nickname_map
+        .into_iter()
+        .map(|(k, v)| Nickname {
+            name: k,
+            nickname: v,
+        })
+        .collect();
+    Ok(nicknames)
+}

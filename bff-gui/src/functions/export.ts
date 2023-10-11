@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api";
 import { message, save, open } from "@tauri-apps/api/dialog";
+import { basename } from "@tauri-apps/api/path";
 
 import { EXTENSIONS } from "../constants/constants";
-import { DataType } from "../types/types";
+import { BigFileData, DataType, Nickname, ResourceInfo } from "../types/types";
 
 export async function exportAll() {
   open({ directory: true }).then((path) => {
@@ -33,13 +34,13 @@ export async function exportOne(objectName: number) {
 }
 
 export async function exportPreview(resourceName: number, dataType: DataType) {
-  let ext_info = EXTENSIONS.get(dataType) as string[];
+  let extInfo = EXTENSIONS.get(dataType) as string[];
   save({
-    defaultPath: `${resourceName}.${ext_info[0]}`,
+    defaultPath: `${resourceName}.${extInfo[0]}`,
     filters: [
       {
-        name: ext_info[1],
-        extensions: [ext_info[0]],
+        name: extInfo[1],
+        extensions: [extInfo[0]],
       },
     ],
   }).then((path) => {
@@ -47,5 +48,50 @@ export async function exportPreview(resourceName: number, dataType: DataType) {
       invoke("export_preview", { path: path, name: resourceName }).catch((e) =>
         message(e, { type: "warning" })
       );
+  });
+}
+
+export async function exportNicknames(
+  bigfileName: string,
+  nicknames: Nickname[]
+) {
+  let extInfo = EXTENSIONS.get(DataType.Json) as string[];
+  let bfBasename = await basename(bigfileName);
+  save({
+    defaultPath: `${bfBasename}-nicknames.${extInfo[0]}`,
+    filters: [
+      {
+        name: extInfo[1],
+        extensions: [extInfo[0]],
+      },
+    ],
+  }).then((path) => {
+    if (path !== null)
+      invoke("export_nicknames", {
+        path: path,
+        nicknames: new Map(nicknames.map((v) => [v.name, v.nickname] as const)),
+      }).catch((e) => message(e, { type: "warning" }));
+  });
+}
+
+export async function importNicknames(
+  setNicknames: React.Dispatch<React.SetStateAction<Nickname[]>>
+) {
+  let extInfo = EXTENSIONS.get(DataType.Json) as string[];
+  open({
+    multiple: false,
+    filters: [
+      {
+        name: extInfo[1],
+        extensions: [extInfo[0]],
+      },
+    ],
+  }).then((path) => {
+    if (path !== null)
+      invoke("import_nicknames", {
+        path: path,
+      })
+        .then((nicknames) => setNicknames(nicknames as Nickname[]))
+        .catch((e) => message(e, { type: "warning" }));
   });
 }

@@ -4,10 +4,11 @@
 }
 
 .resource-list {
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* flex-wrap: wrap; */
-  height: calc(100vh - 3.4em);
+  /* display: flex;
+  flex-direction: column;
+  flex-wrap: wrap; */
+  height: calc(100vh - 3.3em);
+  overflow: hidden;
   /* padding-top: 1.4em; */
   /* overflow-y: scroll; */
 }
@@ -24,6 +25,10 @@
 
 .resource-unimpl {
   color: var(--error);
+}
+
+.resource-open {
+  background-color: var(--hover);
 }
 
 .resource-realname {

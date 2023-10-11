@@ -21,7 +21,9 @@ function App() {
     <div className="container">
       <Menubar
         bigfileLoaded={bigfile.filename !== ""}
+        bigfileName={bigfile.filename}
         resourcePreview={resourcePreview}
+        nicknames={nicknames}
         setResourcePreview={setResourcePreview}
         setBigfile={setBigfile}
       />

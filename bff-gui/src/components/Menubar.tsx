@@ -1,17 +1,31 @@
 import { useComponentVisible } from "../hooks/click-outside";
-import { BigFileData, DataType, ResourcePreview } from "../types/types";
+import {
+  BigFileData,
+  DataType,
+  Nickname,
+  ResourcePreview,
+} from "../types/types";
 
 import "./Menubar.css";
 
-import { exportAll, exportOne, exportPreview } from "../functions/export";
+import {
+  exportAll,
+  exportNicknames,
+  exportOne,
+  exportPreview,
+} from "../functions/export";
 import { selectBigfile } from "../functions/bigfile";
 
 function ExportMenu({
   bigfileLoaded,
+  bigfileName,
   resourcePreview,
+  nicknames,
 }: {
   bigfileLoaded: boolean;
+  bigfileName: string;
   resourcePreview: ResourcePreview | null;
+  nicknames: Nickname[];
 }) {
   const { ref, isComponentVisible, setIsComponentVisible } =
     useComponentVisible(false);
@@ -62,6 +76,15 @@ function ExportMenu({
         >
           Export preview...
         </button>
+        <button
+          onClick={() => {
+            setIsComponentVisible(false);
+            exportNicknames(bigfileName, nicknames);
+          }}
+          disabled={nicknames.length == 0}
+        >
+          Export nicknames...
+        </button>
       </div>
     </div>
   );
@@ -69,12 +92,16 @@ function ExportMenu({
 
 export function Menubar({
   bigfileLoaded,
+  bigfileName,
   resourcePreview,
+  nicknames,
   setResourcePreview,
   setBigfile,
 }: {
   bigfileLoaded: boolean;
+  bigfileName: string;
   resourcePreview: ResourcePreview | null;
+  nicknames: Nickname[];
   setResourcePreview: React.Dispatch<
     React.SetStateAction<ResourcePreview | null>
   >;
@@ -87,7 +114,9 @@ export function Menubar({
       </button>
       <ExportMenu
         bigfileLoaded={bigfileLoaded}
+        bigfileName={bigfileName}
         resourcePreview={resourcePreview}
+        nicknames={nicknames}
       />
     </div>
   );

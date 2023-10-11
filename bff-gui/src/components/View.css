@@ -73,6 +73,9 @@
 
 .nicknamebox {
   font-family: WorkSans, system-ui;
+  font-size: 16px;
+  background-color: var(--light3-background);
   border: none;
   margin-right: 1em;
+  padding-block: 0.6em;
 }
