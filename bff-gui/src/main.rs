@@ -1,15 +1,16 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::{collections::HashMap, fs::File, path::PathBuf};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Cursor;
+use std::path::PathBuf;
 
 use bff::{
     bigfile::{resource::Resource, BigFile},
-    class::{Class, Class::Bitmap},
+    class::Class,
     names::Name,
     platforms::Platform,
     traits::TryIntoVersionPlatform,
-    // versions::Version,
-    BufReader,
 };
 use eframe::egui;
 
@@ -105,44 +106,46 @@ impl eframe::App for Gui {
                     .width_range(100.0..=ui.available_width() / 2.0)
                     .show_inside(ui, |ui| {
                         if let Some(resource_name) = &self.resource_name {
+                            let j = serde_json::to_string_pretty::<Class>(
+                                &self
+                                    .bigfile
+                                    .as_ref()
+                                    .unwrap()
+                                    .objects
+                                    .get(resource_name)
+                                    .unwrap()
+                                    .try_into_version_platform(
+                                        self.bigfile.as_ref().unwrap().manifest.version.clone(),
+                                        self.bigfile.as_ref().unwrap().manifest.platform.clone(),
+                                    )
+                                    .unwrap(),
+                            )
+                            .unwrap();
+                            let json: Vec<&str> = j
+                                .split_inclusive("\n")
+                                // .map(|s| s.to_string())
+                                .collect();
+                            let text_style = egui::TextStyle::Body;
                             egui::ScrollArea::vertical()
                                 .id_source("code_scroll")
-                                .show(ui, |ui| {
-                                    ui.set_min_width(ui.available_width());
-                                    selectable_text(
-                                        ui,
-                                        &serde_json::to_string_pretty::<Class>(
-                                            &self
-                                                .bigfile
-                                                .as_ref()
-                                                .unwrap()
-                                                .objects
-                                                .get(resource_name)
-                                                .unwrap()
-                                                .try_into_version_platform(
-                                                    self.bigfile
-                                                        .as_ref()
-                                                        .unwrap()
-                                                        .manifest
-                                                        .version
-                                                        .clone(),
-                                                    self.bigfile
-                                                        .as_ref()
-                                                        .unwrap()
-                                                        .manifest
-                                                        .platform
-                                                        .clone(),
-                                                )
-                                                .unwrap(),
-                                        )
-                                        .unwrap(),
-                                    )
-                                });
+                                .show_rows(
+                                    ui,
+                                    ui.text_style_height(&text_style),
+                                    json.len(),
+                                    |ui, row_range| {
+                                        let content: String = row_range
+                                            .into_iter()
+                                            .map(|i| *json.get(i).unwrap())
+                                            .collect();
+                                        ui.set_min_width(ui.available_width());
+                                        selectable_text(ui, content.as_str())
+                                    },
+                                );
                         }
                     });
                 egui::CentralPanel::default().show_inside(ui, |ui| {
                     if let Some(resource_name) = &self.resource_name {
-                        let class: &Class = &self
+                        let class: Class = self
                             .bigfile
                             .as_ref()
                             .unwrap()
@@ -155,27 +158,40 @@ impl eframe::App for Gui {
                             )
                             .unwrap();
                         match class {
-                            Bitmap(box_bitmap) => match **box_bitmap {
+                            Class::Bitmap(box_bitmap) => match *box_bitmap {
                                 bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(ref bitmap) => {
-                                    ui.add(
-                                        egui::Image::new(<(String, std::vec::Vec<u8>) as Into<
-                                            egui::ImageSource,
-                                        >>::into(
-                                            (
-                                            format!("bytes://{}.dds", resource_name),
-                                            bitmap.body.data.clone(),
-                                        )
-                                        ))
-                                        .texture_options(egui::TextureOptions::NEAREST)
-                                        .shrink_to_fit(),
-                                    );
+                                    ui.add(get_image(resource_name, &bitmap.body.data));
+                                }
+                                bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
+                                    ui.add(get_image(resource_name, &bitmap.body.data));
                                 }
                                 _ => (),
+                            },
+                            Class::Sound(box_sound) => match *box_sound {
+                                bff::class::sound::Sound::SoundV1_291_03_06PC(sound) => {
+                                    if ui.button("play").clicked() {
+                                        play_sound(
+                                            sound.body.flags.stereo().value(),
+                                            sound.body.sample_rate,
+                                            sound.body.data,
+                                        );
+                                    }
+                                }
+                                bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => {
+                                    if ui.button("play").clicked() {
+                                        play_sound(
+                                            sound.link_header.flags.stereo().value(),
+                                            sound.link_header.sample_rate,
+                                            sound.body.data,
+                                        );
+                                    }
+                                }
                             },
                             _ => (),
                         }
                     }
                 });
+
                 if self.nickname_window_open {
                     egui::Window::new("Change resource nickname")
                         .fixed_size(egui::vec2(100.0, 50.0))
@@ -204,7 +220,6 @@ impl eframe::App for Gui {
 
         preview_files_being_dropped(ctx);
 
-        // Collect dropped files:
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
                 self.bigfile = Some(load_bigfile(
@@ -221,11 +236,53 @@ fn load_bigfile(path: &PathBuf) -> BigFile {
         None => Platform::PC,
     };
     let f = File::open(path).unwrap();
-    let mut reader = BufReader::new(f);
+    let mut reader = bff::BufReader::new(f);
     BigFile::read_platform(&mut reader, platform).unwrap()
 }
 
-/// Preview hovering files:
+fn get_image<'a>(resource_name: &Name, data: &Vec<u8>) -> egui::Image<'a> {
+    egui::Image::new(
+        <(String, std::vec::Vec<u8>) as Into<egui::ImageSource>>::into((
+            format!("bytes://{}.dds", resource_name),
+            data.to_owned(),
+        )),
+    )
+    .texture_options(egui::TextureOptions::NEAREST)
+    .shrink_to_fit()
+}
+
+fn play_sound(stereo: u8, sample_rate: u32, data: Vec<i16>) {
+    std::thread::spawn(move || {
+        let spec = hound::WavSpec {
+            channels: match stereo {
+                1 => 2,
+                _ => 1,
+            },
+            sample_rate: sample_rate,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+
+        let mut bytes = Vec::new();
+        let mut write_cursor = Cursor::new(&mut bytes);
+        let mut parent_writer = hound::WavWriter::new(&mut write_cursor, spec).unwrap();
+        let mut sample_writer = parent_writer.get_i16_writer(data.len() as u32);
+
+        for sample in data {
+            sample_writer.write_sample(sample);
+        }
+        sample_writer.flush().unwrap();
+        parent_writer.finalize().unwrap();
+
+        let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+        let buf = std::io::BufReader::new(Cursor::new(bytes));
+        let source = rodio::Decoder::new_wav(buf).unwrap();
+        sink.append(source);
+        sink.sleep_until_end();
+    });
+}
+
 fn preview_files_being_dropped(ctx: &egui::Context) {
     use egui::*;
     use std::fmt::Write as _;
