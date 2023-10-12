@@ -9,27 +9,33 @@ pub fn bff_named_class(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
     let class_name = LitStr::new(format!("{}_Z", name).as_str(), name.span());
+    let class_name_legacy = LitStr::new(&name.to_string().to_uppercase(), name.span());
 
     // This mess can go away once https://github.com/rust-lang/rust/issues/76001 is stabilized
     quote! {
         impl crate::traits::NamedClass<crate::names::NameAsobo32> for #name {
             const NAME: crate::names::NameAsobo32 = crate::names::NameAsobo32::new(crate::crc32::asobo(#class_name.as_bytes()));
+            const NAME_LEGACY: crate::names::NameAsobo32 = crate::names::NameAsobo32::new(crate::crc32::asobo(#class_name_legacy.as_bytes()));
         }
 
         impl crate::traits::NamedClass<crate::names::NameAsoboAlternate32> for #name {
             const NAME: crate::names::NameAsoboAlternate32 = crate::names::NameAsoboAlternate32::new(crate::crc32::asobo_alternate(#class_name.as_bytes()));
+            const NAME_LEGACY: crate::names::NameAsoboAlternate32 = crate::names::NameAsoboAlternate32::new(crate::crc32::asobo_alternate(#class_name_legacy.as_bytes()));
         }
 
         impl crate::traits::NamedClass<crate::names::NameKalisto32> for #name {
             const NAME: crate::names::NameKalisto32 = crate::names::NameKalisto32::new(crate::crc32::kalisto(#class_name.as_bytes()));
+            const NAME_LEGACY: crate::names::NameKalisto32 = crate::names::NameKalisto32::new(crate::crc32::kalisto(#class_name_legacy.as_bytes()));
         }
 
         impl crate::traits::NamedClass<crate::names::NameAsobo64> for #name {
             const NAME: crate::names::NameAsobo64 = crate::names::NameAsobo64::new(crate::crc64::asobo(#class_name.as_bytes()));
+            const NAME_LEGACY: crate::names::NameAsobo64 = crate::names::NameAsobo64::new(crate::crc64::asobo(#class_name_legacy.as_bytes()));
         }
 
         impl crate::traits::NamedClass<&'static str> for #name {
             const NAME: &'static str = #class_name;
+            const NAME_LEGACY: &'static str = #class_name_legacy;
         }
     }
     .into()
@@ -124,13 +130,8 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
                 match (version.clone(), platform) {
                     #(#arms)*
                     _ => Err(
-                        crate::error::UnimplementedClassError::new(object.name,
-                            match crate::names::names().lock().unwrap().name_type {
-                                crate::names::NameType::Asobo32 => <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(),
-                                crate::names::NameType::AsoboAlternate32 => <Self as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME.into(),
-                                crate::names::NameType::Kalisto32 => <Self as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME.into(),
-                                crate::names::NameType::Asobo64 => <Self as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME.into(),
-                            }, version, platform).into(),
+                        // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
+                        crate::error::UnimplementedClassError::new(object.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
                     ),
                 }
             }

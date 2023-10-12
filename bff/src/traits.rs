@@ -50,6 +50,7 @@ where
 
 pub trait NamedClass<N> {
     const NAME: N;
+    const NAME_LEGACY: N;
 }
 
 pub trait BigFileIo {
@@ -172,7 +173,23 @@ macro_rules! impl_referenced_names {
     }
 }
 
-impl_referenced_names!((), bool, f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, String);
+impl_referenced_names!(
+    (),
+    bool,
+    f32,
+    f64,
+    u8,
+    u16,
+    u32,
+    u64,
+    u128,
+    i8,
+    i16,
+    i32,
+    i64,
+    i128,
+    String
+);
 
 // this should be const https://github.com/rust-lang/rust/issues/67792
 pub trait NameHashFunction {

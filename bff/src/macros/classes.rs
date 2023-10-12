@@ -10,11 +10,13 @@ macro_rules! classes {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(object: &crate::bigfile::resource::Resource, version: crate::versions::Version, platform: crate::platforms::Platform) -> crate::BffResult<Class> {
+                use crate::traits::NamedClass;
                 match object.class_name {
-                    $(crate::names::Name::Asobo32(<$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME)
-                    | crate::names::Name::AsoboAlternate32(<$class as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME)
-                    | crate::names::Name::Kalisto32(<$class as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME)
-                    | crate::names::Name::Asobo64(<$class as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME) => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
+                    $(crate::names::Name::Asobo32($class::NAME) | crate::names::Name::Asobo32($class::NAME_LEGACY)
+                    | crate::names::Name::AsoboAlternate32($class::NAME) | crate::names::Name::AsoboAlternate32($class::NAME_LEGACY)
+                    | crate::names::Name::Kalisto32($class::NAME) | crate::names::Name::Kalisto32($class::NAME_LEGACY)
+                    | crate::names::Name::Asobo64($class::NAME) | crate::names::Name::Asobo64($class::NAME_LEGACY)
+                        => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
                     _ => Err(crate::error::UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
             }
@@ -32,7 +34,8 @@ macro_rules! classes {
         }
 
         pub fn class_names() -> Vec<&'static str> {
-            vec![$(<$class as crate::traits::NamedClass<&'static str>>::NAME,)*]
+            use crate::traits::NamedClass;
+            vec![$($class::NAME,$class::NAME_LEGACY,)*]
         }
     };
 }
