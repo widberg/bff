@@ -1,9 +1,9 @@
 // #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::Cursor;
 use std::path::PathBuf;
+use std::{collections::HashMap, io::Write};
 
 use bff::{
     bigfile::{resource::Resource, BigFile},
@@ -31,6 +31,7 @@ fn selectable_text(ui: &mut egui::Ui, mut text: &str) -> egui::Response {
 #[derive(Default)]
 struct Gui {
     bigfile: Option<BigFile>,
+    bigfile_path: Option<PathBuf>,
     resource_name: Option<Name>,
     nicknames: HashMap<Name, String>,
     nickname_window_open: bool,
@@ -45,13 +46,156 @@ impl eframe::App for Gui {
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
                 egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
-                    ui.menu_button("File", |ui| {
-                        if ui.button("Open BigFile...").clicked() {
-                            ui.close_menu();
-                            if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                self.bigfile = Some(load_bigfile(&path));
+                    ui.horizontal(|ui| {
+                        ui.menu_button("File", |ui| {
+                            if ui.button("Open BigFile...").clicked() {
+                                ui.close_menu();
+                                if let Some(path) = rfd::FileDialog::new()
+                                    .add_filter(
+                                        "BigFile",
+                                        &bff::platforms::extensions()
+                                            .iter()
+                                            .map(|s| s.to_str().unwrap())
+                                            .collect::<Vec<&str>>()[..],
+                                    )
+                                    .pick_file()
+                                {
+                                    self.bigfile = Some(load_bigfile(&path));
+                                    self.bigfile_path = Some(path);
+                                    self.resource_name = None;
+                                }
                             }
-                        }
+                        });
+                        ui.menu_button("Export", |ui| {
+                            if ui
+                                .add_enabled(
+                                    match self.resource_name {
+                                        Some(_) => true,
+                                        None => false,
+                                    },
+                                    egui::Button::new("Export JSON..."),
+                                )
+                                .clicked()
+                            {
+                                ui.close_menu();
+                                if let Some(path) = rfd::FileDialog::new()
+                                    .add_filter("json", &["json"])
+                                    .save_file()
+                                {
+                                    File::create(path)
+                                        .unwrap()
+                                        .write_all(
+                                            serde_json::to_string_pretty::<Class>(
+                                                &self
+                                                    .bigfile
+                                                    .as_ref()
+                                                    .unwrap()
+                                                    .objects
+                                                    .get(&self.resource_name.unwrap())
+                                                    .unwrap()
+                                                    .try_into_version_platform(
+                                                        self.bigfile
+                                                            .as_ref()
+                                                            .unwrap()
+                                                            .manifest
+                                                            .version
+                                                            .clone(),
+                                                        self.bigfile
+                                                            .as_ref()
+                                                            .unwrap()
+                                                            .manifest
+                                                            .platform
+                                                            .clone(),
+                                                    )
+                                                    .unwrap(),
+                                            )
+                                            .unwrap()
+                                            .as_bytes(),
+                                        )
+                                        .unwrap();
+                                }
+                            }
+                            if ui
+                                .add_enabled(
+                                    match self.resource_name {
+                                        Some(_) => true,
+                                        None => false,
+                                    },
+                                    egui::Button::new("Export data..."),
+                                )
+                                .clicked()
+                            {
+                                ui.close_menu();
+                            }
+                        });
+                        ui.menu_button("Nicknames", |ui| {
+                            if ui
+                                .add_enabled(
+                                    match self.bigfile {
+                                        Some(_) => true,
+                                        None => false,
+                                    },
+                                    egui::Button::new("Import..."),
+                                )
+                                .clicked()
+                            {
+                                ui.close_menu();
+                                if let Some(path) = rfd::FileDialog::new()
+                                    .add_filter("json", &["json"])
+                                    .pick_file()
+                                {
+                                    let buf = std::io::BufReader::new(File::open(path).unwrap());
+                                    self.nicknames = serde_json::de::from_reader::<
+                                        std::io::BufReader<File>,
+                                        HashMap<Name, String>,
+                                    >(buf)
+                                    .unwrap();
+                                }
+                            }
+
+                            if ui
+                                .add_enabled(
+                                    !self.nicknames.is_empty(),
+                                    egui::Button::new("Export all..."),
+                                )
+                                .clicked()
+                            {
+                                ui.close_menu();
+                                if let Some(path) = rfd::FileDialog::new()
+                                    .add_filter("json", &["json"])
+                                    .set_file_name(format!(
+                                        "{}_nicknames",
+                                        self.bigfile_path
+                                            .as_ref()
+                                            .unwrap()
+                                            .file_name()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    ))
+                                    .save_file()
+                                {
+                                    File::create(path)
+                                        .unwrap()
+                                        .write_all(
+                                            serde_json::to_string_pretty(&self.nicknames)
+                                                .unwrap()
+                                                .as_bytes(),
+                                        )
+                                        .unwrap();
+                                }
+                            }
+                            if ui
+                                .add_enabled(
+                                    !self.nicknames.is_empty(),
+                                    egui::Button::new("Clear all"),
+                                )
+                                .clicked()
+                            {
+                                ui.close_menu();
+                                self.nicknames.clear();
+                            }
+                        });
                     });
                 });
 
@@ -196,24 +340,29 @@ impl eframe::App for Gui {
                     egui::Window::new("Change resource nickname")
                         .fixed_size(egui::vec2(100.0, 50.0))
                         .show(ctx, |ui| {
-                            let output = egui::TextEdit::singleline(&mut self.nickname_editing.1)
-                                .hint_text("Enter nickname...")
-                                .min_size(egui::vec2(100.0, 0.0))
-                                .show(ui);
-                            if output.response.lost_focus()
-                                && ui.input(|i| i.key_pressed(egui::Key::Enter))
-                            {
-                                let filtered_nickname = self.nickname_editing.1.trim();
-                                self.nickname_window_open = false;
-                                if filtered_nickname.len() != 0 {
-                                    self.nicknames.insert(
-                                        self.nickname_editing.0,
-                                        filtered_nickname.to_owned(),
-                                    );
-                                } else {
-                                    self.nicknames.remove(&self.nickname_editing.0);
+                            ui.horizontal(|ui| {
+                                let output =
+                                    egui::TextEdit::singleline(&mut self.nickname_editing.1)
+                                        .hint_text("Enter nickname...")
+                                        .min_size(egui::vec2(100.0, 0.0))
+                                        .show(ui);
+                                if (output.response.lost_focus()
+                                    && ui.input(|i| i.key_pressed(egui::Key::Enter)))
+                                    || ui.button("Change").clicked()
+                                {
+                                    let filtered_nickname = self.nickname_editing.1.trim();
+                                    self.nickname_window_open = false;
+                                    if filtered_nickname.len() != 0 {
+                                        self.nicknames.insert(
+                                            self.nickname_editing.0,
+                                            filtered_nickname.to_owned(),
+                                        );
+                                    } else {
+                                        self.nicknames.remove(&self.nickname_editing.0);
+                                    }
+                                    self.nickname_editing.1 = String::new();
                                 }
-                            }
+                            });
                         });
                 }
             });
