@@ -4,11 +4,18 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::ObjectLinkHeaderV1_06_63_02PC;
-use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
+use crate::helpers::{
+    BffOption,
+    DynArray,
+    Mat4f,
+    ObjectLinkHeaderV1_06_63_02PC,
+    Sphere,
+    Vec2f,
+    Vec3f,
+    Vec4f,
+    RGB,
+};
 use crate::names::Name;
-use crate::option::BffOption;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {

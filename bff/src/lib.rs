@@ -1,20 +1,12 @@
 pub mod bigfile;
 pub mod class;
-pub mod crc32;
-pub mod crc64;
-pub mod dynarray;
+pub mod crc;
 pub mod error;
 pub mod helpers;
-pub mod keyframer;
-pub mod link_header;
 pub mod lz;
 pub mod macros;
-pub mod map;
-pub mod math;
 pub mod names;
-pub mod option;
 pub mod platforms;
-pub mod strings;
 pub mod traits;
 pub mod versions;
 

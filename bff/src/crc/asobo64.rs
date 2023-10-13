@@ -1,7 +1,6 @@
 use crate::traits::NameHashFunction;
 
-const CRC64_TABLE_SIZE: usize = 256;
-const CRC64_TABLE: [u64; CRC64_TABLE_SIZE] = [
+const CRC64_TABLE: [u64; 256] = [
     0x0000000000000000,
     0x42f0e1eba9ea3693,
     0x85e1c3d753d46d26,
@@ -260,11 +259,11 @@ const CRC64_TABLE: [u64; CRC64_TABLE_SIZE] = [
     0x9afce626ce85b507,
 ];
 
-pub const fn asobo(bytes: &[u8]) -> i64 {
-    asobo_options(bytes, 0)
+pub const fn asobo64(bytes: &[u8]) -> i64 {
+    asobo64_options(bytes, 0)
 }
 
-pub const fn asobo_options(bytes: &[u8], starting: i64) -> i64 {
+pub const fn asobo64_options(bytes: &[u8], starting: i64) -> i64 {
     let mut hash = starting as u64;
     let mut i: usize = 0;
     while i < bytes.len() {
@@ -283,10 +282,10 @@ impl NameHashFunction for Asobo64 {
     type Target = i64;
 
     fn hash(bytes: &[u8]) -> Self::Target {
-        asobo(bytes)
+        asobo64(bytes)
     }
 
     fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        asobo_options(bytes, starting)
+        asobo64_options(bytes, starting)
     }
 }

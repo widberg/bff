@@ -2,6 +2,14 @@ use std::io::{Seek, Write};
 
 use binrw::BinResult;
 
+mod dynarray;
+mod keyframer;
+mod link_header;
+mod map;
+mod math;
+mod option;
+mod strings;
+
 pub fn calculate_padding(position: usize, alignment: usize) -> usize {
     let remainder = position % alignment;
     if remainder != 0 {
@@ -24,3 +32,11 @@ pub fn write_align_to<W: Write + Seek>(
     writer.write_all(&vec![value; padding])?;
     Ok(padding)
 }
+
+pub use dynarray::*;
+pub use keyframer::*;
+pub use link_header::*;
+pub use map::*;
+pub use math::*;
+pub use option::*;
+pub use strings::*;

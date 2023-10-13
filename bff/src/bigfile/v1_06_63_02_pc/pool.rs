@@ -3,9 +3,8 @@ use std::default::Default;
 use binrw::{binrw, BinRead, BinWrite};
 use serde::Serialize;
 
-use crate::bigfile::v1_06_63_02_pc::object::PoolObject;
-use crate::dynarray::DynArray;
-use crate::helpers::calculated_padded;
+use super::object::PoolObject;
+use crate::helpers::{calculated_padded, DynArray};
 use crate::names::Name;
 
 #[binrw]

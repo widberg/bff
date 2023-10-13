@@ -4,9 +4,17 @@ use bff_derive::ReferencedNames;
 use binrw::{binread, BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use crate::dynarray::DynArray;
-use crate::helpers::calculate_padding;
-use crate::math::{NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
+use super::{
+    calculate_padding,
+    DynArray,
+    NumeratorFloat,
+    Vec,
+    Vec2f,
+    Vec2i16,
+    Vec3f,
+    Vec4f,
+    Vec4i16,
+};
 use crate::names::Name;
 use crate::Endian;
 

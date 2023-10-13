@@ -3,10 +3,10 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::math::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
+use crate::helpers::DynArray;
+use crate::helpers::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
-use crate::option::BffOption;
+use crate::helpers::BffOption;
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {

@@ -4,8 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::link_header::ResourceObjectLinkHeader;
-use crate::math::{Vec2f, RGB};
+use crate::helpers::{ResourceObjectLinkHeader, Vec2f, RGB};
 use crate::names::Name;
 
 #[bitsize(32)]

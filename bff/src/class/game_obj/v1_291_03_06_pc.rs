@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
+use crate::helpers::DynArray;
 use crate::names::Name;
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]

@@ -4,20 +4,20 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
-use crate::map::BffMap;
-use crate::math::{
+use crate::helpers::{
+    BffMap,
+    DynArray,
     DynBox,
     DynSphere,
     NumeratorFloat,
+    ObjectLinkHeaderV1_381_67_09PC,
+    PascalString,
     RangeBeginSize,
     RangeFirstLast,
     Vec2f,
     Vec3f,
 };
 use crate::names::Name;
-use crate::strings::PascalString;
 
 type VertexVectorComponent = u8;
 type VertexVector3u8 = [VertexVectorComponent; 3];

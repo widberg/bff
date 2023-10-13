@@ -2,8 +2,8 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::math::{Mat, Sphere, Vec2f, Vec3f};
+use crate::helpers::DynArray;
+use crate::helpers::{Mat, Sphere, Vec2f, Vec3f};
 use crate::name::Name;
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]

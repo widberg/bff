@@ -3,11 +3,8 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
-use crate::math::{Mat4f, Vec3f};
+use crate::helpers::{DynArray, Mat4f, ObjectLinkHeaderV1_381_67_09PC, PascalStringNull, Vec3f};
 use crate::names::Name;
-use crate::strings::PascalStringNull;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UUIDPair {

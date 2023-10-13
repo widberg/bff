@@ -1,13 +1,11 @@
 use std::str::from_utf8;
 
 use itertools::Itertools;
-use rayon::prelude::*;
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 
 use crate::traits::NameHashFunction;
 
-const _CRC32_POLYNOMIAL: u32 = 0x04C11DB7;
-const CRC32_TABLE_SIZE: usize = 256;
-const CRC32_TABLE: [u32; CRC32_TABLE_SIZE] = [
+pub(super) const CRC32_TABLE: [u32; 256] = [
     0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
     0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61, 0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD,
     0x4C11DB70, 0x48D0C6C7, 0x4593E01E, 0x4152FDA9, 0x5F15ADAC, 0x5BD4B01B, 0x569796C2, 0x52568B75,
@@ -42,11 +40,11 @@ const CRC32_TABLE: [u32; CRC32_TABLE_SIZE] = [
     0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4,
 ];
 
-pub const fn asobo(bytes: &[u8]) -> i32 {
-    asobo_options(bytes, 0)
+pub const fn asobo32(bytes: &[u8]) -> i32 {
+    asobo32_options(bytes, 0)
 }
 
-pub const fn asobo_options(bytes: &[u8], starting: i32) -> i32 {
+pub const fn asobo32_options(bytes: &[u8], starting: i32) -> i32 {
     // Using a while loop here because for loops aren't allowed in const fn.
     // https://github.com/rust-lang/rust/issues/87575
     let mut hash = starting as u32;
@@ -66,63 +64,11 @@ impl NameHashFunction for Asobo32 {
     type Target = i32;
 
     fn hash(bytes: &[u8]) -> Self::Target {
-        asobo(bytes)
+        asobo32(bytes)
     }
 
     fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        asobo_options(bytes, starting)
-    }
-}
-
-pub const fn asobo_alternate(bytes: &[u8]) -> i32 {
-    asobo_alternate_options(bytes, 0)
-}
-
-pub const fn asobo_alternate_options(bytes: &[u8], starting: i32) -> i32 {
-    let mut hash = starting as u32;
-    let mut i: usize = 0;
-    while i < bytes.len() {
-        let c = bytes[i];
-        hash = (hash << 8)
-            ^ CRC32_TABLE[((c.to_ascii_lowercase() as u32 ^ (hash >> 0x18)) & 0xff) as usize];
-        i += 1;
-    }
-
-    hash as i32
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct AsoboAlternate32;
-impl NameHashFunction for AsoboAlternate32 {
-    type Target = i32;
-
-    fn hash(bytes: &[u8]) -> Self::Target {
-        asobo_alternate(bytes)
-    }
-
-    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        asobo_alternate_options(bytes, starting)
-    }
-}
-
-pub const fn kalisto(bytes: &[u8]) -> i32 {
-    kalisto_options(bytes, -1)
-}
-
-pub const fn kalisto_options(bytes: &[u8], starting: i32) -> i32 {
-    !asobo_options(bytes, starting)
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Kalisto32;
-impl NameHashFunction for Kalisto32 {
-    type Target = i32;
-
-    fn hash(bytes: &[u8]) -> Self::Target {
-        kalisto(bytes)
-    }
-
-    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        kalisto_options(bytes, starting)
+        asobo32_options(bytes, starting)
     }
 }
 
@@ -385,7 +331,7 @@ const REVERSE_CRC32_TABLE: [(u32, u8); 256] = [
     (0xff79a6f1, 0x3b),
 ];
 
-pub fn reverse_asobo(
+pub fn reverse_asobo32(
     string: &str,
     character_set: &str,
     target: i32,

@@ -3,8 +3,8 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::keyframer::{
+use crate::helpers::{
+    DynArray,
     KeyframerBezierRot,
     KeyframerFloatComp,
     KeyframerMessage,
