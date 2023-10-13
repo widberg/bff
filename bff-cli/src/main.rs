@@ -7,6 +7,8 @@ use error::BffCliResult;
 use lz::LzEndian;
 use reverse_crc32::DEFAULT_CHARACTER_SET;
 
+use crate::lz::LzAlgorithm;
+
 mod crc32;
 mod crc64;
 mod error;
@@ -95,13 +97,19 @@ enum Commands {
     },
     Unlz {
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = LzEndian::Little)]
-        endian: lz::LzEndian,
+        #[arg(short = 'e', long = "endian", default_value_t = LzEndian::Little)]
+        endian: LzEndian,
+        #[clap(value_enum)]
+        #[arg(short = 'a', long = "algorithm", default_value_t = LzAlgorithm::Lzrs)]
+        algorithm: LzAlgorithm,
     },
     Lz {
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = LzEndian::Little)]
-        endian: lz::LzEndian,
+        #[arg(short = 'e', long = "endian", default_value_t = LzEndian::Little)]
+        endian: LzEndian,
+        #[clap(value_enum)]
+        #[arg(short = 'a', long = "algorithm", default_value_t = LzAlgorithm::Lzrs)]
+        algorithm: LzAlgorithm,
     },
 }
 
@@ -137,8 +145,8 @@ fn main() -> BffCliResult<()> {
             mode,
             format,
         } => crc64::crc64(string, starting, algorithm, mode, format),
-        Commands::Unlz { endian } => unlz::unlz(endian),
-        Commands::Lz { endian } => lz::lz(endian),
+        Commands::Unlz { endian, algorithm } => unlz::unlz(endian, algorithm),
+        Commands::Lz { endian, algorithm } => lz::lz(endian, algorithm),
         Commands::ReverseCrc32 {
             string,
             target,

@@ -3,6 +3,8 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use std::ptr::null_mut;
 
 use binrw::{BinReaderExt, BinResult, BinWriterExt};
+use lz4::{Decoder, EncoderBuilder};
+use minilzo_rs::LZO;
 
 use crate::{BffResult, Endian};
 
@@ -396,4 +398,32 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
     }
 
     Ok(())
+}
+
+pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> BffResult<()> {
+    let mut lzo = LZO::init()?;
+    let compressed = lzo.compress(data)?;
+    writer.write_all(&compressed)?;
+    Ok(())
+}
+
+pub fn lzo_decompress<R: Read>(reader: &mut R, _endian: Endian) -> BffResult<Vec<u8>> {
+    let lzo = LZO::init()?;
+    let mut compressed: Vec<u8> = Vec::new();
+    reader.read_to_end(&mut compressed)?;
+    let decompressed = lzo.decompress_safe(&compressed, 0x1000000)?;
+    Ok(decompressed)
+}
+
+pub fn lz4_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> BffResult<()> {
+    let mut encoder = EncoderBuilder::new().build(writer)?;
+    encoder.write_all(data)?;
+    Ok(())
+}
+
+pub fn lz4_decompress<R: Read>(reader: &mut R, _endian: Endian) -> BffResult<Vec<u8>> {
+    let mut decoder = Decoder::new(reader)?;
+    let mut decompressed: Vec<u8> = Vec::new();
+    decoder.read_to_end(&mut decompressed)?;
+    Ok(decompressed)
 }
