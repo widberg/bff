@@ -1,16 +1,14 @@
 use std::path::PathBuf;
 
 use clap::*;
-use crc32::{Crc32Algorithm, CrcFormat, CrcMode};
-use crc64::Crc64Algorithm;
+use crc::{CrcAlgorithm, CrcFormat, CrcMode};
 use error::BffCliResult;
 use lz::LzEndian;
 use reverse_crc32::DEFAULT_CHARACTER_SET;
 
 use crate::lz::LzAlgorithm;
 
-mod crc32;
-mod crc64;
+mod crc;
 mod csc;
 mod error;
 mod extract;
@@ -37,21 +35,18 @@ enum Commands {
         #[arg(long)]
         in_names: Vec<PathBuf>,
     },
+    #[clap(alias = "rt")]
     RoundTrip {
         bigfile: PathBuf,
     },
-    Crc32 {
+    #[clap(alias = "crc32", alias = "crc64")]
+    Crc {
         string: Option<String>,
-        #[arg(
-            short,
-            long,
-            default_value_t = 0,
-            help = "Starting value for the CRC-32 calculation"
-        )]
-        starting: i32,
+        #[arg(short, long, help = "Starting value for the CRC calculation")]
+        starting: Option<i64>,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc32Algorithm::Asobo)]
-        algorithm: Crc32Algorithm,
+        #[arg(short, long, default_value_t = CrcAlgorithm::Asobo)]
+        algorithm: CrcAlgorithm,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcMode::Lines)]
         mode: CrcMode,
@@ -77,39 +72,20 @@ enum Commands {
         #[arg(short, long, default_value_t = DEFAULT_CHARACTER_SET.to_string())]
         character_set: String,
     },
-    Crc64 {
-        string: Option<String>,
-        #[arg(
-            short,
-            long,
-            default_value_t = 0,
-            help = "Starting value for the CRC-32 calculation"
-        )]
-        starting: i64,
-        #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Crc64Algorithm::Asobo)]
-        algorithm: Crc64Algorithm,
-        #[clap(value_enum)]
-        #[arg(short, long, default_value_t = CrcMode::Lines)]
-        mode: CrcMode,
-        #[clap(value_enum)]
-        #[arg(short, long, default_value_t = CrcFormat::Signed)]
-        format: CrcFormat,
-    },
     Unlz {
         #[clap(value_enum)]
-        #[arg(short = 'e', long = "endian", default_value_t = LzEndian::Little)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
         #[clap(value_enum)]
-        #[arg(short = 'a', long = "algorithm", default_value_t = LzAlgorithm::Lzrs)]
+        #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
         algorithm: LzAlgorithm,
     },
     Lz {
         #[clap(value_enum)]
-        #[arg(short = 'e', long = "endian", default_value_t = LzEndian::Little)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
         #[clap(value_enum)]
-        #[arg(short = 'a', long = "algorithm", default_value_t = LzAlgorithm::Lzrs)]
+        #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
         algorithm: LzAlgorithm,
     },
     Csc {},
@@ -133,20 +109,13 @@ fn main() -> BffCliResult<()> {
             out_names,
         } => extract::extract(bigfile, directory, in_names, out_names),
         Commands::Info { bigfile, in_names } => info::info(bigfile, in_names),
-        Commands::Crc32 {
+        Commands::Crc {
             string,
             starting,
             algorithm,
             mode,
             format,
-        } => crc32::crc32(string, starting, algorithm, mode, format),
-        Commands::Crc64 {
-            string,
-            starting,
-            algorithm,
-            mode,
-            format,
-        } => crc64::crc64(string, starting, algorithm, mode, format),
+        } => crc::crc(string, starting, algorithm, mode, format),
         Commands::Unlz { endian, algorithm } => unlz::unlz(endian, algorithm),
         Commands::Lz { endian, algorithm } => lz::lz(endian, algorithm),
         Commands::ReverseCrc32 {
