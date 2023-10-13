@@ -39,7 +39,7 @@ struct Gui {
 }
 
 impl eframe::App for Gui {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(ctx);
         egui::CentralPanel::default()
@@ -64,6 +64,9 @@ impl eframe::App for Gui {
                                     self.bigfile_path = Some(path);
                                     self.resource_name = None;
                                 }
+                            }
+                            if ui.button("Quit").clicked() {
+                                frame.close();
                             }
                         });
                         ui.menu_button("Export", |ui| {
@@ -344,7 +347,7 @@ impl eframe::App for Gui {
                                 let output =
                                     egui::TextEdit::singleline(&mut self.nickname_editing.1)
                                         .hint_text("Enter nickname...")
-                                        .min_size(egui::vec2(100.0, 0.0))
+                                        .min_size(ui.available_size())
                                         .show(ui);
                                 if (output.response.lost_focus()
                                     && ui.input(|i| i.key_pressed(egui::Key::Enter)))
