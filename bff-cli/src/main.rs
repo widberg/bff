@@ -11,6 +11,7 @@ use crate::lz::LzAlgorithm;
 
 mod crc32;
 mod crc64;
+mod csc;
 mod error;
 mod extract;
 mod info;
@@ -111,6 +112,7 @@ enum Commands {
         #[arg(short = 'a', long = "algorithm", default_value_t = LzAlgorithm::Lzrs)]
         algorithm: LzAlgorithm,
     },
+    Csc {},
 }
 
 #[derive(Parser)]
@@ -163,5 +165,6 @@ fn main() -> BffCliResult<()> {
             character_set,
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
+        Commands::Csc {} => csc::csc(),
     }
 }
