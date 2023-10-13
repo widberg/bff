@@ -113,13 +113,13 @@ struct Vertex {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Triangle {
-    indices: Vec3<i16>,
+pub struct Triangle {
+    pub indices: Vec3<i16>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(length: u32))]
-enum VertexStruct {
+pub enum VertexStruct {
     #[br(pre_assert(length == 24))]
     VertexStruct24 {
         position: Vec3f,
@@ -164,24 +164,24 @@ enum VertexStruct {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct VertexBuffer {
+pub struct VertexBuffer {
     vertex_struct_count: u32,
     vertex_struct_length: u32,
     unknown: u32,
     #[br(args { count: vertex_struct_count as usize, inner: (vertex_struct_length,) })]
-    vertex_structs: Vec<VertexStruct>,
+    pub vertex_structs: Vec<VertexStruct>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct IndexBuffer {
+pub struct IndexBuffer {
     index_count: u32,
     unknown: u32,
     #[br(count = index_count / 3)]
-    tris: Vec<Triangle>,
+    pub tris: Vec<Triangle>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct VertexGroup {
+pub struct VertexGroup {
     zeroes: Vec3<u32>,
     primitive: u32,
     vertex_offset_in_groups: u16,
@@ -218,10 +218,10 @@ struct Morpher {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct MeshBuffer {
-    vertex_buffers: DynArray<VertexBuffer>,
-    index_buffers: DynArray<IndexBuffer>,
-    vertex_groups: DynArray<VertexGroup>,
+pub struct MeshBuffer {
+    pub vertex_buffers: DynArray<VertexBuffer>,
+    pub index_buffers: DynArray<IndexBuffer>,
+    pub vertex_groups: DynArray<VertexGroup>,
     unknowns: DynArray<Unknown7>,
     morpher: Morpher,
 }
@@ -246,7 +246,7 @@ pub struct MeshBodyV1_291_03_06PC {
     aabb_cols: DynArray<AABBCol>,
     vertices: DynArray<Vertex>,
     unknown6s: DynArray<Unknown6>,
-    mesh_buffer: MeshBuffer,
+    pub mesh_buffer: MeshBuffer,
     unknown8s: DynArray<Unknown8>,
 }
 

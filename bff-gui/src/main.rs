@@ -1,27 +1,34 @@
 // #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use std::collections::HashMap;
 use std::fs::File;
-use std::io::Cursor;
+use std::io::{Cursor, Write};
 use std::path::PathBuf;
-use std::{collections::HashMap, io::Write};
 
-use bff::{
-    bigfile::{resource::Resource, BigFile},
-    class::Class,
-    names::Name,
-    platforms::Platform,
-    traits::TryIntoVersionPlatform,
-};
+use bff::bigfile::resource::Resource;
+use bff::bigfile::BigFile;
+use bff::class::Class;
+use bff::names::Name;
+use bff::platforms::Platform;
+use bff::traits::TryIntoVersionPlatform;
 use eframe::egui;
+use three_d::{Vec2, Vec3};
+use three_d_asset::{Vec4, Vector4};
+
+mod views;
 
 fn main() -> Result<(), eframe::Error> {
     // env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
         drag_and_drop_support: true,
-        initial_window_size: Some(egui::vec2(640.0, 480.0)),
+        renderer: eframe::Renderer::Glow,
+        icon_data: Some(
+            eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
+        ),
+        initial_window_size: Some(egui::vec2(800.0, 600.0)),
         ..Default::default()
     };
-    eframe::run_native("BFF GUI", options, Box::new(|_cc| Box::<Gui>::default()))
+    eframe::run_native("BFF GUI", options, Box::new(|cc| Box::new(Gui::new(cc))))
 }
 
 fn selectable_text(ui: &mut egui::Ui, mut text: &str) -> egui::Response {
@@ -36,12 +43,29 @@ struct Gui {
     nicknames: HashMap<Name, String>,
     nickname_window_open: bool,
     nickname_editing: (Name, String),
+    models: HashMap<Name, three_d::renderer::CpuModel>,
+    sound_volume: f32,
+}
+
+impl Gui {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        cc.egui_ctx.set_pixels_per_point(1.25);
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+        Self {
+            bigfile: None,
+            bigfile_path: None,
+            resource_name: None,
+            nicknames: HashMap::new(),
+            nickname_window_open: false,
+            nickname_editing: (Name::default(), String::new()),
+            models: HashMap::new(),
+            sound_volume: 1.0,
+        }
+    }
 }
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        ctx.set_pixels_per_point(1.25);
-        egui_extras::install_image_loaders(ctx);
         egui::CentralPanel::default()
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
@@ -72,10 +96,7 @@ impl eframe::App for Gui {
                         ui.menu_button("Export", |ui| {
                             if ui
                                 .add_enabled(
-                                    match self.resource_name {
-                                        Some(_) => true,
-                                        None => false,
-                                    },
+                                    self.resource_name.is_some(),
                                     egui::Button::new("Export JSON..."),
                                 )
                                 .clicked()
@@ -108,7 +129,6 @@ impl eframe::App for Gui {
                                                             .unwrap()
                                                             .manifest
                                                             .platform
-                                                            .clone(),
                                                     )
                                                     .unwrap(),
                                             )
@@ -120,10 +140,7 @@ impl eframe::App for Gui {
                             }
                             if ui
                                 .add_enabled(
-                                    match self.resource_name {
-                                        Some(_) => true,
-                                        None => false,
-                                    },
+                                    self.resource_name.is_some(),
                                     egui::Button::new("Export data..."),
                                 )
                                 .clicked()
@@ -134,10 +151,7 @@ impl eframe::App for Gui {
                         ui.menu_button("Nicknames", |ui| {
                             if ui
                                 .add_enabled(
-                                    match self.bigfile {
-                                        Some(_) => true,
-                                        None => false,
-                                    },
+                                    self.bigfile.is_some(),
                                     egui::Button::new("Import..."),
                                 )
                                 .clicked()
@@ -226,7 +240,7 @@ impl eframe::App for Gui {
                                                         Some(nn) => nn.to_owned(),
                                                         None => resource.name.to_string(),
                                                     },
-                                                    resource.class_name.to_string()
+                                                    resource.class_name
                                                 ))
                                                 .wrap(false)
                                                 .rounding(0.0)
@@ -263,13 +277,13 @@ impl eframe::App for Gui {
                                     .unwrap()
                                     .try_into_version_platform(
                                         self.bigfile.as_ref().unwrap().manifest.version.clone(),
-                                        self.bigfile.as_ref().unwrap().manifest.platform.clone(),
+                                        self.bigfile.as_ref().unwrap().manifest.platform,
                                     )
                                     .unwrap(),
                             )
                             .unwrap();
                             let json: Vec<&str> = j
-                                .split_inclusive("\n")
+                                .split_inclusive('\n')
                                 // .map(|s| s.to_string())
                                 .collect();
                             let text_style = egui::TextStyle::Body;
@@ -301,7 +315,7 @@ impl eframe::App for Gui {
                             .unwrap()
                             .try_into_version_platform(
                                 self.bigfile.as_ref().unwrap().manifest.version.clone(),
-                                self.bigfile.as_ref().unwrap().manifest.platform.clone(),
+                                self.bigfile.as_ref().unwrap().manifest.platform,
                             )
                             .unwrap();
                         match class {
@@ -314,25 +328,75 @@ impl eframe::App for Gui {
                                 }
                                 _ => (),
                             },
-                            Class::Sound(box_sound) => match *box_sound {
-                                bff::class::sound::Sound::SoundV1_291_03_06PC(sound) => {
-                                    if ui.button("play").clicked() {
-                                        play_sound(
-                                            sound.body.flags.stereo().value(),
-                                            sound.body.sample_rate,
-                                            sound.body.data,
-                                        );
+                            Class::Sound(box_sound) => {
+                                ui.add(egui::Slider::new(&mut self.sound_volume, 0.0..=1.0).text("Volume").show_value(false));
+                                if ui.button("play").clicked() {
+                                    match *box_sound {
+                                        bff::class::sound::Sound::SoundV1_291_03_06PC(sound) => {
+                                            play_sound(
+                                                sound.body.data,
+                                                sound.body.sample_rate,
+                                                sound.body.flags.stereo().value(),
+                                                self.sound_volume,
+                                            );
                                     }
-                                }
-                                bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => {
-                                    if ui.button("play").clicked() {
-                                        play_sound(
-                                            sound.link_header.flags.stereo().value(),
-                                            sound.link_header.sample_rate,
-                                            sound.body.data,
-                                        );
+                                    bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => {
+                                            play_sound(
+                                                sound.body.data,
+                                                sound.link_header.sample_rate,
+                                                sound.link_header.flags.stereo().value(),
+                                                self.sound_volume,
+                                            );
+                                        }
                                     }
+                            }},
+                            Class::Mesh(box_mesh) => match *box_mesh {
+                                bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh) => {
+                                    let model = if let Some(m) = self.models.get(resource_name) {
+                                        m.clone()
+                                    } else {
+                                        let (positions, (uvs, (normals, tangents))): (Vec<Vec3>, (Vec<Vec2>, (Vec<Vec3>, Vec<Vec4>))) = mesh.body.mesh_buffer.vertex_buffers.iter().flat_map(|buf| &buf.vertex_structs).map(|vs| match vs {
+                                            bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct24 {
+                                                position, uv, ..
+                                            } => (position, uv, &[0u8; 3], [0u8; 4]),
+                                            bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct36 {
+                                                position,
+                                                uv,
+                                                normal,
+                                                tangent,
+                                                ..
+                                            }
+                                            | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct48 {
+                                                position,
+                                                uv,
+                                                normal,
+                                                tangent,
+                                                ..
+                                            }
+                                            | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct60 {
+                                                position,
+                                                uv,
+                                                normal,
+                                                tangent,
+                                                ..
+                                            } => (position, uv, normal, [&tangent[..], &[0u8]].concat().try_into().unwrap()),
+                                            bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStructUnknown { .. } => {
+                                                (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4])
+                                            }
+                                        }).map(|(p, u, n, t)| (Vec3::from(*p), (Vec2::from(*u), (Vec3::from(n.map(|i| (i as f32 - 128.0) / 128.0)), Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)))))).unzip();
+                                        let indices: Vec<u16> = mesh.body.mesh_buffer.index_buffers.iter().flat_map(|buf| &buf.tris).flat_map(|tri| tri.indices).map(|i| u16::try_from(i).unwrap_or(0)).collect();
+                                        let tri_mesh = three_d::geometry::CpuMesh { positions: three_d::Positions::F32(positions), indices: three_d::Indices::U16(indices), normals: Some(normals), tangents: Some(tangents), uvs: Some(uvs), colors: None };
+                                        let triangles = three_d_asset::geometry::Geometry::Triangles(tri_mesh);
+                                        let primitive = three_d_asset::Primitive {name: "mesh".to_string(), transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()), animations: vec![], geometry: triangles, material_index: None};
+                                        let model = three_d::renderer::CpuModel {name: resource_name.to_string(), geometries: vec![primitive], materials: vec![]};
+                                        self.models.insert(*resource_name, model.clone());
+                                        model
+                                    };
+                                    ui.add(views::mesh::MeshView::new(
+                                        model.clone(),
+                                    ));
                                 }
+                                _ => (),
                             },
                             _ => (),
                         }
@@ -355,7 +419,7 @@ impl eframe::App for Gui {
                                 {
                                     let filtered_nickname = self.nickname_editing.1.trim();
                                     self.nickname_window_open = false;
-                                    if filtered_nickname.len() != 0 {
+                                    if !filtered_nickname.is_empty() {
                                         self.nicknames.insert(
                                             self.nickname_editing.0,
                                             filtered_nickname.to_owned(),
@@ -403,14 +467,14 @@ fn get_image<'a>(resource_name: &Name, data: &Vec<u8>) -> egui::Image<'a> {
     .shrink_to_fit()
 }
 
-fn play_sound(stereo: u8, sample_rate: u32, data: Vec<i16>) {
+fn play_sound(data: Vec<i16>, sample_rate: u32, stereo: u8, volume: f32) {
     std::thread::spawn(move || {
         let spec = hound::WavSpec {
             channels: match stereo {
                 1 => 2,
                 _ => 1,
             },
-            sample_rate: sample_rate,
+            sample_rate,
             bits_per_sample: 16,
             sample_format: hound::SampleFormat::Int,
         };
@@ -430,14 +494,16 @@ fn play_sound(stereo: u8, sample_rate: u32, data: Vec<i16>) {
         let sink = rodio::Sink::try_new(&stream_handle).unwrap();
         let buf = std::io::BufReader::new(Cursor::new(bytes));
         let source = rodio::Decoder::new_wav(buf).unwrap();
+        sink.set_volume(volume);
         sink.append(source);
         sink.sleep_until_end();
     });
 }
 
 fn preview_files_being_dropped(ctx: &egui::Context) {
-    use egui::*;
     use std::fmt::Write as _;
+
+    use egui::*;
 
     if !ctx.input(|i| i.raw.hovered_files.is_empty()) {
         let text = ctx.input(|i| {
