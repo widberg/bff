@@ -25,4 +25,7 @@ build:
 doc:
     cargo {{cargo-command-prefix}} doc
 
+run CMD +OPTIONS="":
+    cargo run --release --bin {{CMD}} -- {{OPTIONS}}
+
 check: fmt clippy test
