@@ -511,7 +511,9 @@ name = "bff-gui"
 version = "0.1.0"
 dependencies = [
  "bff",
+ "derive_more",
  "eframe",
+ "egui",
  "egui_extras",
  "hound",
  "image",
