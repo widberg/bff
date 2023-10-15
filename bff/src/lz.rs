@@ -2,7 +2,7 @@ use std::cmp::{max, min};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::ptr::null_mut;
 
-use binrw::{BinReaderExt, BinResult, BinWriterExt};
+use binrw::{BinRead, BinReaderExt, BinResult, BinWrite, BinWriterExt};
 use lz4::{Decoder, EncoderBuilder};
 use minilzo_rs::LZO;
 
@@ -63,6 +63,8 @@ pub fn decompress_data_parser(decompressed_size: u32, _compressed_size: u32) -> 
                 let start = decompressed_buffer.len() - (temp & temp_mask) as usize - 1;
                 let end = start + (temp >> temp_shift) as usize + 3;
 
+                // We don't want to use `extend_from_within` here because it requires the entire
+                // range to exist at the time of the call
                 for i in start..end {
                     decompressed_buffer.push(decompressed_buffer[i]);
                 }
@@ -415,15 +417,55 @@ pub fn lzo_decompress<R: Read>(reader: &mut R, _endian: Endian) -> BffResult<Vec
     Ok(decompressed)
 }
 
-pub fn lz4_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> BffResult<()> {
+#[binrw::writer(writer, endian)]
+pub fn lz4_compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
+    let begin = writer.stream_position()?;
+    writer.seek(SeekFrom::Current(8))?;
     let mut encoder = EncoderBuilder::new().build(writer)?;
     encoder.write_all(data)?;
+    let (writer, result) = encoder.finish();
+    result?;
+    let end = writer.stream_position()?;
+
+    writer.seek(SeekFrom::Start(begin))?;
+    (data.len() as u32).write_options(writer, endian, ())?;
+    ((end - begin - 8) as u32).write_options(writer, endian, ())?;
+    writer.seek(SeekFrom::Start(end))?;
     Ok(())
 }
 
-pub fn lz4_decompress<R: Read>(reader: &mut R, _endian: Endian) -> BffResult<Vec<u8>> {
+pub fn lz4_compress_data_with_header_writer<W: Write + Seek>(
+    data: &[u8],
+    writer: &mut W,
+    endian: Endian,
+) -> BffResult<()> {
+    Ok(lz4_compress_data_with_header_writer_internal(
+        data,
+        writer,
+        endian,
+        (),
+    )?)
+}
+
+#[binrw::parser(reader, endian)]
+pub fn lz4_decompress_data_with_header_parser_internal() -> BinResult<Vec<u8>> {
+    let _decompressed_size = u32::read_options(reader, endian, ())?;
+    let _compressed_size = u32::read_options(reader, endian, ())?;
     let mut decoder = Decoder::new(reader)?;
     let mut decompressed: Vec<u8> = Vec::new();
     decoder.read_to_end(&mut decompressed)?;
+    let (_reader, result) = decoder.finish();
+    result?;
     Ok(decompressed)
+}
+
+pub fn lz4_decompress_data_with_header_parser<R: Read + Seek>(
+    reader: &mut R,
+    endian: Endian,
+) -> BffResult<Vec<u8>> {
+    Ok(lz4_decompress_data_with_header_parser_internal(
+        reader,
+        endian,
+        (),
+    )?)
 }

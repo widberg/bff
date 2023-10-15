@@ -16,7 +16,7 @@ mod info;
 mod lz;
 mod reverse_crc32;
 mod round_trip;
-mod unlz;
+mod psc;
 
 #[derive(Subcommand)]
 enum Commands {
@@ -89,6 +89,11 @@ enum Commands {
         algorithm: LzAlgorithm,
     },
     Csc {},
+    #[clap(alias = "xpsc")]
+    ExtractPsc {
+        psc: PathBuf,
+        directory: PathBuf,
+    },
 }
 
 #[derive(Parser)]
@@ -116,7 +121,7 @@ fn main() -> BffCliResult<()> {
             mode,
             format,
         } => crc::crc(string, starting, algorithm, mode, format),
-        Commands::Unlz { endian, algorithm } => unlz::unlz(endian, algorithm),
+        Commands::Unlz { endian, algorithm } => lz::unlz(endian, algorithm),
         Commands::Lz { endian, algorithm } => lz::lz(endian, algorithm),
         Commands::ReverseCrc32 {
             string,
@@ -135,5 +140,6 @@ fn main() -> BffCliResult<()> {
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
         Commands::Csc {} => csc::csc(),
+        Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
     }
 }

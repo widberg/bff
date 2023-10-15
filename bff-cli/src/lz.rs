@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Read, Write};
 
-use bff::lz::{compress_data_with_header_writer, lz4_compress, lzo_compress};
-use bff::Endian;
+use bff::lz::{compress_data_with_header_writer, decompress_data_with_header_parser, lz4_compress_data_with_header_writer, lz4_decompress_data_with_header_parser, lzo_compress, lzo_decompress};
+use bff::{Endian, BufReader};
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;
@@ -35,10 +35,31 @@ pub fn lz(endian: &LzEndian, algorithm: &LzAlgorithm) -> BffCliResult<()> {
     match algorithm {
         LzAlgorithm::Lzrs => compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Lzo => lzo_compress(&buf, &mut writer, endian)?,
-        LzAlgorithm::Lz4 => lz4_compress(&buf, &mut writer, endian)?,
+        LzAlgorithm::Lz4 => lz4_compress_data_with_header_writer(&buf, &mut writer, endian)?,
     };
 
     let stdout = io::stdout();
     stdout.lock().write_all(writer.into_inner())?;
     Ok(())
+}
+
+pub fn unlz(endian: &LzEndian, algorithm: &LzAlgorithm) -> BffCliResult<()> {
+    let endian = match endian {
+        LzEndian::Big => Endian::Big,
+        LzEndian::Little => Endian::Little,
+    };
+
+    let stdin = io::stdin();
+    let mut buf: Vec<u8> = Vec::new();
+    stdin.lock().read_to_end(&mut buf)?;
+    let mut reader = BufReader::new(Cursor::new(buf));
+
+    let decompressed = match algorithm {
+        LzAlgorithm::Lzrs => decompress_data_with_header_parser(&mut reader, endian)?,
+        LzAlgorithm::Lzo => lzo_decompress(&mut reader, endian)?,
+        LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
+    };
+
+    let stdout = io::stdout();
+    Ok(stdout.lock().write_all(&decompressed)?)
 }
