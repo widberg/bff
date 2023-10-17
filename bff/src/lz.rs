@@ -462,16 +462,21 @@ pub fn lz4_compress_data_with_header_writer<W: Write + Seek>(
 #[binrw::parser(reader)]
 pub fn lz4_decompress_data_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
     // TODO: Don't use asserts. Add proper error handling.
-    let compressed_buffer = Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
-    let mut decompressed_buffer: Vec<u8> = Vec::with_capacity(decompressed_size as usize);
-    unsafe {
-        let result = lz4::liblz4::LZ4_decompress_safe(compressed_buffer.as_ptr() as *const i8, decompressed_buffer.as_mut_ptr() as *mut i8, compressed_size as i32, decompressed_size as i32);
-        assert!(result >= 0);
-        decompressed_buffer.set_len(result as usize);
-    }
-    assert_eq!(decompressed_buffer.len(), decompressed_size as usize);
+    if compressed_size != 0 {
+        let compressed_buffer = Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
+        let mut decompressed_buffer: Vec<u8> = Vec::with_capacity(decompressed_size as usize);
+        unsafe {
+            let result = lz4::liblz4::LZ4_decompress_safe(compressed_buffer.as_ptr() as *const i8, decompressed_buffer.as_mut_ptr() as *mut i8, compressed_size as i32, decompressed_size as i32);
+            assert!(result >= 0);
+            decompressed_buffer.set_len(result as usize);
+        }
+        assert_eq!(decompressed_buffer.len(), decompressed_size as usize);
 
-    Ok(decompressed_buffer)
+        Ok(decompressed_buffer)
+    } else {
+        let decompressed_buffer = Vec::<u8>::read_args(reader, args! { count: decompressed_size as usize })?;
+        Ok(decompressed_buffer)
+    }
 }
 
 #[binrw::parser(reader)]

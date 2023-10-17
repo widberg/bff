@@ -9,6 +9,7 @@ pub mod names;
 pub mod platforms;
 pub mod traits;
 pub mod versions;
+pub mod psc;
 
 pub type BffError = crate::error::Error;
 pub type BffResult<T> = std::result::Result<T, BffError>;
