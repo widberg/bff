@@ -1,14 +1,13 @@
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use bff::BufReader;
+
 use bff::psc::Psc;
+use bff::BufReader;
+
 use crate::error::BffCliResult;
 
-pub fn extract_psc(
-    psc: &Path,
-    directory: &Path,
-) -> BffCliResult<()> {
+pub fn extract_psc(psc: &Path, directory: &Path) -> BffCliResult<()> {
     let mut psc_reader = BufReader::new(File::open(psc)?);
     let psc = bff::psc::Psc::read(&mut psc_reader)?;
 
@@ -24,7 +23,11 @@ pub fn extract_psc(
     Ok(())
 }
 
-fn read_files_into_psc_recursively(psc: &mut Psc, directory: &Path, base: &Path) -> BffCliResult<()> {
+fn read_files_into_psc_recursively(
+    psc: &mut Psc,
+    directory: &Path,
+    base: &Path,
+) -> BffCliResult<()> {
     let paths = std::fs::read_dir(directory)?;
     for path in paths {
         let path = path?.path();
@@ -40,11 +43,7 @@ fn read_files_into_psc_recursively(psc: &mut Psc, directory: &Path, base: &Path)
     Ok(())
 }
 
-pub fn create_psc(
-    directory: &Path,
-    psc_path: &Path,
-) -> BffCliResult<()> {
-
+pub fn create_psc(directory: &Path, psc_path: &Path) -> BffCliResult<()> {
     let mut psc = Psc::default();
     read_files_into_psc_recursively(&mut psc, directory, directory)?;
 

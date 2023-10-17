@@ -3,8 +3,8 @@ use std::str::from_utf8;
 
 use bff_derive::ReferencedNames;
 use binrw::io::{Read, Seek};
-use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString};
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
+use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::{Deserialize, Serialize};
 
@@ -232,19 +232,19 @@ impl BinWrite for PascalStringNull {
 }
 
 #[derive(
-Clone,
-PartialEq,
-Eq,
-Default,
-Debug,
-Deref,
-DerefMut,
-Display,
-From,
-Serialize,
-Hash,
-Deserialize,
-ReferencedNames,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Debug,
+    Deref,
+    DerefMut,
+    Display,
+    From,
+    Serialize,
+    Hash,
+    Deserialize,
+    ReferencedNames,
 )]
 #[serde(transparent)]
 pub struct StringUntilNull(pub String);
@@ -252,7 +252,11 @@ pub struct StringUntilNull(pub String);
 impl BinRead for StringUntilNull {
     type Args<'a> = ();
 
-    fn read_options<R: Read + Seek>(reader: &mut R, _endian: Endian, _args: Self::Args<'_>) -> BinResult<Self> {
+    fn read_options<R: Read + Seek>(
+        reader: &mut R,
+        _endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<Self> {
         let ascii_string_position = reader.stream_position()?;
         let value = NullString::read(reader)?;
         match from_utf8(&value) {
@@ -268,9 +272,14 @@ impl BinRead for StringUntilNull {
 impl BinWrite for StringUntilNull {
     type Args<'a> = ();
 
-    fn write_options<W: Write + Seek>(&self, writer: &mut W, _endian: Endian, _args: Self::Args<'_>) -> BinResult<()> {
+    fn write_options<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        _endian: Endian,
+        _args: Self::Args<'_>,
+    ) -> BinResult<()> {
         let value = self.0.as_bytes();
-        writer.write_all(&value)?;
+        writer.write_all(value)?;
         writer.write_be(&0u8)?;
 
         Ok(())

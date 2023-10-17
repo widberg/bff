@@ -2,11 +2,10 @@ use std::cmp::{max, min};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::ptr::null_mut;
 
-use binrw::{args, BinRead, BinReaderExt, BinResult, BinWrite, BinWriterExt};
-use binrw::Endian;
+use binrw::{args, BinRead, BinReaderExt, BinResult, BinWrite, BinWriterExt, Endian};
 use minilzo_rs::LZO;
 
-use crate::{BffResult};
+use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
 pub fn decompress_body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -421,10 +420,15 @@ pub fn lzo_decompress<R: Read>(reader: &mut R, _endian: Endian) -> BffResult<Vec
 pub fn lz4_compress_data_writer(data: &[u8]) -> BinResult<()> {
     // TODO: Don't use asserts. Add proper error handling.
     // TODO: Not the same parameters used by the game.
-    let compress_bound = unsafe { lz4::liblz4::LZ4_compressBound(data.len() as i32) as usize};
+    let compress_bound = unsafe { lz4::liblz4::LZ4_compressBound(data.len() as i32) as usize };
     let mut compressed_buffer: Vec<u8> = Vec::with_capacity(compress_bound);
     unsafe {
-        let result = lz4::liblz4::LZ4_compress_default(data.as_ptr() as *const i8, compressed_buffer.as_mut_ptr() as *mut i8, data.len() as i32, compressed_buffer.capacity() as i32);
+        let result = lz4::liblz4::LZ4_compress_default(
+            data.as_ptr() as *const i8,
+            compressed_buffer.as_mut_ptr() as *mut i8,
+            data.len() as i32,
+            compressed_buffer.capacity() as i32,
+        );
         assert!(result >= 0);
         compressed_buffer.set_len(result as usize);
     }
@@ -460,13 +464,22 @@ pub fn lz4_compress_data_with_header_writer<W: Write + Seek>(
 }
 
 #[binrw::parser(reader)]
-pub fn lz4_decompress_data_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
+pub fn lz4_decompress_data_parser(
+    decompressed_size: u32,
+    compressed_size: u32,
+) -> BinResult<Vec<u8>> {
     // TODO: Don't use asserts. Add proper error handling.
     if compressed_size != 0 {
-        let compressed_buffer = Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
+        let compressed_buffer =
+            Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
         let mut decompressed_buffer: Vec<u8> = Vec::with_capacity(decompressed_size as usize);
         unsafe {
-            let result = lz4::liblz4::LZ4_decompress_safe(compressed_buffer.as_ptr() as *const i8, decompressed_buffer.as_mut_ptr() as *mut i8, compressed_size as i32, decompressed_size as i32);
+            let result = lz4::liblz4::LZ4_decompress_safe(
+                compressed_buffer.as_ptr() as *const i8,
+                decompressed_buffer.as_mut_ptr() as *mut i8,
+                compressed_size as i32,
+                decompressed_size as i32,
+            );
             assert!(result >= 0);
             decompressed_buffer.set_len(result as usize);
         }
@@ -474,7 +487,8 @@ pub fn lz4_decompress_data_parser(decompressed_size: u32, compressed_size: u32) 
 
         Ok(decompressed_buffer)
     } else {
-        let decompressed_buffer = Vec::<u8>::read_args(reader, args! { count: decompressed_size as usize })?;
+        let decompressed_buffer =
+            Vec::<u8>::read_args(reader, args! { count: decompressed_size as usize })?;
         Ok(decompressed_buffer)
     }
 }

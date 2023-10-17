@@ -14,9 +14,9 @@ mod error;
 mod extract;
 mod info;
 mod lz;
+mod psc;
 mod reverse_crc32;
 mod round_trip;
-mod psc;
 
 #[derive(Subcommand)]
 enum Commands {
