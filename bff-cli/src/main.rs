@@ -94,6 +94,11 @@ enum Commands {
         psc: PathBuf,
         directory: PathBuf,
     },
+    #[clap(alias = "cpsc")]
+    CreatePsc {
+        directory: PathBuf,
+        psc: PathBuf,
+    },
 }
 
 #[derive(Parser)]
@@ -141,5 +146,6 @@ fn main() -> BffCliResult<()> {
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
         Commands::Csc {} => csc::csc(),
         Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
+        Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
     }
 }

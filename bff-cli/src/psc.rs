@@ -22,3 +22,10 @@ pub fn extract_psc(
 
     Ok(())
 }
+
+pub fn create_psc(
+    _directory: &Path,
+    _psc: &Path,
+) -> BffCliResult<()> {
+    Ok(())
+}
