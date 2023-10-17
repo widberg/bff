@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+use std::path::PathBuf;
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
 use crate::BffResult;
@@ -8,7 +9,7 @@ use crate::lz::{lz4_compress_data_with_header_writer_internal, lz4_decompress_da
 
 #[derive(Debug)]
 pub struct Psc {
-    pub tscs: HashMap<String, String>,
+    pub tscs: HashMap<PathBuf, String>,
 }
 
 impl ReadEndian for Psc {
@@ -32,13 +33,14 @@ impl BinRead for Psc {
         };
 
         while reader.stream_position()? != end {
-            let name = StringUntilNull::read(reader)?.0;
+            let path_string = StringUntilNull::read(reader)?.0;
+            let path = PathBuf::from(path_string);
             let cr = u8::read_le(reader)?;
             assert_eq!(cr, 0x0D);
             let lf = u8::read_le(reader)?;
             assert_eq!(lf, 0x0A);
             let data = StringUntilNull::read(reader)?.0;
-            psc.tscs.insert(name, data);
+            psc.tscs.insert(path, data);
         }
 
         Ok(psc)
@@ -50,7 +52,7 @@ impl BinWrite for Psc {
 
     fn write_options<W: Write + Seek>(&self, writer: &mut W, _endian: Endian, _args: Self::Args<'_>) -> BinResult<()> {
         for (name, data) in &self.tscs {
-            writer.write_all(name.as_bytes())?;
+            writer.write_all(name.to_str().unwrap().as_bytes())?;
             writer.write_all(&[0x00, 0x0D, 0x0A])?;
             writer.write_all(data.as_bytes())?;
             writer.write_all(&[0x00])?;
