@@ -6,6 +6,7 @@ pub enum BffCliError {
     Bff(BffError),
     Io(std::io::Error),
     SerdeJson(serde_json::Error),
+    StripPrefix(std::path::StripPrefixError),
     #[display(
         fmt = "No filler found in length range [{}, {}], consider expanding the range",
         "min_filler_length",
