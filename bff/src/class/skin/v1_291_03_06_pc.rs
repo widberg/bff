@@ -43,22 +43,22 @@ struct MorphPacket {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct SkinSubSection {
-    material_crc32: Name,
+pub struct SkinSubSection {
+    pub material_crc32: Name,
     bone_node_name_crc32s: [Name; 7],
     placeholder_morph_packet_da: MorphPacketDA,
     morph_packets: DynArray<MorphPacket>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct SkinSection {
-    skin_sub_sections: DynArray<SkinSubSection>,
+pub struct SkinSection {
+    pub skin_sub_sections: DynArray<SkinSubSection>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SkinBodyV1_291_03_06PC {
-    mesh_crc32s: DynArray<Name>,
+    pub mesh_crc32s: DynArray<Name>,
     unknown0s: DynArray<Unknown1>,
     bones: DynArray<Bone>,
     is_class_id: u8,
@@ -67,7 +67,7 @@ pub struct SkinBodyV1_291_03_06PC {
     #[br(if(is_class_id != 0))]
     sound_class_ids: Option<BffMap<i32, i32>>,
     matrix_cache_check: u32,
-    skin_sections: DynArray<SkinSection>,
+    pub skin_sections: DynArray<SkinSection>,
 }
 
 pub type SkinV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SkinBodyV1_291_03_06PC>;

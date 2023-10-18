@@ -154,7 +154,7 @@ impl ConvertedFrameInput<'_> {
 pub struct ThreeDApp {
     context: Context,
     camera: Camera,
-    pub model: Model<NormalMaterial>,
+    pub model: Model<PhysicalMaterial>,
 }
 
 impl ThreeDApp {
@@ -180,8 +180,8 @@ impl ThreeDApp {
     fn cpu_model_to_gpu(
         cpu_model: &CpuModel,
         context: &three_d::core::Context,
-    ) -> Model<NormalMaterial> {
-        let model = Model::<NormalMaterial>::new(context, cpu_model).unwrap();
+    ) -> Model<PhysicalMaterial> {
+        let model = Model::<PhysicalMaterial>::new(context, cpu_model).unwrap();
         // model.iter_mut().for_each(|m| {
         //     m.material = NormalMaterial::new(context, &three_d_asset::PbrMaterial::default());
         // });

@@ -51,6 +51,9 @@ pub fn view(
                     Artifact::Mesh(model) => {
                         ui.add(MeshView::new(Arc::clone(model)));
                     }
+                    Artifact::Skin(skin) => {
+                        ui.add(MeshView::new(Arc::clone(skin)));
+                    }
                 }
             }
         }

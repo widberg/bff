@@ -27,6 +27,7 @@ pub enum Artifact {
         channels: u16,
     },
     Mesh(Arc<CpuModel>),
+    Skin(Arc<CpuModel>),
 }
 
 fn main() -> Result<(), eframe::Error> {
