@@ -64,6 +64,8 @@ impl BinWrite for Psc {
         _endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
+        // TODO: In the game these are sorted by path
+        // Root files first then subdirectories recursively in lexicographical order
         for (path, data) in self.tscs.iter() {
             writer.write_all(
                 path.components()

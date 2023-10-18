@@ -91,6 +91,7 @@ dependencies = [
  "serde",
  "serde-big-array",
  "test-generator",
+ "xbadpcm",
 ]
 
 [[package]]
@@ -807,3 +808,9 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[package]]
+name = "xbadpcm"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89372cfe6dd7fc5d65e93d4ac6f43968efded811dd5b273044ed57721ed69819"
