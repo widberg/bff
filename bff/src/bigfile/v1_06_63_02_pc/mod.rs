@@ -24,10 +24,10 @@ use crate::bigfile::v1_06_63_02_pc::pool::{
 };
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
-use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
+use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
@@ -200,7 +200,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                         writer.seek(SeekFrom::Current(24))?;
                         writer.write_all(link_header)?;
                         let begin_body = writer.stream_position()?;
-                        compress_data_with_header_writer_internal(body, writer, endian, ())?;
+                        lzrs_compress_data_with_header_writer_internal(body, writer, endian, ())?;
                         let end_body = writer.stream_position()?;
                         writer.seek(SeekFrom::Start(begin_header))?;
                         let compressed_body_size = (end_body - begin_body) as u32;
@@ -341,7 +341,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
                         let begin_body = writer.stream_position()?;
-                        compress_data_with_header_writer_internal(body, writer, endian, ())?;
+                        lzrs_compress_data_with_header_writer_internal(body, writer, endian, ())?;
                         let end_body = writer.stream_position()?;
                         writer.seek(SeekFrom::Start(begin_header))?;
                         let compressed_body_size = (end_body - begin_body) as u32;

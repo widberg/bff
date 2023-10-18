@@ -2,14 +2,14 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-use bff::psc::Psc;
+use bff::tsc::Psc;
 use bff::BufReader;
 
 use crate::error::BffCliResult;
 
 pub fn extract_psc(psc: &Path, directory: &Path) -> BffCliResult<()> {
     let mut psc_reader = BufReader::new(File::open(psc)?);
-    let psc = bff::psc::Psc::read(&mut psc_reader)?;
+    let psc = Psc::read(&mut psc_reader)?;
 
     for (path, data) in psc.tscs {
         let tsc_path = directory.join(path);

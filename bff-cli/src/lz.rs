@@ -1,8 +1,8 @@
 use std::io::{self, Cursor, Read, Write};
 
 use bff::lz::{
-    compress_data_with_header_writer,
-    decompress_data_with_header_parser,
+    lzrs_compress_data_with_header_writer,
+    lzrs_decompress_data_with_header_parser,
     lz4_compress_data_with_header_writer,
     lz4_decompress_data_with_header_parser,
     lzo_compress,
@@ -40,7 +40,7 @@ pub fn lz(endian: &LzEndian, algorithm: &LzAlgorithm) -> BffCliResult<()> {
     let mut writer = Cursor::new(&mut compressed);
 
     match algorithm {
-        LzAlgorithm::Lzrs => compress_data_with_header_writer(&buf, &mut writer, endian)?,
+        LzAlgorithm::Lzrs => lzrs_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Lzo => lzo_compress(&buf, &mut writer, endian)?,
         LzAlgorithm::Lz4 => lz4_compress_data_with_header_writer(&buf, &mut writer, endian)?,
     };
@@ -62,7 +62,7 @@ pub fn unlz(endian: &LzEndian, algorithm: &LzAlgorithm) -> BffCliResult<()> {
     let mut reader = BufReader::new(Cursor::new(buf));
 
     let decompressed = match algorithm {
-        LzAlgorithm::Lzrs => decompress_data_with_header_parser(&mut reader, endian)?,
+        LzAlgorithm::Lzrs => lzrs_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Lzo => lzo_decompress(&mut reader, endian)?,
         LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
     };

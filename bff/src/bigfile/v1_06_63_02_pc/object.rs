@@ -4,8 +4,8 @@ use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
-use crate::lz::{compress_data_with_header_writer_internal, decompress_body_parser};
 use crate::names::Name;
+use crate::lz::{lzrs_compress_data_with_header_writer_internal, lzrs_decompress_body_parser};
 
 #[parser(reader, endian)]
 pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -18,7 +18,7 @@ pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Ve
             },
         )
     } else {
-        decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
+        lzrs_decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
     }
 }
 
@@ -63,7 +63,7 @@ impl BinWrite for Object {
         let link_header_size = self.link_header.len() as u32;
         let body_size = if self.compress {
             let body_start = writer.stream_position()?;
-            compress_data_with_header_writer_internal(&self.body, writer, endian, ())?;
+            lzrs_compress_data_with_header_writer_internal(&self.body, writer, endian, ())?;
             let body_end = writer.stream_position()?;
             (body_end - body_start) as u32
         } else {

@@ -1,7 +1,7 @@
 use std::io;
 use std::io::BufWriter;
 
-use bff::csc::csc_copy;
+use bff::tsc::csc_copy;
 use bff::BufReader;
 
 use crate::error::BffCliResult;
