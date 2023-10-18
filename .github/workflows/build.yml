@@ -30,7 +30,7 @@ jobs:
 
       - name: Install GTK3
         run: sudo apt-get -y install libgtk-3-dev
-        if: matrix.name == 'linux'
+        if: matrix.name == 'linux' && matrix.bin == 'bff-gui'
 
       - name: Build
         run: cargo build --release --locked
