@@ -3,16 +3,16 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::keyframer::{
+use crate::helpers::{
+    DynArray,
     KeyframerFloat,
     KeyframerFloatComp,
     KeyframerMessage,
     KeyframerRot,
     KeyframerVec3f,
     KeyframerVec3fComp,
+    ResourceObjectLinkHeader,
 };
-use crate::link_header::ResourceObjectLinkHeader;
 use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

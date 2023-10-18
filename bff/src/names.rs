@@ -11,13 +11,10 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::class::class_names;
-use crate::crc32::{Asobo32, AsoboAlternate32, Kalisto32};
-use crate::crc64::Asobo64;
+use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, Kalisto32};
 use crate::traits::NameHashFunction;
 use crate::BffResult;
 
-// If games with 64 bit names are added then this should be a generic and type aliases for Name32
-// and Name64 should be defined.
 #[derive(PartialEq, Eq, Hash, Copy, Clone, BinRead, BinWrite, Debug, Display)]
 pub struct NameVariant<H: NameHashFunction>(H::Target)
 where

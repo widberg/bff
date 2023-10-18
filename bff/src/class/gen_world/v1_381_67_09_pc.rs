@@ -3,12 +3,17 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
-use crate::map::BffMap;
-use crate::math::{Mat4f, Vec2f, Vec3f};
+use crate::helpers::{
+    BffMap,
+    DynArray,
+    FixedStringNull,
+    Mat4f,
+    ObjectLinkHeaderV1_381_67_09PC,
+    PascalStringNull,
+    Vec2f,
+    Vec3f,
+};
 use crate::names::Name;
-use crate::strings::{FixedStringNull, PascalStringNull};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Category {

@@ -3,8 +3,8 @@ use std::io::SeekFrom;
 use binrw::*;
 use serde::Serialize;
 
+use crate::helpers::FixedStringNull;
 use crate::names::Name;
-use crate::strings::FixedStringNull;
 use crate::versions::VersionTriple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]

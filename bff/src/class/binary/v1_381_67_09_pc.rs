@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::link_header::ResourceObjectLinkHeader;
+use crate::helpers::ResourceObjectLinkHeader;
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]

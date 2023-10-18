@@ -4,15 +4,16 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::keyframer::{
+use crate::helpers::{
+    DynArray,
     KeyframerFloatLinear,
     KeyframerVec2fLinear,
     KeyframerVec3fLinear,
     KeyframerVec4fLinear,
+    Mat4f,
+    ObjectLinkHeaderV1_381_67_09PC,
+    Vec3f,
 };
-use crate::link_header::ObjectLinkHeaderV1_381_67_09PC;
-use crate::math::{Mat4f, Vec3f};
 use crate::names::Name;
 
 #[bitsize(32)]

@@ -4,15 +4,15 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::keyframer::{
+use crate::helpers::{
     KeyframerFlag,
     KeyframerFloatLinearComp,
     KeyframerHdl,
     KeyframerVec2fLinear,
     KeyframerVec3fLinear,
     KeyframerVec4fLinear,
+    ResourceObjectLinkHeader,
 };
-use crate::link_header::ResourceObjectLinkHeader;
 use crate::names::Name;
 
 #[bitsize(8)]

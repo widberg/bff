@@ -3,10 +3,8 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::ResourceObjectLinkHeader;
+use crate::helpers::{DynArray, PascalStringNull, ResourceObjectLinkHeader};
 use crate::names::Name;
-use crate::strings::PascalStringNull;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Prefab {

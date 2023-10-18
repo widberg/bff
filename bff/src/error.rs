@@ -55,4 +55,5 @@ pub enum Error {
     UnimplementedClass(UnimplementedClassError),
     UnimplementedVersionPlatform(UnimplementedVersionPlatformError),
     Utf8(std::string::FromUtf8Error),
+    MiniLzo(minilzo_rs::Error),
 }

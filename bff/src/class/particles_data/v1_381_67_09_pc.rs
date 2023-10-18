@@ -3,9 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::dynarray::DynArray;
-use crate::link_header::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
-use crate::math::Vec3f;
+use crate::helpers::{DynArray, ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader, Vec3f};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct FadeDistances {

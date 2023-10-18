@@ -3,8 +3,7 @@ use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use crate::dynarray::DynArray;
-use crate::math::{Mat4f, Quat, Sphere};
+use super::{DynArray, Mat4f, Quat, Sphere};
 use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

@@ -1,4 +1,4 @@
-use bff::crc32::reverse_asobo;
+use bff::crc::reverse_asobo32;
 use BffCliError::NoFillerFound;
 
 use crate::error::{BffCliError, BffCliResult};
@@ -24,7 +24,7 @@ pub fn reverse_crc32(
         .unwrap_or(string.len());
     let string = string.replacen('*', "", 1);
 
-    let filled = reverse_asobo(
+    let filled = reverse_asobo32(
         &string,
         character_set,
         target,

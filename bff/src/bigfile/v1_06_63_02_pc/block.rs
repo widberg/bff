@@ -1,8 +1,8 @@
 use binrw::BinRead;
 use serde::Serialize;
 
-use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
-use crate::bigfile::v1_06_63_02_pc::object::Object;
+use super::header::BlockDescription;
+use super::object::Object;
 
 #[derive(BinRead, Serialize, Debug)]
 #[br(import(block_description: &BlockDescription))]
