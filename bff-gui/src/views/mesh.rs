@@ -1,12 +1,14 @@
+use std::sync::Arc;
+
 use eframe::egui;
 use three_d::*;
 
 pub struct MeshView {
-    model: CpuModel,
+    model: Arc<CpuModel>,
 }
 
 impl MeshView {
-    pub fn new(model: CpuModel) -> Self {
+    pub fn new(model: Arc<CpuModel>) -> Self {
         Self { model }
     }
 }
@@ -16,7 +18,7 @@ impl egui::Widget for MeshView {
         egui::Frame::canvas(ui.style())
             .show(ui, |ui| {
                 let (rect, response) =
-                    ui.allocate_exact_size(ui.available_size(), egui::Sense::drag());
+                    ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
 
                 // let ang =
                 //     match ui.memory(|mem| mem.data.get_temp::<Arc<Mutex<f32>>>(self.id_source)) {
@@ -29,7 +31,11 @@ impl egui::Widget for MeshView {
                 //         .insert_temp(self.id_source, Arc::new(Mutex::new(self.angle)))
                 // });
 
-                let angle = response.drag_delta() * 0.05;
+                let angle = if response.dragged_by(egui::PointerButton::Primary) {
+                    response.drag_delta() * 0.05
+                } else {
+                    egui::Vec2::ZERO
+                };
 
                 let callback = egui::PaintCallback {
                     rect,
@@ -51,37 +57,34 @@ impl egui::Widget for MeshView {
 }
 
 fn with_three_d<R>(
-    cpu_model: &CpuModel,
+    cpu_model: &Arc<CpuModel>,
     gl: &std::sync::Arc<eframe::glow::Context>,
     f: impl FnOnce(&mut ThreeDApp) -> R,
 ) -> R {
     use std::cell::RefCell;
     thread_local! {
         pub static THREE_D: RefCell<Option<ThreeDApp>> = RefCell::new(None);
-        pub static MODEL: RefCell<Option<CpuModel>> = RefCell::new(None);
+        pub static MODEL: RefCell<Option<Arc<CpuModel>>> = RefCell::new(None);
     }
 
     THREE_D.with(|three_d| {
+        let mut three_d = three_d.borrow_mut();
+        let new = three_d.get_or_insert_with(|| ThreeDApp::new(cpu_model, Arc::clone(gl)));
         MODEL.with(|model| {
-            let mut three_d = three_d.borrow_mut();
             let mut model = model.borrow_mut();
             if let Some(m) = model.as_ref() {
                 if m.name != cpu_model.name {
-                    model.replace(cpu_model.clone());
-                    three_d.as_mut().unwrap().set_model(cpu_model, gl.clone())
+                    model.replace(Arc::clone(cpu_model));
+                    new.set_model(cpu_model, Arc::clone(gl));
                 }
             } else {
-                model.replace(cpu_model.clone());
+                model.replace(Arc::clone(cpu_model));
             }
-            let new = three_d.get_or_insert(ThreeDApp::new(cpu_model, gl.clone()));
-            f(new)
-        })
+        });
+        f(new)
     })
 }
 
-///
-/// Translates from egui input to three-d input
-///
 pub struct ConvertedFrameInput<'a> {
     screen: three_d::RenderTarget<'a>,
     viewport: three_d::Viewport,
@@ -155,7 +158,7 @@ pub struct ThreeDApp {
 }
 
 impl ThreeDApp {
-    pub fn new(cpu_model: &CpuModel, gl: std::sync::Arc<eframe::glow::Context>) -> Self {
+    pub fn new(cpu_model: &CpuModel, gl: Arc<eframe::glow::Context>) -> Self {
         let context = Context::from_gl_context(gl).unwrap();
         let camera = Camera::new_perspective(
             Viewport::new_at_origo(1, 1),
@@ -166,7 +169,7 @@ impl ThreeDApp {
             0.1,
             10.0,
         );
-        let model = Model::new(&context, cpu_model).unwrap();
+        let model = Self::cpu_model_to_gpu(cpu_model, &context);
         Self {
             context,
             camera,
@@ -174,9 +177,20 @@ impl ThreeDApp {
         }
     }
 
-    pub fn set_model(&mut self, cpu_model: &CpuModel, gl: std::sync::Arc<eframe::glow::Context>) {
+    fn cpu_model_to_gpu(
+        cpu_model: &CpuModel,
+        context: &three_d::core::Context,
+    ) -> Model<NormalMaterial> {
+        let model = Model::<NormalMaterial>::new(context, cpu_model).unwrap();
+        // model.iter_mut().for_each(|m| {
+        //     m.material = NormalMaterial::new(context, &three_d_asset::PbrMaterial::default());
+        // });
+        model
+    }
+
+    pub fn set_model(&mut self, cpu_model: &CpuModel, gl: Arc<eframe::glow::Context>) {
         let context = Context::from_gl_context(gl).unwrap();
-        self.model = Model::new(&context, cpu_model).unwrap();
+        self.model = Self::cpu_model_to_gpu(cpu_model, &context);
     }
 
     pub fn frame(
@@ -188,6 +202,7 @@ impl ThreeDApp {
 
         self.camera
             .rotate_around_with_fixed_up(&Vector3::zero(), angle.x, angle.y);
+        // self.camera.zoom_towards(point, delta, minimum_distance, maximum_distance)
 
         frame_input
             .screen
@@ -196,16 +211,24 @@ impl ThreeDApp {
                 frame_input.scissor_box,
                 &self.camera,
                 &self.model,
-                &[&AmbientLight::new(
-                    &self.context,
-                    1.0,
-                    Srgba {
-                        r: 255,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                )],
+                &[
+                    // &AmbientLight::new(
+                    //     &self.context,
+                    //     0.5,
+                    //     Srgba {
+                    //         r: 255,
+                    //         g: 255,
+                    //         b: 255,
+                    //         a: 255,
+                    //     },
+                    // ),
+                    &DirectionalLight::new(
+                        &self.context,
+                        10.0,
+                        Srgba::WHITE,
+                        &vec3(0.0, -1.0, -1.0),
+                    ),
+                ],
             );
 
         frame_input.screen.into_framebuffer()

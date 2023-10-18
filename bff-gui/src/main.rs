@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use bff::bigfile::BigFile;
 use bff::names::Name;
@@ -21,11 +22,11 @@ mod views;
 pub enum Artifact {
     Bitmap(Vec<u8>),
     Sound {
-        data: Vec<i16>,
+        data: Arc<Vec<i16>>,
         sample_rate: u32,
         channels: u16,
     },
-    Mesh(CpuModel),
+    Mesh(Arc<CpuModel>),
 }
 
 fn main() -> Result<(), eframe::Error> {
@@ -51,7 +52,7 @@ struct Gui {
     nickname_window_open: bool,
     nickname_editing: (Name, String),
     artifacts: HashMap<Name, Artifact>,
-    sound_volume: f32,
+    infos: HashMap<Name, String>,
 }
 
 impl Gui {
@@ -66,7 +67,7 @@ impl Gui {
             nickname_window_open: false,
             nickname_editing: (Name::default(), String::new()),
             artifacts: HashMap::new(),
-            sound_volume: 1.0,
+            infos: HashMap::new(),
         }
     }
 }
@@ -91,21 +92,31 @@ impl eframe::App for Gui {
                     self.resource_name = None;
                 }
 
-                let resource_list_response =
-                    resource_list(ui, &self.bigfile, &self.nicknames, &self.artifacts);
+                let resource_list_response = resource_list(
+                    ui,
+                    &self.bigfile,
+                    &self.nicknames,
+                    &self.artifacts,
+                    &self.infos,
+                );
                 if let Some(name) = resource_list_response.resource_context_menu {
                     self.nickname_window_open = true;
                     self.nickname_editing.0 = name;
                 }
                 if let Some(name) = resource_list_response.resource_clicked {
                     self.resource_name = Some(name);
-                }
-                if let Some((name, artifact)) = resource_list_response.artifact_created {
-                    self.artifacts.insert(name, artifact);
+                    if let Some(artifact) = resource_list_response.artifact_created {
+                        self.artifacts.insert(name, artifact);
+                    }
+                    if let Some(info) = resource_list_response.info_created {
+                        self.infos.insert(name, info);
+                    }
                 }
 
-                resource_info(ui, &self.bigfile, &self.resource_name);
-                view(ui, &self.resource_name, &self.artifacts, self.sound_volume);
+                if let Some(name) = self.resource_name {
+                    resource_info(ui, self.infos.get(&name));
+                }
+                view(ui, "center".into(), &self.resource_name, &self.artifacts);
 
                 if self.nickname_window_open {
                     egui::Window::new("Change resource nickname")

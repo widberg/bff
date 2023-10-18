@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
@@ -15,7 +15,8 @@ use crate::Artifact;
 pub struct ResourceListResponse {
     pub resource_context_menu: Option<Name>,
     pub resource_clicked: Option<Name>,
-    pub artifact_created: Option<(Name, Artifact)>,
+    pub artifact_created: Option<Artifact>,
+    pub info_created: Option<String>,
 }
 
 pub fn resource_list(
@@ -23,6 +24,7 @@ pub fn resource_list(
     bigfile: &Option<BigFile>,
     nicknames: &HashMap<Name, String>,
     artifacts: &HashMap<Name, Artifact>,
+    infos: &HashMap<Name, String>,
 ) -> ResourceListResponse {
     let mut response = ResourceListResponse::default();
     egui::SidePanel::left("left")
@@ -75,14 +77,20 @@ pub fn resource_list(
                             };
                             if btn.clicked() {
                                 response.resource_clicked = Some(resource.name);
-                                if artifacts.get(&resource.name).is_none() {
+                                if artifacts.get(&resource.name).is_none()
+                                    || infos.get(&resource.name).is_none()
+                                {
                                     match (*resource)
                                         .try_into_version_platform(version.clone(), platform)
                                     {
                                         Ok(class) => {
+                                            response.info_created = Some(
+                                                serde_json::to_string_pretty::<Class>(&class)
+                                                    .unwrap(),
+                                            );
                                             if let Some(a) = create_artifact(class, &resource.name)
                                             {
-                                                response.artifact_created = Some((resource.name, a))
+                                                response.artifact_created = Some(a);
                                             }
                                         }
                                         Err(e) => {
@@ -103,11 +111,11 @@ pub fn resource_list(
 fn create_artifact(class: Class, resource_name: &Name) -> Option<Artifact> {
     match class {
         Class::Bitmap(box_bitmap) => match *box_bitmap {
-            bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(ref bitmap) => {
-                Some(Artifact::Bitmap(bitmap.body.data.clone()))
+            bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(bitmap) => {
+                Some(Artifact::Bitmap(bitmap.body.data))
             }
-            bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(ref bitmap) => {
-                Some(Artifact::Bitmap(bitmap.body.data.clone()))
+            bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(bitmap) => {
+                Some(Artifact::Bitmap(bitmap.body.data))
             }
             _ => None,
         },
@@ -136,7 +144,7 @@ fn create_artifact(class: Class, resource_name: &Name) -> Option<Artifact> {
                 ),
             };
             Some(Artifact::Sound {
-                data,
+                data: Arc::new(data),
                 sample_rate,
                 channels,
             })
@@ -175,7 +183,7 @@ fn create_artifact(class: Class, resource_name: &Name) -> Option<Artifact> {
                         bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStructUnknown { .. } => {
                             (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4])
                         }
-                    }).map(|(p, u, n, t)| (Vec3::from(*p), (Vec2::from(*u), (Vec3::from(n.map(|i| (i as f32 - 128.0) / 128.0)), Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)))))).unzip();
+                    }).map(|(p, u, n, t)| (Vec3::from(*p), (Vec2::from(*u), ({let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0); norm[2] *= -1.0; Vec3::from(norm)}, Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)))))).unzip();
                     let indices: Vec<u16> = mesh
                         .body
                         .mesh_buffer
@@ -206,7 +214,7 @@ fn create_artifact(class: Class, resource_name: &Name) -> Option<Artifact> {
                         geometries: vec![primitive],
                         materials: vec![],
                     };
-                    Some(Artifact::Mesh(model))
+                    Some(Artifact::Mesh(Arc::new(model)))
                 }
                 _ => None,
             }

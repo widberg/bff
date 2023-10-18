@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::Cursor;
+use std::sync::{Arc, Mutex};
 
 use bff::names::Name;
 
@@ -8,9 +9,9 @@ use crate::Artifact;
 
 pub fn view(
     ui: &mut egui::Ui,
+    id_source: egui::Id,
     resource_name: &Option<Name>,
     artifacts: &HashMap<Name, Artifact>,
-    mut sound_volume: f32,
 ) {
     // let mut response = ViewResponse::default();
     egui::CentralPanel::default().show_inside(ui, |ui| {
@@ -26,17 +27,29 @@ pub fn view(
                         sample_rate,
                         channels,
                     } => {
-                        ui.add(
-                            egui::Slider::new(&mut sound_volume, 0.0..=1.0)
+                        let mut volume = match ui
+                            .memory(|mem| mem.data.get_temp::<Arc<Mutex<f32>>>(id_source))
+                        {
+                            Some(val) => *val.lock().unwrap(),
+                            None => 1.0,
+                        };
+                        let response = ui.add(
+                            egui::Slider::new(&mut volume, 0.0..=1.0)
                                 .text("Volume")
                                 .show_value(false),
                         );
+                        if response.changed() {
+                            ui.memory_mut(|mem| {
+                                mem.data
+                                    .insert_temp(id_source, Arc::new(Mutex::new(volume)))
+                            });
+                        }
                         if ui.button("play").clicked() {
-                            play_sound(data.clone(), *sample_rate, *channels, sound_volume);
+                            play_sound(Arc::clone(data), *sample_rate, *channels, volume);
                         }
                     }
                     Artifact::Mesh(model) => {
-                        ui.add(MeshView::new(model.clone()));
+                        ui.add(MeshView::new(Arc::clone(model)));
                     }
                 }
             }
@@ -45,17 +58,15 @@ pub fn view(
 }
 
 fn get_image<'a>(resource_name: &Name, data: &Vec<u8>) -> egui::Image<'a> {
-    egui::Image::new(
-        <(String, std::vec::Vec<u8>) as Into<egui::ImageSource>>::into((
-            format!("bytes://{}.dds", resource_name),
-            data.to_owned(),
-        )),
-    )
+    egui::Image::new(<(String, Vec<u8>) as Into<egui::ImageSource>>::into((
+        format!("bytes://{}.dds", resource_name),
+        data.to_owned(),
+    )))
     .texture_options(egui::TextureOptions::NEAREST)
     .shrink_to_fit()
 }
 
-fn play_sound(data: Vec<i16>, sample_rate: u32, channels: u16, volume: f32) {
+fn play_sound(data: Arc<Vec<i16>>, sample_rate: u32, channels: u16, volume: f32) {
     std::thread::spawn(move || {
         let spec = hound::WavSpec {
             channels,
@@ -69,8 +80,8 @@ fn play_sound(data: Vec<i16>, sample_rate: u32, channels: u16, volume: f32) {
         let mut parent_writer = hound::WavWriter::new(&mut write_cursor, spec).unwrap();
         let mut sample_writer = parent_writer.get_i16_writer(data.len() as u32);
 
-        for sample in data {
-            sample_writer.write_sample(sample);
+        for sample in data.iter() {
+            sample_writer.write_sample(*sample);
         }
         sample_writer.flush().unwrap();
         parent_writer.finalize().unwrap();
