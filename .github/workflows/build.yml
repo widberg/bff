@@ -33,7 +33,7 @@ jobs:
         if: matrix.name == 'linux' && matrix.bin == 'bff-gui'
 
       - name: Build
-        run: cargo build --release --locked
+        run: cargo build --release --locked --bin ${{ matrix.bin }}
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
