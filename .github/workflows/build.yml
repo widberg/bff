@@ -28,8 +28,8 @@ jobs:
           profile: minimal
           toolchain: stable
 
-      - name: Install GTK3
-        run: sudo apt-get -y install libgtk-3-dev
+      - name: Install dependencies (Linux)
+        run: sudo apt-get -y install libgtk-3-dev alsa-base
         if: matrix.name == 'linux' && matrix.bin == 'bff-gui'
 
       - name: Build
