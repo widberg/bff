@@ -4,8 +4,8 @@ use binrw::{binread, BinResult, BinWrite, Endian};
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::object::body_parser;
-use crate::lz::compress_data_with_header_writer_internal;
 use crate::names::Name;
+use crate::lz::lzrs_compress_data_with_header_writer_internal;
 
 #[binread]
 #[derive(Serialize, Debug, Default, Eq, PartialEq)]
@@ -39,7 +39,7 @@ impl BinWrite for Object {
         self.name.write_options(writer, endian, ())?;
         let body_size = if self.compress {
             let body_start = writer.stream_position()?;
-            compress_data_with_header_writer_internal(&self.data, writer, endian, ())?;
+            lzrs_compress_data_with_header_writer_internal(&self.data, writer, endian, ())?;
             let body_end = writer.stream_position()?;
             (body_end - body_start) as u32
         } else {

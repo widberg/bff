@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::class::class_names;
-use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, Kalisto32};
+use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32};
 use crate::traits::NameHashFunction;
 use crate::BffResult;
 
@@ -36,6 +36,7 @@ where
 pub type NameAsobo32 = NameVariant<Asobo32>;
 pub type NameAsoboAlternate32 = NameVariant<AsoboAlternate32>;
 pub type NameKalisto32 = NameVariant<Kalisto32>;
+pub type NameBlackSheep32 = NameVariant<BlackSheep32>;
 pub type NameAsobo64 = NameVariant<Asobo64>;
 
 #[derive(From, PartialEq, Eq, Hash, Copy, Clone)]
@@ -43,6 +44,7 @@ pub enum Name {
     Asobo32(NameAsobo32),
     AsoboAlternate32(NameAsoboAlternate32),
     Kalisto32(NameKalisto32),
+    BlackSheep32(NameBlackSheep32),
     Asobo64(NameAsobo64),
 }
 
@@ -215,6 +217,7 @@ impl Display for Name {
                 Name::Asobo32(name) => write!(f, "{}", name.0),
                 Name::AsoboAlternate32(name) => write!(f, "{}", name.0),
                 Name::Kalisto32(name) => write!(f, "{}", name.0),
+                Name::BlackSheep32(name) => write!(f, "{}", name.0),
                 Name::Asobo64(name) => write!(f, "{}", name.0),
             }
         }
@@ -230,6 +233,7 @@ impl Debug for Name {
                 Name::Asobo32(name) => write!(f, "{}", name.0),
                 Name::AsoboAlternate32(name) => write!(f, "{}", name.0),
                 Name::Kalisto32(name) => write!(f, "{}", name.0),
+                Name::BlackSheep32(name) => write!(f, "{}", name.0),
                 Name::Asobo64(name) => write!(f, "{}", name.0),
             }
         }
@@ -250,6 +254,7 @@ impl Names {
         let asobo_alternate32_hash =
             <AsoboAlternate32 as NameHashFunction>::hash(string.as_bytes());
         let kalisto32_hash = <Kalisto32 as NameHashFunction>::hash(string.as_bytes());
+        let blacksheep32_hash = <BlackSheep32 as NameHashFunction>::hash(string.as_bytes());
         let asobo64_hash = <Asobo64 as NameHashFunction>::hash(string.as_bytes());
 
         self.names
@@ -260,6 +265,9 @@ impl Names {
             .or_insert_with(|| string.to_string());
         self.names
             .entry(NameKalisto32::new(kalisto32_hash).into())
+            .or_insert_with(|| string.to_string());
+        self.names
+            .entry(NameBlackSheep32::new(blacksheep32_hash).into())
             .or_insert_with(|| string.to_string());
         self.names
             .entry(NameAsobo64::new(asobo64_hash).into())

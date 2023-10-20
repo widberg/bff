@@ -39,11 +39,10 @@ enum Commands {
     RoundTrip {
         bigfile: PathBuf,
     },
-    #[clap(alias = "crc32", alias = "crc64")]
     Crc {
         string: Option<String>,
-        #[arg(short, long, help = "Starting value for the CRC calculation")]
-        starting: Option<i64>,
+        #[arg(short, long, default_value_t, help = "Starting value for the CRC calculation")]
+        starting: i64,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcAlgorithm::Asobo)]
         algorithm: CrcAlgorithm,

@@ -15,6 +15,7 @@ macro_rules! classes {
                     $(crate::names::Name::Asobo32($class::NAME) | crate::names::Name::Asobo32($class::NAME_LEGACY)
                     | crate::names::Name::AsoboAlternate32($class::NAME) | crate::names::Name::AsoboAlternate32($class::NAME_LEGACY)
                     | crate::names::Name::Kalisto32($class::NAME) | crate::names::Name::Kalisto32($class::NAME_LEGACY)
+                    | crate::names::Name::BlackSheep32($class::NAME) | crate::names::Name::BlackSheep32($class::NAME_LEGACY)
                     | crate::names::Name::Asobo64($class::NAME) | crate::names::Name::Asobo64($class::NAME_LEGACY)
                         => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
                     _ => Err(crate::error::UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
