@@ -1,4 +1,4 @@
-// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -31,7 +31,6 @@ pub enum Artifact {
 }
 
 fn main() -> Result<(), eframe::Error> {
-    // env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
         drag_and_drop_support: true,
         renderer: eframe::Renderer::Glow,
@@ -95,6 +94,14 @@ impl eframe::App for Gui {
 
                 let resource_list_response = resource_list(
                     ui,
+                    format!(
+                        "resources-{}",
+                        self.bigfile_path
+                            .as_ref()
+                            .unwrap_or(&PathBuf::default())
+                            .display()
+                    ) //TODO: implement state properly. this takes more memory the more bigfiles you open, though not critical
+                    .into(),
                     &self.bigfile,
                     &self.nicknames,
                     &self.artifacts,

@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::{Arc, Mutex},
+};
 
 use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
@@ -11,6 +14,27 @@ use three_d_asset::{Vec2, Vec3, Vec4};
 
 use crate::Artifact;
 
+#[derive(Clone, PartialEq)]
+enum ListSort {
+    Name,
+    // NameReverse,
+    // Ext,
+    // ExtReverse,
+}
+
+impl Default for ListSort {
+    fn default() -> Self {
+        Self::Name
+    }
+}
+
+#[derive(Default, Clone, PartialEq)]
+struct ResourceListState {
+    sort: ListSort,
+    filter: Option<HashMap<Name, bool>>,
+    // order: Option<HashMap<usize, Name>>,
+}
+
 #[derive(Default)]
 pub struct ResourceListResponse {
     pub resource_context_menu: Option<Name>,
@@ -21,6 +45,7 @@ pub struct ResourceListResponse {
 
 pub fn resource_list(
     ui: &mut egui::Ui,
+    id_source: egui::Id,
     bigfile: &Option<BigFile>,
     nicknames: &HashMap<Name, String>,
     artifacts: &HashMap<Name, Artifact>,
@@ -35,7 +60,84 @@ pub fn resource_list(
             if let Some(bigfile) = bigfile {
                 let version = &bigfile.manifest.version;
                 let platform = bigfile.manifest.platform;
-                let resources: Vec<&Resource> = bigfile.objects.values().collect();
+                let binding = match ui.memory(|mem| {
+                    mem.data
+                        .get_temp::<Arc<Mutex<ResourceListState>>>(id_source)
+                }) {
+                    Some(val) => val,
+                    None => Arc::new(Mutex::new(ResourceListState::default())),
+                };
+                let state = binding.lock().unwrap();
+                let mut new_state = state.clone();
+                let mut class_names = new_state.filter.unwrap_or(
+                    bigfile
+                        .objects
+                        .values()
+                        .map(|res| res.class_name)
+                        .collect::<HashSet<_>>()
+                        .iter()
+                        .map(|n| (*n, true))
+                        .collect(),
+                );
+                ui.horizontal(|ui| {
+                    // ui.menu_button("Sort", |ui| {
+                    //     ui.radio_value(&mut new_state.sort, ListSort::Name, "Name ABC");
+                    //     ui.radio_value(&mut new_state.sort, ListSort::NameReverse, "Name XYZ");
+                    //     ui.radio_value(&mut new_state.sort, ListSort::Ext, "Extension ABC");
+                    //     ui.radio_value(&mut new_state.sort, ListSort::ExtReverse, "Extension XYZ");
+                    // });
+                    ui.menu_button("Filter", |ui| {
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            class_names.iter_mut().for_each(|(name, checked)| {
+                                ui.checkbox(checked, name.to_string());
+                            });
+                        });
+                    });
+                });
+                new_state.filter = Some(class_names);
+                // let order = new_state.order.clone().unwrap_or_else(|| {
+                //     let mut resource_order: Vec<(&Resource, usize)> = bigfile
+                //         .objects
+                //         .values()
+                //         .enumerate()
+                //         .map(|(i, r)| (r, i))
+                //         .collect();
+                //     resource_order.sort_by(|a, b| match new_state.sort {
+                //         ListSort::Name => a.0.name.to_string().cmp(&b.0.name.to_string()),
+                //         ListSort::NameReverse => b.0.name.to_string().cmp(&a.0.name.to_string()),
+                //         ListSort::Ext => {
+                //             a.0.class_name.to_string().cmp(&b.0.class_name.to_string())
+                //         }
+                //         ListSort::ExtReverse => {
+                //             b.0.class_name.to_string().cmp(&a.0.class_name.to_string())
+                //         }
+                //     });
+                //     resource_order
+                //         .into_iter()
+                //         .map(|(r, i)| (i, r.name))
+                //         .collect()
+                // });
+                if new_state != *state {
+                    ui.memory_mut(|mem| {
+                        mem.data
+                            .insert_temp(id_source, Arc::new(Mutex::new(new_state.clone())))
+                    });
+                }
+
+                // let init_resources: Vec<&Resource> = bigfile.objects.values().collect();
+                let resources: Vec<&Resource> = bigfile
+                    .objects
+                    .values()
+                    .filter(|res| {
+                        *state
+                            .filter
+                            .as_ref()
+                            .unwrap_or(&HashMap::default())
+                            .get(&res.class_name)
+                            .unwrap_or(&true)
+                    })
+                    .collect();
+
                 let row_height = ui.spacing().interact_size.y;
                 egui::ScrollArea::vertical().show_rows(
                     ui,
