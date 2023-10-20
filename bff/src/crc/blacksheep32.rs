@@ -46,7 +46,7 @@ pub const fn blacksheep32_options(bytes: &[u8], starting: i32) -> i32 {
     let mut i: usize = 0;
     while i < bytes.len() {
         let c = bytes[i];
-        hash = (hash >> 8) ^ CRC32_TABLE[((c as u32 ^ hash) & 0xff) as usize];
+        hash = (hash >> 8) ^ CRC32_TABLE[((c.to_ascii_uppercase() as u32 ^ hash) & 0xff) as usize];
         i += 1;
     }
 
