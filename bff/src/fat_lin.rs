@@ -1,7 +1,8 @@
 use std::collections::HashMap;
-use std::io::{BufRead, Read, Seek, SeekFrom};
+use std::io::{BufRead, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
+use crate::helpers::write_align_to;
 use crate::BffResult;
 
 pub struct FatEntry {
@@ -32,6 +33,20 @@ impl Fat {
 
         Ok(fat)
     }
+
+    pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
+        for entry in &self.entries {
+            writeln!(
+                writer,
+                "{} {} {}",
+                entry.path.as_os_str().to_str().unwrap(),
+                entry.offset,
+                entry.size
+            )?;
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Default)]
@@ -52,6 +67,22 @@ impl Lin {
 
         Ok(lin)
     }
+
+    pub fn write<W: Write + Seek>(&self, writer: &mut W) -> BffResult<Fat> {
+        let mut fat = Fat::default();
+
+        for (path, contents) in self.files.iter() {
+            fat.entries.push(FatEntry {
+                path: path.clone(),
+                offset: writer.stream_position()?,
+                size: contents.len(),
+            });
+            writer.write_all(contents)?;
+            write_align_to(writer, 2048, 0)?;
+        }
+
+        Ok(fat)
+    }
 }
 
 pub fn read_fat_lin<F: BufRead + Seek, L: Read + Seek>(
@@ -61,4 +92,15 @@ pub fn read_fat_lin<F: BufRead + Seek, L: Read + Seek>(
     let fat = Fat::read(fat_reader)?;
     let lin = Lin::read(lin_reader, fat)?;
     Ok(lin)
+}
+
+pub fn write_fat_lin<F: Write, L: Write + Seek>(
+    lin: &Lin,
+    fat_writer: &mut F,
+    lin_writer: &mut L,
+) -> BffResult<()> {
+    let fat = lin.write(lin_writer)?;
+    fat.write(fat_writer)?;
+
+    Ok(())
 }
