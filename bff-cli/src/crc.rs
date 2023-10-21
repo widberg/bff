@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, Kalisto32, BlackSheep32};
+use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32};
 use bff::traits::NameHashFunction;
 use clap::ValueEnum;
 
@@ -62,17 +62,10 @@ fn format_hash64(hash: i64, format: &CrcFormat) -> String {
     }
 }
 
-fn hash(
-    bytes: &[u8],
-    starting: &i64,
-    algorithm: &CrcAlgorithm,
-    format: &CrcFormat,
-) -> String {
+fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcFormat) -> String {
     let starting = *starting;
     match algorithm {
-        CrcAlgorithm::Asobo => {
-            format_hash(Asobo32::hash_options(bytes, starting as i32), format)
-        }
+        CrcAlgorithm::Asobo => format_hash(Asobo32::hash_options(bytes, starting as i32), format),
         CrcAlgorithm::AsoboAlternate => format_hash(
             AsoboAlternate32::hash_options(bytes, starting as i32),
             format,
@@ -83,9 +76,7 @@ fn hash(
         CrcAlgorithm::BlackSheep => {
             format_hash(BlackSheep32::hash_options(bytes, starting as i32), format)
         }
-        CrcAlgorithm::Asobo64 => {
-            format_hash64(Asobo64::hash_options(bytes, starting), format)
-        }
+        CrcAlgorithm::Asobo64 => format_hash64(Asobo64::hash_options(bytes, starting), format),
     }
 }
 

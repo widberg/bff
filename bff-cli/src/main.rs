@@ -12,6 +12,7 @@ mod crc;
 mod csc;
 mod error;
 mod extract;
+mod fat_lin;
 mod info;
 mod lz;
 mod psc;
@@ -41,7 +42,12 @@ enum Commands {
     },
     Crc {
         string: Option<String>,
-        #[arg(short, long, default_value_t, help = "Starting value for the CRC calculation")]
+        #[arg(
+            short,
+            long,
+            default_value_t,
+            help = "Starting value for the CRC calculation"
+        )]
         starting: i64,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcAlgorithm::Asobo)]
@@ -98,6 +104,18 @@ enum Commands {
         directory: PathBuf,
         psc: PathBuf,
     },
+    #[clap(alias = "xfl")]
+    ExtractFatLin {
+        fat: PathBuf,
+        lin: PathBuf,
+        directory: PathBuf,
+    },
+    #[clap(alias = "cfl")]
+    CreateFatLin {
+        directory: PathBuf,
+        fat: PathBuf,
+        lin: PathBuf,
+    },
 }
 
 #[derive(Parser)]
@@ -146,5 +164,15 @@ fn main() -> BffCliResult<()> {
         Commands::Csc {} => csc::csc(),
         Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
         Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
+        Commands::ExtractFatLin {
+            fat,
+            lin,
+            directory,
+        } => fat_lin::extract_fat_lin(fat, lin, directory),
+        Commands::CreateFatLin {
+            directory,
+            fat,
+            lin,
+        } => fat_lin::create_fat_lin(directory, fat, lin),
     }
 }

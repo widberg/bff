@@ -4,8 +4,8 @@ use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
-use crate::names::Name;
 use crate::lz::{lzrs_compress_data_with_header_writer_internal, lzrs_decompress_body_parser};
+use crate::names::Name;
 
 #[parser(reader, endian)]
 pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {

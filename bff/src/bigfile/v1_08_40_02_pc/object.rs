@@ -4,8 +4,8 @@ use binrw::{binread, BinResult, BinWrite, Endian};
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::object::body_parser;
-use crate::names::Name;
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
+use crate::names::Name;
 
 #[binread]
 #[derive(Serialize, Debug, Default, Eq, PartialEq)]
