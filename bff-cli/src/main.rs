@@ -19,6 +19,10 @@ mod psc;
 mod reverse_crc32;
 mod round_trip;
 
+use shadow_rs::shadow;
+
+shadow!(build);
+
 #[derive(Subcommand)]
 enum Commands {
     #[clap(alias = "x")]
@@ -119,7 +123,7 @@ enum Commands {
 }
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, long_version = build::CLAP_LONG_VERSION, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
     command: Commands,
