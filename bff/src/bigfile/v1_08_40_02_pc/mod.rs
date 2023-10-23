@@ -100,7 +100,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
     fn write<W: Write + Seek>(
         bigfile: &BigFile,
         writer: &mut W,
-        _tag: Option<&str>,
+        tag: Option<&str>,
     ) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
@@ -255,6 +255,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
             total_padded_block_size: end as u32 - 2048,
             version_triple: bigfile.manifest.version_triple.unwrap_or_default(),
             block_descriptions,
+            tag: tag.map(|x| x.as_bytes().to_vec()),
         };
         header.write_options(writer, endian, ())?;
 
