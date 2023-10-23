@@ -35,6 +35,8 @@ pub struct Header {
     #[serde(skip)]
     #[br(count = block_count)]
     pub block_descriptions: Vec<BlockDescription>,
+    #[br(ignore)]
+    pub tag: Option<Vec<u8>>,
     #[brw(seek_before = SeekFrom::Start(0x720))]
     pub pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
