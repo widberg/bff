@@ -69,6 +69,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "arcode"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cf9ecf0f36fbecd0fd1be1eaa0b25fc67051d9a2f6b25892e6e6ebb7db629cb"
+dependencies = [
+ "bitbit",
+ "fenwick",
+]
+
+[[package]]
 name = "array-init"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -84,6 +94,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 name = "bff"
 version = "0.1.0"
 dependencies = [
+ "arcode",
  "bff-derive",
  "bilge",
  "binrw",
@@ -175,6 +186,12 @@ dependencies = [
  "quote 1.0.31",
  "syn 1.0.109",
 ]
+
+[[package]]
+name = "bitbit"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "341ee439c53e593fa7de26dead9515601539b6cf9a53e3368c1405471e3ea322"
 
 [[package]]
 name = "bitflags"
@@ -385,6 +402,12 @@ dependencies = [
  "cc",
  "libc",
 ]
+
+[[package]]
+name = "fenwick"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ad8c7269456fd609f700340399dca5fa160c4785c9623f87b6079e5a479f28b"
 
 [[package]]
 name = "form_urlencoded"
