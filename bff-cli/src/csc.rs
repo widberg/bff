@@ -8,34 +8,31 @@ use bff::BufReader;
 use crate::error::BffCliResult;
 use crate::stdio_or_path::StdioOrPath;
 
-pub fn csc(
-    input: &StdioOrPath,
-    output: &StdioOrPath,
-) -> BffCliResult<()> {
+pub fn csc(input: &StdioOrPath, output: &StdioOrPath) -> BffCliResult<()> {
     match (input, output) {
         (StdioOrPath::Stdio, StdioOrPath::Stdio) => {
             let stdin = BufReader::new(io::stdin().lock());
             let mut stdout = BufWriter::new(io::stdout().lock());
 
-            csc_copy(stdin, &mut stdout) ?;
+            csc_copy(stdin, &mut stdout)?;
         }
         (StdioOrPath::Stdio, StdioOrPath::Path(path)) => {
             let stdin = BufReader::new(io::stdin().lock());
-            let mut stdout = BufWriter::new(File::create(path) ?);
+            let mut stdout = BufWriter::new(File::create(path)?);
 
-            csc_copy(stdin, &mut stdout) ?;
+            csc_copy(stdin, &mut stdout)?;
         }
         (StdioOrPath::Path(path), StdioOrPath::Stdio) => {
-            let stdin = BufReader::new(File::open(path) ?);
+            let stdin = BufReader::new(File::open(path)?);
             let mut stdout = BufWriter::new(io::stdout().lock());
 
-            csc_copy(stdin, &mut stdout) ?;
+            csc_copy(stdin, &mut stdout)?;
         }
         (StdioOrPath::Path(path), StdioOrPath::Path(path2)) => {
-            let stdin = BufReader::new(File::open(path) ?);
-            let mut stdout = BufWriter::new(File::create(path2) ?);
+            let stdin = BufReader::new(File::open(path)?);
+            let mut stdout = BufWriter::new(File::create(path2)?);
 
-            csc_copy(stdin, &mut stdout) ?;
+            csc_copy(stdin, &mut stdout)?;
         }
     }
 

@@ -21,6 +21,7 @@ mod round_trip;
 mod stdio_or_path;
 
 use shadow_rs::shadow;
+
 use crate::stdio_or_path::StdioOrPath;
 
 shadow!(build);
@@ -43,9 +44,7 @@ enum Commands {
         in_names: Vec<PathBuf>,
     },
     #[clap(alias = "rt")]
-    RoundTrip {
-        bigfile: PathBuf,
-    },
+    RoundTrip { bigfile: PathBuf },
     Crc {
         string: Option<String>,
         #[arg(
@@ -84,6 +83,8 @@ enum Commands {
         character_set: String,
     },
     Unlz {
+        compressed: StdioOrPath,
+        uncompressed: StdioOrPath,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -92,6 +93,8 @@ enum Commands {
         algorithm: LzAlgorithm,
     },
     Lz {
+        uncompressed: StdioOrPath,
+        compressed: StdioOrPath,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -104,15 +107,9 @@ enum Commands {
         output: StdioOrPath,
     },
     #[clap(alias = "xpsc")]
-    ExtractPsc {
-        psc: PathBuf,
-        directory: PathBuf,
-    },
+    ExtractPsc { psc: PathBuf, directory: PathBuf },
     #[clap(alias = "cpsc")]
-    CreatePsc {
-        directory: PathBuf,
-        psc: PathBuf,
-    },
+    CreatePsc { directory: PathBuf, psc: PathBuf },
     #[clap(alias = "xfl")]
     ExtractFatLin {
         fat: PathBuf,
@@ -152,8 +149,18 @@ fn main() -> BffCliResult<()> {
             mode,
             format,
         } => crc::crc(string, starting, algorithm, mode, format),
-        Commands::Unlz { endian, algorithm } => lz::unlz(endian, algorithm),
-        Commands::Lz { endian, algorithm } => lz::lz(endian, algorithm),
+        Commands::Unlz {
+            compressed,
+            uncompressed,
+            endian,
+            algorithm,
+        } => lz::unlz(uncompressed, compressed, endian, algorithm),
+        Commands::Lz {
+            uncompressed,
+            compressed,
+            endian,
+            algorithm,
+        } => lz::lz(uncompressed, compressed, endian, algorithm),
         Commands::ReverseCrc32 {
             string,
             target,
