@@ -10,7 +10,7 @@ use crate::extract::read_bigfile;
 pub fn write_bigfile(bigfile_path: &Path, bigfile: &BigFile) -> BffCliResult<()> {
     let mut writer = File::create(bigfile_path)?;
     // Intentionally use an unbuffered writer for debugging purposes.
-    Ok(BigFile::write(bigfile, &mut writer)?)
+    Ok(BigFile::write(bigfile, &mut writer, None)?)
 }
 
 pub fn round_trip(bigfile_path: &Path) -> BffCliResult<()> {

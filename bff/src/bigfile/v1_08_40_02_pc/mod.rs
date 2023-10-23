@@ -97,7 +97,11 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         })
     }
 
-    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
+    fn write<W: Write + Seek>(
+        bigfile: &BigFile,
+        writer: &mut W,
+        _tag: Option<&str>,
+    ) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
         let begin = writer.stream_position()?;

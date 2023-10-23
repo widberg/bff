@@ -64,6 +64,9 @@ impl BinRead for Name {
             NameType::Kalisto32 => {
                 NameKalisto32::read_options(reader, endian, ()).map(Name::Kalisto32)
             }
+            NameType::BlackSheep32 => {
+                NameBlackSheep32::read_options(reader, endian, ()).map(Name::BlackSheep32)
+            }
             NameType::Asobo64 => NameAsobo64::read_options(reader, endian, ()).map(Name::Asobo64),
         }
     }
@@ -89,6 +92,9 @@ impl BinWrite for Name {
             Name::Kalisto32(name) if name_type == NameType::Kalisto32 => {
                 name.write_options(writer, endian, ())
             }
+            Name::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
+                name.write_options(writer, endian, ())
+            }
             Name::Asobo64(name) if name_type == NameType::Asobo64 => {
                 name.write_options(writer, endian, ())
             }
@@ -102,6 +108,7 @@ pub enum NameType {
     Asobo32,
     AsoboAlternate32,
     Kalisto32,
+    BlackSheep32,
     Asobo64,
 }
 
@@ -141,6 +148,7 @@ impl Default for Name {
             NameType::Asobo32 => NameAsobo32::default().into(),
             NameType::AsoboAlternate32 => NameAsoboAlternate32::default().into(),
             NameType::Kalisto32 => NameKalisto32::default().into(),
+            NameType::BlackSheep32 => NameBlackSheep32::default().into(),
             NameType::Asobo64 => NameAsobo64::default().into(),
         }
     }
@@ -195,6 +203,13 @@ impl<'de> Deserialize<'de> for Name {
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameKalisto32::new(name).into()),
                     SerdeName::String(string) => Ok(NameKalisto32::from(string).into()),
+                }
+            }
+            NameType::BlackSheep32 => {
+                let serde_name = SerdeName::deserialize(deserializer)?;
+                match serde_name {
+                    SerdeName::Name(name) => Ok(NameBlackSheep32::new(name).into()),
+                    SerdeName::String(string) => Ok(NameBlackSheep32::from(string).into()),
                 }
             }
             NameType::Asobo64 => {

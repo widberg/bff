@@ -83,14 +83,14 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
                 #(#attrs)*
                 #pat #guard => {
                     crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
-                    <#body as BigFileIo>::write(self, writer)
+                    <#body as BigFileIo>::write(self, writer, tag)
                 }
             }
         })
         .collect::<Vec<_>>();
 
     quote! {
-        pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W) -> crate::BffResult<()> {
+        pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, tag: Option<&str>) -> crate::BffResult<()> {
             use crate::versions::Version::*;
             use crate::platforms::Platform::*;
             use binrw::BinWrite;
