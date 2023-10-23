@@ -21,6 +21,7 @@ mod round_trip;
 mod stdio_or_path;
 
 use shadow_rs::shadow;
+use crate::stdio_or_path::StdioOrPath;
 
 shadow!(build);
 
@@ -98,7 +99,10 @@ enum Commands {
         #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
         algorithm: LzAlgorithm,
     },
-    Csc {},
+    Csc {
+        input: StdioOrPath,
+        output: StdioOrPath,
+    },
     #[clap(alias = "xpsc")]
     ExtractPsc {
         psc: PathBuf,
@@ -166,7 +170,7 @@ fn main() -> BffCliResult<()> {
             character_set,
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
-        Commands::Csc {} => csc::csc(),
+        Commands::Csc { input, output } => csc::csc(input, output),
         Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
         Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
         Commands::ExtractFatLin {
