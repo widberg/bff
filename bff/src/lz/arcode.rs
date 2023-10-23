@@ -1,17 +1,14 @@
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
-use binrw::{args, BinRead, BinResult, BinWrite, Endian};
-use arcode::{ArithmeticDecoder, ArithmeticEncoder, EOFKind, Model};
 use arcode::bitbit::{BitReader, BitWriter, LSB};
+use arcode::{ArithmeticDecoder, ArithmeticEncoder, EOFKind, Model};
+use binrw::{args, BinRead, BinResult, BinWrite, Endian};
 
 use crate::BffResult;
 
 #[binrw::writer(writer)]
 pub fn arcode_compress_data_writer(data: &[u8]) -> BinResult<()> {
-    let mut model = Model::builder()
-        .num_bits(8)
-        .eof(EOFKind::EndAddOne)
-        .build();
+    let mut model = Model::builder().num_bits(8).eof(EOFKind::EndAddOne).build();
 
     let mut compressed_writer = BitWriter::new(writer);
 
@@ -70,7 +67,8 @@ pub fn arcode_decompress_data_parser(
         let mut input_reader = BitReader::<_, LSB>::new(reader);
         let mut decoder = ArithmeticDecoder::new(61);
 
-        let mut decompressed_buffer_cursor = Cursor::new(Vec::with_capacity(decompressed_size as usize));
+        let mut decompressed_buffer_cursor =
+            Cursor::new(Vec::with_capacity(decompressed_size as usize));
 
         while !decoder.finished() {
             let sym = decoder.decode(&model, &mut input_reader)?;
@@ -90,7 +88,11 @@ pub fn arcode_decompress_data_parser(
 pub fn arcode_decompress_data_with_header_parser_internal() -> BinResult<Vec<u8>> {
     let decompressed_size = u32::read_le(reader)?;
     let compressed_size = u32::read_le(reader)?;
-    arcode_decompress_data_parser(reader, Endian::Little, (decompressed_size, compressed_size - 8))
+    arcode_decompress_data_parser(
+        reader,
+        Endian::Little,
+        (decompressed_size, compressed_size - 8),
+    )
 }
 
 pub fn arcode_decompress_data_with_header_parser<R: Read + Seek>(

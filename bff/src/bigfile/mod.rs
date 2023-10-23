@@ -13,7 +13,11 @@ use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::v1_06_63_02_pc::BigFileV1_06_63_02PC;
 use crate::bigfile::v1_08_40_02_pc::BigFileV1_08_40_02PC;
-use crate::bigfile::v1_22_pc::{BigFileV1_22PC, BigFileV1_22PCNoVersionTriple, BigFileV1_22PCNoVersionTripleBlackSheep};
+use crate::bigfile::v1_22_pc::{
+    BigFileV1_22PC,
+    BigFileV1_22PCNoVersionTriple,
+    BigFileV1_22PCNoVersionTripleBlackSheep,
+};
 use crate::names::Name;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";

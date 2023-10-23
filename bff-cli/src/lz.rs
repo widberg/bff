@@ -1,7 +1,16 @@
 use std::fs::File;
 use std::io::{self, BufWriter, Cursor, Read, Write};
 
-use bff::lz::{arcode_compress_data_with_header_writer, arcode_decompress_data_with_header_parser, lz4_compress_data_with_header_writer, lz4_decompress_data_with_header_parser, lzo_compress, lzo_decompress, lzrs_compress_data_with_header_writer, lzrs_decompress_data_with_header_parser};
+use bff::lz::{
+    arcode_compress_data_with_header_writer,
+    arcode_decompress_data_with_header_parser,
+    lz4_compress_data_with_header_writer,
+    lz4_decompress_data_with_header_parser,
+    lzo_compress,
+    lzo_decompress,
+    lzrs_compress_data_with_header_writer,
+    lzrs_decompress_data_with_header_parser,
+};
 use bff::{BufReader, Endian};
 use clap::ValueEnum;
 
