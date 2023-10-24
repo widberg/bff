@@ -43,6 +43,25 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native("BFF GUI", options, Box::new(|cc| Box::new(Gui::new(cc))))
 }
 
+fn setup_custom_font(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+
+    fonts.font_data.insert(
+        "icons".to_owned(),
+        egui::FontData::from_static(include_bytes!(
+            "../resources/Font Awesome 6 Free-Solid-900.otf"
+        )),
+    );
+
+    fonts
+        .families
+        .entry(egui::FontFamily::Name("icons".into()))
+        .or_default()
+        .push("icons".to_owned());
+
+    ctx.set_fonts(fonts);
+}
+
 #[derive(Default)]
 struct Gui {
     bigfile: Option<BigFile>,
@@ -59,6 +78,7 @@ impl Gui {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         cc.egui_ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(&cc.egui_ctx);
+        setup_custom_font(&cc.egui_ctx);
         Self {
             bigfile: None,
             bigfile_path: None,

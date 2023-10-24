@@ -104,8 +104,10 @@ pub fn resource_list(
                     ui.style_mut().spacing.item_spacing.x = 5.0;
                     if ui
                         .button(match new_state.sort.reverse {
-                            false => "AZ",
-                            true => "ZA",
+                            false => egui::RichText::new("")
+                                .family(egui::FontFamily::Name("icons".into())),
+                            true => egui::RichText::new("")
+                                .family(egui::FontFamily::Name("icons".into())),
                         })
                         .clicked()
                     {
