@@ -3,7 +3,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use bff::bigfile::resource::Resource;
 use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
@@ -14,25 +13,25 @@ use three_d_asset::{Vec2, Vec3, Vec4};
 
 use crate::Artifact;
 
-#[derive(Clone, PartialEq)]
-enum ListSort {
+#[derive(Clone, PartialEq, Default)]
+enum SortType {
+    #[default]
     Name,
-    // NameReverse,
-    // Ext,
-    // ExtReverse,
+    Ext,
+    Size,
 }
 
-impl Default for ListSort {
-    fn default() -> Self {
-        Self::Name
-    }
+#[derive(Default, Clone, PartialEq)]
+struct ListSort {
+    sort_type: SortType,
+    reverse: bool,
 }
 
 #[derive(Default, Clone, PartialEq)]
 struct ResourceListState {
     sort: ListSort,
     filter: Option<HashMap<Name, bool>>,
-    // order: Option<HashMap<usize, Name>>,
+    resources: Option<Arc<Vec<Name>>>,
 }
 
 #[derive(Default)]
@@ -52,12 +51,15 @@ pub fn resource_list(
     infos: &HashMap<Name, String>,
 ) -> ResourceListResponse {
     let mut response = ResourceListResponse::default();
+    let mut changed_list = false;
     egui::SidePanel::left("left")
         .resizable(true)
         .width_range(70.0..=ui.available_width() / 2.0)
         .show_inside(ui, |ui| {
             // ui.set_width_range(150.0..=200.0);
             if let Some(bigfile) = bigfile {
+                ui.style_mut().spacing.item_spacing.y = 5.0;
+
                 let version = &bigfile.manifest.version;
                 let platform = bigfile.manifest.platform;
                 let binding = match ui.memory(|mem| {
@@ -80,63 +82,88 @@ pub fn resource_list(
                         .collect(),
                 );
                 ui.horizontal(|ui| {
-                    // ui.menu_button("Sort", |ui| {
-                    //     ui.radio_value(&mut new_state.sort, ListSort::Name, "Name ABC");
-                    //     ui.radio_value(&mut new_state.sort, ListSort::NameReverse, "Name XYZ");
-                    //     ui.radio_value(&mut new_state.sort, ListSort::Ext, "Extension ABC");
-                    //     ui.radio_value(&mut new_state.sort, ListSort::ExtReverse, "Extension XYZ");
-                    // });
+                    ui.style_mut().spacing.item_spacing.x = 1.0;
+                    if ui
+                        .add(
+                            egui::Button::new(match new_state.sort.sort_type {
+                                SortType::Name => "Name",
+                                SortType::Ext => "Extension",
+                                SortType::Size => "Size",
+                            })
+                            .min_size(egui::vec2(ui.available_width() / 3.0, 0.0)),
+                        )
+                        .clicked()
+                    {
+                        changed_list = true;
+                        new_state.sort.sort_type = match new_state.sort.sort_type {
+                            SortType::Name => SortType::Ext,
+                            SortType::Ext => SortType::Size,
+                            SortType::Size => SortType::Name,
+                        };
+                    }
+                    ui.style_mut().spacing.item_spacing.x = 5.0;
+                    if ui
+                        .button(match new_state.sort.reverse {
+                            false => "AZ",
+                            true => "ZA",
+                        })
+                        .clicked()
+                    {
+                        changed_list = true;
+                        new_state.sort.reverse = !new_state.sort.reverse;
+                    }
                     ui.menu_button("Filter", |ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
                             class_names.iter_mut().for_each(|(name, checked)| {
-                                ui.checkbox(checked, name.to_string());
+                                if ui.checkbox(checked, name.to_string()).clicked() {
+                                    changed_list = true;
+                                }
                             });
                         });
                     });
                 });
                 new_state.filter = Some(class_names);
-                // let order = new_state.order.clone().unwrap_or_else(|| {
-                //     let mut resource_order: Vec<(&Resource, usize)> = bigfile
-                //         .objects
-                //         .values()
-                //         .enumerate()
-                //         .map(|(i, r)| (r, i))
-                //         .collect();
-                //     resource_order.sort_by(|a, b| match new_state.sort {
-                //         ListSort::Name => a.0.name.to_string().cmp(&b.0.name.to_string()),
-                //         ListSort::NameReverse => b.0.name.to_string().cmp(&a.0.name.to_string()),
-                //         ListSort::Ext => {
-                //             a.0.class_name.to_string().cmp(&b.0.class_name.to_string())
-                //         }
-                //         ListSort::ExtReverse => {
-                //             b.0.class_name.to_string().cmp(&a.0.class_name.to_string())
-                //         }
-                //     });
-                //     resource_order
-                //         .into_iter()
-                //         .map(|(r, i)| (i, r.name))
-                //         .collect()
-                // });
+
+                let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list {
+                    let mut res: Vec<(Name, (Name, usize))> = bigfile
+                        .objects
+                        .values()
+                        .filter(|res| {
+                            *state
+                                .filter
+                                .as_ref()
+                                .unwrap_or(&HashMap::default())
+                                .get(&res.class_name)
+                                .unwrap_or(&true)
+                        })
+                        .map(|r| (r.name, (r.class_name, r.size())))
+                        .collect();
+                    // resources.sort_by(compare)
+                    res.sort_by(|a, b| {
+                        let (x, y) = if new_state.sort.reverse {
+                            (b, a)
+                        } else {
+                            (a, b)
+                        };
+                        match new_state.sort.sort_type {
+                            SortType::Name => x.0.to_string().cmp(&y.0.to_string()),
+                            SortType::Ext => x.1 .0.to_string().cmp(&y.1 .0.to_string()),
+                            SortType::Size => y.1 .1.cmp(&x.1 .1),
+                        }
+                    });
+                    let only_names: Arc<Vec<Name>> =
+                        Arc::new(res.into_iter().map(|(name, _)| name).collect());
+                    new_state.resources = Some(Arc::clone(&only_names));
+                    Arc::clone(&only_names)
+                } else {
+                    Arc::clone(new_state.resources.as_ref().unwrap())
+                };
                 if new_state != *state {
                     ui.memory_mut(|mem| {
                         mem.data
                             .insert_temp(id_source, Arc::new(Mutex::new(new_state.clone())))
                     });
                 }
-
-                // let init_resources: Vec<&Resource> = bigfile.objects.values().collect();
-                let resources: Vec<&Resource> = bigfile
-                    .objects
-                    .values()
-                    .filter(|res| {
-                        *state
-                            .filter
-                            .as_ref()
-                            .unwrap_or(&HashMap::default())
-                            .get(&res.class_name)
-                            .unwrap_or(&true)
-                    })
-                    .collect();
 
                 let row_height = ui.spacing().interact_size.y;
                 egui::ScrollArea::vertical().show_rows(
@@ -145,18 +172,20 @@ pub fn resource_list(
                     resources.len(),
                     |ui, row_range| {
                         ui.set_min_width(ui.available_width());
+                        ui.style_mut().spacing.item_spacing.y = 4.0;
+
                         for row in row_range {
                             let resource = resources.get(row).unwrap();
-                            let nickname = nicknames.get(&resource.name);
+                            let nickname = nicknames.get(&resource);
                             let temp_btn = ui
                                 .add(
                                     egui::Button::new(format!(
                                         "{}.{}",
                                         match nickname {
                                             Some(nn) => nn.to_owned(),
-                                            None => resource.name.to_string(),
+                                            None => resource.to_string(),
                                         },
-                                        resource.class_name
+                                        bigfile.objects.get(resource).unwrap().class_name
                                     ))
                                     .wrap(false)
                                     .rounding(0.0)
@@ -166,23 +195,26 @@ pub fn resource_list(
                                     if ui.button("Change nickname").clicked() {
                                         // self.nickname_window_open = true;
                                         // self.nickname_editing.0 = resource.name;
-                                        response.resource_context_menu = Some(resource.name);
+                                        response.resource_context_menu = Some(*resource);
                                         ui.close_menu();
                                     }
                                 });
                             let btn = if nickname.is_some() {
                                 temp_btn.on_hover_ui_at_pointer(|ui| {
-                                    ui.label(resource.name.to_string());
+                                    ui.label(resource.to_string());
                                 })
                             } else {
                                 temp_btn
                             };
                             if btn.clicked() {
-                                response.resource_clicked = Some(resource.name);
-                                if artifacts.get(&resource.name).is_none()
-                                    || infos.get(&resource.name).is_none()
+                                response.resource_clicked = Some(*resource);
+                                if artifacts.get(&resource).is_none()
+                                    || infos.get(&resource).is_none()
                                 {
-                                    match (*resource)
+                                    match bigfile
+                                        .objects
+                                        .get(&resource)
+                                        .unwrap()
                                         .try_into_version_platform(version.clone(), platform)
                                     {
                                         Ok(class) => {
@@ -191,7 +223,7 @@ pub fn resource_list(
                                                     .unwrap(),
                                             );
                                             if let Some(a) =
-                                                create_artifact(bigfile, class, &resource.name)
+                                                create_artifact(bigfile, class, resource)
                                             {
                                                 response.artifact_created = Some(a);
                                             }
