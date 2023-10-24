@@ -124,6 +124,7 @@ pub fn resource_list(
                         });
                     });
                 });
+                // println!("{:?}", class_names);
                 new_state.filter = Some(class_names);
 
                 let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list {
@@ -141,18 +142,14 @@ pub fn resource_list(
                         .map(|r| (r.name, (r.class_name, r.size())))
                         .collect();
                     // resources.sort_by(compare)
-                    res.sort_by(|a, b| {
-                        let (x, y) = if new_state.sort.reverse {
-                            (b, a)
-                        } else {
-                            (a, b)
-                        };
-                        match new_state.sort.sort_type {
-                            SortType::Name => x.0.to_string().cmp(&y.0.to_string()),
-                            SortType::Ext => x.1 .0.to_string().cmp(&y.1 .0.to_string()),
-                            SortType::Size => y.1 .1.cmp(&x.1 .1),
-                        }
+                    res.sort_by_cached_key(|a| match new_state.sort.sort_type {
+                        SortType::Name => a.0.to_string(),
+                        SortType::Ext => a.1 .0.to_string(),
+                        SortType::Size => a.1 .1.to_string(),
                     });
+                    if new_state.sort.reverse {
+                        res.reverse();
+                    }
                     let only_names: Arc<Vec<Name>> =
                         Arc::new(res.into_iter().map(|(name, _)| name).collect());
                     new_state.resources = Some(Arc::clone(&only_names));
