@@ -6,3 +6,15 @@ edition = "2021"
 
 [dependencies]
 bff = { path = "../bff" }
+derive_more = "0.99.17"
+eframe = "0.23.0"
+egui = "0.23.0"
+egui_extras = { version = "0.23.0", features = ["all_loaders"] }
+hound = "3.5.1"
+image = { version = "0.24.7", features = ["dds", "png"] }
+rfd = "0.12.0"
+rodio = "0.17.1"
+serde = "1.0.188"
+serde_json = "1.0.107"
+three-d = "0.16.1"
+three-d-asset = "0.6.0"

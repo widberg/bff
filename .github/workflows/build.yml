@@ -9,34 +9,37 @@ jobs:
     strategy:
       matrix:
         name: [linux, windows, macos]
+        bin: [bff-cli, bff-gui]
 
         include:
           - name: linux
             os: ubuntu-latest
-            bff_cli_executable_name: bff-cli
           - name: windows
             os: windows-latest
-            bff_cli_executable_name: bff-cli.exe
+            bin_extension: .exe
           - name: macos
             os: macos-latest
-            bff_cli_executable_name: bff-cli
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v1
 
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2.7.0
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
 
-    - name: Build
-      run: cargo build --release --locked
+      - name: Install dependencies (Linux)
+        run: sudo apt-get -y install libgtk-3-dev libasound2-dev
+        if: matrix.name == 'linux' && matrix.bin == 'bff-gui'
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: bff-${{ matrix.name }}-${{ github.sha }}
-        path: ./target/release/${{ matrix.bff_cli_executable_name }}
+      - name: Build
+        run: cargo build --release --locked --bin ${{ matrix.bin }}
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.bin }}-${{ matrix.name }}-${{ github.sha }}
+          path: ./target/release/${{ matrix.bin }}${{ matrix.bin_extension }}
