@@ -16,6 +16,11 @@ pub struct Header {
     pub version_triple: VersionTriple,
     #[serde(skip)]
     #[br(count = block_count)]
-    #[brw(align_after = 2048)]
     pub block_descriptions: Vec<BlockDescription>,
+    #[br(ignore)]
+    pub tag: Option<Vec<u8>>,
+    #[br(temp)]
+    #[bw(ignore)]
+    #[brw(align_after = 2048)]
+    _align: (),
 }

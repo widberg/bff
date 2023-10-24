@@ -3,6 +3,7 @@ pub mod bigfile;
 pub mod class;
 pub mod crc;
 pub mod error;
+pub mod fat_lin;
 pub mod helpers;
 pub mod lz;
 pub mod macros;

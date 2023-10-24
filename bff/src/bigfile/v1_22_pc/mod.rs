@@ -9,7 +9,7 @@ use crate::bigfile::resource::ResourceData;
 use crate::bigfile::resource::ResourceData::Data;
 use crate::bigfile::BigFile;
 use crate::helpers::{write_align_to, DynArray};
-use crate::names::NameType::Kalisto32;
+use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
@@ -86,7 +86,7 @@ fn parse_blocks(block_size: u32) -> BinResult<Vec<Block>> {
 #[binread]
 #[derive(Debug)]
 #[br(import(version: Version, platform: Platform))]
-pub struct BigFileV1_22PC<const HAS_VERSION_TRIPLE: bool = true> {
+pub struct BigFileV1_22PC<const HAS_VERSION_TRIPLE: bool = true, const KALISTO: bool = true> {
     #[br(calc = version)]
     version: Version,
     #[br(calc = platform)]
@@ -100,9 +100,12 @@ pub struct BigFileV1_22PC<const HAS_VERSION_TRIPLE: bool = true> {
 }
 
 pub type BigFileV1_22PCNoVersionTriple = BigFileV1_22PC<false>;
+pub type BigFileV1_22PCNoVersionTripleBlackSheep = BigFileV1_22PC<false, false>;
 
-impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> for BigFile {
-    fn from(bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE>) -> BigFile {
+impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
+    From<BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>> for BigFile
+{
+    fn from(bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>) -> BigFile {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -141,7 +144,9 @@ impl<const HAS_VERSION_TRIPLE: bool> From<BigFileV1_22PC<HAS_VERSION_TRIPLE>> fo
     }
 }
 
-impl<const HAS_VERSION_TRIPLE: bool> BigFileIo for BigFileV1_22PC<HAS_VERSION_TRIPLE> {
+impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
+    for BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>
+{
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
@@ -153,7 +158,11 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileIo for BigFileV1_22PC<HAS_VERSION_TR
         Ok(bigfile.into())
     }
 
-    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
+    fn write<W: Write + Seek>(
+        bigfile: &BigFile,
+        writer: &mut W,
+        tag: Option<&str>,
+    ) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
         // Remember starting position for writing block size
@@ -203,17 +212,29 @@ impl<const HAS_VERSION_TRIPLE: bool> BigFileIo for BigFileV1_22PC<HAS_VERSION_TR
         let end = writer.stream_position()?;
         writer.seek(SeekFrom::Start(begin))?;
         block_size.write_options(writer, endian, ())?;
-        bigfile
-            .manifest
-            .version_triple
-            .unwrap_or_default()
-            .write_options(writer, endian, ())?;
+        if HAS_VERSION_TRIPLE {
+            bigfile
+                .manifest
+                .version_triple
+                .unwrap_or_default()
+                .write_options(writer, endian, ())?;
+        }
+
+        if let Some(tag) = tag {
+            // TODO: Make sure the tag fits
+            writer.write_all(tag.as_bytes())?;
+        }
+
         writer.seek(SeekFrom::Start(end))?;
 
         Ok(())
     }
 
     fn name_type(_version: Version, _platform: Platform) -> NameType {
-        Kalisto32
+        if KALISTO {
+            Kalisto32
+        } else {
+            BlackSheep32
+        }
     }
 }

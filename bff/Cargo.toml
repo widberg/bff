@@ -5,6 +5,7 @@ authors = ["widberg"]
 edition = "2021"
 
 [dependencies]
+arcode = "0.2.4"
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
 binrw = "0.12.0"

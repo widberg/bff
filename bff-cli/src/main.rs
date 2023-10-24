@@ -12,11 +12,19 @@ mod crc;
 mod csc;
 mod error;
 mod extract;
+mod fat_lin;
 mod info;
 mod lz;
 mod psc;
 mod reverse_crc32;
 mod round_trip;
+mod stdio_or_path;
+
+use shadow_rs::shadow;
+
+use crate::stdio_or_path::StdioOrPath;
+
+shadow!(build);
 
 #[derive(Subcommand)]
 enum Commands {
@@ -36,12 +44,15 @@ enum Commands {
         in_names: Vec<PathBuf>,
     },
     #[clap(alias = "rt")]
-    RoundTrip {
-        bigfile: PathBuf,
-    },
+    RoundTrip { bigfile: PathBuf },
     Crc {
         string: Option<String>,
-        #[arg(short, long, default_value_t, help = "Starting value for the CRC calculation")]
+        #[arg(
+            short,
+            long,
+            default_value_t,
+            help = "Starting value for the CRC calculation"
+        )]
         starting: i64,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcAlgorithm::Asobo)]
@@ -72,6 +83,8 @@ enum Commands {
         character_set: String,
     },
     Unlz {
+        compressed: StdioOrPath,
+        uncompressed: StdioOrPath,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -80,6 +93,8 @@ enum Commands {
         algorithm: LzAlgorithm,
     },
     Lz {
+        uncompressed: StdioOrPath,
+        compressed: StdioOrPath,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -87,21 +102,30 @@ enum Commands {
         #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
         algorithm: LzAlgorithm,
     },
-    Csc {},
+    Csc {
+        input: StdioOrPath,
+        output: StdioOrPath,
+    },
     #[clap(alias = "xpsc")]
-    ExtractPsc {
-        psc: PathBuf,
+    ExtractPsc { psc: PathBuf, directory: PathBuf },
+    #[clap(alias = "cpsc")]
+    CreatePsc { directory: PathBuf, psc: PathBuf },
+    #[clap(alias = "xfl")]
+    ExtractFatLin {
+        fat: PathBuf,
+        lin: PathBuf,
         directory: PathBuf,
     },
-    #[clap(alias = "cpsc")]
-    CreatePsc {
+    #[clap(alias = "cfl")]
+    CreateFatLin {
         directory: PathBuf,
-        psc: PathBuf,
+        fat: PathBuf,
+        lin: PathBuf,
     },
 }
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, long_version = build::CLAP_LONG_VERSION, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
     command: Commands,
@@ -125,8 +149,18 @@ fn main() -> BffCliResult<()> {
             mode,
             format,
         } => crc::crc(string, starting, algorithm, mode, format),
-        Commands::Unlz { endian, algorithm } => lz::unlz(endian, algorithm),
-        Commands::Lz { endian, algorithm } => lz::lz(endian, algorithm),
+        Commands::Unlz {
+            compressed,
+            uncompressed,
+            endian,
+            algorithm,
+        } => lz::unlz(uncompressed, compressed, endian, algorithm),
+        Commands::Lz {
+            uncompressed,
+            compressed,
+            endian,
+            algorithm,
+        } => lz::lz(uncompressed, compressed, endian, algorithm),
         Commands::ReverseCrc32 {
             string,
             target,
@@ -143,8 +177,18 @@ fn main() -> BffCliResult<()> {
             character_set,
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
-        Commands::Csc {} => csc::csc(),
+        Commands::Csc { input, output } => csc::csc(input, output),
         Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
         Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
+        Commands::ExtractFatLin {
+            fat,
+            lin,
+            directory,
+        } => fat_lin::extract_fat_lin(fat, lin, directory),
+        Commands::CreateFatLin {
+            directory,
+            fat,
+            lin,
+        } => fat_lin::create_fat_lin(directory, fat, lin),
     }
 }

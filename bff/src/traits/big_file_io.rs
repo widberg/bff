@@ -13,7 +13,11 @@ pub trait BigFileIo {
         platform: Platform,
     ) -> BffResult<BigFile>;
 
-    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()>;
+    fn write<W: Write + Seek>(
+        bigfile: &BigFile,
+        writer: &mut W,
+        tag: Option<&str>,
+    ) -> BffResult<()>;
 
     fn name_type(version: Version, platform: Platform) -> NameType;
 }

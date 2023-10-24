@@ -24,10 +24,10 @@ use crate::bigfile::v1_06_63_02_pc::pool::{
 };
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
+use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
-use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
@@ -155,7 +155,11 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         })
     }
 
-    fn write<W: Write + Seek>(bigfile: &BigFile, writer: &mut W) -> BffResult<()> {
+    fn write<W: Write + Seek>(
+        bigfile: &BigFile,
+        writer: &mut W,
+        tag: Option<&str>,
+    ) -> BffResult<()> {
         let endian: Endian = bigfile.manifest.platform.into();
 
         let begin = writer.stream_position()?;
@@ -475,6 +479,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 .sum::<u32>(),
             version_triple: bigfile.manifest.version_triple.unwrap_or_default(),
             block_descriptions,
+            tag: tag.map(|x| x.as_bytes().to_vec()),
             pool_manifest_padded_size,
             pool_offset,
             pool_manifest_unused: bigfile.manifest.pool_manifest_unused,

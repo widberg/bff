@@ -20,3 +20,14 @@ pub struct Resource {
     pub name: Name,
     pub data: ResourceData,
 }
+
+impl Resource {
+    pub fn size(&self) -> usize {
+        match &self.data {
+            ResourceData::Data(data) | ResourceData::CompressibleData { data, .. } => data.len(),
+            ResourceData::ExtendedData {
+                link_header, body, ..
+            } => link_header.len() + body.len(),
+        }
+    }
+}
