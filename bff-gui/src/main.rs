@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -15,7 +16,6 @@ use panels::right::resource_info;
 use panels::top::menubar;
 use three_d::renderer::CpuModel;
 
-pub mod error;
 mod panels;
 mod views;
 
@@ -108,6 +108,7 @@ impl eframe::App for Gui {
                     &self.bigfile_path,
                     &self.resource_name,
                     &mut self.nicknames,
+                    &self.artifacts,
                 );
                 if let Some((bf, path)) = menubar_response.bigfile_open {
                     self.bigfile = Some(bf);
@@ -246,6 +247,42 @@ trait RecursiveExport {
     fn export(self, resources: &HashMap<Name, Class>) -> Artifact;
     fn dependencies(&self) -> Vec<Name> {
         Vec::new()
+    }
+}
+
+impl Artifact {
+    fn save(&self, path: &PathBuf) {
+        // let mut file = File::create(path).unwrap();
+        match *self {
+            Self::Bitmap {
+                is_dds: _,
+                ref data,
+            } => {
+                let mut file = File::create(path).unwrap();
+                file.write_all(&data).unwrap();
+            }
+            Self::Sound {
+                ref data,
+                channels,
+                sample_rate,
+            } => {
+                let spec = hound::WavSpec {
+                    channels,
+                    sample_rate,
+                    bits_per_sample: 16,
+                    sample_format: hound::SampleFormat::Int,
+                };
+                let mut parent_writer = hound::WavWriter::create(path, spec).unwrap();
+                let mut sample_writer = parent_writer.get_i16_writer(data.len() as u32);
+                for sample in data.iter() {
+                    sample_writer.write_sample(*sample);
+                }
+                sample_writer.flush().unwrap();
+                parent_writer.finalize().unwrap();
+            }
+            Self::Mesh(_) => todo!(),
+            Self::Skin(_) => todo!(),
+        };
     }
 }
 

@@ -1,7 +1,5 @@
-use std::{
-    collections::{HashMap, HashSet},
-    sync::{Arc, Mutex},
-};
+use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, Mutex};
 
 use bff::bigfile::BigFile;
 use bff::class::Class;

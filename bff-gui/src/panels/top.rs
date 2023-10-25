@@ -10,7 +10,7 @@ use bff::traits::TryIntoVersionPlatform;
 use egui;
 use image::EncodableLayout;
 
-use crate::load_bigfile;
+use crate::{load_bigfile, Artifact};
 
 #[derive(Default)]
 pub struct MenubarResponse {
@@ -24,6 +24,7 @@ pub fn menubar(
     bigfile_path: &Option<PathBuf>,
     resource_name: &Option<Name>,
     nicknames: &mut HashMap<Name, String>,
+    artifacts: &HashMap<Name, Artifact>,
 ) -> MenubarResponse {
     let mut response = MenubarResponse::default();
     egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
@@ -65,14 +66,33 @@ pub fn menubar(
                         )
                     }
                 }
+                let rich_enabled = match resource_name {
+                    Some(n) => artifacts.contains_key(n),
+                    None => false,
+                };
                 if ui
-                    .add_enabled(false, egui::Button::new("Export data..."))
+                    .add_enabled(rich_enabled, egui::Button::new("Export rich..."))
                     .clicked()
                 {
                     ui.close_menu();
+                    let artifact = artifacts.get(&resource_name.unwrap()).unwrap();
+                    let extension = match artifact {
+                        Artifact::Bitmap { .. } => "dds",
+                        Artifact::Sound { .. } => "wav",
+                        Artifact::Mesh(..) | Artifact::Skin(..) => "glb",
+                    };
+                    if let Some(path) = rfd::FileDialog::new()
+                        .add_filter(extension, &[extension])
+                        .save_file()
+                    {
+                        artifact.save(&path);
+                    }
                 }
                 if ui
-                    .add_enabled(resource_name.is_some(), egui::Button::new("Export raw..."))
+                    .add_enabled(
+                        resource_name.is_some(),
+                        egui::Button::new("Export binary..."),
+                    )
                     .clicked()
                 {
                     ui.close_menu();
