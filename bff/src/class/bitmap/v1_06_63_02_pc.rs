@@ -19,13 +19,13 @@ pub struct BitmapBodyV1_06_63_02PC {
     flag: u16,
     // might be faulty?
     #[br(count = precalculated_size, if(precalculated_size != 0))]
-    dds: Option<Vec<u8>>,
+    pub dds: Option<Vec<u8>>,
     #[br(if(precalculated_size == 0))]
     #[br(count = width * height * match format {
         12 => 4,
         _ => 3,
     })]
-    tex: Option<Vec<u8>>,
+    pub tex: Option<Vec<u8>>,
 }
 
 pub type BitmapV1_06_63_02PC = TrivialClass<(), BitmapBodyV1_06_63_02PC>;

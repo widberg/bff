@@ -8,10 +8,8 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 use egui;
-use three_d::renderer::CpuModel;
-use three_d_asset::{Vec2, Vec3, Vec4};
 
-use crate::Artifact;
+use crate::{Artifact, Export, RecursiveExport};
 
 #[derive(Clone, PartialEq, Default)]
 enum SortType {
@@ -103,12 +101,13 @@ pub fn resource_list(
                     }
                     ui.style_mut().spacing.item_spacing.x = 5.0;
                     if ui
-                        .button(match new_state.sort.reverse {
-                            false => egui::RichText::new("")
-                                .family(egui::FontFamily::Name("icons".into())),
-                            true => egui::RichText::new("")
-                                .family(egui::FontFamily::Name("icons".into())),
-                        })
+                        .button(
+                            egui::RichText::new(match new_state.sort.reverse {
+                                false => "",
+                                true => "",
+                            })
+                            .family(egui::FontFamily::Name("icons".into())),
+                        )
                         .clicked()
                     {
                         changed_list = true;
@@ -221,11 +220,8 @@ pub fn resource_list(
                                                 serde_json::to_string_pretty::<Class>(&class)
                                                     .unwrap(),
                                             );
-                                            if let Some(a) =
-                                                create_artifact(bigfile, class, resource)
-                                            {
-                                                response.artifact_created = Some(a);
-                                            }
+                                            response.artifact_created =
+                                                create_artifact(bigfile, class);
                                         }
                                         Err(e) => {
                                             println!("{:?}", e);
@@ -242,263 +238,56 @@ pub fn resource_list(
     response
 }
 
-fn create_artifact(bigfile: &BigFile, class: Class, resource_name: &Name) -> Option<Artifact> {
+fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
     match class {
-        Class::Bitmap(box_bitmap) => match *box_bitmap {
-            bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(bitmap) => {
-                Some(Artifact::Bitmap(bitmap.body.data))
-            }
-            bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(bitmap) => {
-                Some(Artifact::Bitmap(bitmap.body.data))
-            }
-            _ => None,
-        },
+        Class::Bitmap(box_bitmap) => {
+            let artifact = match *box_bitmap {
+                bff::class::bitmap::Bitmap::BitmapV1_06_63_02PC(bitmap) => bitmap.export(),
+                bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(bitmap) => bitmap.export(),
+                bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(bitmap) => bitmap.export(),
+            };
+            Some(artifact)
+        }
         Class::Sound(box_sound) => {
-            let (data, sample_rate, channels) = match *box_sound {
+            let artifact = match *box_sound {
                 bff::class::sound::Sound::SoundV1_291_03_06PC(sound) => {
                     // let points = sound.body.data.iter().enumerate().map(|(i, s)| eframe::epaint::Pos2{x: ((i as f32 * ui.available_width()) / sound.body.data.len() as f32), y: (s / 200 + 200).into()}).collect();
                     // let shape = eframe::epaint::PathShape::line(points, eframe::epaint::Stroke::new(1.0, eframe::epaint::Color32::WHITE));
                     // ui.painter().add(shape);
-                    (
-                        sound.body.data,
-                        sound.body.sample_rate,
-                        match sound.body.flags.stereo().value() {
-                            1 => 2,
-                            _ => 1,
-                        },
-                    )
+                    sound.export()
                 }
-                bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => (
-                    sound.body.data,
-                    sound.link_header.sample_rate,
-                    match sound.link_header.flags.stereo().value() {
-                        1 => 2,
-                        _ => 1,
-                    },
-                ),
+                bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => sound.export(),
             };
-            Some(Artifact::Sound {
-                data: Arc::new(data),
-                sample_rate,
-                channels,
-            })
+            Some(artifact)
         }
-        Class::Mesh(box_mesh) => match get_mesh(*box_mesh) {
-            Some(tri_meshes) => {
-                let primitives = tri_meshes
-                    .into_iter()
-                    .map(|m| {
-                        let triangles = three_d_asset::geometry::Geometry::Triangles(m);
-                        three_d_asset::Primitive {
-                            name: "mesh".to_string(),
-                            transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()),
-                            animations: vec![],
-                            geometry: triangles,
-                            material_index: None,
-                        }
-                    })
-                    .collect();
-                let model = CpuModel {
-                    name: resource_name.to_string(),
-                    geometries: primitives,
-                    materials: vec![],
-                };
-                Some(Artifact::Mesh(Arc::new(model)))
-            }
-            None => None,
+        Class::Mesh(box_mesh) => match *box_mesh {
+            bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh) => Some(mesh.export()),
+            _ => None,
         },
         Class::Skin(box_skin) => match *box_skin {
             bff::class::skin::Skin::SkinV1_291_03_06PC(skin) => {
-                let tri_meshes: Vec<three_d_asset::Primitive> = skin
-                    .body
-                    .mesh_crc32s
+                // let dependency_names = ;
+                let dependency_classes: HashMap<Name, Class> = skin
+                    .dependencies()
                     .iter()
-                    .flat_map(|n| {
-                        let res = bigfile.objects.get(n).unwrap();
-                        let class: Class = res
-                            .try_into_version_platform(
+                    .map(|n| bigfile.objects.get(n))
+                    .flatten()
+                    .map(|r| {
+                        (
+                            r.name,
+                            TryIntoVersionPlatform::<Class>::try_into_version_platform(
+                                r,
                                 bigfile.manifest.version.clone(),
                                 bigfile.manifest.platform,
                             )
-                            .unwrap();
-                        match class {
-                            Class::Mesh(box_mesh) => get_mesh(*box_mesh).unwrap(),
-                            _ => panic!("not a mesh?"),
-                        }
-                    })
-                    .enumerate()
-                    .map(|(i, mesh)| {
-                        let triangles = three_d_asset::geometry::Geometry::Triangles(mesh);
-                        three_d_asset::Primitive {
-                            name: format!("skin-part{}", i),
-                            transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()),
-                            animations: vec![],
-                            geometry: triangles,
-                            material_index: Some(i),
-                        }
+                            .unwrap(),
+                        )
                     })
                     .collect();
-                let materials = skin
-                    .body
-                    .skin_sections
-                    .iter()
-                    .flat_map(|section| &section.skin_sub_sections.inner)
-                    .enumerate()
-                    .map(|(i, subsection)| {
-                        if let Some(res) = bigfile.objects.get(&subsection.material_crc32) {
-                            let class: Class = res
-                                .try_into_version_platform(
-                                    bigfile.manifest.version.clone(),
-                                    bigfile.manifest.platform,
-                                )
-                                .unwrap();
-                            match class {
-                                Class::Material(box_material) => match *box_material {
-                                    bff::class::material::Material::MaterialV1_291_03_06PC(
-                                        material,
-                                    ) => three_d::renderer::material::CpuMaterial {
-                                        name: format!("{}-mat{}", subsection.material_crc32, i),
-                                        albedo: material.body.diffuse_color.into(),
-                                        emissive: material.body.emissive_color.into(),
-                                        ..Default::default()
-                                    },
-                                    _ => todo!(),
-                                },
-                                _ => panic!("not a material?"),
-                            }
-                        } else {
-                            three_d::renderer::material::CpuMaterial {
-                                name: format!("{}-mat", subsection.material_crc32),
-                                ..Default::default()
-                            }
-                        }
-                    })
-                    .collect();
-
-                let model = three_d::renderer::object::CpuModel {
-                    name: resource_name.to_string(),
-                    geometries: tri_meshes,
-                    materials,
-                };
-                Some(Artifact::Skin(Arc::new(model)))
+                Some(skin.export(&dependency_classes))
             }
             _ => None,
         },
-        _ => None,
-    }
-}
-
-fn get_mesh(mesh: bff::class::mesh::Mesh) -> Option<Vec<three_d_asset::TriMesh>> {
-    match mesh {
-        bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh) => {
-            let tri_meshes = mesh
-                .body
-                .mesh_buffer
-                .vertex_groups
-                .iter()
-                .map(|group| {
-                    // println!("{}", mesh.body.mesh_buffer.vertex_buffers.len());
-                    let (positions, (uvs, (normals, tangents))): (
-                        Vec<Vec3>,
-                        (Vec<Vec2>, (Vec<Vec3>, Vec<Vec4>)),
-                    ) = mesh
-                        .body
-                        .mesh_buffer
-                        .vertex_buffers
-                        .iter()
-                        .flat_map(|buf| &buf.vertex_structs)
-                        .collect::<Vec<&bff::class::mesh::v1_291_03_06_pc::VertexStruct>>()
-                        [group.vertex_offset_in_groups as usize
-                            ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
-                        .iter()
-                        .map(|vs| {
-                            match vs {
-                    bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct24 {
-                        position,
-                        uv,
-                        ..
-                    } => (position, uv, &[0u8; 3], [0u8; 4]),
-                    bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct36 {
-                        position,
-                        uv,
-                        normal,
-                        tangent,
-                        tangent_padding,
-                        ..
-                    }
-                    | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct48 {
-                        position,
-                        uv,
-                        normal,
-                        tangent,
-                        tangent_padding,
-                        ..
-                    }
-                    | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct60 {
-                        position,
-                        uv,
-                        normal,
-                        tangent,
-                        tangent_padding,
-                        ..
-                    } => (
-                        position,
-                        uv,
-                        normal,
-                        [&tangent[..], &[*tangent_padding]]
-                            .concat()
-                            .try_into()
-                            .unwrap(),
-                    ),
-                    bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStructUnknown {
-                        ..
-                    } => (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4]),
-                }
-                        })
-                        .map(|(p, u, n, t)| {
-                            (
-                                Vec3::from(*p),
-                                (
-                                    Vec2::from(*u),
-                                    (
-                                        {
-                                            let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
-                                            norm[2] *= -1.0;
-                                            Vec3::from(norm)
-                                        },
-                                        Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
-                                    ),
-                                ),
-                            )
-                        })
-                        .unzip();
-                    let indices: Vec<u16> = mesh
-                        .body
-                        .mesh_buffer
-                        .index_buffers
-                        .iter()
-                        .flat_map(|buf| &buf.tris)
-                        .flat_map(|tri| tri.indices)
-                        .collect::<Vec<i16>>()[group
-                        .index_buffer_offset_in_shorts
-                        as usize
-                        ..group.index_buffer_offset_in_shorts as usize
-                            + group.face_count as usize * 3]
-                        .iter()
-                        .map(|i| u16::try_from(*i).unwrap_or(0) - group.vertex_offset_in_groups)
-                        .collect();
-                    three_d::geometry::CpuMesh {
-                        positions: three_d::Positions::F32(positions),
-                        indices: three_d::Indices::U16(indices),
-                        normals: Some(normals),
-                        tangents: Some(tangents),
-                        uvs: Some(uvs),
-                        colors: None,
-                    }
-                })
-                .collect();
-            Some(tri_meshes)
-        }
         _ => None,
     }
 }

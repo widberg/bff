@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use bff::bigfile::BigFile;
+use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
 use panels::central::view;
@@ -20,7 +21,10 @@ mod views;
 
 #[derive(Clone)]
 pub enum Artifact {
-    Bitmap(Vec<u8>),
+    Bitmap {
+        is_dds: bool, // use enum?
+        data: Arc<Vec<u8>>,
+    },
     Sound {
         data: Arc<Vec<i16>>,
         sample_rate: u32,
@@ -231,5 +235,297 @@ fn preview_files_being_dropped(ctx: &egui::Context) {
             TextStyle::Heading.resolve(&ctx.style()),
             Color32::WHITE,
         );
+    }
+}
+
+trait Export {
+    fn export(self) -> Artifact;
+}
+
+trait RecursiveExport {
+    fn export(self, resources: &HashMap<Name, Class>) -> Artifact;
+    fn dependencies(&self) -> Vec<Name> {
+        Vec::new()
+    }
+}
+
+impl Export for bff::class::bitmap::v1_291_03_06_pc::BitmapV1_291_03_06PC {
+    fn export(self) -> Artifact {
+        Artifact::Bitmap {
+            is_dds: true,
+            data: Arc::new(self.body.data),
+        }
+    }
+}
+
+impl Export for bff::class::bitmap::v1_381_67_09_pc::BitmapV1_381_67_09PC {
+    fn export(self) -> Artifact {
+        Artifact::Bitmap {
+            is_dds: true,
+            data: Arc::new(self.body.data),
+        }
+    }
+}
+
+impl Export for bff::class::bitmap::v1_06_63_02_pc::BitmapV1_06_63_02PC {
+    fn export(self) -> Artifact {
+        if let Some(dds) = self.body.dds {
+            Artifact::Bitmap {
+                is_dds: true,
+                data: Arc::new(dds),
+            }
+        } else if let Some(data) = self.body.tex {
+            Artifact::Bitmap {
+                is_dds: false,
+                data: Arc::new(data),
+            }
+        } else {
+            Artifact::Bitmap {
+                is_dds: false,
+                data: Arc::new(Vec::new()),
+            }
+        }
+    }
+}
+
+impl Export for bff::class::sound::v1_291_03_06_pc::SoundV1_291_03_06PC {
+    fn export(self) -> Artifact {
+        Artifact::Sound {
+            data: Arc::new(self.body.data),
+            sample_rate: self.body.sample_rate,
+            channels: match self.body.flags.stereo().value() {
+                1 => 2,
+                _ => 1,
+            },
+        }
+    }
+}
+
+impl Export for bff::class::sound::v1_381_67_09_pc::SoundV1_381_67_09PC {
+    fn export(self) -> Artifact {
+        Artifact::Sound {
+            data: Arc::new(self.body.data),
+            sample_rate: self.link_header.sample_rate,
+            channels: match self.link_header.flags.stereo().value() {
+                1 => 2,
+                _ => 1,
+            },
+        }
+    }
+}
+
+trait GenerateMesh {
+    fn generate_mesh(&self) -> Vec<three_d::geometry::CpuMesh>;
+}
+
+impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
+    fn generate_mesh(&self) -> Vec<three_d::geometry::CpuMesh> {
+        use three_d::{Vec2, Vec3, Vec4};
+        self.body
+            .mesh_buffer
+            .vertex_groups
+            .iter()
+            .map(|group| {
+                // println!("{}", mesh.body.mesh_buffer.vertex_buffers.len());
+                let (positions, (uvs, (normals, tangents))): (
+                    Vec<Vec3>,
+                    (Vec<Vec2>, (Vec<Vec3>, Vec<Vec4>)),
+                ) = self
+                    .body
+                    .mesh_buffer
+                    .vertex_buffers
+                    .iter()
+                    .flat_map(|buf| &buf.vertex_structs)
+                    .collect::<Vec<&bff::class::mesh::v1_291_03_06_pc::VertexStruct>>()
+                    [group.vertex_offset_in_groups as usize
+                        ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
+                    .iter()
+                    .map(|vs| match vs {
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct24 {
+                            position,
+                            uv,
+                            ..
+                        } => (position, uv, &[0u8; 3], [0u8; 4]),
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct36 {
+                            position,
+                            uv,
+                            normal,
+                            tangent,
+                            tangent_padding,
+                            ..
+                        }
+                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct48 {
+                            position,
+                            uv,
+                            normal,
+                            tangent,
+                            tangent_padding,
+                            ..
+                        }
+                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct60 {
+                            position,
+                            uv,
+                            normal,
+                            tangent,
+                            tangent_padding,
+                            ..
+                        } => (
+                            position,
+                            uv,
+                            normal,
+                            [&tangent[..], &[*tangent_padding]]
+                                .concat()
+                                .try_into()
+                                .unwrap(),
+                        ),
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStructUnknown {
+                            ..
+                        } => (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4]),
+                    })
+                    .map(|(p, u, n, t)| {
+                        (
+                            Vec3::from(*p),
+                            (
+                                Vec2::from(*u),
+                                (
+                                    {
+                                        let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
+                                        norm[2] *= -1.0;
+                                        Vec3::from(norm)
+                                    },
+                                    Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
+                                ),
+                            ),
+                        )
+                    })
+                    .unzip();
+                let indices: Vec<u16> = self
+                    .body
+                    .mesh_buffer
+                    .index_buffers
+                    .iter()
+                    .flat_map(|buf| &buf.tris)
+                    .flat_map(|tri| tri.indices)
+                    .collect::<Vec<i16>>()[group.index_buffer_offset_in_shorts
+                    as usize
+                    ..group.index_buffer_offset_in_shorts as usize + group.face_count as usize * 3]
+                    .iter()
+                    .map(|i| u16::try_from(*i).unwrap_or(0) - group.vertex_offset_in_groups)
+                    .collect();
+                three_d::geometry::CpuMesh {
+                    positions: three_d::Positions::F32(positions),
+                    indices: three_d::Indices::U16(indices),
+                    normals: Some(normals),
+                    tangents: Some(tangents),
+                    uvs: Some(uvs),
+                    colors: None,
+                }
+            })
+            .collect()
+    }
+}
+
+impl Export for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
+    fn export(self) -> Artifact {
+        let tri_meshes = self.generate_mesh();
+        let primitives = tri_meshes
+            .into_iter()
+            .map(|m| {
+                let triangles = three_d_asset::geometry::Geometry::Triangles(m);
+                three_d_asset::Primitive {
+                    name: "mesh".to_string(),
+                    transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()),
+                    animations: vec![],
+                    geometry: triangles,
+                    material_index: None,
+                }
+            })
+            .collect();
+        let model = CpuModel {
+            name: self.name.to_string(),
+            geometries: primitives,
+            materials: vec![],
+        };
+        Artifact::Mesh(Arc::new(model))
+    }
+}
+
+impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
+    fn dependencies(&self) -> Vec<Name> {
+        let material_crc32s: Vec<Name> = self
+            .body
+            .skin_sections
+            .iter()
+            .flat_map(|section| &section.skin_sub_sections.inner)
+            .map(|subsection| subsection.material_crc32)
+            .collect();
+        [self.body.mesh_crc32s.inner.clone(), material_crc32s].concat()
+    }
+    fn export(self, classes: &HashMap<Name, Class>) -> Artifact {
+        let tri_meshes: Vec<three_d_asset::Primitive> = self
+            .body
+            .mesh_crc32s
+            .iter()
+            .flat_map(|n| {
+                let class = classes.get(n).unwrap();
+                match class {
+                    Class::Mesh(box_mesh) => match **box_mesh {
+                        bff::class::mesh::Mesh::MeshV1_291_03_06PC(ref mesh) => {
+                            mesh.generate_mesh()
+                        }
+                        _ => todo!(),
+                    },
+                    _ => panic!("not a mesh?"),
+                }
+            })
+            .enumerate()
+            .map(|(i, mesh)| {
+                let triangles = three_d_asset::geometry::Geometry::Triangles(mesh);
+                three_d_asset::Primitive {
+                    name: format!("skin-part{}", i),
+                    transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()),
+                    animations: vec![],
+                    geometry: triangles,
+                    material_index: Some(i),
+                }
+            })
+            .collect();
+        let materials = self
+            .body
+            .skin_sections
+            .iter()
+            .flat_map(|section| &section.skin_sub_sections.inner)
+            .enumerate()
+            .map(|(i, subsection)| {
+                if let Some(class) = classes.get(&subsection.material_crc32) {
+                    match class {
+                        Class::Material(box_material) => match **box_material {
+                            bff::class::material::Material::MaterialV1_291_03_06PC(
+                                ref material,
+                            ) => three_d::renderer::material::CpuMaterial {
+                                name: format!("{}-mat{}", subsection.material_crc32, i),
+                                albedo: material.body.diffuse_color.into(),
+                                emissive: material.body.emissive_color.into(),
+                                ..Default::default()
+                            },
+                            _ => todo!(),
+                        },
+                        _ => panic!("not a material?"),
+                    }
+                } else {
+                    three_d::renderer::material::CpuMaterial {
+                        name: format!("{}-mat", subsection.material_crc32),
+                        ..Default::default()
+                    }
+                }
+            })
+            .collect();
+
+        let model = three_d::renderer::object::CpuModel {
+            name: self.name.to_string(),
+            geometries: tri_meshes,
+            materials,
+        };
+        Artifact::Skin(Arc::new(model))
     }
 }
