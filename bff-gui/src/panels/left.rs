@@ -172,7 +172,7 @@ pub fn resource_list(
 
                         for row in row_range {
                             let resource = resources.get(row).unwrap();
-                            let nickname = nicknames.get(&resource);
+                            let nickname = nicknames.get(resource);
                             let temp_btn = ui
                                 .add(
                                     egui::Button::new(format!(
@@ -204,12 +204,12 @@ pub fn resource_list(
                             };
                             if btn.clicked() {
                                 response.resource_clicked = Some(*resource);
-                                if artifacts.get(&resource).is_none()
-                                    || infos.get(&resource).is_none()
+                                if artifacts.get(resource).is_none()
+                                    || infos.get(resource).is_none()
                                 {
                                     match bigfile
                                         .objects
-                                        .get(&resource)
+                                        .get(resource)
                                         .unwrap()
                                         .try_into_version_platform(version.clone(), platform)
                                     {

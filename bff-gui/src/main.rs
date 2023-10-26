@@ -212,7 +212,7 @@ fn preview_files_being_dropped(ctx: &egui::Context) {
     if !ctx.input(|i| i.raw.hovered_files.is_empty()) {
         let text = ctx.input(|i| {
             let mut text = "Dropping BigFile:\n".to_owned();
-            if let Some(file) = i.raw.hovered_files.iter().next() {
+            if let Some(file) = i.raw.hovered_files.first() {
                 if let Some(path) = &file.path {
                     write!(text, "\n{}", path.display()).ok();
                 } else if !file.mime.is_empty() {
