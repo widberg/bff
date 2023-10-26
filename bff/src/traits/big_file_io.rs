@@ -19,7 +19,7 @@ pub trait BigFileIo {
         tag: Option<&str>,
     ) -> BffResult<()>;
 
-    fn name_type(version: Version, platform: Platform) -> NameType;
+    const NAME_TYPE: NameType;
 
     type ResourceType;
 }

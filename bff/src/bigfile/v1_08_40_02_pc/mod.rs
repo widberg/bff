@@ -248,9 +248,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         Ok(())
     }
 
-    fn name_type(_version: Version, _platform: Platform) -> NameType {
-        Asobo32
-    }
+    const NAME_TYPE: NameType = Asobo32;
 
     type ResourceType = Object;
 }

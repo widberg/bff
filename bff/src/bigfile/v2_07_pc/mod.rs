@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, Write};
 
-use binrw::{binread, parser, BinRead, BinResult, BinWrite, Endian};
+use binrw::{binread, parser, BinRead, BinResult, BinWrite, Endian, args};
 
 use super::v1_22_pc::Resource;
 use crate::bigfile::manifest::Manifest;
@@ -15,14 +15,10 @@ use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
 
-#[derive(Debug, BinRead)]
-#[br(import(compressed: bool, checksum: Option<u32>, resource_count: u32))]
+#[derive(Debug)]
 pub struct Block {
-    #[br(calc = compressed)]
     pub compressed: bool,
-    #[br(calc = checksum)]
     pub checksum: Option<u32>,
-    #[br(count = resource_count)]
     pub resources: Vec<Resource>,
 }
 
@@ -55,11 +51,6 @@ fn parse_blocks<const MQFEL: bool>(
         };
         let resource_count = u32::read_options(reader, endian, ())?;
 
-        println!(
-            "block_size: {}, resource_count: {}, checksum: {:?}",
-            block_size, resource_count, checksum
-        );
-
         if block_size != decompressed_block_size {
             let block_size = if MQFEL { block_size - 8 } else { block_size };
 
@@ -68,12 +59,17 @@ fn parse_blocks<const MQFEL: bool>(
             let decompressed =
                 lzo_decompress(&compressed, decompressed_block_size as usize).unwrap();
             let mut decompressed = Cursor::new(decompressed);
-            let block =
-                Block::read_options(&mut decompressed, endian, (true, checksum, resource_count))?;
-            blocks.push(block);
+            blocks.push(Block {
+                compressed: true,
+                checksum,
+                resources: Vec::<Resource>::read_options(&mut decompressed, endian, args! { count: resource_count as usize })?
+            });
         } else {
-            let block = Block::read_options(reader, endian, (false, checksum, resource_count))?;
-            blocks.push(block);
+            blocks.push(Block {
+                compressed: false,
+                checksum,
+                resources: Vec::<Resource>::read_options(reader, endian, args! { count: resource_count as usize })?
+            });
         }
         read_align_to(reader, 2048)?;
     }
@@ -86,7 +82,6 @@ fn parse_blocks<const MQFEL: bool>(
 enum CompressionType {
     None,
     Lzo,
-    Zlib, // Unused
 }
 
 #[binread]
@@ -169,9 +164,7 @@ impl<const MQFEL: bool> BigFileIo for BigFileV2_07PC<MQFEL> {
         todo!()
     }
 
-    fn name_type(_version: Version, _platform: Platform) -> NameType {
-        BlackSheep32
-    }
+    const NAME_TYPE: NameType = BlackSheep32;
 
     type ResourceType = Resource;
 }

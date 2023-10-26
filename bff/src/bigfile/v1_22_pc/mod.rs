@@ -239,13 +239,11 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
         Ok(())
     }
 
-    fn name_type(_version: Version, _platform: Platform) -> NameType {
-        if KALISTO {
-            Kalisto32
-        } else {
-            BlackSheep32
-        }
-    }
+    const NAME_TYPE: NameType = if KALISTO {
+        Kalisto32
+    } else {
+        BlackSheep32
+    };
 
     type ResourceType = Resource;
 }

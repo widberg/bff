@@ -46,7 +46,7 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
             quote! {
                 #(#attrs)*
                 #pat #guard => {
-                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
+                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::NAME_TYPE;
                     <#body as BigFileIo>::read(reader, version, platform)
                 }
             }
@@ -84,7 +84,7 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             quote! {
                 #(#attrs)*
                 #pat #guard => {
-                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
+                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::NAME_TYPE;
                     <#body as BigFileIo>::write(self, writer, tag)
                 }
             }
@@ -125,7 +125,7 @@ fn impl_dump_resource(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
             quote! {
                 #(#attrs)*
                 #pat #guard => {
-                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::name_type(version.clone(), platform);
+                    crate::names::names().lock().unwrap().name_type = <#body as BigFileIo>::NAME_TYPE;
                     Ok(<#body as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
                 }
             }
