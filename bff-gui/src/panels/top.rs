@@ -8,7 +8,6 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 use egui;
-use image::EncodableLayout;
 
 use crate::{load_bigfile, Artifact};
 
@@ -106,17 +105,19 @@ pub fn menubar(
                         .add_filter("raw", &[resource.class_name.to_string()])
                         .save_file()
                     {
-                        let data = match &resource.data {
-                            bff::bigfile::resource::ResourceData::Data(data) => data.clone(),
-                            bff::bigfile::resource::ResourceData::SplitData {
-                                link_header,
-                                body,
-                            } => [link_header.clone(), body.clone()].concat(),
-                        };
-                        File::create(path)
+                        let mut w = File::create(path).unwrap();
+                        bigfile
+                            .as_ref()
                             .unwrap()
-                            .write_all(data.as_bytes())
+                            .dump_resource(resource, &mut w)
                             .unwrap();
+                        // let data = match &resource.data {
+                        //     bff::bigfile::resource::ResourceData::Data(data) => data.clone(),
+                        //     bff::bigfile::resource::ResourceData::SplitData {
+                        //         link_header,
+                        //         body,
+                        //     } => [link_header.clone(), body.clone()].concat(),
+                        // };
                     }
                 }
             });
