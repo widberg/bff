@@ -19,6 +19,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c71b1793ee61086797f5c80b6efa2b8ffa6d5dd703f118545808a7f2e27f7046"
 
 [[package]]
+name = "absperf-minilzo-sys"
+version = "2.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ad87b3bb1514c91eefab7357c719139922dff06a94235f21cfbeba86760daae"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "accesskit"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -490,6 +499,7 @@ checksum = "35636a1494ede3b646cc98f74f8e62c773a38a659ebc777a2cf26b9b74171df9"
 name = "bff"
 version = "0.1.0"
 dependencies = [
+ "absperf-minilzo-sys",
  "arcode",
  "bff-derive",
  "bilge",
@@ -499,7 +509,6 @@ dependencies = [
  "indexmap",
  "itertools",
  "lz4",
- "minilzo3",
  "num-traits",
  "once_cell",
  "rayon",
@@ -2336,16 +2345,6 @@ checksum = "4192263c238a5f0d0c6bfd21f336a313a4ce1c450542449ca191bb657b4642ef"
 dependencies = [
  "mime",
  "unicase",
-]
-
-[[package]]
-name = "minilzo3"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dacf7fc31b86145c42d4e5105c7a3347a93a2f89c4e43307bf072302137086f0"
-dependencies = [
- "libc",
- "thiserror",
 ]
 
 [[package]]
