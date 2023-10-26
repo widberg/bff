@@ -13,7 +13,7 @@ pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> B
     unsafe {
         let result = lzo1x_1_compress(
             data.as_ptr(),
-            data.len() as u32,
+            data.len().try_into().unwrap(),
             compressed.as_mut_ptr(),
             &mut compressed_len,
             null_mut(),
@@ -34,7 +34,7 @@ pub fn lzo_decompress(compressed: &[u8], decompressed_buffer_size: usize) -> Bff
     unsafe {
         let result = lzo1x_decompress_safe(
             compressed.as_ptr(),
-            compressed.len() as u32,
+            compressed.len().try_into().unwrap(),
             decompressed.as_mut_ptr(),
             &mut decompressed_len,
             null_mut(),
