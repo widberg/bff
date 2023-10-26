@@ -1,7 +1,7 @@
-use std::io::{Read, Write};
+use std::io::Write;
 use std::ptr::null_mut;
-use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe};
 
+use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe};
 use binrw::Endian;
 
 use crate::BffResult;
@@ -27,9 +27,7 @@ pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> B
     Ok(())
 }
 
-pub fn lzo_decompress<R: Read>(reader: &mut R, _endian: Endian, decompressed_buffer_size: usize) -> BffResult<Vec<u8>> {
-    let mut compressed = Vec::new();
-    reader.read_to_end(&mut compressed)?;
+pub fn lzo_decompress(compressed: &[u8], decompressed_buffer_size: usize) -> BffResult<Vec<u8>> {
     let mut decompressed = Vec::with_capacity(decompressed_buffer_size);
     let mut decompressed_len = 0;
 

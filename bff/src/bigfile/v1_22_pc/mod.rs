@@ -23,7 +23,7 @@ pub struct Resource {
     #[bw(calc = data.len() as u32 + 12)]
     data_size: u32,
     class_name: Name,
-    name: Name,
+    pub name: Name,
     #[br(count = data_size - 12)]
     data: Vec<u8>,
 }
@@ -124,6 +124,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
                 checksum: None,
+                compressed: None,
                 objects,
             });
         }

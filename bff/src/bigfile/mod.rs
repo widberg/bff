@@ -3,6 +3,7 @@ pub mod resource;
 mod v1_06_63_02_pc;
 mod v1_08_40_02_pc;
 mod v1_22_pc;
+mod v2_07_pc;
 
 use std::collections::HashMap;
 
@@ -18,6 +19,7 @@ use crate::bigfile::v1_22_pc::{
     BigFileV1_22PCNoVersionTriple,
     BigFileV1_22PCNoVersionTripleBlackSheep,
 };
+use crate::bigfile::v2_07_pc::BigFileV2_07PC;
 use crate::names::Name;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
@@ -31,9 +33,10 @@ pub struct BigFile {
 }
 
 bigfiles! {
-    (Kalisto(_, _), _) => BigFileV1_22PCNoVersionTriple,
-    (BlackSheep(_, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
+    (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,
+    (BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
+    (BlackSheep(2, _) | Ubisoft { .. }, _) => BigFileV2_07PC,
     (AsoboLegacy(1, 81..) | Asobo(1, ..=5, _, _) | Asobo(1, 8, _, _), _) => BigFileV1_08_40_02PC,
-    (AsoboLegacy(_, _), _) => BigFileV1_22PC,
+    (AsoboLegacy(1, _), _) => BigFileV1_22PC,
     (Asobo(1, _, _, _), _) => BigFileV1_06_63_02PC,
 }

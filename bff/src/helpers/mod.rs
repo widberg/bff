@@ -1,4 +1,4 @@
-use std::io::{Seek, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::BinResult;
 
@@ -33,6 +33,11 @@ pub fn write_align_to<W: Write + Seek>(
     Ok(padding)
 }
 
+pub fn read_align_to<R: Read + Seek>(reader: &mut R, alignment: usize) -> BinResult<()> {
+    let padding = calculate_padding(reader.stream_position()? as usize, alignment);
+    reader.seek(SeekFrom::Current(padding as i64))?;
+    Ok(())
+}
 pub use dynarray::*;
 pub use keyframer::*;
 pub use link_header::*;

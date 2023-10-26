@@ -102,7 +102,11 @@ fn unlz_internal<R: Read, W: Write>(
 
     let decompressed = match algorithm {
         LzAlgorithm::Lzrs => lzrs_decompress_data_with_header_parser(&mut reader, endian)?,
-        LzAlgorithm::Lzo => lzo_decompress(&mut reader, endian, 0x1000000)?, // TODO: Add a CLI argument for the size
+        LzAlgorithm::Lzo => {
+            let mut compressed = Vec::new();
+            reader.read_to_end(&mut compressed)?;
+            lzo_decompress(&compressed, 0x1000000)?
+        } // TODO: Add a CLI argument for the size
         LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Arcode => arcode_decompress_data_with_header_parser(&mut reader, endian)?,
     };

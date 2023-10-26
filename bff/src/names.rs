@@ -169,6 +169,9 @@ impl Serialize for Name {
                 Name::Kalisto32(name) if name_type == NameType::Kalisto32 => {
                     name.0.serialize(serializer)
                 }
+                Name::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
+                    name.0.serialize(serializer)
+                }
                 Name::Asobo64(name) if name_type == NameType::Asobo64 => {
                     name.0.serialize(serializer)
                 }

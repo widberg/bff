@@ -5,6 +5,7 @@ authors = ["widberg"]
 edition = "2021"
 
 [dependencies]
+absperf-minilzo-sys = "2.10.0"
 arcode = "0.2.4"
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
@@ -14,7 +15,6 @@ impl-trait-for-tuples = "0.2.2"
 indexmap = { version = "2.0.0", features = ["serde"] }
 itertools = { version = "0.11.0", features = [] }
 lz4 = "1.24.0"
-absperf-minilzo-sys = "2.10.0"
 num-traits = "0.2.15"
 once_cell = { version = "1.18.0", features = [] }
 rayon = { version = "1.8.0", features = [] }
