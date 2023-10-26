@@ -259,7 +259,7 @@ impl Artifact {
                 ref data,
             } => {
                 let mut file = File::create(path).unwrap();
-                file.write_all(&data).unwrap();
+                file.write_all(data).unwrap();
             }
             Self::Sound {
                 ref data,

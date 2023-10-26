@@ -11,8 +11,8 @@ use block::Block;
 use header::*;
 
 use crate::bigfile::manifest::*;
-use crate::bigfile::resource::ResourceData::CompressibleData;
-use crate::bigfile::resource::{Resource, ResourceData};
+use crate::bigfile::resource::Resource;
+use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
@@ -45,10 +45,8 @@ fn blocks_parser(
                 Resource {
                     class_name: object.class_name,
                     name: object.name,
-                    data: CompressibleData {
-                        compress: object.compress,
-                        data: object.data,
-                    },
+                    compress: object.compress,
+                    data: Data(object.data),
                 },
             );
         }
@@ -124,11 +122,8 @@ impl BigFileIo for BigFileV1_08_40_02PC {
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match resource.data {
-                    CompressibleData {
-                        compress: true,
-                        ref data,
-                    } => {
+                match (&resource.data, resource.compress) {
+                    (Data(data), true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(16))?;
                         let begin_data = writer.stream_position()?;
@@ -153,22 +148,14 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                             calculated_working_buffer_offset,
                         );
                     }
-                    CompressibleData {
-                        compress: false,
-                        ref data,
-                    }
-                    | ResourceData::Data(ref data) => {
+                    (Data(data), false) => {
                         (data.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
                         data.write_options(writer, endian, ())?;
                     }
-                    ResourceData::ExtendedData {
-                        compress: true,
-                        ref link_header,
-                        ref body,
-                    } => {
+                    (SplitData { link_header, body }, true) => {
                         let data = [link_header.as_slice(), body.as_slice()].concat();
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(16))?;
@@ -194,11 +181,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                             calculated_working_buffer_offset,
                         );
                     }
-                    ResourceData::ExtendedData {
-                        compress: false,
-                        ref link_header,
-                        ref body,
-                    } => {
+                    (SplitData { link_header, body }, false) => {
                         ((link_header.len() + body.len()) as u32).write_options(
                             writer,
                             endian,

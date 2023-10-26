@@ -108,13 +108,9 @@ pub fn menubar(
                     {
                         let data = match &resource.data {
                             bff::bigfile::resource::ResourceData::Data(data) => data.clone(),
-                            bff::bigfile::resource::ResourceData::CompressibleData {
-                                data, ..
-                            } => data.clone(),
-                            bff::bigfile::resource::ResourceData::ExtendedData {
+                            bff::bigfile::resource::ResourceData::SplitData {
                                 link_header,
                                 body,
-                                ..
                             } => [link_header.clone(), body.clone()].concat(),
                         };
                         File::create(path)

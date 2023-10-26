@@ -5,8 +5,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
 
 use crate::bigfile::manifest::Manifest;
-use crate::bigfile::resource::ResourceData;
-use crate::bigfile::resource::ResourceData::Data;
+use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::BigFile;
 use crate::helpers::{write_align_to, DynArray};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
@@ -33,6 +32,7 @@ impl From<Resource> for crate::bigfile::resource::Resource {
         crate::bigfile::resource::Resource {
             class_name: resource.class_name,
             name: resource.name,
+            compress: false,
             data: Data(resource.data),
         }
     }
@@ -181,18 +181,14 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
 
             for resource in block.objects.iter() {
                 let resource = bigfile.objects.get(&resource.name).unwrap();
-                match resource.data {
-                    Data(ref data) | ResourceData::CompressibleData { ref data, .. } => {
+                match &resource.data {
+                    Data(data) => {
                         (data.len() as u32 + 12).write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
                         data.write_options(writer, endian, ())?;
                     }
-                    ResourceData::ExtendedData {
-                        ref link_header,
-                        ref body,
-                        ..
-                    } => {
+                    SplitData { link_header, body } => {
                         let data_len = link_header.len() as u32 + body.len() as u32 + 12;
                         data_len.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;

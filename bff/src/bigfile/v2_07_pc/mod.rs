@@ -8,8 +8,8 @@ use crate::bigfile::manifest::Manifest;
 use crate::bigfile::BigFile;
 use crate::helpers::{read_align_to, DynArray};
 use crate::lz::lzo_decompress;
-use crate::names::NameType::BlackSheep32;
 use crate::names::NameType;
+use crate::names::NameType::BlackSheep32;
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
 use crate::versions::Version;
@@ -41,7 +41,10 @@ impl BinWrite for Block {
 }
 
 #[parser(reader, endian)]
-fn parse_blocks<const MQFEL: bool>(decompressed_block_size: u32, block_sizes: Vec<u32>) -> BinResult<Vec<Block>> {
+fn parse_blocks<const MQFEL: bool>(
+    decompressed_block_size: u32,
+    block_sizes: Vec<u32>,
+) -> BinResult<Vec<Block>> {
     let mut blocks = Vec::new();
 
     for block_size in block_sizes {
@@ -52,21 +55,21 @@ fn parse_blocks<const MQFEL: bool>(decompressed_block_size: u32, block_sizes: Ve
         };
         let resource_count = u32::read_options(reader, endian, ())?;
 
-        println!("block_size: {}, resource_count: {}, checksum: {:?}", block_size, resource_count, checksum);
+        println!(
+            "block_size: {}, resource_count: {}, checksum: {:?}",
+            block_size, resource_count, checksum
+        );
 
         if block_size != decompressed_block_size {
-            let block_size = if MQFEL {
-                block_size - 8
-            } else {
-                block_size
-            };
+            let block_size = if MQFEL { block_size - 8 } else { block_size };
 
             let mut compressed = vec![0; block_size as usize];
             reader.read_exact(&mut compressed)?;
             let decompressed =
                 lzo_decompress(&compressed, decompressed_block_size as usize).unwrap();
             let mut decompressed = Cursor::new(decompressed);
-            let block = Block::read_options(&mut decompressed, endian, (true, checksum, resource_count))?;
+            let block =
+                Block::read_options(&mut decompressed, endian, (true, checksum, resource_count))?;
             blocks.push(block);
         } else {
             let block = Block::read_options(reader, endian, (false, checksum, resource_count))?;

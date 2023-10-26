@@ -15,7 +15,7 @@ use pool::Pool;
 
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
-use crate::bigfile::resource::ResourceData::ExtendedData;
+use crate::bigfile::resource::ResourceData::SplitData;
 use crate::bigfile::v1_06_63_02_pc::pool::{
     calculate_padded_pool_header_size,
     ObjectDescription,
@@ -53,8 +53,8 @@ fn blocks_parser(
                 Resource {
                     class_name: object.class_name,
                     name: object.name,
-                    data: ExtendedData {
-                        compress: object.compress,
+                    compress: object.compress,
+                    data: SplitData {
                         link_header: object.link_header,
                         body: object.body,
                     },
@@ -99,10 +99,11 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
 
     for pool_object in pool.objects.into_iter() {
         let name = pool_object.object.name;
-        match &mut objects.get_mut(&name).unwrap().data {
-            ExtendedData { body, compress, .. } => {
+        let object = objects.get_mut(&name).unwrap();
+        object.compress = pool_object.object.compress;
+        match &mut object.data {
+            SplitData { body, .. } => {
                 *body = pool_object.object.body;
-                *compress = pool_object.object.compress;
             }
             _ => unreachable!(),
         }
@@ -192,15 +193,8 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let is_pooled = pooled.contains(&object.name);
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, is_pooled) {
-                    (
-                        ExtendedData {
-                            compress: true,
-                            link_header,
-                            body,
-                        },
-                        false,
-                    ) => {
+                match (&resource.data, is_pooled, resource.compress) {
+                    (SplitData { link_header, body }, false, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
                         writer.write_all(link_header)?;
@@ -233,14 +227,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                             calculated_working_buffer_offset,
                         );
                     }
-                    (
-                        ExtendedData {
-                            compress: false,
-                            link_header,
-                            body,
-                        },
-                        false,
-                    ) => {
+                    (SplitData { link_header, body }, false, false) => {
                         (link_header.len() as u32 + body.len() as u32).write_options(
                             writer,
                             endian,
@@ -254,7 +241,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                         writer.write_all(link_header)?;
                         writer.write_all(body)?;
                     }
-                    (ExtendedData { link_header, .. }, true) => {
+                    (SplitData { link_header, .. }, true, _) => {
                         (link_header.len() as u32).write_options(writer, endian, ())?;
                         (link_header.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
@@ -337,12 +324,8 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 let name = entry.name;
                 let resource = bigfile.objects.get(&name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match &resource.data {
-                    ExtendedData {
-                        compress: true,
-                        body,
-                        ..
-                    } => {
+                match (&resource.data, resource.compress) {
+                    (SplitData { body, .. }, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
                         let begin_body = writer.stream_position()?;
@@ -362,11 +345,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                             pool_object_decompression_buffer_capacity,
                         );
                     }
-                    ExtendedData {
-                        compress: false,
-                        body,
-                        ..
-                    } => {
+                    (SplitData { body, .. }, false) => {
                         (body.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         (body.len() as u32).write_options(writer, endian, ())?;
