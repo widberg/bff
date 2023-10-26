@@ -1,10 +1,12 @@
-use std::io::{Seek, SeekFrom, Write};
+use std::io::{Seek, Write};
 
 use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
-use crate::lz::{lzrs_compress_data_with_header_writer_internal, lzrs_decompress_body_parser};
+use crate::bigfile::resource::Resource;
+use crate::bigfile::resource::ResourceData::SplitData;
+use crate::lz::lzrs_decompress_body_parser;
 use crate::names::Name;
 
 #[parser(reader, endian)]
@@ -45,53 +47,30 @@ pub struct Object {
     pub body: Vec<u8>,
 }
 
-impl BinWrite for Object {
-    type Args<'a> = ();
-
-    fn write_options<W: Write + Seek>(
-        &self,
+impl Object {
+    pub fn dump_resource<W: Write + Seek>(
+        resource: &Resource,
         writer: &mut W,
         endian: Endian,
-        _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        let start = writer.stream_position()?;
-        writer.seek(SeekFrom::Current(16))?;
-
-        self.class_name.write_options(writer, endian, ())?;
-        self.name.write_options(writer, endian, ())?;
-        self.link_header.write_options(writer, endian, ())?;
-        let link_header_size = self.link_header.len() as u32;
-        let body_size = if self.compress {
-            let body_start = writer.stream_position()?;
-            lzrs_compress_data_with_header_writer_internal(&self.body, writer, endian, ())?;
-            let body_end = writer.stream_position()?;
-            (body_end - body_start) as u32
-        } else {
-            self.body.write_options(writer, endian, ())?;
-            self.body.len() as u32
-        };
-
-        let end = writer.stream_position()?;
-
-        // Now that we know everything, back to the top to write the header
-        writer.seek(SeekFrom::Start(start))?;
-
-        let data_size = link_header_size + body_size;
-        let decompressed_size = self.body.len() as u32;
-        let compressed_size = if self.compress { body_size } else { 0 };
-
-        data_size.write_options(writer, endian, ())?;
-        link_header_size.write_options(writer, endian, ())?;
-        decompressed_size.write_options(writer, endian, ())?;
-        compressed_size.write_options(writer, endian, ())?;
-
-        writer.seek(SeekFrom::Start(end))?;
-
+        match &resource.data {
+            SplitData { link_header, body } => {
+                (link_header.len() as u32 + body.len() as u32).write_options(writer, endian, ())?;
+                (link_header.len() as u32).write_options(writer, endian, ())?;
+                (body.len() as u32).write_options(writer, endian, ())?;
+                0u32.write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                writer.write_all(link_header)?;
+                writer.write_all(body)?;
+            }
+            _ => unreachable!(),
+        }
         Ok(())
     }
 }
 
-#[derive(BinRead, Serialize, Debug, BinWrite, Deref, DerefMut)]
+#[derive(BinRead, Serialize, Debug, Deref, DerefMut)]
 pub struct PoolObject {
     #[brw(align_after(2048))]
     #[serde(flatten)]

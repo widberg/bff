@@ -1,10 +1,11 @@
-use std::io::{Seek, SeekFrom, Write};
+use std::io::{Seek, Write};
 
 use binrw::{binread, BinResult, BinWrite, Endian};
 use serde::Serialize;
 
+use crate::bigfile::resource::Resource;
+use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::object::body_parser;
-use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::Name;
 
 #[binread]
@@ -23,42 +24,29 @@ pub struct Object {
     pub data: Vec<u8>,
 }
 
-impl BinWrite for Object {
-    type Args<'a> = ();
-
-    fn write_options<W: Write + Seek>(
-        &self,
+impl Object {
+    pub fn dump_resource<W: Write + Seek>(
+        resource: &Resource,
         writer: &mut W,
         endian: Endian,
-        _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        let start = writer.stream_position()?;
-        writer.seek(SeekFrom::Current(8))?;
-
-        self.class_name.write_options(writer, endian, ())?;
-        self.name.write_options(writer, endian, ())?;
-        let body_size = if self.compress {
-            let body_start = writer.stream_position()?;
-            lzrs_compress_data_with_header_writer_internal(&self.data, writer, endian, ())?;
-            let body_end = writer.stream_position()?;
-            (body_end - body_start) as u32
-        } else {
-            self.data.write_options(writer, endian, ())?;
-            self.data.len() as u32
-        };
-
-        let end = writer.stream_position()?;
-
-        // Now that we know everything, back to the top to write the header
-        writer.seek(SeekFrom::Start(start))?;
-
-        let decompressed_size = self.data.len() as u32;
-        let compressed_size = if self.compress { body_size } else { 0 };
-
-        decompressed_size.write_options(writer, endian, ())?;
-        compressed_size.write_options(writer, endian, ())?;
-
-        writer.seek(SeekFrom::Start(end))?;
+        match &resource.data {
+            Data(data) => {
+                (data.len() as u32).write_options(writer, endian, ())?;
+                0u32.write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                data.write_options(writer, endian, ())?;
+            }
+            SplitData { link_header, body } => {
+                ((link_header.len() + body.len()) as u32).write_options(writer, endian, ())?;
+                0u32.write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                link_header.write_options(writer, endian, ())?;
+                body.write_options(writer, endian, ())?;
+            }
+        }
 
         Ok(())
     }

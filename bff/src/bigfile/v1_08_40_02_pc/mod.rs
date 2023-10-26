@@ -9,6 +9,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{BinRead, BinResult, BinWrite};
 use block::Block;
 use header::*;
+use object::Object;
 
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
@@ -250,4 +251,6 @@ impl BigFileIo for BigFileV1_08_40_02PC {
     fn name_type(_version: Version, _platform: Platform) -> NameType {
         Asobo32
     }
+
+    type ResourceType = Object;
 }

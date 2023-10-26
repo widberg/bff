@@ -27,6 +27,33 @@ pub struct Resource {
     data: Vec<u8>,
 }
 
+impl Resource {
+    pub fn dump_resource<W: Write + Seek>(
+        resource: &crate::bigfile::resource::Resource,
+        writer: &mut W,
+        endian: Endian,
+    ) -> BinResult<()> {
+        match &resource.data {
+            Data(data) => {
+                (data.len() as u32 + 12).write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                data.write_options(writer, endian, ())?;
+            }
+            SplitData { link_header, body } => {
+                let data_len = link_header.len() as u32 + body.len() as u32 + 12;
+                data_len.write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
+                link_header.write_options(writer, endian, ())?;
+                body.write_options(writer, endian, ())?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl From<Resource> for crate::bigfile::resource::Resource {
     fn from(resource: Resource) -> crate::bigfile::resource::Resource {
         crate::bigfile::resource::Resource {
@@ -181,22 +208,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
 
             for resource in block.objects.iter() {
                 let resource = bigfile.objects.get(&resource.name).unwrap();
-                match &resource.data {
-                    Data(data) => {
-                        (data.len() as u32 + 12).write_options(writer, endian, ())?;
-                        resource.class_name.write_options(writer, endian, ())?;
-                        resource.name.write_options(writer, endian, ())?;
-                        data.write_options(writer, endian, ())?;
-                    }
-                    SplitData { link_header, body } => {
-                        let data_len = link_header.len() as u32 + body.len() as u32 + 12;
-                        data_len.write_options(writer, endian, ())?;
-                        resource.class_name.write_options(writer, endian, ())?;
-                        resource.name.write_options(writer, endian, ())?;
-                        link_header.write_options(writer, endian, ())?;
-                        body.write_options(writer, endian, ())?;
-                    }
-                };
+                Resource::dump_resource(resource, writer, endian)?;
             }
 
             write_align_to(writer, 0x20000, 0xCD)?;
@@ -234,4 +246,6 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
             BlackSheep32
         }
     }
+
+    type ResourceType = Resource;
 }

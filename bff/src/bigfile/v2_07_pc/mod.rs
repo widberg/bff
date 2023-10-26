@@ -172,4 +172,6 @@ impl<const MQFEL: bool> BigFileIo for BigFileV2_07PC<MQFEL> {
     fn name_type(_version: Version, _platform: Platform) -> NameType {
         BlackSheep32
     }
+
+    type ResourceType = Resource;
 }

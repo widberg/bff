@@ -148,7 +148,7 @@ pub fn calculate_padded_pool_header_size(
     calculated_padded(size, 2048)
 }
 
-#[derive(BinRead, Serialize, Debug, BinWrite)]
+#[derive(BinRead, Serialize, Debug)]
 pub struct Pool {
     pub header: PoolHeader,
     #[br(count = header.object_descriptions_indices.len())]

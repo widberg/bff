@@ -20,4 +20,6 @@ pub trait BigFileIo {
     ) -> BffResult<()>;
 
     fn name_type(version: Version, platform: Platform) -> NameType;
+
+    type ResourceType;
 }

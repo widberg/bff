@@ -1,12 +1,10 @@
 use std::fs::File;
-use std::io;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 use bff::bigfile::BigFile;
 use bff::platforms::Platform;
 use bff::BufReader;
-use serde_json::to_writer_pretty;
 
 use crate::error::BffCliResult;
 
@@ -57,14 +55,22 @@ pub fn read_bigfile(bigfile_path: &Path) -> BffCliResult<BigFile> {
 
 pub fn extract(
     bigfile_path: &Path,
-    _directory: &Path,
+    directory: &Path,
     in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
 ) -> BffCliResult<()> {
     read_names(bigfile_path, in_names)?;
 
     let bigfile = read_bigfile(bigfile_path)?;
-    to_writer_pretty(io::stdout().lock(), &bigfile)?;
+
+    for resource in bigfile.objects.values() {
+        let name = resource.name;
+        let class_name = resource.class_name;
+        let path = directory.join(format!("{}.{}", name, class_name));
+        std::fs::create_dir_all(path.parent().unwrap())?;
+        let mut writer = BufWriter::new(File::create(path)?);
+        bigfile.dump_resource(resource, &mut writer)?;
+    }
 
     write_names(out_names)?;
 
