@@ -16,10 +16,12 @@ use crate::versions::Version;
 use crate::BffResult;
 
 #[derive(Debug, BinRead)]
-#[br(import(compressed: bool, resource_count: u32))]
+#[br(import(compressed: bool, checksum: Option<u32>, resource_count: u32))]
 pub struct Block {
     #[br(calc = compressed)]
     pub compressed: bool,
+    #[br(calc = checksum)]
+    pub checksum: Option<u32>,
     #[br(count = resource_count)]
     pub resources: Vec<Resource>,
 }
@@ -39,21 +41,35 @@ impl BinWrite for Block {
 }
 
 #[parser(reader, endian)]
-fn parse_blocks(decompressed_block_size: u32, block_sizes: Vec<u32>) -> BinResult<Vec<Block>> {
+fn parse_blocks<const MQFEL: bool>(decompressed_block_size: u32, block_sizes: Vec<u32>) -> BinResult<Vec<Block>> {
     let mut blocks = Vec::new();
 
     for block_size in block_sizes {
+        let checksum = if MQFEL {
+            Some(u32::read_options(reader, endian, ())?)
+        } else {
+            None
+        };
         let resource_count = u32::read_options(reader, endian, ())?;
+
+        println!("block_size: {}, resource_count: {}, checksum: {:?}", block_size, resource_count, checksum);
+
         if block_size != decompressed_block_size {
+            let block_size = if MQFEL {
+                block_size - 8
+            } else {
+                block_size
+            };
+
             let mut compressed = vec![0; block_size as usize];
             reader.read_exact(&mut compressed)?;
             let decompressed =
                 lzo_decompress(&compressed, decompressed_block_size as usize).unwrap();
             let mut decompressed = Cursor::new(decompressed);
-            let block = Block::read_options(&mut decompressed, endian, (true, resource_count))?;
+            let block = Block::read_options(&mut decompressed, endian, (true, checksum, resource_count))?;
             blocks.push(block);
         } else {
-            let block = Block::read_options(reader, endian, (false, resource_count))?;
+            let block = Block::read_options(reader, endian, (false, checksum, resource_count))?;
             blocks.push(block);
         }
         read_align_to(reader, 2048)?;
@@ -73,7 +89,7 @@ enum CompressionType {
 #[binread]
 #[derive(Debug)]
 #[br(import(version: Version, platform: Platform))]
-pub struct BigFileV2_07PC {
+pub struct BigFileV2_07PC<const MQFEL: bool = false> {
     #[br(calc = version)]
     version: Version,
     #[br(calc = platform)]
@@ -84,12 +100,14 @@ pub struct BigFileV2_07PC {
     _compression_type: CompressionType,
     #[br(temp)]
     block_sizes: DynArray<u32>,
-    #[br(align_before = 2048, parse_with = parse_blocks, args(decompressed_block_size, block_sizes.inner))]
+    #[br(align_before = 2048, parse_with = parse_blocks::<MQFEL, _>, args(decompressed_block_size, block_sizes.inner))]
     blocks: Vec<Block>,
 }
 
-impl From<BigFileV2_07PC> for BigFile {
-    fn from(bigfile: BigFileV2_07PC) -> BigFile {
+pub type BigFileV2_07PCMQFEL = BigFileV2_07PC<true>;
+
+impl<const MQFEL: bool> From<BigFileV2_07PC<MQFEL>> for BigFile {
+    fn from(bigfile: BigFileV2_07PC<MQFEL>) -> BigFile {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -128,14 +146,14 @@ impl From<BigFileV2_07PC> for BigFile {
     }
 }
 
-impl BigFileIo for BigFileV2_07PC {
+impl<const MQFEL: bool> BigFileIo for BigFileV2_07PC<MQFEL> {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
     ) -> BffResult<BigFile> {
         let endian = platform.into();
-        let bigfile: BigFileV2_07PC =
+        let bigfile: BigFileV2_07PC<MQFEL> =
             BigFileV2_07PC::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }

@@ -19,7 +19,7 @@ use crate::bigfile::v1_22_pc::{
     BigFileV1_22PCNoVersionTriple,
     BigFileV1_22PCNoVersionTripleBlackSheep,
 };
-use crate::bigfile::v2_07_pc::BigFileV2_07PC;
+use crate::bigfile::v2_07_pc::{BigFileV2_07PC, BigFileV2_07PCMQFEL};
 use crate::names::Name;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
@@ -35,7 +35,8 @@ pub struct BigFile {
 bigfiles! {
     (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,
     (BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
-    (BlackSheep(2, _) | Ubisoft { .. }, _) => BigFileV2_07PC,
+    (BlackSheep(2, _), _) => BigFileV2_07PC,
+    (Ubisoft { .. }, _) => BigFileV2_07PCMQFEL,
     (AsoboLegacy(1, 81..) | Asobo(1, ..=5, _, _) | Asobo(1, 8, _, _), _) => BigFileV1_08_40_02PC,
     (AsoboLegacy(1, _), _) => BigFileV1_22PC,
     (Asobo(1, _, _, _), _) => BigFileV1_06_63_02PC,
