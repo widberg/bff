@@ -59,6 +59,7 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 |--------|--------|
 | csc    | ✔      |
 | psc    | ✔      |
+| CPS    | ❌      |
 
 ### Audio
 

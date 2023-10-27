@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, Write};
 
-use binrw::{binread, parser, BinRead, BinResult, BinWrite, Endian, args};
+use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 
 use super::v1_22_pc::Resource;
 use crate::bigfile::manifest::Manifest;
@@ -62,13 +62,21 @@ fn parse_blocks<const MQFEL: bool>(
             blocks.push(Block {
                 compressed: true,
                 checksum,
-                resources: Vec::<Resource>::read_options(&mut decompressed, endian, args! { count: resource_count as usize })?
+                resources: Vec::<Resource>::read_options(
+                    &mut decompressed,
+                    endian,
+                    args! { count: resource_count as usize },
+                )?,
             });
         } else {
             blocks.push(Block {
                 compressed: false,
                 checksum,
-                resources: Vec::<Resource>::read_options(reader, endian, args! { count: resource_count as usize })?
+                resources: Vec::<Resource>::read_options(
+                    reader,
+                    endian,
+                    args! { count: resource_count as usize },
+                )?,
             });
         }
         read_align_to(reader, 2048)?;
