@@ -61,6 +61,14 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 | psc    | ✔      |
 | CPS    | ❌      |
 
+These formats from Black Sheep Studios games also use the csc cypher and therefore work with the csc command. They aren't actually TSCs, but they are text based configuration formats, so I'll include them here.
+
+| Format | Status |
+|--------|--------|
+| cmf    | ✔      |
+| cgf    | ✔      |
+| cst    | ✔      |
+
 ### Audio
 
 | Format  | Status |
