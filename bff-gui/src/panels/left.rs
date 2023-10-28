@@ -112,6 +112,13 @@ pub fn resource_list(
                     }
                     ui.menu_button("Filter", |ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
+                            let mut all_selected = class_names.iter().all(|(_, checked)| *checked);
+                            if ui.checkbox(&mut all_selected, "Select all").clicked() {
+                                class_names
+                                    .iter_mut()
+                                    .for_each(|(_, checked)| *checked = all_selected);
+                                changed_list = true;
+                            }
                             class_names.iter_mut().for_each(|(name, mut checked)| {
                                 if ui.checkbox(&mut checked, name.to_string()).clicked() {
                                     changed_list = true;
