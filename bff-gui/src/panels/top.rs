@@ -260,6 +260,15 @@ pub fn menubar(
                     nicknames.clear();
                 }
             });
+            ui.add_enabled_ui(bigfile.is_some(), |ui| {
+                ui.menu_button("Info", |ui| {
+                    ui.label(format!(
+                        "Version: {}\nPlatform: {}",
+                        bigfile.as_ref().unwrap().manifest.version,
+                        bigfile.as_ref().unwrap().manifest.platform,
+                    ))
+                })
+            });
         });
     });
     response
