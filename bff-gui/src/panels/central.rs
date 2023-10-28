@@ -13,7 +13,6 @@ pub fn view(
     resource_name: &Option<Name>,
     artifacts: &HashMap<Name, Artifact>,
 ) {
-    // let mut response = ViewResponse::default();
     egui::CentralPanel::default().show_inside(ui, |ui| {
         if let Some(resource_name) = resource_name {
             let artifact = artifacts.get(resource_name);

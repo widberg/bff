@@ -132,6 +132,7 @@ impl eframe::App for Gui {
                     &self.nicknames,
                     &self.artifacts,
                     &self.infos,
+                    &self.resource_name,
                 );
                 if let Some(name) = resource_list_response.resource_context_menu {
                     self.nickname_window_open = true;
