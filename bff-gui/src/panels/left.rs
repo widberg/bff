@@ -52,9 +52,8 @@ pub fn resource_list(
         .resizable(true)
         .width_range(70.0..=ui.available_width() / 2.0)
         .show_inside(ui, |ui| {
-            // ui.set_width_range(150.0..=200.0);
             if let Some(bigfile) = bigfile {
-                ui.style_mut().spacing.item_spacing.y = 5.0;
+                // ui.style_mut().spacing.item_spacing.y = 5.0;
 
                 let version = &bigfile.manifest.version;
                 let platform = bigfile.manifest.platform;
@@ -121,7 +120,6 @@ pub fn resource_list(
                         });
                     });
                 });
-                // println!("{:?}", class_names);
                 new_state.filter = Some(class_names);
 
                 let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list {
@@ -168,11 +166,28 @@ pub fn resource_list(
                     resources.len(),
                     |ui, row_range| {
                         ui.set_min_width(ui.available_width());
-                        ui.style_mut().spacing.item_spacing.y = 4.0;
+                        // ui.style_mut().spacing.item_spacing.y = 4.0;
 
                         for row in row_range {
                             let resource = resources.get(row).unwrap();
                             let nickname = nicknames.get(resource);
+                            // let job = egui::text::LayoutJob {
+                            //     text: format!(
+                            //         "{}.{}",
+                            //         match nickname {
+                            //             Some(nn) => nn.to_owned(),
+                            //             None => resource.to_string(),
+                            //         },
+                            //         bigfile.objects.get(resource).unwrap().class_name
+                            //     ),
+                            //     wrap: egui::text::TextWrapping {
+                            //         max_rows: 1,
+                            //         max_width: ui.available_width(),
+                            //         ..Default::default()
+                            //     },
+                            //     break_on_newline: false,
+                            //     ..Default::default()
+                            // };
                             let temp_btn = ui
                                 .add(
                                     egui::Button::new(format!(
@@ -183,9 +198,9 @@ pub fn resource_list(
                                         },
                                         bigfile.objects.get(resource).unwrap().class_name
                                     ))
-                                    .wrap(false)
                                     .rounding(0.0)
-                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
+                                    .min_size(egui::vec2(ui.available_width(), 0.0))
+                                    .wrap(true),
                                 )
                                 .context_menu(|ui| {
                                     if ui.button("Change nickname").clicked() {

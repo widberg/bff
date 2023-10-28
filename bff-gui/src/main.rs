@@ -104,6 +104,7 @@ impl eframe::App for Gui {
                 let menubar_response = menubar(
                     ui,
                     frame,
+                    "menubar".into(),
                     &self.bigfile,
                     &self.bigfile_path,
                     &self.resource_name,
@@ -125,7 +126,7 @@ impl eframe::App for Gui {
                             .as_ref()
                             .unwrap_or(&PathBuf::default())
                             .display()
-                    ) //TODO: implement state properly. this takes more memory the more bigfiles you open, though not critical
+                    )
                     .into(),
                     &self.bigfile,
                     &self.nicknames,
