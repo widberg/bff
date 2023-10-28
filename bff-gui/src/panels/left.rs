@@ -5,7 +5,6 @@ use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
-use egui;
 
 use crate::{Artifact, Export, RecursiveExport};
 

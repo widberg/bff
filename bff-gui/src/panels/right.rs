@@ -1,5 +1,3 @@
-use egui;
-
 pub fn resource_info(ui: &mut egui::Ui, info: Option<&String>) {
     egui::SidePanel::right("right")
         .resizable(true)
