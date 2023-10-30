@@ -33,8 +33,8 @@ pub struct BigFile {
 }
 
 bigfiles! {
+    (Kalisto(1, 75) | BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
     (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,
-    (BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
     (BlackSheep(2, _), _) => BigFileV2_07PC,
     (Ubisoft { .. }, _) => BigFileV2_07PCMQFEL,
     (AsoboLegacy(1, 81..) | Asobo(1, ..=5, _, _) | Asobo(1, 8, _, _), _) => BigFileV1_08_40_02PC,
