@@ -3,57 +3,43 @@ use std::sync::Arc;
 use eframe::egui;
 use three_d::*;
 
-pub struct MeshView {
-    model: Arc<CpuModel>,
-}
+pub fn mesh_view(ui: &mut egui::Ui, model: Arc<CpuModel>) {
+    egui::Frame::canvas(ui.style()).show(ui, |ui| {
+        let (rect, response) =
+            ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
 
-impl MeshView {
-    pub fn new(model: Arc<CpuModel>) -> Self {
-        Self { model }
-    }
-}
+        // let ang =
+        //     match ui.memory(|mem| mem.data.get_temp::<Arc<Mutex<f32>>>(self.id_source)) {
+        //         Some(val) => *val.lock().unwrap(),
+        //         None => self.angle,
+        //     };
+        // self.angle = ang + response.drag_delta().x * 0.01;
+        // ui.memory_mut(|mem| {
+        //     mem.data
+        //         .insert_temp(self.id_source, Arc::new(Mutex::new(self.angle)))
+        // });
 
-impl egui::Widget for MeshView {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        egui::Frame::canvas(ui.style())
-            .show(ui, |ui| {
-                let (rect, response) =
-                    ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
+        let angle = if response.dragged_by(egui::PointerButton::Primary) {
+            response.drag_delta() * 0.05
+        } else {
+            egui::Vec2::ZERO
+        };
 
-                // let ang =
-                //     match ui.memory(|mem| mem.data.get_temp::<Arc<Mutex<f32>>>(self.id_source)) {
-                //         Some(val) => *val.lock().unwrap(),
-                //         None => self.angle,
-                //     };
-                // self.angle = ang + response.drag_delta().x * 0.01;
-                // ui.memory_mut(|mem| {
-                //     mem.data
-                //         .insert_temp(self.id_source, Arc::new(Mutex::new(self.angle)))
-                // });
-
-                let angle = if response.dragged_by(egui::PointerButton::Primary) {
-                    response.drag_delta() * 0.05
-                } else {
-                    egui::Vec2::ZERO
-                };
-
-                let callback = egui::PaintCallback {
-                    rect,
-                    callback: std::sync::Arc::new(eframe::egui_glow::CallbackFn::new(
-                        move |info, painter| {
-                            with_three_d(&self.model, painter.gl(), |three_d| {
-                                three_d.frame(
-                                    ConvertedFrameInput::new(&three_d.context, &info, painter),
-                                    angle,
-                                );
-                            });
-                        },
-                    )),
-                };
-                ui.painter().add(callback);
-            })
-            .response
-    }
+        let callback = egui::PaintCallback {
+            rect,
+            callback: std::sync::Arc::new(eframe::egui_glow::CallbackFn::new(
+                move |info, painter| {
+                    with_three_d(&model, painter.gl(), |three_d| {
+                        three_d.frame(
+                            ConvertedFrameInput::new(&three_d.context, &info, painter),
+                            angle,
+                        );
+                    });
+                },
+            )),
+        };
+        ui.painter().add(callback);
+    });
 }
 
 fn with_three_d<R>(

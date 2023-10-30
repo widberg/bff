@@ -11,12 +11,13 @@ use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
 use bff::platforms::Platform;
-use panels::central::view;
-use panels::left::resource_list;
-use panels::right::resource_info;
-use panels::top::menubar;
+use panels::central::preview_panel;
+use panels::left::resource_list_panel;
+use panels::right::resource_info_panel;
+use panels::top::menubar_panel;
 use three_d::renderer::CpuModel;
 
+pub mod helpers;
 mod panels;
 mod views;
 
@@ -82,14 +83,19 @@ fn setup_custom_font(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
+#[derive(Default)]
+struct OpenWindows {
+    rename: bool,
+}
+
 struct Gui {
+    open_windows: OpenWindows,
     tx: Sender<(BigFile, PathBuf)>,
     rx: Receiver<(BigFile, PathBuf)>,
     bigfile: Option<BigFile>,
     bigfile_path: Option<PathBuf>,
     resource_name: Option<Name>,
     nicknames: HashMap<Name, String>,
-    nickname_window_open: bool,
     nickname_editing: (Name, String),
     artifacts: HashMap<Name, Artifact>,
     infos: HashMap<Name, String>,
@@ -102,13 +108,13 @@ impl Gui {
         setup_custom_font(&cc.egui_ctx);
         let (tx, rx) = std::sync::mpsc::channel();
         Self {
+            open_windows: OpenWindows::default(),
             tx,
             rx,
             bigfile: None,
             bigfile_path: None,
             resource_name: None,
             nicknames: HashMap::new(),
-            nickname_window_open: false,
             nickname_editing: (Name::default(), String::new()),
             artifacts: HashMap::new(),
             infos: HashMap::new(),
@@ -123,16 +129,14 @@ impl eframe::App for Gui {
             self.bigfile_path = Some(path);
             self.nicknames.clear();
             self.resource_name = None;
-            ctx.set_cursor_icon(egui::CursorIcon::Default);
         }
 
         egui::CentralPanel::default()
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
-                menubar(
+                menubar_panel(
                     ui,
                     frame,
-                    ctx,
                     "menubar".into(),
                     &self.bigfile,
                     &self.bigfile_path,
@@ -141,14 +145,8 @@ impl eframe::App for Gui {
                     &self.artifacts,
                     &self.tx,
                 );
-                // if let Some((bf, path)) = menubar_response.bigfile_open {
-                //     self.bigfile = Some(bf);
-                //     self.bigfile_path = Some(path);
-                //     self.nicknames.clear();
-                //     self.resource_name = None;
-                // }
 
-                let resource_list_response = resource_list(
+                let resource_list_response = resource_list_panel(
                     ui,
                     format!(
                         "resources-{}",
@@ -165,7 +163,7 @@ impl eframe::App for Gui {
                     &self.resource_name,
                 );
                 if let Some(name) = resource_list_response.resource_context_menu {
-                    self.nickname_window_open = true;
+                    self.open_windows.rename = true;
                     self.nickname_editing.0 = name;
                 }
                 if let Some(name) = resource_list_response.resource_clicked {
@@ -179,11 +177,11 @@ impl eframe::App for Gui {
                 }
 
                 if let Some(name) = self.resource_name {
-                    resource_info(ui, self.infos.get(&name));
+                    resource_info_panel(ui, self.infos.get(&name));
                 }
-                view(ui, "center".into(), &self.resource_name, &self.artifacts);
+                preview_panel(ui, &self.resource_name, &self.artifacts);
 
-                if self.nickname_window_open {
+                if self.open_windows.rename {
                     egui::Window::new("Change resource nickname")
                         .fixed_size(egui::vec2(100.0, 50.0))
                         .show(ctx, |ui| {
@@ -198,7 +196,7 @@ impl eframe::App for Gui {
                                     || ui.button("Change").clicked()
                                 {
                                     let filtered_nickname = self.nickname_editing.1.trim();
-                                    self.nickname_window_open = false;
+                                    self.open_windows.rename = false;
                                     if !filtered_nickname.is_empty() {
                                         self.nicknames.insert(
                                             self.nickname_editing.0,

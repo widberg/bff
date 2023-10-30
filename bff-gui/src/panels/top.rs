@@ -6,17 +6,15 @@ use std::sync::Mutex;
 use std::{collections::HashMap, sync::Arc};
 
 use bff::bigfile::BigFile;
-use bff::class::Class;
 use bff::names::Name;
-use bff::platforms::Platform;
-use bff::traits::TryIntoVersionPlatform;
 
+use crate::helpers::class::write_class_json;
+use crate::helpers::load::load_bf;
 use crate::Artifact;
 
-pub fn menubar(
+pub fn menubar_panel(
     ui: &mut egui::Ui,
     frame: &mut eframe::Frame,
-    ctx: &egui::Context,
     id_source: egui::Id,
     bigfile: &Option<BigFile>,
     bigfile_path: &Option<PathBuf>,
@@ -64,9 +62,7 @@ pub fn menubar(
                                     }
                                 }
                             }
-                            ctx.set_cursor_icon(egui::CursorIcon::Progress);
                             load_bf(path, tx.clone());
-                            // response.bigfile_open = Some((load_bigfile(&path), path));
                         }
                     }
                     if ui
@@ -123,7 +119,7 @@ pub fn menubar(
                             .add_filter("json", &["json"])
                             .save_file()
                         {
-                            write_class(
+                            write_class_json(
                                 &path,
                                 bigfile.as_ref().unwrap(),
                                 resource_name.as_ref().unwrap_or(&Name::default()),
@@ -270,39 +266,5 @@ pub fn menubar(
                 })
             });
         });
-    });
-}
-
-fn write_class(path: &PathBuf, bigfile: &BigFile, resource_name: &Name) {
-    File::create(path)
-        .unwrap()
-        .write_all(
-            serde_json::to_string_pretty::<Class>(
-                &bigfile
-                    .objects
-                    .get(resource_name)
-                    .unwrap()
-                    .try_into_version_platform(
-                        bigfile.manifest.version.clone(),
-                        bigfile.manifest.platform,
-                    )
-                    .unwrap(),
-            )
-            .unwrap()
-            .as_bytes(),
-        )
-        .unwrap();
-}
-
-fn load_bf(path: PathBuf, tx: Sender<(BigFile, PathBuf)>) {
-    tokio::spawn(async move {
-        let platform = match path.extension() {
-            Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-            None => Platform::PC,
-        };
-        let f = File::open(&path).unwrap();
-        let mut reader = bff::BufReader::new(f);
-        let bf = BigFile::read_platform(&mut reader, platform).unwrap();
-        let _ = tx.send((bf, path));
     });
 }
