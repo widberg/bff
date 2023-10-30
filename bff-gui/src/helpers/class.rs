@@ -1,6 +1,11 @@
-use std::{fs::File, io::Write, path::PathBuf};
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 
-use bff::{bigfile::BigFile, class::Class, names::Name, traits::TryIntoVersionPlatform};
+use bff::bigfile::BigFile;
+use bff::class::Class;
+use bff::names::Name;
+use bff::traits::TryIntoVersionPlatform;
 
 pub fn write_class_json(path: &PathBuf, bigfile: &BigFile, resource_name: &Name) {
     File::create(path)

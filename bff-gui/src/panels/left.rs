@@ -120,8 +120,8 @@ pub fn resource_list_panel(
                                     .for_each(|(_, checked)| *checked = all_selected);
                                 changed_list = true;
                             }
-                            class_names.iter_mut().for_each(|(name, mut checked)| {
-                                if ui.checkbox(&mut checked, name.to_string()).clicked() {
+                            class_names.iter_mut().for_each(|(name, checked)| {
+                                if ui.checkbox(checked, name.to_string()).clicked() {
                                     changed_list = true;
                                 }
                             });
@@ -177,7 +177,7 @@ pub fn resource_list_panel(
                         if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                             if let Some(cur) = current_resource {
                                 let mut res_iter = resources.iter();
-                                if res_iter.position(|n| n == cur).is_some() {
+                                if res_iter.any(|n| n == cur) {
                                     let res = *res_iter.cycle().next().unwrap();
                                     response.resource_clicked = Some(res);
                                     if artifacts.get(&res).is_none() || infos.get(&res).is_none() {

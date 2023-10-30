@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use bff::{bigfile::BigFile, class::Class, names::Name, traits::TryIntoVersionPlatform};
+use bff::bigfile::BigFile;
+use bff::class::Class;
+use bff::names::Name;
+use bff::traits::TryIntoVersionPlatform;
 
 use crate::{Artifact, Export, RecursiveExport};
 
@@ -36,8 +39,7 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
                 let dependency_classes: HashMap<Name, Class> = skin
                     .dependencies()
                     .iter()
-                    .map(|n| bigfile.objects.get(n))
-                    .flatten()
+                    .filter_map(|n| bigfile.objects.get(n))
                     .map(|r| {
                         (
                             r.name,

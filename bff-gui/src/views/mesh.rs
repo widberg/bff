@@ -167,11 +167,10 @@ impl ThreeDApp {
         cpu_model: &CpuModel,
         context: &three_d::core::Context,
     ) -> Model<PhysicalMaterial> {
-        let model = Model::<PhysicalMaterial>::new(context, cpu_model).unwrap();
+        Model::<PhysicalMaterial>::new(context, cpu_model).unwrap()
         // model.iter_mut().for_each(|m| {
         //     m.material = NormalMaterial::new(context, &three_d_asset::PbrMaterial::default());
         // });
-        model
     }
 
     pub fn set_model(&mut self, cpu_model: &CpuModel, gl: Arc<eframe::glow::Context>) {

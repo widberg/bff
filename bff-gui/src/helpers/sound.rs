@@ -1,4 +1,5 @@
-use std::{io::Cursor, sync::Arc};
+use std::io::Cursor;
+use std::sync::Arc;
 
 pub fn play_sound(data: Arc<Vec<i16>>, sample_rate: u32, channels: u16, volume: f32) {
     std::thread::spawn(move || {

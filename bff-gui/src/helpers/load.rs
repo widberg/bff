@@ -1,6 +1,9 @@
-use std::{fs::File, path::PathBuf, sync::mpsc::Sender};
+use std::fs::File;
+use std::path::PathBuf;
+use std::sync::mpsc::Sender;
 
-use bff::{bigfile::BigFile, platforms::Platform};
+use bff::bigfile::BigFile;
+use bff::platforms::Platform;
 
 pub fn load_bf(path: PathBuf, tx: Sender<(BigFile, PathBuf)>) {
     tokio::spawn(async move {

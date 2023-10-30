@@ -1,9 +1,9 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::mpsc::Sender;
-use std::sync::Mutex;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::{Arc, Mutex};
 
 use bff::bigfile::BigFile;
 use bff::names::Name;
@@ -87,7 +87,7 @@ pub fn menubar_panel(
                             "Name files",
                             &bff::platforms::extensions()
                                 .iter()
-                                .map(|s| s.to_str().unwrap().replacen("D", "N", 1))
+                                .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
                                 .collect::<Vec<String>>()[..],
                         )
                         .pick_files()
@@ -187,8 +187,8 @@ pub fn menubar_panel(
                                 let class_name = resource.class_name;
                                 let path = directory.join(
                                     format!("{}.{}", name, class_name)
-                                        .replace(":", "_")
-                                        .replace(">", "-"),
+                                        .replace(':', "_")
+                                        .replace('>', "-"),
                                     // works fine but i don't really like this solution
                                 );
                                 std::fs::create_dir_all(path.parent().unwrap()).unwrap();
