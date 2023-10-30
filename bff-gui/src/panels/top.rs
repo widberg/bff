@@ -34,16 +34,14 @@ pub fn menubar_panel(
                         };
                     if ui.button("Open BigFile...").clicked() {
                         ui.close_menu();
-                        if let Some(path) = rfd::FileDialog::new()
-                            .add_filter(
-                                "BigFile",
-                                &bff::platforms::extensions()
-                                    .iter()
-                                    .map(|s| s.to_str().unwrap())
-                                    .collect::<Vec<&str>>()[..],
-                            )
-                            .pick_file()
-                        {
+                        let dialog = &bff::platforms::extensions()
+                            .iter()
+                            .map(|s| s.to_str().unwrap())
+                            .fold(
+                                rfd::FileDialog::new().add_filter("All files", &["*"]),
+                                |acc, d| acc.add_filter(d, &[d]),
+                            );
+                        if let Some(path) = dialog.clone().pick_file() {
                             if checked {
                                 if let Some(extension) = path.extension() {
                                     if let Some(extension) = extension.to_str() {
@@ -82,16 +80,15 @@ pub fn menubar_panel(
                     .add_enabled(bigfile.is_some(), egui::Button::new("Load names..."))
                     .clicked()
                 {
-                    if let Some(paths) = rfd::FileDialog::new()
-                        .add_filter(
-                            "Name files",
-                            &bff::platforms::extensions()
-                                .iter()
-                                .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
-                                .collect::<Vec<String>>()[..],
-                        )
-                        .pick_files()
-                    {
+                    let dialog = &bff::platforms::extensions()
+                        .iter()
+                        .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
+                        .filter(|s| !s.contains("BF")) //TODO: actual name files for everything
+                        .fold(
+                            rfd::FileDialog::new().add_filter("All files", &["*"]),
+                            |acc, d| acc.add_filter(d.clone(), &[d.as_str()]),
+                        );
+                    if let Some(paths) = dialog.clone().pick_files() {
                         ui.close_menu();
                         for in_name in paths {
                             let f = File::open(in_name).unwrap();
