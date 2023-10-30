@@ -176,9 +176,9 @@ pub fn resource_list_panel(
                         ui.set_min_width(ui.available_width());
                         if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                             if let Some(cur) = current_resource {
-                                let mut res_iter = resources.iter();
+                                let mut res_iter = resources.iter().cycle();
                                 if res_iter.any(|n| n == cur) {
-                                    let res = *res_iter.cycle().next().unwrap();
+                                    let res = *res_iter.next().unwrap();
                                     response.resource_clicked = Some(res);
                                     if artifacts.get(&res).is_none() || infos.get(&res).is_none() {
                                         match bigfile
@@ -255,7 +255,16 @@ pub fn resource_list_panel(
                             //     break_on_newline: false,
                             //     ..Default::default()
                             // };
-                            let temp_btn = ui
+                            let mut tooltip_text = format!(
+                                "Size: {} bytes",
+                                bigfile.objects.get(resource).unwrap().size()
+                            );
+                            if nickname.is_some() {
+                                tooltip_text.push_str(
+                                    format!("\nOriginal name: {}", resource.to_string()).as_str(),
+                                );
+                            }
+                            let btn = ui
                                 .add(
                                     egui::Button::new(format!(
                                         "{}.{}",
@@ -283,12 +292,8 @@ pub fn resource_list_panel(
                                         ui.close_menu();
                                         response.resource_context_menu = Some(*resource);
                                     }
-                                });
-                            let btn = if nickname.is_some() {
-                                temp_btn.on_hover_text_at_pointer(resource.to_string())
-                            } else {
-                                temp_btn
-                            };
+                                })
+                                .on_hover_text_at_pointer(tooltip_text);
                             if btn.clicked() {
                                 response.resource_clicked = Some(*resource);
                                 if artifacts.get(resource).is_none()
