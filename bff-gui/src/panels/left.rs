@@ -127,6 +127,7 @@ pub fn resource_list_panel(
                             });
                         });
                     });
+                    ui.label(format!("Resources: {}", bigfile.objects.len()));
                 });
                 new_state.filter = Some(class_names);
 
