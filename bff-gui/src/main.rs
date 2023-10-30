@@ -21,6 +21,8 @@ pub mod helpers;
 mod panels;
 mod views;
 
+const TITLE: &'static str = "BFF Studio";
+
 #[derive(Clone)]
 pub enum Artifact {
     Bitmap {
@@ -61,7 +63,7 @@ fn main() -> Result<(), eframe::Error> {
         initial_window_size: Some(egui::vec2(800.0, 600.0)),
         ..Default::default()
     };
-    eframe::run_native("BFF GUI", options, Box::new(|cc| Box::new(Gui::new(cc))))
+    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
 }
 
 fn setup_custom_font(ctx: &egui::Context) {
@@ -125,6 +127,7 @@ impl Gui {
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         if let Ok((bf, path)) = self.rx.try_recv() {
+            frame.set_window_title(format!("{} - {}", TITLE, path.to_string_lossy()).as_str());
             self.bigfile = Some(bf);
             self.bigfile_path = Some(path);
             self.nicknames.clear();
