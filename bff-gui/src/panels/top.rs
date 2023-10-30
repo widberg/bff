@@ -1,32 +1,30 @@
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::mpsc::Sender;
 use std::sync::Mutex;
 use std::{collections::HashMap, sync::Arc};
 
 use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
+use bff::platforms::Platform;
 use bff::traits::TryIntoVersionPlatform;
 
-use crate::{load_bigfile, Artifact};
-
-#[derive(Default)]
-pub struct MenubarResponse {
-    pub bigfile_open: Option<(BigFile, PathBuf)>,
-}
+use crate::Artifact;
 
 pub fn menubar(
     ui: &mut egui::Ui,
     frame: &mut eframe::Frame,
+    ctx: &egui::Context,
     id_source: egui::Id,
     bigfile: &Option<BigFile>,
     bigfile_path: &Option<PathBuf>,
     resource_name: &Option<Name>,
     nicknames: &mut HashMap<Name, String>,
     artifacts: &HashMap<Name, Artifact>,
-) -> MenubarResponse {
-    let mut response = MenubarResponse::default();
+    tx: &Sender<(BigFile, PathBuf)>,
+) {
     egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
         ui.horizontal(|ui| {
             ui.menu_button("File", |ui| {
@@ -66,7 +64,9 @@ pub fn menubar(
                                     }
                                 }
                             }
-                            response.bigfile_open = Some((load_bigfile(&path), path));
+                            ctx.set_cursor_icon(egui::CursorIcon::Progress);
+                            load_bf(path, tx.clone());
+                            // response.bigfile_open = Some((load_bigfile(&path), path));
                         }
                     }
                     if ui
@@ -271,7 +271,6 @@ pub fn menubar(
             });
         });
     });
-    response
 }
 
 fn write_class(path: &PathBuf, bigfile: &BigFile, resource_name: &Name) {
@@ -293,4 +292,17 @@ fn write_class(path: &PathBuf, bigfile: &BigFile, resource_name: &Name) {
             .as_bytes(),
         )
         .unwrap();
+}
+
+fn load_bf(path: PathBuf, tx: Sender<(BigFile, PathBuf)>) {
+    tokio::spawn(async move {
+        let platform = match path.extension() {
+            Some(extension) => extension.try_into().unwrap_or(Platform::PC),
+            None => Platform::PC,
+        };
+        let f = File::open(&path).unwrap();
+        let mut reader = bff::BufReader::new(f);
+        let bf = BigFile::read_platform(&mut reader, platform).unwrap();
+        let _ = tx.send((bf, path));
+    });
 }

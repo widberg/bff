@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
 
 use bff::bigfile::BigFile;
@@ -35,6 +36,21 @@ pub enum Artifact {
 }
 
 fn main() -> Result<(), eframe::Error> {
+    let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
+
+    // Enter the runtime so that `tokio::spawn` is available immediately.
+    let _enter = rt.enter();
+
+    // Execute the runtime in its own thread.
+    // The future doesn't have to do anything. In this example, it just sleeps forever.
+    std::thread::spawn(move || {
+        rt.block_on(async {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+            }
+        })
+    });
+
     let options = eframe::NativeOptions {
         drag_and_drop_support: true,
         renderer: eframe::Renderer::Glow,
@@ -66,8 +82,9 @@ fn setup_custom_font(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
-#[derive(Default)]
 struct Gui {
+    tx: Sender<(BigFile, PathBuf)>,
+    rx: Receiver<(BigFile, PathBuf)>,
     bigfile: Option<BigFile>,
     bigfile_path: Option<PathBuf>,
     resource_name: Option<Name>,
@@ -83,7 +100,10 @@ impl Gui {
         cc.egui_ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(&cc.egui_ctx);
         setup_custom_font(&cc.egui_ctx);
+        let (tx, rx) = std::sync::mpsc::channel();
         Self {
+            tx,
+            rx,
             bigfile: None,
             bigfile_path: None,
             resource_name: None,
@@ -98,25 +118,35 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        if let Ok((bf, path)) = self.rx.try_recv() {
+            self.bigfile = Some(bf);
+            self.bigfile_path = Some(path);
+            self.nicknames.clear();
+            self.resource_name = None;
+            ctx.set_cursor_icon(egui::CursorIcon::Default);
+        }
+
         egui::CentralPanel::default()
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
-                let menubar_response = menubar(
+                menubar(
                     ui,
                     frame,
+                    ctx,
                     "menubar".into(),
                     &self.bigfile,
                     &self.bigfile_path,
                     &self.resource_name,
                     &mut self.nicknames,
                     &self.artifacts,
+                    &self.tx,
                 );
-                if let Some((bf, path)) = menubar_response.bigfile_open {
-                    self.bigfile = Some(bf);
-                    self.bigfile_path = Some(path);
-                    self.nicknames.clear();
-                    self.resource_name = None;
-                }
+                // if let Some((bf, path)) = menubar_response.bigfile_open {
+                //     self.bigfile = Some(bf);
+                //     self.bigfile_path = Some(path);
+                //     self.nicknames.clear();
+                //     self.resource_name = None;
+                // }
 
                 let resource_list_response = resource_list(
                     ui,
