@@ -127,7 +127,16 @@ pub fn resource_list_panel(
                             });
                         });
                     });
-                    ui.label(format!("Resources: {}", bigfile.objects.len()));
+                    ui.label(format!(
+                        "{}/{}",
+                        bigfile
+                            .objects
+                            .values()
+                            .filter(|res| { *class_names.get(&res.class_name).unwrap_or(&true) })
+                            .collect::<Vec<_>>()
+                            .len(),
+                        bigfile.objects.len()
+                    ));
                 });
                 new_state.filter = Some(class_names);
 
@@ -146,11 +155,11 @@ pub fn resource_list_panel(
                         .map(|r| (r.name, (r.class_name, r.size())))
                         .collect();
                     // resources.sort_by(compare)
-                    res.sort_by_cached_key(|a| match new_state.sort.sort_type {
-                        SortType::Name => a.0.to_string(),
-                        SortType::Ext => a.1 .0.to_string(),
-                        SortType::Size => a.1 .1.to_string(),
-                    });
+                    match new_state.sort.sort_type {
+                        SortType::Name => res.sort_by_cached_key(|k| k.0.to_string()),
+                        SortType::Ext => res.sort_by_cached_key(|k| k.1 .0.to_string()),
+                        SortType::Size => res.sort_by_cached_key(|k| k.1 .1),
+                    }
                     if new_state.sort.reverse {
                         res.reverse();
                     }
