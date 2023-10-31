@@ -131,33 +131,6 @@ impl eframe::App for Gui {
                     &self.artifacts,
                     &self.tx,
                 );
-                // egui::TopBottomPanel::bottom("bottom")
-                //     .resizable(false)
-                //     .exact_height(20.0)
-                //     .show_inside(ui, |ui| {
-                //         ui.columns(2, |columns| {
-                //             if let Some(bf) = &self.bigfile {
-                //                 columns[0].with_layout(
-                //                     egui::Layout::left_to_right(egui::Align::Center),
-                //                     |ui| {
-                //                         ui.label(format!("{} resources", bf.objects.len()));
-                //                     },
-                //                 );
-                //                 if let Some(res) = &self.resource_name {
-                //                     columns[1].with_layout(
-                //                         egui::Layout::right_to_left(egui::Align::Center),
-                //                         |ui| {
-                //                             ui.label(format!(
-                //                                 "{}.{}",
-                //                                 res,
-                //                                 bf.objects.get(res).unwrap().class_name
-                //                             ));
-                //                         },
-                //                     );
-                //                 }
-                //             }
-                //         });
-                //     });
 
                 let resource_list_response = resource_list_panel(
                     ui,
