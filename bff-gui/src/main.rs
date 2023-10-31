@@ -10,7 +10,7 @@ use std::sync::Arc;
 use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
-use bff::platforms::Platform;
+use helpers::load::load_bf;
 use panels::central::preview_panel;
 use panels::left::resource_list_panel;
 use panels::right::resource_info_panel;
@@ -22,6 +22,7 @@ mod panels;
 mod views;
 
 const TITLE: &'static str = "BFF Studio";
+const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
 #[derive(Clone)]
 pub enum Artifact {
@@ -60,7 +61,7 @@ fn main() -> Result<(), eframe::Error> {
         icon_data: Some(
             eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
         ),
-        initial_window_size: Some(egui::vec2(800.0, 600.0)),
+        initial_window_size: Some(WINDOW_SIZE),
         ..Default::default()
     };
     eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
@@ -160,7 +161,7 @@ impl eframe::App for Gui {
                     )
                     .into(),
                     &self.bigfile,
-                    &self.nicknames,
+                    &mut self.nicknames,
                     &self.artifacts,
                     &self.infos,
                     &self.resource_name,
@@ -168,6 +169,9 @@ impl eframe::App for Gui {
                 if let Some(name) = resource_list_response.resource_context_menu {
                     self.open_windows.rename = true;
                     self.nickname_editing.0 = name;
+                }
+                if let Some(name) = resource_list_response.nickname_cleared {
+                    self.nicknames.remove(&name);
                 }
                 if let Some(name) = resource_list_response.resource_clicked {
                     self.resource_name = Some(name);
@@ -186,6 +190,7 @@ impl eframe::App for Gui {
 
                 if self.open_windows.rename {
                     egui::Window::new("Change resource nickname")
+                        .open(&mut self.open_windows.rename)
                         .fixed_size(egui::vec2(100.0, 50.0))
                         .show(ctx, |ui| {
                             ui.horizontal(|ui| {
@@ -199,7 +204,7 @@ impl eframe::App for Gui {
                                     || ui.button("Change").clicked()
                                 {
                                     let filtered_nickname = self.nickname_editing.1.trim();
-                                    self.open_windows.rename = false;
+                                    // self.open_windows.rename = false;
                                     if !filtered_nickname.is_empty() {
                                         self.nicknames.insert(
                                             self.nickname_editing.0,
@@ -220,21 +225,10 @@ impl eframe::App for Gui {
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
                 let path = i.raw.dropped_files.get(0).unwrap().path.as_ref().unwrap();
-                self.bigfile = Some(load_bigfile(path));
-                self.bigfile_path = Some(path.clone());
+                load_bf(path.clone(), self.tx.clone());
             }
         });
     }
-}
-
-fn load_bigfile(path: &PathBuf) -> BigFile {
-    let platform = match path.extension() {
-        Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-        None => Platform::PC,
-    };
-    let f = File::open(path).unwrap();
-    let mut reader = bff::BufReader::new(f);
-    BigFile::read_platform(&mut reader, platform).unwrap()
 }
 
 fn preview_files_being_dropped(ctx: &egui::Context) {

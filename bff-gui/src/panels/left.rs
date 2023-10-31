@@ -36,6 +36,7 @@ pub struct ResourceListResponse {
     pub resource_clicked: Option<Name>,
     pub artifact_created: Option<Artifact>,
     pub info_created: Option<String>,
+    pub nickname_cleared: Option<Name>,
 }
 
 pub fn resource_list_panel(
@@ -301,6 +302,12 @@ pub fn resource_list_panel(
                                         // self.nickname_editing.0 = resource.name;
                                         ui.close_menu();
                                         response.resource_context_menu = Some(*resource);
+                                    }
+                                    if nickname.is_some() {
+                                        if ui.button("Clear nickname").clicked() {
+                                            ui.close_menu();
+                                            response.nickname_cleared = Some(*resource);
+                                        }
                                     }
                                 })
                                 .on_hover_text_at_pointer(tooltip_text);
