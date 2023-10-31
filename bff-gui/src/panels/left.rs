@@ -102,8 +102,8 @@ pub fn resource_list_panel(
                     if ui
                         .button(
                             egui::RichText::new(match new_state.sort.reverse {
-                                false => "",
-                                true => "",
+                                false => "",
+                                true => "",
                             })
                             .family(egui::FontFamily::Name("icons".into())),
                         )
