@@ -5,7 +5,8 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 
-use crate::{Artifact, Export, RecursiveExport};
+use crate::artifact::Artifact;
+use crate::traits::export::{Export, RecursiveExport};
 
 pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
     match class {

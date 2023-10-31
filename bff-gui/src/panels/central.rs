@@ -3,10 +3,10 @@ use std::sync::Arc;
 
 use bff::names::Name;
 
+use crate::artifact::Artifact;
 use crate::helpers::image::get_image;
 use crate::views::mesh::mesh_view;
 use crate::views::sound::sound_view;
-use crate::Artifact;
 
 pub fn preview_panel(
     ui: &mut egui::Ui,

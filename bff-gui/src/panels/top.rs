@@ -8,9 +8,9 @@ use std::sync::{Arc, Mutex};
 use bff::bigfile::BigFile;
 use bff::names::Name;
 
+use crate::artifact::Artifact;
 use crate::helpers::class::write_class_json;
 use crate::helpers::load::load_bf;
-use crate::Artifact;
 
 pub fn menubar_panel(
     ui: &mut egui::Ui,

@@ -6,8 +6,8 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 
+use crate::artifact::Artifact;
 use crate::helpers::artifact::create_artifact;
-use crate::Artifact;
 
 #[derive(Clone, PartialEq, Default)]
 enum SortType {
@@ -271,9 +271,8 @@ pub fn resource_list_panel(
                                 bigfile.objects.get(resource).unwrap().size()
                             );
                             if nickname.is_some() {
-                                tooltip_text.push_str(
-                                    format!("\nOriginal name: {}", resource.to_string()).as_str(),
-                                );
+                                tooltip_text
+                                    .push_str(format!("\nOriginal name: {}", resource).as_str());
                             }
                             let btn = ui
                                 .add(
@@ -303,11 +302,15 @@ pub fn resource_list_panel(
                                         ui.close_menu();
                                         response.resource_context_menu = Some(*resource);
                                     }
-                                    if nickname.is_some() {
-                                        if ui.button("Clear nickname").clicked() {
-                                            ui.close_menu();
-                                            response.nickname_cleared = Some(*resource);
-                                        }
+                                    if ui
+                                        .add_enabled(
+                                            nickname.is_some(),
+                                            egui::Button::new("Clear nickname"),
+                                        )
+                                        .clicked()
+                                    {
+                                        ui.close_menu();
+                                        response.nickname_cleared = Some(*resource);
                                     }
                                 })
                                 .on_hover_text_at_pointer(tooltip_text);
