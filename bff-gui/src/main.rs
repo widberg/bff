@@ -8,10 +8,6 @@ use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
 use helpers::load::load_bf;
-use panels::central::preview_panel;
-use panels::left::resource_list_panel;
-use panels::right::resource_info_panel;
-use panels::top::menubar_panel;
 
 pub mod artifact;
 pub mod helpers;
@@ -79,6 +75,7 @@ struct Gui {
     rx: Receiver<(BigFile, PathBuf)>,
     bigfile: Option<BigFile>,
     bigfile_path: Option<PathBuf>,
+    bigfile_loading: bool,
     resource_name: Option<Name>,
     nicknames: HashMap<Name, String>,
     nickname_editing: (Name, String),
@@ -98,6 +95,7 @@ impl Gui {
             rx,
             bigfile: None,
             bigfile_path: None,
+            bigfile_loading: false,
             resource_name: None,
             nicknames: HashMap::new(),
             nickname_editing: (Name::default(), String::new()),
@@ -115,24 +113,23 @@ impl eframe::App for Gui {
             self.bigfile_path = Some(path);
             self.nicknames.clear();
             self.resource_name = None;
+            self.bigfile_loading = false;
+            ctx.set_cursor_icon(egui::CursorIcon::Default);
+        }
+
+        if self.bigfile_loading {
+            ctx.set_cursor_icon(egui::CursorIcon::Progress);
         }
 
         egui::CentralPanel::default()
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
-                menubar_panel(
-                    ui,
-                    frame,
-                    "menubar".into(),
-                    &self.bigfile,
-                    &self.bigfile_path,
-                    &self.resource_name,
-                    &mut self.nicknames,
-                    &self.artifacts,
-                    &self.tx,
-                );
+                let menubar_reponse = self.menubar_panel(ui, frame, "menubar".into());
+                if menubar_reponse.bf_loading {
+                    self.bigfile_loading = true;
+                }
 
-                let resource_list_response = resource_list_panel(
+                let resource_list_response = self.resource_list_panel(
                     ui,
                     format!(
                         "resources-{}",
@@ -142,11 +139,6 @@ impl eframe::App for Gui {
                             .display()
                     )
                     .into(),
-                    &self.bigfile,
-                    &self.nicknames,
-                    &self.artifacts,
-                    &self.infos,
-                    &self.resource_name,
                 );
                 if let Some(name) = resource_list_response.resource_context_menu {
                     self.open_window = GuiWindow::Rename;
@@ -168,10 +160,8 @@ impl eframe::App for Gui {
                     }
                 }
 
-                if let Some(name) = self.resource_name {
-                    resource_info_panel(ui, self.infos.get(&name));
-                }
-                preview_panel(ui, &self.resource_name, &self.artifacts);
+                self.resource_info_panel(ui);
+                self.preview_panel(ui);
 
                 match self.open_window {
                     GuiWindow::Rename => {
