@@ -28,6 +28,7 @@ struct ResourceListState {
     sort: ListSort,
     filter: Option<HashMap<Name, bool>>,
     resources: Option<Arc<Vec<Name>>>,
+    filter_order: Option<Vec<Name>>,
 }
 
 #[derive(Default)]
@@ -78,6 +79,11 @@ pub fn resource_list_panel(
                         .map(|n| (*n, true))
                         .collect(),
                 );
+                let sorted_filter = new_state.filter_order.get_or_insert_with(|| {
+                    let mut filters: Vec<Name> = class_names.keys().cloned().collect();
+                    filters.sort_by_cached_key(|k| k.to_string());
+                    filters
+                });
                 ui.horizontal(|ui| {
                     ui.style_mut().spacing.item_spacing.x = 1.0;
                     if ui
@@ -121,7 +127,8 @@ pub fn resource_list_panel(
                                     .for_each(|(_, checked)| *checked = all_selected);
                                 changed_list = true;
                             }
-                            class_names.iter_mut().for_each(|(name, checked)| {
+                            sorted_filter.iter().for_each(|name| {
+                                let checked = class_names.get_mut(name).unwrap();
                                 if ui.checkbox(checked, name.to_string()).clicked() {
                                     changed_list = true;
                                 }
