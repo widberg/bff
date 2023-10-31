@@ -35,7 +35,7 @@ jobs:
         if: matrix.name == 'linux'
 
       - name: Build
-        run: cargo build --release --locked --bins
+        run: cmake -E env CARGO_PROFILE_RELEASE_LTO=true cargo build --release --locked --bins
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
