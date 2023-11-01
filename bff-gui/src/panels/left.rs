@@ -53,8 +53,6 @@ impl Gui {
             .width_range(70.0..=ui.available_width() / 2.0)
             .show_inside(ui, |ui| {
                 if let Some(bigfile) = &self.bigfile {
-                    // ui.style_mut().spacing.item_spacing.y = 5.0;
-
                     let version = &bigfile.manifest.version;
                     let platform = bigfile.manifest.platform;
                     let binding = match ui.memory(|mem| {
@@ -150,7 +148,7 @@ impl Gui {
 
                     let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list
                     {
-                        let mut res: Vec<(Name, (Name, usize))> = bigfile
+                        let mut res: Vec<(Name, Name, usize)> = bigfile
                             .objects
                             .values()
                             .filter(|res| {
@@ -161,19 +159,18 @@ impl Gui {
                                     .get(&res.class_name)
                                     .unwrap_or(&true)
                             })
-                            .map(|r| (r.name, (r.class_name, r.size())))
+                            .map(|r| (r.name, r.class_name, r.size()))
                             .collect();
-                        // resources.sort_by(compare)
                         match new_state.sort.sort_type {
                             SortType::Name => res.sort_by_cached_key(|k| k.0.to_string()),
-                            SortType::Ext => res.sort_by_cached_key(|k| k.1 .0.to_string()),
-                            SortType::Size => res.sort_by_cached_key(|k| k.1 .1),
+                            SortType::Ext => res.sort_by_cached_key(|k| k.1.to_string()),
+                            SortType::Size => res.sort_by_cached_key(|k| k.2),
                         }
                         if new_state.sort.reverse {
                             res.reverse();
                         }
                         let only_names: Arc<Vec<Name>> =
-                            Arc::new(res.into_iter().map(|(name, _)| name).collect());
+                            Arc::new(res.into_iter().map(|(name, _, _)| name).collect());
                         new_state.resources = Some(Arc::clone(&only_names));
                         Arc::clone(&only_names)
                     } else {
@@ -269,23 +266,6 @@ impl Gui {
                             for row in row_range {
                                 let resource = resources.get(row).unwrap();
                                 let nickname = self.nicknames.get(resource);
-                                // let job = egui::text::LayoutJob {
-                                //     text: format!(
-                                //         "{}.{}",
-                                //         match nickname {
-                                //             Some(nn) => nn.to_owned(),
-                                //             None => resource.to_string(),
-                                //         },
-                                //         bigfile.objects.get(resource).unwrap().class_name
-                                //     ),
-                                //     wrap: egui::text::TextWrapping {
-                                //         max_rows: 1,
-                                //         max_width: ui.available_width(),
-                                //         ..Default::default()
-                                //     },
-                                //     break_on_newline: false,
-                                //     ..Default::default()
-                                // };
                                 let mut tooltip_text = format!(
                                     "Size: {} bytes",
                                     bigfile.objects.get(resource).unwrap().size()
@@ -359,7 +339,6 @@ impl Gui {
                                             }
                                         }
                                     }
-                                    // self.resource_name = Some(resource.name);
                                 }
                             }
                         },

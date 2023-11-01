@@ -563,6 +563,7 @@ dependencies = [
  "egui_extras",
  "hound",
  "image",
+ "itertools",
  "rfd",
  "rodio",
  "serde",

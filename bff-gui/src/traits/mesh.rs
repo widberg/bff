@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use itertools::MultiUnzip;
 use three_d::CpuModel;
 
 use super::export::Export;
@@ -18,9 +19,11 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
             .iter()
             .map(|group| {
                 // println!("{}", mesh.body.mesh_buffer.vertex_buffers.len());
-                let (positions, (uvs, (normals, tangents))): (
+                let (positions, uvs, normals, tangents): (
                     Vec<Vec3>,
-                    (Vec<Vec2>, (Vec<Vec3>, Vec<Vec4>)),
+                    Vec<Vec2>,
+                    Vec<Vec3>,
+                    Vec<Vec4>,
                 ) = self
                     .body
                     .mesh_buffer
@@ -76,20 +79,16 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                     .map(|(p, u, n, t)| {
                         (
                             Vec3::from(*p),
-                            (
-                                Vec2::from(*u),
-                                (
-                                    {
-                                        let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
-                                        norm[2] *= -1.0;
-                                        Vec3::from(norm)
-                                    },
-                                    Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
-                                ),
-                            ),
+                            Vec2::from(*u),
+                            {
+                                let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
+                                norm[2] *= -1.0;
+                                Vec3::from(norm)
+                            },
+                            Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
                         )
                     })
-                    .unzip();
+                    .multiunzip();
                 let indices: Vec<u16> = self
                     .body
                     .mesh_buffer
