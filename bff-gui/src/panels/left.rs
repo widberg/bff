@@ -80,69 +80,74 @@ impl Gui {
                         filters
                     });
                     ui.horizontal(|ui| {
-                        ui.style_mut().spacing.item_spacing.x = 1.0;
-                        if ui
-                            .add(
-                                egui::Button::new(match new_state.sort.sort_type {
-                                    SortType::Name => "Name",
-                                    SortType::Ext => "Extension",
-                                    SortType::Size => "Size",
-                                })
-                                .min_size(egui::vec2(ui.available_width() / 3.0, 0.0)),
-                            )
-                            .clicked()
-                        {
-                            changed_list = true;
-                            new_state.sort.sort_type = match new_state.sort.sort_type {
-                                SortType::Name => SortType::Ext,
-                                SortType::Ext => SortType::Size,
-                                SortType::Size => SortType::Name,
-                            };
-                        }
+                        ui.horizontal(|ui| {
+                            ui.style_mut().spacing.item_spacing.x = 1.0;
+                            if ui
+                                .add(
+                                    egui::Button::new(match new_state.sort.sort_type {
+                                        SortType::Name => "Name",
+                                        SortType::Ext => "Extension",
+                                        SortType::Size => "Size",
+                                    })
+                                    .min_size(egui::vec2(ui.available_width() / 3.0, 0.0)),
+                                )
+                                .clicked()
+                            {
+                                changed_list = true;
+                                new_state.sort.sort_type = match new_state.sort.sort_type {
+                                    SortType::Name => SortType::Ext,
+                                    SortType::Ext => SortType::Size,
+                                    SortType::Size => SortType::Name,
+                                };
+                            }
+                            if ui
+                                .button(
+                                    egui::RichText::new(match new_state.sort.reverse {
+                                        false => "",
+                                        true => "",
+                                    })
+                                    .family(egui::FontFamily::Name("icons".into())),
+                                )
+                                .clicked()
+                            {
+                                changed_list = true;
+                                new_state.sort.reverse = !new_state.sort.reverse;
+                            }
+                        });
+
                         ui.style_mut().spacing.item_spacing.x = 5.0;
-                        if ui
-                            .button(
-                                egui::RichText::new(match new_state.sort.reverse {
-                                    false => "",
-                                    true => "",
-                                })
-                                .family(egui::FontFamily::Name("icons".into())),
-                            )
-                            .clicked()
-                        {
-                            changed_list = true;
-                            new_state.sort.reverse = !new_state.sort.reverse;
-                        }
-                        ui.menu_button("Filter", |ui| {
-                            egui::ScrollArea::vertical().show(ui, |ui| {
-                                let mut all_selected =
-                                    class_names.iter().all(|(_, checked)| *checked);
-                                if ui.checkbox(&mut all_selected, "Select all").clicked() {
-                                    class_names
-                                        .iter_mut()
-                                        .for_each(|(_, checked)| *checked = all_selected);
-                                    changed_list = true;
-                                }
-                                sorted_filter.iter().for_each(|name| {
-                                    let checked = class_names.get_mut(name).unwrap();
-                                    if ui.checkbox(checked, name.to_string()).clicked() {
+                        ui.horizontal(|ui| {
+                            ui.menu_button("Filter", |ui| {
+                                egui::ScrollArea::vertical().show(ui, |ui| {
+                                    let mut all_selected =
+                                        class_names.iter().all(|(_, checked)| *checked);
+                                    if ui.checkbox(&mut all_selected, "Select all").clicked() {
+                                        class_names
+                                            .iter_mut()
+                                            .for_each(|(_, checked)| *checked = all_selected);
                                         changed_list = true;
                                     }
+                                    sorted_filter.iter().for_each(|name| {
+                                        let checked = class_names.get_mut(name).unwrap();
+                                        if ui.checkbox(checked, name.to_string()).clicked() {
+                                            changed_list = true;
+                                        }
+                                    });
                                 });
                             });
+                            ui.label(format!(
+                                "{}/{}",
+                                bigfile
+                                    .objects
+                                    .values()
+                                    .filter(|res| {
+                                        *class_names.get(&res.class_name).unwrap_or(&true)
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .len(),
+                                bigfile.objects.len()
+                            ));
                         });
-                        ui.label(format!(
-                            "{}/{}",
-                            bigfile
-                                .objects
-                                .values()
-                                .filter(|res| {
-                                    *class_names.get(&res.class_name).unwrap_or(&true)
-                                })
-                                .collect::<Vec<_>>()
-                                .len(),
-                            bigfile.objects.len()
-                        ));
                     });
                     new_state.filter = Some(class_names);
 
@@ -182,6 +187,8 @@ impl Gui {
                                 .insert_temp(id_source, Arc::new(Mutex::new(new_state.clone())))
                         });
                     }
+
+                    ui.add(egui::Separator::default().horizontal().spacing(1.0));
 
                     let row_height = ui.spacing().interact_size.y;
                     egui::ScrollArea::vertical().show_rows(
@@ -298,8 +305,6 @@ impl Gui {
                                     )
                                     .context_menu(|ui| {
                                         if ui.button("Change nickname").clicked() {
-                                            // self.nickname_window_open = true;
-                                            // self.nickname_editing.0 = resource.name;
                                             ui.close_menu();
                                             response.resource_context_menu = Some(*resource);
                                         }
