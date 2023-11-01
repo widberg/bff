@@ -3,6 +3,7 @@ name = "bff-gui"
 version = "0.1.0"
 authors = ["widberg", "pizzart"]
 edition = "2021"
+rust-version = "1.72.1"
 
 [dependencies]
 bff = { path = "../bff" }
