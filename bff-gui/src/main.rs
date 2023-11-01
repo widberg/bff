@@ -71,8 +71,8 @@ enum GuiWindow {
 
 struct Gui {
     open_window: GuiWindow,
-    tx: Sender<(BigFile, PathBuf)>,
-    rx: Receiver<(BigFile, PathBuf)>,
+    tx: Sender<Option<(BigFile, PathBuf)>>,
+    rx: Receiver<Option<(BigFile, PathBuf)>>,
     bigfile: Option<BigFile>,
     bigfile_path: Option<PathBuf>,
     bigfile_loading: bool,
@@ -107,12 +107,14 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        if let Ok((bf, path)) = self.rx.try_recv() {
-            frame.set_window_title(format!("{} - {}", TITLE, path.to_string_lossy()).as_str());
-            self.bigfile = Some(bf);
-            self.bigfile_path = Some(path);
-            self.nicknames.clear();
-            self.resource_name = None;
+        if let Ok(res) = self.rx.try_recv() {
+            if let Some((bf, path)) = res {
+                frame.set_window_title(format!("{} - {}", TITLE, path.to_string_lossy()).as_str());
+                self.bigfile = Some(bf);
+                self.bigfile_path = Some(path);
+                self.nicknames.clear();
+                self.resource_name = None;
+            }
             self.bigfile_loading = false;
             ctx.set_cursor_icon(egui::CursorIcon::Default);
         }
@@ -207,7 +209,7 @@ impl eframe::App for Gui {
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
                 let path = i.raw.dropped_files.get(0).unwrap().path.as_ref().unwrap();
-                load_bf(path.clone(), self.tx.clone());
+                load_bf(ctx.clone(), path.clone(), self.tx.clone());
             }
         });
     }

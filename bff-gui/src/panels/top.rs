@@ -62,7 +62,7 @@ impl Gui {
                                     }
                                 }
                                 response.bf_loading = true;
-                                load_bf(path, self.tx.clone());
+                                load_bf(ui.ctx().clone(), path, self.tx.clone());
                             }
                         }
                         if ui
