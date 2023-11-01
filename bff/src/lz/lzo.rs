@@ -2,21 +2,22 @@ use std::io::Write;
 use std::ptr::null_mut;
 
 use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe};
-use binrw::Endian;
 
 use crate::BffResult;
 
-pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W, _endian: Endian) -> BffResult<()> {
+pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W) -> BffResult<()> {
     let mut compressed = Vec::with_capacity(data.len() + data.len() / 16 + 64 + 3);
-    let mut compressed_len = 0;
 
     unsafe {
+        let mut compressed_len = 0;
+        let mut wrkmem = [0usize; 0x4000];
+
         let result = lzo1x_1_compress(
             data.as_ptr(),
             data.len().try_into().unwrap(),
             compressed.as_mut_ptr(),
             &mut compressed_len,
-            null_mut(),
+            wrkmem.as_mut_ptr() as *mut _,
         );
         assert_eq!(result, 0);
 

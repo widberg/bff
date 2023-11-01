@@ -44,7 +44,7 @@ fn lz_internal<R: Read, W: Write>(
 
     match algorithm {
         LzAlgorithm::Lzrs => lzrs_compress_data_with_header_writer(&buf, &mut writer, endian)?,
-        LzAlgorithm::Lzo => lzo_compress(&buf, &mut writer, endian)?,
+        LzAlgorithm::Lzo => lzo_compress(&buf, &mut writer)?,
         LzAlgorithm::Lz4 => lz4_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Arcode => arcode_compress_data_with_header_writer(&buf, &mut writer, endian)?,
     };
