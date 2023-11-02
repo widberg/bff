@@ -16,7 +16,7 @@ fmt:
 clippy:
 	cargo {{cargo-command-prefix}} clippy
 
-test +TEST="":
+test *TEST:
 	cargo {{cargo-command-prefix}} test --release {{TEST}}
 
 build:
@@ -25,7 +25,7 @@ build:
 doc:
     cargo {{cargo-command-prefix}} doc
 
-run CMD +OPTIONS="":
+run CMD *OPTIONS:
     cargo run --release --bin {{CMD}} -- {{OPTIONS}}
 
 check: fmt clippy test
