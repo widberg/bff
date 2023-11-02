@@ -1,4 +1,5 @@
-use derive_more::Display;
+use binrw::{BinRead, BinWrite};
+use derive_more::{Display, From};
 use scanf::sscanf;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -120,5 +121,12 @@ impl<'de> Deserialize<'de> for Version {
     }
 }
 
-pub type VersionOneple = (u32,);
+#[derive(Debug, Clone, Copy, BinRead, BinWrite, Serialize, Deserialize, From)]
+#[serde(untagged)]
+pub enum VersionXple {
+    Oneple(VersionOneple),
+    Triple(VersionTriple),
+}
+
+pub type VersionOneple = u32;
 pub type VersionTriple = (u32, u32, u32);

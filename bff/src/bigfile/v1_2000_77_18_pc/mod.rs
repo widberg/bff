@@ -19,7 +19,7 @@ use crate::names::NameType;
 use crate::names::NameType::Asobo32;
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::Version;
+use crate::versions::{Version, VersionXple};
 use crate::BffResult;
 
 pub struct BigFileV1_2000_77_18PC;
@@ -44,7 +44,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
         Ok(BigFile {
             manifest: Manifest {
                 version,
-                version_triple: Some((header.version_oneple.0, 0, 0)),
+                version_xple: Some(header.version_oneple.into()),
                 platform,
                 rtc: Some(header.is_rtc),
                 pool_manifest_unused: None,
@@ -177,7 +177,9 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             .sum::<u32>();
 
         let header = Header {
-            version_oneple: (bigfile.manifest.version_triple.unwrap_or((0, 0, 0)).0,), // TODO: make this an enum
+            version_oneple: match bigfile.manifest.version_xple.unwrap_or(0.into()) {
+                VersionXple::Oneple(x) | VersionXple::Triple((x, _, _)) => x,
+            },
             is_rtc: bigfile.manifest.rtc.unwrap_or(false),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,

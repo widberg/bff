@@ -30,7 +30,7 @@ use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::Version;
+use crate::versions::{Version, VersionXple};
 use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
@@ -146,7 +146,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         Ok(BigFile {
             manifest: Manifest {
                 version,
-                version_triple: Some(header.version_triple),
+                version_xple: Some(header.version_triple.into()),
                 platform,
                 rtc: Some(header.is_rtc),
                 pool_manifest_unused: header.pool_manifest_unused,
@@ -458,7 +458,10 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 .iter()
                 .map(|x| x.padded_size)
                 .sum::<u32>(),
-            version_triple: bigfile.manifest.version_triple.unwrap_or_default(),
+            version_triple: match bigfile.manifest.version_xple.unwrap_or((0, 0, 0).into()) {
+                VersionXple::Oneple(x) => (x, 0, 0),
+                VersionXple::Triple(x) => x,
+            },
             block_descriptions,
             tag: tag.map(|x| x.as_bytes().to_vec()),
             pool_manifest_padded_size,

@@ -155,7 +155,7 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
         BigFile {
             manifest: Manifest {
                 version: bigfile.version,
-                version_triple: None,
+                version_xple: None,
                 platform: bigfile.platform,
                 rtc: None,
                 pool_manifest_unused: None,

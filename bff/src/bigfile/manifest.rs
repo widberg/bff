@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::names::Name;
 use crate::platforms::Platform;
-use crate::versions::{Version, VersionTriple};
+use crate::versions::{Version, VersionXple};
 
 #[derive(Serialize, Debug)]
 pub struct ManifestPoolObjectEntry {
@@ -46,7 +46,7 @@ pub struct Manifest {
     pub version: Version,
     pub platform: Platform,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub version_triple: Option<VersionTriple>,
+    pub version_xple: Option<VersionXple>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rtc: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

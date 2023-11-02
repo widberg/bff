@@ -12,7 +12,7 @@ use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::{Version, VersionTriple};
+use crate::versions::{Version, VersionTriple, VersionXple};
 use crate::BffResult;
 
 #[binrw]
@@ -159,7 +159,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
         BigFile {
             manifest: Manifest {
                 version: bigfile.version,
-                version_triple: bigfile.version_triple,
+                version_xple: bigfile.version_triple.map(|x| x.into()),
                 platform: bigfile.platform,
                 rtc: None,
                 pool_manifest_unused: None,
@@ -222,11 +222,11 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
         writer.seek(SeekFrom::Start(begin))?;
         block_size.write_options(writer, endian, ())?;
         if HAS_VERSION_TRIPLE {
-            bigfile
-                .manifest
-                .version_triple
-                .unwrap_or_default()
-                .write_options(writer, endian, ())?;
+            match bigfile.manifest.version_xple.unwrap_or((0, 0, 0).into()) {
+                VersionXple::Oneple(x) => (x, 0, 0),
+                VersionXple::Triple(x) => x,
+            }
+            .write_options(writer, endian, ())?;
         }
 
         if let Some(tag) = tag {
