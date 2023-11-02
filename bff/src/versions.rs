@@ -120,4 +120,5 @@ impl<'de> Deserialize<'de> for Version {
     }
 }
 
+pub type VersionOneple = (u32,);
 pub type VersionTriple = (u32, u32, u32);

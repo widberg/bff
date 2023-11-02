@@ -34,7 +34,7 @@ use crate::versions::Version;
 use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
-fn blocks_parser(
+pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
     objects: &mut HashMap<Name, Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
