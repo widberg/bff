@@ -64,7 +64,7 @@ pub fn blocks_parser(
         }
 
         blocks.push(ManifestBlock {
-            offset: Some(block_description.working_buffer_offset),
+            offset: Some(block_description.working_buffer_offset as u64),
             checksum: block_description.checksum,
             compressed: None,
             objects: block_objects,
@@ -264,7 +264,8 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
             let working_buffer_offset = block
                 .offset
-                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u64)
+                as u32;
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 

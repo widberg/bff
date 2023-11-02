@@ -141,7 +141,8 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
             let working_buffer_offset = block
                 .offset
-                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u32);
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u64)
+                as u32;
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 

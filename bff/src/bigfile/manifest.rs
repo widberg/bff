@@ -33,7 +33,7 @@ pub struct ManifestObject {
 #[derive(Serialize, Debug)]
 pub struct ManifestBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub offset: Option<u32>,
+    pub offset: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checksum: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]

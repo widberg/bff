@@ -3,6 +3,7 @@ pub mod resource;
 mod v1_06_63_02_pc;
 mod v1_08_40_02_pc;
 mod v1_2000_77_18_pc;
+mod v1_2002_45_19_pc;
 mod v1_22_pc;
 mod v2_07_pc;
 
@@ -16,6 +17,7 @@ use crate::bigfile::resource::Resource;
 use crate::bigfile::v1_06_63_02_pc::BigFileV1_06_63_02PC;
 use crate::bigfile::v1_08_40_02_pc::BigFileV1_08_40_02PC;
 use crate::bigfile::v1_2000_77_18_pc::BigFileV1_2000_77_18PC;
+use crate::bigfile::v1_2002_45_19_pc::BigFileV1_2002_45_19PC;
 use crate::bigfile::v1_22_pc::{
     BigFileV1_22PC,
     BigFileV1_22PCNoVersionTriple,
@@ -44,4 +46,5 @@ bigfiles! {
     (AsoboLegacy(1, _) | Asobo(1, ..=5 | 8, _, _), _) => BigFileV1_08_40_02PC,
     (Asobo(1, ..=1999, _, _), _) => BigFileV1_06_63_02PC,
     (Asobo(1, 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
+    (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
 }

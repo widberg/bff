@@ -48,7 +48,7 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 | 2015 | The Mighty Quest for Epic Loot - Ubisoft Montreal                                           |          |         | Ubisoft3   | ✔      |
 | 2016 | Young Conker - Asobo                                                                        |          |         | Asobo4     | ✔      |
 |      | Fragments - Asobo                                                                           |          |         | Asobo4     | ✔      |
-| 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         |          |         | Asobo5     | ❌      |
+| 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         |          |         | Asobo5     | ✔      |
 |      | Monopoly Plus/Monopoly Deal/Monopoly for Nintendo Switch (Re-release) - Asobo               |          |         | Asobo4     | ✔      |
 | 2019 | A Plague Tale: Innocence - Asobo                                                            |          |         | Asobo6     | ❌      |
 | 2020 | Microsoft Flight Simulator - Asobo                                                          |          |         | Asobo7     | ❌      |

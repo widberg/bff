@@ -1,20 +1,18 @@
 pub mod block;
 pub mod header;
-pub mod object;
 
 use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult, BinWrite};
-use block::Block;
+use binrw::{BinRead, BinResult, BinWrite, Endian};
+use block::*;
 use header::*;
-use object::Object;
 
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
-use crate::bigfile::resource::ResourceData::{Data, SplitData};
-use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
+use crate::bigfile::resource::ResourceData::SplitData;
+use crate::bigfile::v1_06_63_02_pc::object::Object;
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
@@ -23,10 +21,12 @@ use crate::names::{Name, NameType};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
 use crate::versions::{Version, VersionXple};
-use crate::{BffResult, Endian};
+use crate::BffResult;
+
+pub struct BigFileV1_2002_45_19PC;
 
 #[binrw::parser(reader, endian)]
-fn blocks_parser(
+pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
     objects: &mut HashMap<Name, Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
@@ -47,14 +47,17 @@ fn blocks_parser(
                     class_name: object.class_name,
                     name: object.name,
                     compress: object.compress,
-                    data: Data(object.data),
+                    data: SplitData {
+                        link_header: object.link_header,
+                        body: object.body,
+                    },
                 },
             );
         }
 
         blocks.push(ManifestBlock {
-            offset: Some(block_description.working_buffer_offset as u64),
-            checksum: block_description.checksum,
+            offset: Some(block_description.working_buffer_offset),
+            checksum: None,
             compressed: None,
             objects: block_objects,
         });
@@ -63,9 +66,7 @@ fn blocks_parser(
     Ok(blocks)
 }
 
-pub struct BigFileV1_08_40_02PC;
-
-impl BigFileIo for BigFileV1_08_40_02PC {
+impl BigFileIo for BigFileV1_2002_45_19PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
@@ -85,9 +86,9 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         Ok(BigFile {
             manifest: Manifest {
                 version,
-                version_xple: Some(header.version_triple.into()),
+                version_xple: Some(header.version_oneple.into()),
                 platform,
-                rtc: None,
+                rtc: Some(header.is_rtc),
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,
@@ -105,13 +106,11 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         let endian: Endian = bigfile.manifest.platform.into();
 
         let begin = writer.stream_position()?;
-        let zero_pad = vec![0x00; 2048 - 256 - 228];
-        writer.write_all(&zero_pad)?;
-        let ff_pad = vec![0xFF; 228];
-        writer.write_all(&ff_pad)?;
+        writer.seek(SeekFrom::Start(2048))?;
 
-        let mut block_working_buffer_capacity_even = 0u32;
-        let mut block_working_buffer_capacity_odd = 0u32;
+        let mut block_working_buffer_capacity_even = 0u64;
+        let mut block_working_buffer_capacity_odd = 0u64;
+        let mut block_sector_padding_size = 0u64;
 
         let mut block_descriptions = Vec::with_capacity(bigfile.manifest.blocks.len());
 
@@ -124,55 +123,30 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let begin_resource = writer.stream_position()?;
                 match (&resource.data, resource.compress) {
-                    (Data(data), true) => {
-                        let begin_header = writer.stream_position()?;
-                        writer.seek(SeekFrom::Current(16))?;
-                        let begin_data = writer.stream_position()?;
-                        lzrs_compress_data_with_header_writer_internal(data, writer, endian, ())?;
-                        let end_data = writer.stream_position()?;
-                        writer.seek(SeekFrom::Start(begin_header))?;
-                        (data.len() as u32).write_options(writer, endian, ())?;
-                        ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
-                        resource.class_name.write_options(writer, endian, ())?;
-                        resource.name.write_options(writer, endian, ())?;
-                        writer.seek(SeekFrom::Start(end_data))?;
-
-                        let needed_working_buffer_offset =
-                            if data.len() > (begin_resource - block_begin) as usize {
-                                data.len()
-                            } else {
-                                0
-                            };
-
-                        calculated_working_buffer_offset = max(
-                            needed_working_buffer_offset,
-                            calculated_working_buffer_offset,
-                        );
-                    }
-                    (Data(data), false) => {
-                        (data.len() as u32).write_options(writer, endian, ())?;
-                        0u32.write_options(writer, endian, ())?;
-                        resource.class_name.write_options(writer, endian, ())?;
-                        resource.name.write_options(writer, endian, ())?;
-                        data.write_options(writer, endian, ())?;
-                    }
                     (SplitData { link_header, body }, true) => {
-                        let data = [link_header.as_slice(), body.as_slice()].concat();
                         let begin_header = writer.stream_position()?;
-                        writer.seek(SeekFrom::Current(16))?;
-                        let begin_data = writer.stream_position()?;
-                        lzrs_compress_data_with_header_writer_internal(&data, writer, endian, ())?;
-                        let end_data = writer.stream_position()?;
+                        writer.seek(SeekFrom::Current(24))?;
+                        writer.write_all(link_header)?;
+                        let begin_body = writer.stream_position()?;
+                        lzrs_compress_data_with_header_writer_internal(body, writer, endian, ())?;
+                        let end_body = writer.stream_position()?;
                         writer.seek(SeekFrom::Start(begin_header))?;
-                        (data.len() as u32).write_options(writer, endian, ())?;
-                        ((end_data - begin_data) as u32).write_options(writer, endian, ())?;
+                        let compressed_body_size = (end_body - begin_body) as u32;
+                        (link_header.len() as u32 + compressed_body_size).write_options(
+                            writer,
+                            endian,
+                            (),
+                        )?;
+                        (link_header.len() as u32).write_options(writer, endian, ())?;
+                        (body.len() as u32).write_options(writer, endian, ())?;
+                        compressed_body_size.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
-                        writer.seek(SeekFrom::Start(end_data))?;
+                        writer.seek(SeekFrom::Start(end_body))?;
 
                         let needed_working_buffer_offset =
-                            if data.len() > (begin_resource - block_begin) as usize {
-                                data.len()
+                            if body.len() > (begin_resource - block_begin) as usize {
+                                body.len()
                             } else {
                                 0
                             };
@@ -183,29 +157,33 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                         );
                     }
                     (SplitData { link_header, body }, false) => {
-                        ((link_header.len() + body.len()) as u32).write_options(
+                        (link_header.len() as u32 + body.len() as u32).write_options(
                             writer,
                             endian,
                             (),
                         )?;
+                        (link_header.len() as u32).write_options(writer, endian, ())?;
+                        (body.len() as u32).write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
-                        link_header.write_options(writer, endian, ())?;
-                        body.write_options(writer, endian, ())?;
+                        writer.write_all(link_header)?;
+                        writer.write_all(body)?;
                     }
+                    _ => todo!(),
                 }
             }
 
             let block_end = writer.stream_position()?;
-            let data_size = (block_end - block_begin) as u32;
+            let data_size = block_end - block_begin;
             let padding = write_align_to(writer, 2048, 0x00)?;
-            let padded_size = data_size + padding as u32;
+            let padded_size = data_size + padding as u64;
+
+            block_sector_padding_size += padding as u64;
 
             let working_buffer_offset = block
                 .offset
-                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u64)
-                as u32;
+                .unwrap_or(calculated_padded(calculated_working_buffer_offset, 2048) as u64);
 
             let block_working_buffer_capacity = padded_size + working_buffer_offset;
 
@@ -226,25 +204,36 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                 padded_size,
                 data_size,
                 working_buffer_offset,
-                first_object_name: block.objects.first().map(|r| r.name).unwrap_or_default(),
-                // TODO: Calculate checksum using Asobo Alternate on the unpadded block while writing
-                checksum: block.checksum,
             });
         }
 
         let end = writer.stream_position()?;
         writer.seek(SeekFrom::Start(begin))?;
 
+        let total_resource_count = block_descriptions
+            .iter()
+            .map(|x| x.object_count)
+            .sum::<u32>();
+
         let header = Header {
+            version_oneple: match bigfile.manifest.version_xple.unwrap_or(0.into()) {
+                VersionXple::Oneple(x) | VersionXple::Triple((x, _, _)) => x,
+            },
+            is_rtc: bigfile.manifest.rtc.unwrap_or(false),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
-            total_padded_block_size: end as u32 - 2048,
-            version_triple: match bigfile.manifest.version_xple.unwrap_or((0, 0, 0).into()) {
-                VersionXple::Oneple(x) => (x, 0, 0),
-                VersionXple::Triple(x) => x,
-            },
+            total_padded_block_size: block_descriptions
+                .iter()
+                .map(|x| x.padded_size)
+                .sum::<u64>(),
             block_descriptions,
             tag: tag.map(|x| x.as_bytes().to_vec()),
+            block_sector_padding_size,
+            pool_sector_padding_size: 0,
+            file_size: end,
+            total_decompressed_size: 0,
+            zero: 0,
+            total_resource_count,
         };
         header.write_options(writer, endian, ())?;
 
