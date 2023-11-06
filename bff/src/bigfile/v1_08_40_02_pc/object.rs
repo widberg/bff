@@ -1,6 +1,6 @@
-use std::io::{Seek, Write};
+use std::io::{Read, Seek, Write};
 
-use binrw::{binread, BinResult, BinWrite, Endian};
+use binrw::{binread, BinRead, BinResult, BinWrite, Endian};
 use serde::Serialize;
 
 use crate::bigfile::resource::Resource;
@@ -49,5 +49,20 @@ impl Object {
         }
 
         Ok(())
+    }
+
+    pub fn read_resource<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<Resource> {
+        Ok(Self::read_options(reader, endian, ())?.into())
+    }
+}
+
+impl From<Object> for Resource {
+    fn from(value: Object) -> Self {
+        Resource {
+            class_name: value.class_name,
+            name: value.name,
+            compress: value.compress,
+            data: Data(value.data),
+        }
     }
 }

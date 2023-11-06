@@ -1,4 +1,4 @@
-use std::io::{Seek, Write};
+use std::io::{Read, Seek, Write};
 
 use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Deref, DerefMut};
@@ -67,6 +67,24 @@ impl Object {
             _ => unreachable!(),
         }
         Ok(())
+    }
+
+    pub fn read_resource<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<Resource> {
+        Ok(Self::read_options(reader, endian, ())?.into())
+    }
+}
+
+impl From<Object> for Resource {
+    fn from(value: Object) -> Self {
+        Resource {
+            class_name: value.class_name,
+            name: value.name,
+            compress: value.compress,
+            data: SplitData {
+                link_header: value.link_header,
+                body: value.body,
+            },
+        }
     }
 }
 

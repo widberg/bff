@@ -52,6 +52,13 @@ impl Resource {
 
         Ok(())
     }
+
+    pub fn read_resource<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+    ) -> BinResult<crate::bigfile::resource::Resource> {
+        Ok(Self::read_options(reader, endian, ())?.into())
+    }
 }
 
 impl From<Resource> for crate::bigfile::resource::Resource {

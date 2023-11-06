@@ -33,6 +33,12 @@ pub struct UnimplementedVersionPlatformError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
+#[display(fmt = "Unsupported BigFile version: {}", version)]
+pub struct UnimplementedVersionError {
+    pub version: Version,
+}
+
+#[derive(Debug, Constructor, Display, Error)]
 #[display(fmt = "Invalid BigFile extension {:#?}", extension)]
 pub struct InvalidExtensionError {
     pub extension: OsString,
@@ -53,6 +59,7 @@ pub enum Error {
     Io(std::io::Error),
     ParseInt(std::num::ParseIntError),
     UnimplementedClass(UnimplementedClassError),
+    UnimplementedVersion(UnimplementedVersionError),
     UnimplementedVersionPlatform(UnimplementedVersionPlatformError),
     Utf8(std::string::FromUtf8Error),
 }

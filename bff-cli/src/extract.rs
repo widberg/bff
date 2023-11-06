@@ -63,11 +63,19 @@ pub fn extract(
 
     let bigfile = read_bigfile(bigfile_path)?;
 
+    std::fs::create_dir(directory)?;
+
+    let manifest_path = directory.join("manifest.json");
+    let manifest_writer = BufWriter::new(File::create(manifest_path)?);
+    serde_json::to_writer_pretty(manifest_writer, &bigfile.manifest)?;
+
+    let resources_path = directory.join("resources");
+    std::fs::create_dir(&resources_path)?;
+
     for resource in bigfile.objects.values() {
         let name = resource.name;
         let class_name = resource.class_name;
-        let path = directory.join(format!("{}.{}", name, class_name));
-        std::fs::create_dir_all(path.parent().unwrap())?;
+        let path = resources_path.join(format!("{}.{}", name, class_name));
         let mut writer = BufWriter::new(File::create(path)?);
         bigfile.dump_resource(resource, &mut writer)?;
     }

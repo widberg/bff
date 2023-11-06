@@ -9,6 +9,7 @@ use reverse_crc32::DEFAULT_CHARACTER_SET;
 use crate::lz::LzAlgorithm;
 
 mod crc;
+mod create;
 mod csc;
 mod error;
 mod extract;
@@ -32,6 +33,15 @@ enum Commands {
     Extract {
         bigfile: PathBuf,
         directory: PathBuf,
+        #[arg(long)]
+        in_names: Vec<PathBuf>,
+        #[arg(long)]
+        out_names: Option<PathBuf>,
+    },
+    #[clap(alias = "c")]
+    Create {
+        directory: PathBuf,
+        bigfile: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
         #[arg(long)]
@@ -141,6 +151,12 @@ fn main() -> BffCliResult<()> {
             in_names,
             out_names,
         } => extract::extract(bigfile, directory, in_names, out_names),
+        Commands::Create {
+            directory,
+            bigfile,
+            in_names,
+            out_names,
+        } => create::create(directory, bigfile, in_names, out_names),
         Commands::Info { bigfile, in_names } => info::info(bigfile, in_names),
         Commands::Crc {
             string,

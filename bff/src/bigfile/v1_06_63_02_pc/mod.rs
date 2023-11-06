@@ -49,18 +49,7 @@ pub fn blocks_parser(
                 compress: Some(object.compress),
             });
 
-            objects.insert(
-                object.name,
-                Resource {
-                    class_name: object.class_name,
-                    name: object.name,
-                    compress: object.compress,
-                    data: SplitData {
-                        link_header: object.link_header,
-                        body: object.body,
-                    },
-                },
-            );
+            objects.insert(object.name, object.into());
         }
 
         blocks.push(ManifestBlock {

@@ -1,36 +1,36 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::names::Name;
 use crate::platforms::Platform;
 use crate::versions::{Version, VersionXple};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPoolObjectEntry {
     pub name: Name,
     pub reference_record_index: u32,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPoolReferenceRecord {
     pub object_entries_starting_index: u32,
     pub object_entries_count: u16,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPool {
     pub object_entry_indices: Vec<u32>,
     pub object_entries: Vec<ManifestPoolObjectEntry>,
     pub reference_records: Vec<ManifestPoolReferenceRecord>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestObject {
     pub name: Name,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub offset: Option<u64>,
@@ -41,7 +41,7 @@ pub struct ManifestBlock {
     pub objects: Vec<ManifestObject>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Manifest {
     pub version: Version,
     pub platform: Platform,

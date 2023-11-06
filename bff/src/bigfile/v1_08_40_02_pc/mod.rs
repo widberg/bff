@@ -41,15 +41,7 @@ fn blocks_parser(
                 compress: Some(object.compress),
             });
 
-            objects.insert(
-                object.name,
-                Resource {
-                    class_name: object.class_name,
-                    name: object.name,
-                    compress: object.compress,
-                    data: Data(object.data),
-                },
-            );
+            objects.insert(object.name, object.into());
         }
 
         blocks.push(ManifestBlock {

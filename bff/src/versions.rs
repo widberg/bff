@@ -3,6 +3,8 @@ use derive_more::{Display, From};
 use scanf::sscanf;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::names::names;
+
 #[derive(Debug, Display, Clone)]
 pub enum Version {
     #[display(
@@ -117,7 +119,9 @@ impl Serialize for Version {
 impl<'de> Deserialize<'de> for Version {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let string = String::deserialize(deserializer)?;
-        Ok(string.as_str().into())
+        let version: Version = string.as_str().into();
+        names().lock().unwrap().name_type = (&version).try_into().unwrap(); // FIXME: name_type should not exist
+        Ok(version)
     }
 }
 
