@@ -6,6 +6,38 @@ macro_rules! classes {
             $($class(Box<$class>),)*
         }
 
+        #[derive(serde::Serialize, Debug, serde::Deserialize)]
+        #[serde(untagged)]
+        pub enum ClassType {
+            $($class,)*
+        }
+
+        pub enum ClassNameStyle {
+            Z,
+            Caps,
+        }
+
+        impl TryFrom<crate::names::Name> for (ClassType, ClassNameStyle, crate::names::NameType) {
+            type Error = ();
+
+            fn try_from(name: crate::names::Name) -> Result<(ClassType, ClassNameStyle, crate::names::NameType), ()> {
+                use crate::traits::NamedClass;
+                match name {
+                    $(crate::names::Name::Asobo32($class::NAME) => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Asobo32)),
+                    crate::names::Name::Asobo32($class::NAME_LEGACY) => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Asobo32)),
+                    crate::names::Name::AsoboAlternate32($class::NAME) => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::AsoboAlternate32)),
+                    crate::names::Name::AsoboAlternate32($class::NAME_LEGACY) => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::AsoboAlternate32)),
+                    crate::names::Name::Kalisto32($class::NAME) => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Kalisto32)),
+                    crate::names::Name::Kalisto32($class::NAME_LEGACY) => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Kalisto32)),
+                    crate::names::Name::BlackSheep32($class::NAME) => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::BlackSheep32)),
+                    crate::names::Name::BlackSheep32($class::NAME_LEGACY) => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::BlackSheep32)),
+                    crate::names::Name::Asobo64($class::NAME) => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Asobo64)),
+                    crate::names::Name::Asobo64($class::NAME_LEGACY) => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Asobo64)),)*
+                    _ => Err(()),
+                }
+            }
+        }
+
         impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for Class {
             type Error = crate::error::Error;
 
