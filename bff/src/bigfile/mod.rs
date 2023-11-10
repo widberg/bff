@@ -43,8 +43,8 @@ bigfiles! {
     (BlackSheep(2, _), _) => BigFileV2_07PCSHAUN,
     (Ubisoft { .. }, _) => BigFileV2_07PCMQFEL,
     (AsoboLegacy(1, ..=80), _) => BigFileV1_22PC,
-    (AsoboLegacy(1, _) | Asobo(1, ..=5 | 8, _, _), _) => BigFileV1_08_40_02PC,
-    (Asobo(1, ..=1999, _, _), _) => BigFileV1_06_63_02PC,
-    (Asobo(1, 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
+    (AsoboLegacy(1, _) | Asobo(1, 1..=5 | 8, _, _), _) => BigFileV1_08_40_02PC,
+    (Asobo(1, 1..=1999, _, _), _) => BigFileV1_06_63_02PC,
+    (Asobo(1, 0 | 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
 }
