@@ -51,7 +51,7 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 | 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         |          |         | Asobo5     | ✔      |
 |      | Monopoly Plus/Monopoly Deal/Monopoly for Nintendo Switch (Re-release) - Asobo               |          |         | Asobo4     | ✔      |
 | 2019 | A Plague Tale: Innocence - Asobo                                                            |          |         | Asobo6     | ⚠️     |
-| 2020 | Microsoft Flight Simulator - Asobo                                                          |          |         | Asobo7     | ❌      |
+| 2020 | Microsoft Flight Simulator - Asobo                                                          |          |         | Asobo7     | ⚠️     |
 | 2022 | A Plague Tale: Requiem - Asobo                                                              |          |         | Asobo8     | ❌      |
 
 ### TSC

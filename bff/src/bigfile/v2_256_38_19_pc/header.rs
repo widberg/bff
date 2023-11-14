@@ -23,9 +23,11 @@ impl DataDescription {
 pub struct Resource {
     pub name: Name,
     pub class_name: Name,
+    pub unk1: u32,
     pub offset: u32,
-    pub size: u64,
-    pub decompressed_size: u64,
+    pub compressed_size: u32,
+    pub unk2: u32,
+    pub decompressed_size: u32,
 }
 
 #[derive(Serialize, Debug, BinRead)]
@@ -43,8 +45,10 @@ pub struct Resources {
     pub resource_count: u32,
     #[br(count = resource_count)]
     pub resources: Vec<Resource>,
-    #[br(align_after = 2048)]
     pub unk3: u64,
+    pub unk4: u64,
+    #[br(align_after = 2048)]
+    pub unk5: u32,
 }
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
@@ -63,16 +67,11 @@ pub struct Header {
     #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
     #[bw(map = |is_rtc: &bool| if *is_rtc { 0u32 } else { 1u32 })]
     pub is_rtc: bool,
-    pub block_description_offset: u64,
-    pub block_working_buffer_capacity_even: u64,
-    pub block_working_buffer_capacity_odd: u64,
-    pub total_padded_block_size: u64,
-    pub block_sector_padding_size: u64,
-    pub file_size: u64,
-    pub total_decompressed_size: u64,
-    pub zero: u64,
+    pub block_description_offset: u32,
+    pub unk1: u32,
+    pub unk2: u64,
     #[brw(align_after = 4096)]
-    pub total_resource_count: u32,
-    #[br(seek_before = SeekFrom::Start(block_description_offset * 2048))]
+    pub unk3: u32,
+    #[br(seek_before = SeekFrom::Start(block_description_offset as u64 * 2048))]
     pub block_descriptions: DynArray<BlockDescription>,
 }

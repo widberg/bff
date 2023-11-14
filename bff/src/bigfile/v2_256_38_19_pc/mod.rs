@@ -1,14 +1,12 @@
-pub mod block;
 pub mod header;
-pub mod object;
 
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult};
-use block::*;
+use crate::bigfile::v2_128_92_19_pc::block::*;
 use header::*;
-use object::*;
+use crate::bigfile::v2_128_92_19_pc::object::*;
 
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
@@ -20,7 +18,7 @@ use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
 
-pub struct BigFileV2_128_92_19PC;
+pub struct BigFileV2_256_38_19PC;
 
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(
@@ -74,7 +72,7 @@ pub fn blocks_parser(
     Ok(blocks)
 }
 
-impl BigFileIo for BigFileV2_128_92_19PC {
+impl BigFileIo for BigFileV2_256_38_19PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
