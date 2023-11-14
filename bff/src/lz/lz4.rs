@@ -1,8 +1,23 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{args, BinRead, BinResult, BinWrite, Endian};
+use binrw::{args, BinRead, BinReaderExt, BinResult, BinWrite, Endian};
 
 use crate::BffResult;
+
+#[binrw::parser(reader, endian)]
+pub fn lz4_decompress_body_parser(
+    decompressed_size: u32,
+    compressed_size: u32,
+) -> BinResult<Vec<u8>> {
+    // These fields are little endian even on big endian platforms.
+    let read_decompressed_size = reader.read_le::<u32>()?;
+    let read_compressed_size = reader.read_le::<u32>()?;
+
+    assert_eq!(decompressed_size, read_decompressed_size);
+    assert_eq!(compressed_size, read_compressed_size);
+
+    lz4_decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
+}
 
 #[binrw::writer(writer)]
 pub fn lz4_compress_data_writer(data: &[u8]) -> BinResult<()> {

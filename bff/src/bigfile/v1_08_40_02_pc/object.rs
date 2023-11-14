@@ -61,6 +61,7 @@ impl From<Object> for Resource {
         Resource {
             class_name: value.class_name,
             name: value.name,
+            link_name: None,
             compress: value.compress,
             data: Data(value.data),
         }

@@ -6,6 +6,7 @@ mod v1_2000_77_18_pc;
 mod v1_2002_45_19_pc;
 mod v1_22_pc;
 mod v2_07_pc;
+mod v2_128_92_19_pc;
 
 use std::collections::HashMap;
 
@@ -24,6 +25,7 @@ use crate::bigfile::v1_22_pc::{
     BigFileV1_22PCNoVersionTripleBlackSheep,
 };
 use crate::bigfile::v2_07_pc::{BigFileV2_07PCMQFEL, BigFileV2_07PCPROTO, BigFileV2_07PCSHAUN};
+use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::names::Name;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
@@ -47,4 +49,7 @@ bigfiles! {
     (Asobo(1, 1..=1999, _, _), _) => BigFileV1_06_63_02PC,
     (Asobo(1, 0 | 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
+    (Asobo(2, 128, 92, _), _) => BigFileV2_128_92_19PC,
+    // (Asobo(2, 256, _, _), _) => MSFS2020,
+    // (Asobo(2, 128, 52, _), _) => APTR,
 }

@@ -6,13 +6,13 @@ BigFile Friend
 [![Release Nightly](https://img.shields.io/badge/release-nightly-5e025f?labelColor=301934)](https://nightly.link/widberg/bff/workflows/build/master)
 [![Join the chat at https://discord.gg/CQgMNbYeUR](https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2)](https://discord.gg/CQgMNbYeUR)
 
-The Zouna Swiss Army knife. Originally names BigFile Friend for Zouna's resource archives, now it supports far more than just BigFiles.
+The Zouna Swiss Army knife. Originally named BigFile Friend for Zouna's resource archives, it now supports far more than just BigFiles.
 
 <sup>This repository is a relative of the main [FMTK repository](https://github.com/widberg/fmtk).</sup>
 
 ## Support
 
-A ✔ indicates that the format has been tested and is working. An ❌ indicates that the format has not been tested or is not working.
+A ✔ indicates that the format has been tested and is working. An ❌ indicates that the format is not yet implemented. A ⚠️ indicates partial/incomplete support.
 
 ### BigFile
 
@@ -50,7 +50,7 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 |      | Fragments - Asobo                                                                           |          |         | Asobo4     | ✔      |
 | 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         |          |         | Asobo5     | ✔      |
 |      | Monopoly Plus/Monopoly Deal/Monopoly for Nintendo Switch (Re-release) - Asobo               |          |         | Asobo4     | ✔      |
-| 2019 | A Plague Tale: Innocence - Asobo                                                            |          |         | Asobo6     | ❌      |
+| 2019 | A Plague Tale: Innocence - Asobo                                                            |          |         | Asobo6     | ⚠️     |
 | 2020 | Microsoft Flight Simulator - Asobo                                                          |          |         | Asobo7     | ❌      |
 | 2022 | A Plague Tale: Requiem - Asobo                                                              |          |         | Asobo8     | ❌      |
 

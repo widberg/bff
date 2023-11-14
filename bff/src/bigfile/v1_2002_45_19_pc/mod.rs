@@ -46,6 +46,7 @@ pub fn blocks_parser(
                 Resource {
                     class_name: object.class_name,
                     name: object.name,
+                    link_name: None,
                     compress: object.compress,
                     data: SplitData {
                         link_header: object.link_header,

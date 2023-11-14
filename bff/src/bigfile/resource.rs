@@ -10,6 +10,7 @@ pub enum ResourceData {
 pub struct Resource {
     pub class_name: Name,
     pub name: Name,
+    pub link_name: Option<Name>,
     pub compress: bool,
     pub data: ResourceData,
 }

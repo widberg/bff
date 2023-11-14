@@ -16,6 +16,7 @@ use crate::versions::Version;
 pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub class_name: Name,
     pub name: Name,
+    pub link_name: Option<Name>,
     pub compress: bool,
     pub link_header: LinkHeaderType,
     pub body: BodyType,
@@ -50,6 +51,7 @@ where
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,
+                    link_name: object.link_name,
                     compress: object.compress,
                     link_header,
                     body,
@@ -67,6 +69,7 @@ where
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,
+                    link_name: object.link_name,
                     compress: object.compress,
                     link_header,
                     body,
@@ -109,6 +112,7 @@ where
         Ok(Self {
             class_name: class.class_name,
             name: class.name,
+            link_name: class.link_name,
             compress: class.compress,
             data: SplitData {
                 link_header: link_header_cursor.into_inner(),

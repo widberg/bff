@@ -66,6 +66,7 @@ impl From<Resource> for crate::bigfile::resource::Resource {
         crate::bigfile::resource::Resource {
             class_name: resource.class_name,
             name: resource.name,
+            link_name: None,
             compress: false,
             data: Data(resource.data),
         }
