@@ -2,30 +2,28 @@
 # just (https://github.com/casey/just)
 # cargo-sort (https://github.com/DevinR528/cargo-sort)
 
-set windows-shell := ["cmd.exe", "/c"]
+set windows-shell := ["powershell.exe", "-command"]
 
-cargo-command-prefix := env_var_or_default("CARGO_COMMAND_PREFIX", "")
-
-default:
-  just --list
+list:
+    just --list
 
 fmt:
-	cargo +nightly {{cargo-command-prefix}} fmt
-	cargo {{cargo-command-prefix}} sort -w
+    cargo +nightly fmt
+    cargo sort -w
 
 clippy:
-	cargo {{cargo-command-prefix}} clippy
+    cargo clippy
 
 test *TEST:
-	cargo {{cargo-command-prefix}} test --release {{TEST}}
+    cargo test --release {{ TEST }}
 
 build:
-	cargo {{cargo-command-prefix}} build --release
+    cargo build --release
 
 doc:
-    cargo {{cargo-command-prefix}} doc
+    cargo doc
 
 run CMD *OPTIONS:
-    cargo run --release --bin {{CMD}} -- {{OPTIONS}}
+    cargo run --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 check: fmt clippy test
