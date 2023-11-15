@@ -1,15 +1,17 @@
+pub mod block;
 pub mod header;
+pub mod object;
 
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult};
+use block::*;
 use header::*;
+use object::*;
 
 use crate::bigfile::manifest::*;
 use crate::bigfile::resource::Resource;
-use crate::bigfile::v2_128_92_19_pc::block::*;
-use crate::bigfile::v2_128_92_19_pc::object::*;
 use crate::bigfile::BigFile;
 use crate::names::NameType::Asobo64;
 use crate::names::{Name, NameType};
@@ -18,7 +20,7 @@ use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
 
-pub struct BigFileV2_256_38_19PC;
+pub struct BigFileV2_128_52_19PC;
 
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(
@@ -29,13 +31,13 @@ pub fn blocks_parser(
 
     for block_description in block_descriptions {
         reader.seek(SeekFrom::Start(
-            block_description.resources_map_offset as u64 * 2048,
+            block_description.resources_map_offset as u64 * 16,
         ))?;
         let resources = Resources::read_options(reader, endian, ())?;
 
         let mut block_objects = Vec::with_capacity(resources.resources.len());
         for object in resources.resources.into_iter() {
-            reader.seek(SeekFrom::Start(object.offset as u64 * 2048))?;
+            reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
             let object = Object::read_options(reader, endian, ())?;
 
             block_objects.push(ManifestObject {
@@ -46,7 +48,7 @@ pub fn blocks_parser(
             objects.insert(object.name, object.into());
         }
 
-        reader.seek(SeekFrom::Start(resources.data_offset as u64 * 2048))?;
+        reader.seek(SeekFrom::Start(resources.data_offset as u64 * 16))?;
 
         for data_description in resources.data_descriptions {
             let data = Data::read_options(reader, endian, (data_description.resource_count,))?;
@@ -72,7 +74,7 @@ pub fn blocks_parser(
     Ok(blocks)
 }
 
-impl BigFileIo for BigFileV2_256_38_19PC {
+impl BigFileIo for BigFileV2_128_52_19PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
@@ -92,7 +94,7 @@ impl BigFileIo for BigFileV2_256_38_19PC {
         Ok(BigFile {
             manifest: Manifest {
                 version,
-                version_xple: Some(header.version_oneple.into()),
+                version_xple: Some((header.version_oneple as u32).into()),
                 platform,
                 rtc: Some(header.is_rtc),
                 pool_manifest_unused: None,

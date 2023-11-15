@@ -170,7 +170,7 @@ fn main() -> BffCliResult<()> {
             uncompressed,
             endian,
             algorithm,
-        } => lz::unlz(uncompressed, compressed, endian, algorithm),
+        } => lz::unlz(compressed, uncompressed, endian, algorithm),
         Commands::Lz {
             uncompressed,
             compressed,

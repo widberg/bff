@@ -10,6 +10,8 @@ use bff::lz::{
     lzo_decompress,
     lzrs_compress_data_with_header_writer,
     lzrs_decompress_data_with_header_parser,
+    zlib_compress_data_with_header_writer,
+    zlib_decompress_data_with_header_parser,
 };
 use bff::{BufReader, Endian};
 use clap::ValueEnum;
@@ -29,6 +31,7 @@ pub enum LzAlgorithm {
     Lzo,
     Lz4,
     Arcode,
+    Zlib,
 }
 
 fn lz_internal<R: Read, W: Write>(
@@ -47,6 +50,7 @@ fn lz_internal<R: Read, W: Write>(
         LzAlgorithm::Lzo => lzo_compress(&buf, &mut writer)?,
         LzAlgorithm::Lz4 => lz4_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Arcode => arcode_compress_data_with_header_writer(&buf, &mut writer, endian)?,
+        LzAlgorithm::Zlib => zlib_compress_data_with_header_writer(&buf, &mut writer, endian)?,
     };
 
     compressed.write_all(&writer.into_inner())?;
@@ -109,6 +113,7 @@ fn unlz_internal<R: Read, W: Write>(
         } // TODO: Add a CLI argument for the size
         LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Arcode => arcode_decompress_data_with_header_parser(&mut reader, endian)?,
+        LzAlgorithm::Zlib => zlib_decompress_data_with_header_parser(&mut reader, endian)?,
     };
 
     uncompressed.write_all(&decompressed)?;

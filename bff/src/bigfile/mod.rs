@@ -6,6 +6,7 @@ mod v1_2000_77_18_pc;
 mod v1_2002_45_19_pc;
 mod v1_22_pc;
 mod v2_07_pc;
+mod v2_128_52_19_pc;
 mod v2_128_92_19_pc;
 mod v2_256_38_19_pc;
 
@@ -26,6 +27,7 @@ use crate::bigfile::v1_22_pc::{
     BigFileV1_22PCNoVersionTripleBlackSheep,
 };
 use crate::bigfile::v2_07_pc::{BigFileV2_07PCMQFEL, BigFileV2_07PCPROTO, BigFileV2_07PCSHAUN};
+use crate::bigfile::v2_128_52_19_pc::BigFileV2_128_52_19PC;
 use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::bigfile::v2_256_38_19_pc::BigFileV2_256_38_19PC;
 use crate::names::Name;
@@ -53,5 +55,5 @@ bigfiles! {
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
     (Asobo(2, 128, 92, _), _) => BigFileV2_128_92_19PC,
     (Asobo(2, 256, _, _), _) => BigFileV2_256_38_19PC,
-    // (Asobo(2, 128, 52, _), _) => APTR,
+    (Asobo(2, 128, 52, _), _) => BigFileV2_128_52_19PC,
 }
