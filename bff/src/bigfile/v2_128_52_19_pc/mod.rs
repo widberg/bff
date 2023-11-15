@@ -35,8 +35,28 @@ pub fn blocks_parser(
         ))?;
         let resources = Resources::read_options(reader, endian, ())?;
 
-        let mut block_objects = Vec::with_capacity(resources.resources.len());
+        let mut block_objects = Vec::with_capacity(
+            resources.resources.len()
+                + resources.resources2.len()
+                + resources
+                    .data_descriptions
+                    .iter()
+                    .map(|d| d.resource_count)
+                    .sum::<u32>() as usize,
+        );
         for object in resources.resources.into_iter() {
+            reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
+            let object = Object::read_options(reader, endian, ())?;
+
+            block_objects.push(ManifestObject {
+                name: object.name,
+                compress: Some(object.compress),
+            });
+
+            objects.insert(object.name, object.into());
+        }
+
+        for object in resources.resources2.into_iter() {
             reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
             let object = Object::read_options(reader, endian, ())?;
 
