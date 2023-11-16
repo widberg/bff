@@ -1,3 +1,6 @@
+#![feature(custom_test_frameworks)]
+#![test_runner(datatest::runner)]
+
 #[cfg(test)]
 mod tests {
     use std::fs::File;
@@ -9,13 +12,11 @@ mod tests {
     use bff::platforms::Platform;
     use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;
-    use test_generator::test_resources;
 
-    #[test_resources("data/bigfiles/**/*.*")]
-    fn read(bigfile_path_str: &str) {
-        let mut bigfile_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        bigfile_path.pop();
-        bigfile_path.push(bigfile_path_str);
+    #[datatest::data("../data/read.yaml")]
+    #[test]
+    fn read(bigfile_path_str: String) {
+        let bigfile_path = PathBuf::from(bigfile_path_str);
         let platform = match bigfile_path.extension() {
             Some(extension) => extension.try_into().unwrap_or(Platform::PC),
             None => Platform::PC,
@@ -25,11 +26,10 @@ mod tests {
         let _ = BigFile::read_platform(&mut reader, platform).unwrap();
     }
 
-    #[test_resources("data/bigfiles/FUEL/PC_US/v1_381_67_09/**/*.DPC")]
-    fn read_objects_fuel(bigfile_path_str: &str) {
-        let mut bigfile_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        bigfile_path.pop();
-        bigfile_path.push(bigfile_path_str);
+    #[datatest::data("../data/roundtrip_objects.yaml")]
+    #[test]
+    fn roundtrip_objects(bigfile_path_str: String) {
+        let bigfile_path = PathBuf::from(bigfile_path_str);
         let platform = match bigfile_path.extension() {
             Some(extension) => extension.try_into().unwrap_or(Platform::PC),
             None => Platform::PC,

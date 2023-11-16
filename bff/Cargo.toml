@@ -26,4 +26,4 @@ serde-big-array = "0.5.1"
 xbadpcm = "0.1.1"
 
 [dev-dependencies]
-test-generator = "0.3.1"
+datatest = "0.8.0"
