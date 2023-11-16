@@ -49,6 +49,8 @@ fn parse_blocks<const GAME: usize>(
     let mut blocks = Vec::new();
 
     for block_size in block_sizes {
+        let block_start = reader.stream_position()?;
+
         let checksum = if GAME == MQFEL {
             Some(u32::read_options(reader, endian, ())?)
         } else {
@@ -57,15 +59,16 @@ fn parse_blocks<const GAME: usize>(
         let resource_count = u32::read_options(reader, endian, ())?;
 
         if *block_size != decompressed_block_size {
-            let block_size = *block_size
-                - match GAME {
-                    SHAUN_PROTO => 0,
-                    SHAUN => 4,
-                    MQFEL => 8,
-                    _ => unreachable!(),
-                };
-
-            let mut compressed = vec![0; block_size as usize];
+            let mut compressed = vec![
+                0;
+                (*block_size
+                    - match GAME {
+                        SHAUN_PROTO => 0,
+                        SHAUN => 4,
+                        MQFEL => 8,
+                        _ => unreachable!(),
+                    }) as usize
+            ];
             reader.read_exact(&mut compressed)?;
             let decompressed =
                 lzo_decompress(&compressed, decompressed_block_size as usize).unwrap();
@@ -79,6 +82,7 @@ fn parse_blocks<const GAME: usize>(
                     args! { count: resource_count as usize },
                 )?,
             });
+            read_align_to(reader, 2048)?;
         } else {
             blocks.push(Block {
                 compressed: false,
@@ -89,8 +93,8 @@ fn parse_blocks<const GAME: usize>(
                     args! { count: resource_count as usize },
                 )?,
             });
+            reader.seek(SeekFrom::Start(block_start + *block_size as u64))?;
         }
-        read_align_to(reader, 2048)?;
     }
 
     Ok(blocks)
@@ -243,11 +247,15 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
             block_sizes.push(
                 (block_end
                     - block_begin
-                    - match GAME {
-                        SHAUN_PROTO => 0,
-                        SHAUN => 4,
-                        MQFEL => 8,
-                        _ => unreachable!(),
+                    - if compressed {
+                        match GAME {
+                            SHAUN_PROTO => 0,
+                            SHAUN => 4,
+                            MQFEL => 8,
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        0
                     }) as u32,
             );
         }

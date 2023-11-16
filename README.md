@@ -38,14 +38,14 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 |      | Warning: Code De La Route - Black Sheep                                                     |          |         | BlackSheep | ✔      |
 | 2009 | FUEL - Asobo                                                                                |          |         | Asobo3     | ✔      |
 |      | Up - Asobo                                                                                  |          |         | Asobo3     | ✔      |
-|      | Shaun White Snowboarding: World Stage - Ubisoft Montreal                                    |          |         | Ubisoft2   | ✔      |
+|      | Shaun White Snowboarding: World Stage - Ubisoft Montreal                                    |          |         | Ubisoft3   | ✔      |
 | 2010 | Toy Story 3 - Asobo                                                                         |          |         | Asobo3     | ✔      |
 |      | Racket Sports/Racquet Sports/Racket Sports Party - Asobo                                    |          |         | Asobo3     | ✔      |
 |      | Happy Neuron Academy - Black Sheep                                                          |          |         | BlackSheep | ✔      |
 | 2012 | Kinect Rush: A Disney-Pixar Adventure - Asobo                                               |          |         | Asobo4     | ✔      |
 | 2013 | Super Farm (Re-release) - Asobo                                                             |          |         | Asobo4     | ✔      |
 | 2014 | Monopoly Plus/Monopoly Deal - Asobo                                                         |          |         | Asobo4     | ✔      |
-| 2015 | The Mighty Quest for Epic Loot - Ubisoft Montreal                                           |          |         | Ubisoft3   | ✔      |
+| 2015 | The Mighty Quest for Epic Loot - Ubisoft Montreal                                           |          |         | Ubisoft4   | ✔      |
 | 2016 | Young Conker - Asobo                                                                        |          |         | Asobo4     | ✔      |
 |      | Fragments - Asobo                                                                           |          |         | Asobo4     | ✔      |
 | 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         |          |         | Asobo5     | ✔      |
