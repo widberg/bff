@@ -26,6 +26,7 @@ pub struct BigFileV2_128_52_19PC;
 pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
     objects: &mut HashMap<Name, Resource>,
+    local_objects: bool,
 ) -> BinResult<Vec<ManifestBlock>> {
     let mut blocks: Vec<ManifestBlock> = Vec::with_capacity(block_descriptions.len());
 
@@ -45,27 +46,43 @@ pub fn blocks_parser(
                     .sum::<u32>() as usize,
         );
         for object in resources.resources.into_iter() {
-            reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
-            let object = Object::read_options(reader, endian, ())?;
+            if local_objects {
+                reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
+                let object = Object::read_options(reader, endian, ())?;
 
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
-            });
+                block_objects.push(ManifestObject {
+                    name: object.name,
+                    compress: Some(object.compress),
+                });
 
-            objects.insert(object.name, object.into());
+                objects.insert(object.name, object.into());
+            } else {
+                // TODO: Look this up in common
+                block_objects.push(ManifestObject {
+                    name: object.name,
+                    compress: None,
+                });
+            }
         }
 
         for object in resources.resources2.into_iter() {
-            reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
-            let object = Object::read_options(reader, endian, ())?;
+            if local_objects {
+                reader.seek(SeekFrom::Start(object.offset as u64 * 16))?;
+                let object = Object::read_options(reader, endian, ())?;
 
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
-            });
+                block_objects.push(ManifestObject {
+                    name: object.name,
+                    compress: Some(object.compress),
+                });
 
-            objects.insert(object.name, object.into());
+                objects.insert(object.name, object.into());
+            } else {
+                // TODO: Look this up in common
+                block_objects.push(ManifestObject {
+                    name: object.name,
+                    compress: None,
+                });
+            }
         }
 
         reader.seek(SeekFrom::Start(resources.data_offset as u64 * 16))?;
@@ -108,7 +125,7 @@ impl BigFileIo for BigFileV2_128_52_19PC {
         let blocks = blocks_parser(
             reader,
             endian,
-            (header.block_descriptions.inner, &mut objects),
+            (header.block_descriptions.inner, &mut objects, header.resources_block_offset != 0 && header.resources_block_size != 0 && header.map_offset == 0 && header.map_size == 0),
         )?;
 
         Ok(BigFile {
