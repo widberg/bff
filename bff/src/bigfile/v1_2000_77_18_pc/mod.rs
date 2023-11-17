@@ -46,7 +46,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                 version,
                 version_xple: Some(header.version_oneple.into()),
                 platform,
-                rtc: Some(header.is_rtc),
+                bigfile_type: Some(header.bigfile_type.into()),
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,
@@ -181,7 +181,11 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             version_oneple: match bigfile.manifest.version_xple.unwrap_or(0.into()) {
                 VersionXple::Oneple(x) | VersionXple::Triple((x, _, _)) => x,
             },
-            is_rtc: bigfile.manifest.rtc.unwrap_or(false),
+            bigfile_type: bigfile
+                .manifest
+                .bigfile_type
+                .unwrap_or(BigFileType::Normal)
+                .into(),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
             total_padded_block_size: block_descriptions

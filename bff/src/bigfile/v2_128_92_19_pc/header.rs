@@ -3,6 +3,7 @@ use std::io::SeekFrom;
 use binrw::*;
 use serde::Serialize;
 
+use crate::bigfile::v1_06_63_02_pc::header::BigFileType;
 use crate::helpers::DynArray;
 use crate::names::Name;
 use crate::versions::VersionOneple;
@@ -60,12 +61,13 @@ pub struct BlockDescription {
 #[derive(Serialize, Debug)]
 pub struct Header {
     pub version_oneple: VersionOneple,
-    #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
-    #[bw(map = |is_rtc: &bool| if *is_rtc { 0u32 } else { 1u32 })]
-    pub is_rtc: bool,
-    pub block_description_offset: u64,
-    pub block_working_buffer_capacity_even: u64,
-    pub block_working_buffer_capacity_odd: u64,
+    pub bigfile_type: BigFileType,
+    pub block_description_offset: u32,
+    pub unk1: u32,
+    pub pool_offset: u32,
+    pub unk3: u32,
+    pub unk4: u32,
+    pub unk5: u32,
     pub total_padded_block_size: u64,
     pub block_sector_padding_size: u64,
     pub file_size: u64,
@@ -73,6 +75,6 @@ pub struct Header {
     pub zero: u64,
     #[brw(align_after = 4096)]
     pub total_resource_count: u32,
-    #[br(seek_before = SeekFrom::Start(block_description_offset * 2048))]
+    #[br(seek_before = SeekFrom::Start(block_description_offset as u64 * 2048))]
     pub block_descriptions: DynArray<BlockDescription>,
 }

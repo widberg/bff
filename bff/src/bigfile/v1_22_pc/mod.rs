@@ -169,7 +169,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
                 version: bigfile.version,
                 version_xple: bigfile.version_triple.map(|x| x.into()),
                 platform: bigfile.platform,
-                rtc: None,
+                bigfile_type: None,
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,

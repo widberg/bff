@@ -161,7 +161,7 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
                 version: bigfile.version,
                 version_xple: None,
                 platform: bigfile.platform,
-                rtc: None,
+                bigfile_type: None,
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,

@@ -41,6 +41,14 @@ pub struct ManifestBlock {
     pub objects: Vec<ManifestObject>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
+pub enum BigFileType {
+    Rtc,
+    Normal,
+    Common,
+    Updated1,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Manifest {
     pub version: Version,
@@ -48,7 +56,7 @@ pub struct Manifest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version_xple: Option<VersionXple>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rtc: Option<bool>,
+    pub bigfile_type: Option<BigFileType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pool_manifest_unused: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]

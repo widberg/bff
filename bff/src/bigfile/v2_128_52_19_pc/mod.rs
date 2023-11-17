@@ -138,9 +138,9 @@ impl BigFileIo for BigFileV2_128_52_19PC {
         Ok(BigFile {
             manifest: Manifest {
                 version,
-                version_xple: Some((header.version_oneple as u32).into()),
+                version_xple: Some(header.version_oneple.into()),
                 platform,
-                rtc: Some(header.is_rtc),
+                bigfile_type: Some(header.bigfile_type.into()),
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,

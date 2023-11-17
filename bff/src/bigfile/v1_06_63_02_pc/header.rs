@@ -19,12 +19,35 @@ pub struct BlockDescription {
     pub checksum: Option<i32>,
 }
 
+#[derive(Serialize, Debug, BinRead, BinWrite, Copy, Clone)]
+#[brw(repr = u32)]
+pub enum BigFileType {
+    Rtc = 0,
+    Normal = 1,
+}
+
+impl From<BigFileType> for crate::bigfile::manifest::BigFileType {
+    fn from(bigfile_type: BigFileType) -> Self {
+        match bigfile_type {
+            BigFileType::Rtc => Self::Rtc,
+            BigFileType::Normal => Self::Normal,
+        }
+    }
+}
+
+impl From<crate::bigfile::manifest::BigFileType> for BigFileType {
+    fn from(bigfile_type: crate::bigfile::manifest::BigFileType) -> Self {
+        match bigfile_type {
+            crate::bigfile::manifest::BigFileType::Rtc => Self::Rtc,
+            _ => Self::Normal,
+        }
+    }
+}
+
 #[binrw]
 #[derive(Serialize, Debug)]
 pub struct Header {
-    #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
-    #[bw(map = |is_rtc: &bool| if *is_rtc { 0u32 } else { 1u32 })]
-    pub is_rtc: bool,
+    pub bigfile_type: BigFileType,
     #[br(temp)]
     #[bw(calc = block_descriptions.len() as u32)]
     block_count: u32,

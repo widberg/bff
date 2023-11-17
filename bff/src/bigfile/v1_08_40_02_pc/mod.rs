@@ -79,7 +79,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                 version,
                 version_xple: Some(header.version_triple.into()),
                 platform,
-                rtc: None,
+                bigfile_type: None,
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,

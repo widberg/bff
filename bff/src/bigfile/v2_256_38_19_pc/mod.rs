@@ -101,7 +101,7 @@ impl BigFileIo for BigFileV2_256_38_19PC {
                 version,
                 version_xple: Some(header.version_oneple.into()),
                 platform,
-                rtc: Some(header.is_rtc),
+                bigfile_type: Some(header.bigfile_type.into()),
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,

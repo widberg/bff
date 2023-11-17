@@ -3,6 +3,7 @@ use std::io::SeekFrom;
 use binrw::*;
 use serde::Serialize;
 
+use crate::bigfile::v1_06_63_02_pc::header::BigFileType;
 use crate::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
@@ -17,9 +18,7 @@ pub struct BlockDescription {
 #[derive(Serialize, Debug)]
 pub struct Header {
     pub version_oneple: VersionOneple,
-    #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
-    #[bw(map = |is_rtc: &bool| if *is_rtc { 0u32 } else { 1u32 })]
-    pub is_rtc: bool,
+    pub bigfile_type: BigFileType,
     #[br(temp)]
     #[bw(calc = block_descriptions.len() as u32)]
     block_count: u32,

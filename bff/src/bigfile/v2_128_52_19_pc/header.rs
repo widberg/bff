@@ -5,6 +5,7 @@ use serde::Serialize;
 
 use crate::helpers::DynArray;
 use crate::names::Name;
+use crate::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct DataDescription {
@@ -67,13 +68,42 @@ pub struct BlockDescription {
     pub data_resources_map_offset: u32,
 }
 
+#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[brw(repr = u8)]
+pub enum BigFileType {
+    Rtc = 0,
+    Normal = 1,
+    Common = 2,
+    Updated1 = 4,
+}
+
+impl From<BigFileType> for crate::bigfile::manifest::BigFileType {
+    fn from(bigfile_type: BigFileType) -> Self {
+        match bigfile_type {
+            BigFileType::Rtc => Self::Rtc,
+            BigFileType::Normal => Self::Normal,
+            BigFileType::Common => Self::Common,
+            BigFileType::Updated1 => Self::Updated1,
+        }
+    }
+}
+
+impl From<crate::bigfile::manifest::BigFileType> for BigFileType {
+    fn from(bigfile_type: crate::bigfile::manifest::BigFileType) -> Self {
+        match bigfile_type {
+            crate::bigfile::manifest::BigFileType::Rtc => Self::Rtc,
+            crate::bigfile::manifest::BigFileType::Normal => Self::Normal,
+            crate::bigfile::manifest::BigFileType::Common => Self::Common,
+            crate::bigfile::manifest::BigFileType::Updated1 => Self::Updated1,
+        }
+    }
+}
+
 #[binrw]
 #[derive(Serialize, Debug)]
 pub struct Header {
-    pub version_oneple: u8,
-    #[br(map = |is_not_rtc: u32| is_not_rtc == 0)]
-    #[bw(map = |is_rtc: &bool| if *is_rtc { 0u32 } else { 1u32 })]
-    pub is_rtc: bool,
+    pub bigfile_type: BigFileType,
+    pub version_oneple: VersionOneple,
     pub block_description_offset: u32,
     pub resources_block_size: u32,
     pub resources_block_offset: u32,

@@ -10,7 +10,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use block::Block;
-use header::*;
+use header::{BlockDescription, Header};
 use object::Object;
 use pool::Pool;
 
@@ -137,7 +137,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 version,
                 version_xple: Some(header.version_triple.into()),
                 platform,
-                rtc: Some(header.is_rtc),
+                bigfile_type: Some(header.bigfile_type.into()),
                 pool_manifest_unused: header.pool_manifest_unused,
                 incredi_builder_string: header.incredi_builder_string,
                 blocks,
@@ -441,7 +441,11 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         writer.seek(SeekFrom::Start(begin))?;
 
         let header = Header {
-            is_rtc: bigfile.manifest.rtc.unwrap_or(false),
+            bigfile_type: bigfile
+                .manifest
+                .bigfile_type
+                .unwrap_or(BigFileType::Normal)
+                .into(),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
             padded_size: block_descriptions
