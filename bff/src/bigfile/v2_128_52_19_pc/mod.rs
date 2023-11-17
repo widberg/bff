@@ -125,7 +125,14 @@ impl BigFileIo for BigFileV2_128_52_19PC {
         let blocks = blocks_parser(
             reader,
             endian,
-            (header.block_descriptions.inner, &mut objects, header.resources_block_offset != 0 && header.resources_block_size != 0 && header.map_offset == 0 && header.map_size == 0),
+            (
+                header.block_descriptions.inner,
+                &mut objects,
+                header.resources_block_offset != 0
+                    && header.resources_block_size != 0
+                    && header.map_offset == 0
+                    && header.map_size == 0,
+            ),
         )?;
 
         Ok(BigFile {

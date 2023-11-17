@@ -54,6 +54,7 @@ pub struct InvalidPlatformStyleError {
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     BinRW(binrw::Error),
+    Fmt(std::fmt::Error),
     InvalidExtension(InvalidExtensionError),
     InvalidPlatformStyle(InvalidPlatformStyleError),
     Io(std::io::Error),

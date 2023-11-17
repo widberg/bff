@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Write as _};
 use std::hash::Hash;
 use std::io::{BufRead, Read, Seek, Write};
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use derive_more::{Display, From};
+use encoding_rs::WINDOWS_1252;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -325,9 +326,16 @@ pub fn names() -> &'static Mutex<Names> {
 }
 
 impl Names {
-    pub fn read<R: BufRead>(&mut self, reader: R) -> BffResult<()> {
-        for line in reader.lines() {
-            let line = line?;
+    pub fn read<R: BufRead>(&mut self, reader: &mut R) -> BffResult<()> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes)?;
+
+        let (cow, encoding_used, had_errors) = WINDOWS_1252.decode(&bytes);
+        // TODO: Handle errors
+        assert_eq!(encoding_used, WINDOWS_1252);
+        assert!(!had_errors, "Name decoding failed");
+
+        for line in cow.lines() {
             let (_, string) = line.split_once(' ').unwrap();
             let string = string.trim_matches('"');
             self.insert(string);
@@ -337,9 +345,42 @@ impl Names {
     }
 
     pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
+        let mut bytes = String::new();
         for (name, string) in self.names.iter() {
-            writeln!(writer, r#"{} "{}""#, name, string)?;
+            // Only write the names for the current name type
+            // TODO: Split names into separate hash maps
+            match name {
+                Name::Asobo32(_) if names().lock().unwrap().name_type != NameType::Asobo32 => {
+                    continue
+                }
+                Name::AsoboAlternate32(_)
+                    if names().lock().unwrap().name_type != NameType::AsoboAlternate32 =>
+                {
+                    continue
+                }
+                Name::Kalisto32(_) if names().lock().unwrap().name_type != NameType::Kalisto32 => {
+                    continue
+                }
+                Name::BlackSheep32(_)
+                    if names().lock().unwrap().name_type != NameType::BlackSheep32 =>
+                {
+                    continue
+                }
+                Name::Asobo64(_) if names().lock().unwrap().name_type != NameType::Asobo64 => {
+                    continue
+                }
+                _ => {}
+            }
+
+            writeln!(bytes, r#"{} "{}""#, name, string)?;
         }
+
+        let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&bytes);
+        // TODO: Handle errors
+        assert_eq!(encoding_used, WINDOWS_1252);
+        assert!(!had_errors, "Name encoding failed");
+
+        writer.write_all(&cow)?;
 
         Ok(())
     }
