@@ -115,6 +115,8 @@ enum Commands {
     Csc {
         input: StdioOrPath,
         output: StdioOrPath,
+        #[arg(short, long, default_value_t = 255)]
+        key: u8,
     },
     #[clap(alias = "xpsc")]
     ExtractPsc { psc: PathBuf, directory: PathBuf },
@@ -193,7 +195,7 @@ fn main() -> BffCliResult<()> {
             character_set,
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
-        Commands::Csc { input, output } => csc::csc(input, output),
+        Commands::Csc { input, output, key } => csc::csc(input, output, key),
         Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
         Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
         Commands::ExtractFatLin {
