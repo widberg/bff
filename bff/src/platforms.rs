@@ -8,18 +8,18 @@ use crate::BffResult;
 platforms! {
     styles: [BF, D, DB],
     platforms: [
-        PC([D("DPC"), BF("BFPC"), DB("DBC")], Little),
-        UWP([D("DUA")], Little),
-        Maci386([D("DMC")], Little),
-        MacPPC([D("DBM")], Big),
-        PS2([D("DPS")], Little),
-        PS3([D("DP3")], Big),
-        PSP([D("DPP"), BF("BFPSP")], Little),
-        Xbox([D("DXB")], Big),
-        Xbox360([D("D36")], Big),
-        GameCube([D("DGC")], Big),
-        Wii([D("DRV"), BF("BFWii"), DB("DBR")], Big),
-        Switch([D("DNX")], Little),
+        PC([D("DPC", "NPC"), BF("BFPC", "BFNamePC"), DB("DBC", "NBC")], Little),
+        UWP([D("DUA", "NUA")], Little),
+        Maci386([D("DMC", "NMC")], Little),
+        MacPPC([D("DBM", "NBM")], Big),
+        PS2([D("DPS", "NPS")], Little),
+        PS3([D("DP3", "NP3")], Big),
+        PSP([D("DPP", "NPP"), BF("BFPSP", "BFNamePSP")], Little),
+        Xbox([D("DXB", "NXB")], Big),
+        Xbox360([D("D36", "N36")], Big),
+        GameCube([D("DGC", "NGC")], Big),
+        Wii([D("DRV", "NRV"), BF("BFWii", "BFNameWii"), DB("DBR", "NBR")], Big),
+        Switch([D("DNX", "NNX")], Little),
     ]
 }
 

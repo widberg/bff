@@ -1,5 +1,5 @@
 macro_rules! extensions_to_platforms {
-    ($(($platform:ident,[$($style:ident($extension:literal)),* $(,)?])),* $(,)?) => {
+    ($(($platform:ident,[$($style:ident($extension:literal, $name_extension:literal)),* $(,)?])),* $(,)?) => {
         impl TryFrom<&std::ffi::OsStr> for Platform {
             type Error = crate::error::Error;
 
@@ -32,6 +32,19 @@ macro_rules! extensions_to_platforms {
         pub fn extensions() -> Vec<&'static std::ffi::OsStr> {
             Vec::from([
                 $($(std::ffi::OsStr::new($extension),)*)*
+            ])
+        }
+
+        pub fn try_platform_style_to_name_extension(platform: Platform, style: Style) -> crate::BffResult<&'static std::ffi::OsStr> {
+            match (platform, style) {
+                $($((Platform::$platform, Style::$style) => Ok(std::ffi::OsStr::new($name_extension)),)*)*
+                _ => Err(crate::error::InvalidPlatformStyleError::new(platform, style).into()),
+            }
+        }
+
+        pub fn name_extensions() -> Vec<&'static std::ffi::OsStr> {
+            Vec::from([
+                $($(std::ffi::OsStr::new($name_extension),)*)*
             ])
         }
     };

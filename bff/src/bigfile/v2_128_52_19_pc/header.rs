@@ -55,7 +55,7 @@ pub struct Resources {
     pub unknown: DynArray<Unknown>,
     pub unk4: DynArray<u32>,
     pub resource_count2: u32,
-    #[br(count = resource_count2, align_after = 2048)]
+    #[br(count = resource_count2, align_after = 16)]
     pub resources2: Vec<Resource>,
 }
 

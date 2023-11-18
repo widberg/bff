@@ -3,7 +3,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 use bff::bigfile::BigFile;
-use bff::platforms::Platform;
+use bff::platforms::{try_platform_style_to_name_extension, Platform};
 use bff::BufReader;
 
 use crate::error::BffCliResult;
@@ -11,15 +11,13 @@ use crate::error::BffCliResult;
 pub fn read_names(bigfile_path: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<()> {
     // Read the associated name file if it exists
     if let Some(extension) = bigfile_path.extension() {
-        if let Some(extension) = extension.to_str() {
-            let mut extension = extension.to_string();
-            extension.replace_range(..1, "N");
-            let in_name = bigfile_path.with_extension(extension);
+        let name_extension =
+            try_platform_style_to_name_extension(extension.try_into()?, extension.try_into()?)?;
+        let in_name = bigfile_path.with_extension(name_extension);
 
-            if let Ok(f) = File::open(in_name) {
-                let mut reader = BufReader::new(f);
-                bff::names::names().lock().unwrap().read(&mut reader)?;
-            }
+        if let Ok(f) = File::open(in_name) {
+            let mut reader = BufReader::new(f);
+            bff::names::names().lock().unwrap().read(&mut reader)?;
         }
     }
 
