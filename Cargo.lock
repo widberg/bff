@@ -585,6 +585,7 @@ dependencies = [
  "three-d",
  "three-d-asset",
  "tokio",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]

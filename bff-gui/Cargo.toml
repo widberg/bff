@@ -22,5 +22,10 @@ three-d = "0.16.1"
 three-d-asset = "0.6.0"
 tokio = { version = "1.33.0", features = ["rt-multi-thread", "time"] }
 
+# web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+
+
 [lints]
 workspace = true
