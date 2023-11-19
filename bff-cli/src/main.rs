@@ -116,7 +116,7 @@ enum Commands {
     Csc {
         input: StdioOrPath,
         output: StdioOrPath,
-        #[arg(short, long, default_value_t = 255)]
+        #[arg(short, long, default_value_t = 255, help = "If the default value of 255 does not work, try 252")]
         key: u8,
     },
     #[clap(alias = "xpsc")]

@@ -31,16 +31,35 @@ fn main() -> Result<(), eframe::Error> {
         })
     });
 
-    let options = eframe::NativeOptions {
-        drag_and_drop_support: true,
-        renderer: eframe::Renderer::Glow,
-        icon_data: Some(
-            eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
-        ),
-        initial_window_size: Some(WINDOW_SIZE),
-        ..Default::default()
-    };
-    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let options = eframe::NativeOptions {
+            drag_and_drop_support: true,
+            renderer: eframe::Renderer::Glow,
+            icon_data: Some(
+                eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
+            ),
+            initial_window_size: Some(WINDOW_SIZE),
+            ..Default::default()
+        };
+        eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        let web_options = eframe::WebOptions::default();
+
+        wasm_bindgen_futures::spawn_local(async {
+            eframe::WebRunner::new()
+                .start(
+                    "the_canvas_id", // hardcode it
+                    web_options,
+                    Box::new(|cc| Box::new(Gui::new(cc))),
+                )
+                .await
+                .expect("failed to start eframe");
+        });
+    }
 }
 
 fn setup_custom_font(ctx: &egui::Context) {
