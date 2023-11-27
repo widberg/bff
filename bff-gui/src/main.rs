@@ -128,6 +128,7 @@ impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         if let Ok(res) = self.rx.try_recv() {
             if let Some((bf, path)) = res {
+                #[cfg(not(target_arch = "wasm32"))]
                 frame.set_window_title(format!("{} - {}", TITLE, path.to_string_lossy()).as_str());
                 self.bigfile = Some(bf);
                 self.bigfile_path = Some(path);
