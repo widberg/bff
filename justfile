@@ -28,6 +28,9 @@ test *TEST:
 build:
     cargo build --release
 
+build-wasm:
+    cmake -E env CC="$WASI_SDK_PATH/bin/clang --sysroot=$WASI_SDK_PATH/share/wasi-sysroot" cargo build --target wasm32-wasi --bin bff-gui
+
 doc:
     cargo doc
 
