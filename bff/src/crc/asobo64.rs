@@ -1,6 +1,6 @@
 use crate::traits::NameHashFunction;
 
-const CRC64_TABLE: [u64; 256] = [
+pub(super) const CRC64_TABLE: [u64; 256] = [
     0x0000000000000000,
     0x42f0e1eba9ea3693,
     0x85e1c3d753d46d26,

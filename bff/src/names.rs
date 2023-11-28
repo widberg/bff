@@ -12,7 +12,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::class::class_names;
-use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32};
+use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
 use crate::traits::NameHashFunction;
 use crate::BffResult;
 
@@ -39,6 +39,7 @@ pub type NameAsoboAlternate32 = NameVariant<AsoboAlternate32>;
 pub type NameKalisto32 = NameVariant<Kalisto32>;
 pub type NameBlackSheep32 = NameVariant<BlackSheep32>;
 pub type NameAsobo64 = NameVariant<Asobo64>;
+pub type NameUbisoft64 = NameVariant<Ubisoft64>;
 
 #[derive(From, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum Name {
@@ -47,6 +48,7 @@ pub enum Name {
     Kalisto32(NameKalisto32),
     BlackSheep32(NameBlackSheep32),
     Asobo64(NameAsobo64),
+    Ubisoft64(NameUbisoft64),
 }
 
 impl BinRead for Name {
@@ -69,6 +71,9 @@ impl BinRead for Name {
                 NameBlackSheep32::read_options(reader, endian, ()).map(Name::BlackSheep32)
             }
             NameType::Asobo64 => NameAsobo64::read_options(reader, endian, ()).map(Name::Asobo64),
+            NameType::Ubisoft64 => {
+                NameUbisoft64::read_options(reader, endian, ()).map(Name::Ubisoft64)
+            }
         }
     }
 }
@@ -99,6 +104,9 @@ impl BinWrite for Name {
             Name::Asobo64(name) if name_type == NameType::Asobo64 => {
                 name.write_options(writer, endian, ())
             }
+            Name::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
+                name.write_options(writer, endian, ())
+            }
             _ => todo!("Cannot convert between name types"),
         }
     }
@@ -111,6 +119,7 @@ pub enum NameType {
     Kalisto32,
     BlackSheep32,
     Asobo64,
+    Ubisoft64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -151,6 +160,7 @@ impl Default for Name {
             NameType::Kalisto32 => NameKalisto32::default().into(),
             NameType::BlackSheep32 => NameBlackSheep32::default().into(),
             NameType::Asobo64 => NameAsobo64::default().into(),
+            NameType::Ubisoft64 => NameUbisoft64::default().into(),
         }
     }
 }
@@ -174,6 +184,9 @@ impl Serialize for Name {
                     name.0.serialize(serializer)
                 }
                 Name::Asobo64(name) if name_type == NameType::Asobo64 => {
+                    name.0.serialize(serializer)
+                }
+                Name::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
                     name.0.serialize(serializer)
                 }
                 _ => todo!("Cannot convert between name types"),
@@ -223,6 +236,13 @@ impl<'de> Deserialize<'de> for Name {
                     SerdeName::String(string) => Ok(NameAsobo64::from(string).into()),
                 }
             }
+            NameType::Ubisoft64 => {
+                let serde_name = SerdeName::deserialize(deserializer)?;
+                match serde_name {
+                    SerdeName::Name(name) => Ok(NameUbisoft64::new(name).into()),
+                    SerdeName::String(string) => Ok(NameUbisoft64::from(string).into()),
+                }
+            }
         }
     }
 }
@@ -238,6 +258,7 @@ impl Display for Name {
                 Name::Kalisto32(name) => write!(f, "{}", name.0),
                 Name::BlackSheep32(name) => write!(f, "{}", name.0),
                 Name::Asobo64(name) => write!(f, "{}", name.0),
+                Name::Ubisoft64(name) => write!(f, "{}", name.0),
             }
         }
     }
@@ -254,6 +275,7 @@ impl Debug for Name {
                 Name::Kalisto32(name) => write!(f, "{}", name.0),
                 Name::BlackSheep32(name) => write!(f, "{}", name.0),
                 Name::Asobo64(name) => write!(f, "{}", name.0),
+                Name::Ubisoft64(name) => write!(f, "{}", name.0),
             }
         }
     }
@@ -275,6 +297,7 @@ impl Names {
         let kalisto32_hash = <Kalisto32 as NameHashFunction>::hash(string.as_bytes());
         let blacksheep32_hash = <BlackSheep32 as NameHashFunction>::hash(string.as_bytes());
         let asobo64_hash = <Asobo64 as NameHashFunction>::hash(string.as_bytes());
+        let ubisoft64_hash = <Ubisoft64 as NameHashFunction>::hash(string.as_bytes());
 
         self.names
             .entry(NameAsobo32::new(asobo32_hash).into())
@@ -290,6 +313,9 @@ impl Names {
             .or_insert_with(|| string.to_string());
         self.names
             .entry(NameAsobo64::new(asobo64_hash).into())
+            .or_insert_with(|| string.to_string());
+        self.names
+            .entry(NameUbisoft64::new(ubisoft64_hash).into())
             .or_insert_with(|| string.to_string());
     }
 
@@ -367,6 +393,9 @@ impl Names {
                     continue
                 }
                 Name::Asobo64(_) if names().lock().unwrap().name_type != NameType::Asobo64 => {
+                    continue
+                }
+                Name::Ubisoft64(_) if names().lock().unwrap().name_type != NameType::Ubisoft64 => {
                     continue
                 }
                 _ => {}

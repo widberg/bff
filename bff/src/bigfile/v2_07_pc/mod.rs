@@ -10,7 +10,7 @@ use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, read_align_to, write_align_to, DynArray};
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::NameType;
-use crate::names::NameType::BlackSheep32;
+use crate::names::NameType::{BlackSheep32, Ubisoft64};
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
 use crate::versions::Version;
@@ -281,7 +281,11 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         Ok(())
     }
 
-    const NAME_TYPE: NameType = BlackSheep32;
+    const NAME_TYPE: NameType = if GAME == MQFEL {
+        Ubisoft64
+    } else {
+        BlackSheep32
+    };
 
     type ResourceType = Resource;
 }
