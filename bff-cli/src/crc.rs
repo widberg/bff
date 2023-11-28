@@ -30,9 +30,11 @@ pub enum CrcMode {
 
 #[derive(ValueEnum, Clone)]
 pub enum CrcFormat {
+    #[value(alias("s"))]
     Signed,
+    #[value(alias("u"))]
     Unsigned,
-    #[value(alias("hex"))]
+    #[value(alias("h"), alias("hex"))]
     Hexadecimal,
 }
 
