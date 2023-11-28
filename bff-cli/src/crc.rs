@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32};
+use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
 use bff::traits::NameHashFunction;
 use clap::ValueEnum;
 
@@ -18,6 +18,8 @@ pub enum CrcAlgorithm {
     BlackSheep,
     #[value(alias("a64"))]
     Asobo64,
+    #[value(alias("u64"))]
+    Ubisoft64,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -77,6 +79,7 @@ fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcForm
             format_hash(BlackSheep32::hash_options(bytes, starting as i32), format)
         }
         CrcAlgorithm::Asobo64 => format_hash64(Asobo64::hash_options(bytes, starting), format),
+        CrcAlgorithm::Ubisoft64 => format_hash64(Ubisoft64::hash_options(bytes, starting), format),
     }
 }
 
