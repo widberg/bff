@@ -209,8 +209,16 @@ fn main() -> BffCliResult<()> {
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
         Commands::Csc { input, output, key } => csc::csc(input, output, key),
-        Commands::ExtractPsc { psc, directory, algorithm } => psc::extract_psc(psc, directory, algorithm),
-        Commands::CreatePsc { directory, psc, algorithm } => psc::create_psc(directory, psc, algorithm),
+        Commands::ExtractPsc {
+            psc,
+            directory,
+            algorithm,
+        } => psc::extract_psc(psc, directory, algorithm),
+        Commands::CreatePsc {
+            directory,
+            psc,
+            algorithm,
+        } => psc::create_psc(directory, psc, algorithm),
         Commands::ExtractFatLin {
             fat,
             lin,

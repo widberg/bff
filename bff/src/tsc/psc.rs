@@ -8,6 +8,8 @@ use itertools::Itertools;
 
 use crate::helpers::StringUntilNull;
 use crate::lz::{
+    gzip_compress_data_with_header_writer_internal,
+    gzip_decompress_data_with_header_parser_internal,
     lz4_compress_data_with_header_writer_internal,
     lz4_decompress_data_with_header_parser_internal,
 };
@@ -43,10 +45,6 @@ impl BinRead for Psc {
         while reader.stream_position()? != end {
             let path_string = StringUntilNull::read(reader)?.0;
             let path = PathBuf::from(path_string);
-            let cr = u8::read_le(reader)?;
-            assert_eq!(cr, 0x0D);
-            let lf = u8::read_le(reader)?;
-            assert_eq!(lf, 0x0A);
             let data = StringUntilNull::read(reader)?.0;
             psc.tscs.insert(path, data);
         }
@@ -73,7 +71,7 @@ impl BinWrite for Psc {
                     .join("\\")
                     .as_bytes(),
             )?;
-            writer.write_all(&[0x00, 0x0D, 0x0A])?;
+            writer.write_all(&[0x00])?;
             writer.write_all(data.as_bytes())?;
             writer.write_all(&[0x00])?;
         }
@@ -86,17 +84,24 @@ impl BinWrite for Psc {
 pub enum PscAlgorithm {
     None,
     Lz4,
+    Gzip,
 }
 
 impl Psc {
-    pub fn read<R: Read + Seek>(
-        reader: &mut R,
-        psc_compression: PscAlgorithm,
-    ) -> BffResult<Self> {
+    pub fn read<R: Read + Seek>(reader: &mut R, psc_compression: PscAlgorithm) -> BffResult<Self> {
         match psc_compression {
             PscAlgorithm::None => Ok(<Self as BinRead>::read(reader)?),
             PscAlgorithm::Lz4 => {
                 let mut psc_data = Cursor::new(lz4_decompress_data_with_header_parser_internal(
+                    reader,
+                    Endian::Little,
+                    (),
+                )?);
+
+                Ok(<Self as BinRead>::read(&mut psc_data)?)
+            }
+            PscAlgorithm::Gzip => {
+                let mut psc_data = Cursor::new(gzip_decompress_data_with_header_parser_internal(
                     reader,
                     Endian::Little,
                     (),
@@ -121,6 +126,14 @@ impl Psc {
             }
             PscAlgorithm::Lz4 => {
                 lz4_compress_data_with_header_writer_internal(
+                    &psc_data.into_inner(),
+                    writer,
+                    Endian::Little,
+                    (),
+                )?;
+            }
+            PscAlgorithm::Gzip => {
+                gzip_compress_data_with_header_writer_internal(
                     &psc_data.into_inner(),
                     writer,
                     Endian::Little,

@@ -12,6 +12,7 @@ use crate::error::BffCliResult;
 pub enum PscAlgorithm {
     None,
     Lz4,
+    Gzip,
 }
 
 impl From<PscAlgorithm> for bff::tsc::PscAlgorithm {
@@ -19,15 +20,12 @@ impl From<PscAlgorithm> for bff::tsc::PscAlgorithm {
         match algorithm {
             PscAlgorithm::None => Self::None,
             PscAlgorithm::Lz4 => Self::Lz4,
+            PscAlgorithm::Gzip => Self::Gzip,
         }
     }
 }
 
-pub fn extract_psc(
-    psc: &Path,
-    directory: &Path,
-    algorithm: &PscAlgorithm,
-) -> BffCliResult<()> {
+pub fn extract_psc(psc: &Path, directory: &Path, algorithm: &PscAlgorithm) -> BffCliResult<()> {
     let mut psc_reader = BufReader::new(File::open(psc)?);
     let psc = Psc::read(&mut psc_reader, (*algorithm).into())?;
 
@@ -63,11 +61,7 @@ fn read_files_into_psc_recursively(
     Ok(())
 }
 
-pub fn create_psc(
-    directory: &Path,
-    psc_path: &Path,
-    algorithm: &PscAlgorithm,
-) -> BffCliResult<()> {
+pub fn create_psc(directory: &Path, psc_path: &Path, algorithm: &PscAlgorithm) -> BffCliResult<()> {
     let mut psc = Psc::default();
     read_files_into_psc_recursively(&mut psc, directory, directory)?;
 

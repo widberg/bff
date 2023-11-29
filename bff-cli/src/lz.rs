@@ -4,6 +4,8 @@ use std::io::{self, BufWriter, Cursor, Read, Write};
 use bff::lz::{
     arcode_compress_data_with_header_writer,
     arcode_decompress_data_with_header_parser,
+    gzip_compress_data_with_header_writer,
+    gzip_decompress_data_with_header_parser,
     lz4_compress_data_with_header_writer,
     lz4_decompress_data_with_header_parser,
     lzo_compress,
@@ -32,6 +34,7 @@ pub enum LzAlgorithm {
     Lz4,
     Arcode,
     Zlib,
+    Gzip,
 }
 
 fn lz_internal<R: Read, W: Write>(
@@ -51,6 +54,7 @@ fn lz_internal<R: Read, W: Write>(
         LzAlgorithm::Lz4 => lz4_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Arcode => arcode_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Zlib => zlib_compress_data_with_header_writer(&buf, &mut writer, endian)?,
+        LzAlgorithm::Gzip => gzip_compress_data_with_header_writer(&buf, &mut writer, endian)?,
     };
 
     compressed.write_all(&writer.into_inner())?;
@@ -114,6 +118,7 @@ fn unlz_internal<R: Read, W: Write>(
         LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Arcode => arcode_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Zlib => zlib_decompress_data_with_header_parser(&mut reader, endian)?,
+        LzAlgorithm::Gzip => gzip_decompress_data_with_header_parser(&mut reader, endian)?,
     };
 
     uncompressed.write_all(&decompressed)?;
