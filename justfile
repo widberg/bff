@@ -15,7 +15,7 @@ clippy:
     cargo clippy
 
 test *TEST:
-    cargo +nightly test --release {{ TEST }}
+    cmake -E env RUST_TEST_THREADS=1 cargo +nightly test --release {{ TEST }} -j 1
 
 build:
     cargo build --release

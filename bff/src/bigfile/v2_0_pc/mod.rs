@@ -4,17 +4,19 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 
-use super::v1_22_pc::Resource;
+use super::v1_22_pc::Resource as Resource12;
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, read_align_to, write_align_to, DynArray};
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::NameType;
-use crate::names::NameType::BlackSheep32;
+use crate::names::NameType::Ubisoft64;
 use crate::platforms::Platform;
 use crate::traits::BigFileIo;
 use crate::versions::Version;
 use crate::BffResult;
+
+type Resource = Resource12<20>;
 
 #[derive(Debug)]
 pub struct Block {
@@ -37,38 +39,25 @@ impl BinWrite for Block {
     }
 }
 
-const SHAUN_PROTO: usize = 0;
-const SHAUN: usize = 1;
-
 #[parser(reader, endian)]
-fn parse_blocks<const GAME: usize>(
-    decompressed_block_size: u32,
-    block_sizes: &[u32],
-) -> BinResult<Vec<Block>> {
+fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<Vec<Block>> {
     let mut blocks = Vec::new();
 
     for block_size in block_sizes {
         let block_start = reader.stream_position()?;
 
+        let checksum = Some(u32::read_options(reader, endian, ())?);
         let resource_count = u32::read_options(reader, endian, ())?;
 
         if *block_size != decompressed_block_size {
-            let mut compressed = vec![
-                0;
-                (*block_size
-                    - match GAME {
-                        SHAUN_PROTO => 0,
-                        SHAUN => 4,
-                        _ => unreachable!(),
-                    }) as usize
-            ];
+            let mut compressed = vec![0; (*block_size - 8) as usize];
             reader.read_exact(&mut compressed)?;
             let decompressed =
                 lzo_decompress(&compressed, decompressed_block_size as usize).unwrap();
             let mut decompressed = Cursor::new(decompressed);
             blocks.push(Block {
                 compressed: true,
-                checksum: None,
+                checksum,
                 resources: Vec::<Resource>::read_options(
                     &mut decompressed,
                     endian,
@@ -79,7 +68,7 @@ fn parse_blocks<const GAME: usize>(
         } else {
             blocks.push(Block {
                 compressed: false,
-                checksum: None,
+                checksum,
                 resources: Vec::<Resource>::read_options(
                     reader,
                     endian,
@@ -110,22 +99,19 @@ pub struct Header {
 #[binread]
 #[derive(Debug)]
 #[br(import(version: Version, platform: Platform))]
-pub struct BigFileV2_07PC<const GAME: usize> {
+pub struct BigFileV2_0PC {
     #[br(calc = version)]
     version: Version,
     #[br(calc = platform)]
     platform: Platform,
     #[br(temp)]
     header: Header,
-    #[br(align_before = 2048, parse_with = parse_blocks::<GAME, _>, args(header.decompressed_block_size, &header.block_sizes.inner))]
+    #[br(align_before = 2048, parse_with = parse_blocks, args(header.decompressed_block_size, &header.block_sizes.inner))]
     blocks: Vec<Block>,
 }
 
-pub type BigFileV2_07PCSHAUN = BigFileV2_07PC<SHAUN>;
-pub type BigFileV2_07PCPROTO = BigFileV2_07PC<SHAUN_PROTO>;
-
-impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
-    fn from(bigfile: BigFileV2_07PC<GAME>) -> BigFile {
+impl From<BigFileV2_0PC> for BigFile {
+    fn from(bigfile: BigFileV2_0PC) -> BigFile {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -164,15 +150,15 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
     }
 }
 
-impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
+impl BigFileIo for BigFileV2_0PC {
     fn read<R: Read + Seek>(
         reader: &mut R,
         version: Version,
         platform: Platform,
     ) -> BffResult<BigFile> {
         let endian = platform.into();
-        let bigfile: BigFileV2_07PC<GAME> =
-            BigFileV2_07PC::read_options(reader, endian, (version, platform))?;
+        let bigfile: BigFileV2_0PC =
+            BigFileV2_0PC::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }
 
@@ -195,7 +181,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
             for resource in block.objects.iter() {
                 let resource = bigfile.objects.get(&resource.name).unwrap();
-                Resource::<12>::dump_resource(resource, &mut block_writer, endian)?;
+                Resource::dump_resource(resource, &mut block_writer, endian)?;
             }
 
             let block_data = block_writer.into_inner();
@@ -214,8 +200,10 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         let mut block_sizes = Vec::new();
         let mut compression_type = CompressionType::None;
 
-        for (resource_count, _, compressed, mut block_data) in blocks {
+        for (resource_count, checksum, compressed, mut block_data) in blocks {
             let block_begin = writer.stream_position()?;
+
+            checksum.write_options(writer, endian, ())?;
 
             resource_count.write_options(writer, endian, ())?;
 
@@ -232,19 +220,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
             write_align_to(writer, 2048, 0)?;
 
-            block_sizes.push(
-                (block_end
-                    - block_begin
-                    - if compressed {
-                        match GAME {
-                            SHAUN_PROTO => 0,
-                            SHAUN => 4,
-                            _ => unreachable!(),
-                        }
-                    } else {
-                        0
-                    }) as u32,
-            );
+            block_sizes.push((block_end - block_begin - if compressed { 8 } else { 0 }) as u32);
         }
 
         // Write header at the beginning of the file and restore position
@@ -268,7 +244,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         Ok(())
     }
 
-    const NAME_TYPE: NameType = BlackSheep32;
+    const NAME_TYPE: NameType = Ubisoft64;
 
     type ResourceType = Resource;
 }

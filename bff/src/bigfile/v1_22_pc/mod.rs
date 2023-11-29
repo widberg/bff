@@ -17,17 +17,17 @@ use crate::BffResult;
 
 #[binrw]
 #[derive(Debug)]
-pub struct Resource {
+pub struct Resource<const S: u32 = 12> {
     #[br(temp)]
-    #[bw(calc = data.len() as u32 + 12)]
+    #[bw(calc = data.len() as u32 + S)]
     data_size: u32,
     class_name: Name,
     pub name: Name,
-    #[br(count = data_size - 12)]
+    #[br(count = data_size - S)]
     data: Vec<u8>,
 }
 
-impl Resource {
+impl<const S: u32> Resource<S> {
     pub fn dump_resource<W: Write + Seek>(
         resource: &crate::bigfile::resource::Resource,
         writer: &mut W,
@@ -61,8 +61,8 @@ impl Resource {
     }
 }
 
-impl From<Resource> for crate::bigfile::resource::Resource {
-    fn from(resource: Resource) -> crate::bigfile::resource::Resource {
+impl<const S: u32> From<Resource<S>> for crate::bigfile::resource::Resource {
+    fn from(resource: Resource<S>) -> crate::bigfile::resource::Resource {
         crate::bigfile::resource::Resource {
             class_name: resource.class_name,
             name: resource.name,
@@ -216,7 +216,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
 
             for resource in block.objects.iter() {
                 let resource = bigfile.objects.get(&resource.name).unwrap();
-                Resource::dump_resource(resource, writer, endian)?;
+                Resource::<12>::dump_resource(resource, writer, endian)?;
             }
 
             write_align_to(writer, 0x20000, 0xCD)?;
