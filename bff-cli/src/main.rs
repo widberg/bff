@@ -23,6 +23,7 @@ mod stdio_or_path;
 
 use shadow_rs::shadow;
 
+use crate::psc::PscAlgorithm;
 use crate::stdio_or_path::StdioOrPath;
 
 shadow!(build);
@@ -119,9 +120,21 @@ enum Commands {
         key: u8,
     },
     #[clap(alias = "xpsc")]
-    ExtractPsc { psc: PathBuf, directory: PathBuf },
+    ExtractPsc {
+        psc: PathBuf,
+        directory: PathBuf,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = PscAlgorithm::Lz4)]
+        algorithm: PscAlgorithm,
+    },
     #[clap(alias = "cpsc")]
-    CreatePsc { directory: PathBuf, psc: PathBuf },
+    CreatePsc {
+        directory: PathBuf,
+        psc: PathBuf,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = PscAlgorithm::Lz4)]
+        algorithm: PscAlgorithm,
+    },
     #[clap(alias = "xfl")]
     ExtractFatLin {
         fat: PathBuf,
@@ -196,8 +209,8 @@ fn main() -> BffCliResult<()> {
         ),
         Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
         Commands::Csc { input, output, key } => csc::csc(input, output, key),
-        Commands::ExtractPsc { psc, directory } => psc::extract_psc(psc, directory),
-        Commands::CreatePsc { directory, psc } => psc::create_psc(directory, psc),
+        Commands::ExtractPsc { psc, directory, algorithm } => psc::extract_psc(psc, directory, algorithm),
+        Commands::CreatePsc { directory, psc, algorithm } => psc::create_psc(directory, psc, algorithm),
         Commands::ExtractFatLin {
             fat,
             lin,

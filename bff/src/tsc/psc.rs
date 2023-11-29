@@ -82,26 +82,53 @@ impl BinWrite for Psc {
     }
 }
 
-impl Psc {
-    pub fn read<R: Read + Seek>(reader: &mut R) -> BffResult<Self> {
-        let mut psc_data = Cursor::new(lz4_decompress_data_with_header_parser_internal(
-            reader,
-            Endian::Little,
-            (),
-        )?);
+#[derive(Clone, Copy)]
+pub enum PscAlgorithm {
+    None,
+    Lz4,
+}
 
-        Ok(<Self as BinRead>::read(&mut psc_data)?)
+impl Psc {
+    pub fn read<R: Read + Seek>(
+        reader: &mut R,
+        psc_compression: PscAlgorithm,
+    ) -> BffResult<Self> {
+        match psc_compression {
+            PscAlgorithm::None => Ok(<Self as BinRead>::read(reader)?),
+            PscAlgorithm::Lz4 => {
+                let mut psc_data = Cursor::new(lz4_decompress_data_with_header_parser_internal(
+                    reader,
+                    Endian::Little,
+                    (),
+                )?);
+
+                Ok(<Self as BinRead>::read(&mut psc_data)?)
+            }
+        }
     }
 
-    pub fn write<W: Write + Seek>(&self, writer: &mut W) -> BffResult<()> {
+    pub fn write<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        psc_compression: PscAlgorithm,
+    ) -> BffResult<()> {
         let mut psc_data = Cursor::new(Vec::new());
         <Self as BinWrite>::write(self, &mut psc_data)?;
-        lz4_compress_data_with_header_writer_internal(
-            &psc_data.into_inner(),
-            writer,
-            Endian::Little,
-            (),
-        )?;
+
+        match psc_compression {
+            PscAlgorithm::None => {
+                writer.write_all(&psc_data.into_inner())?;
+            }
+            PscAlgorithm::Lz4 => {
+                lz4_compress_data_with_header_writer_internal(
+                    &psc_data.into_inner(),
+                    writer,
+                    Endian::Little,
+                    (),
+                )?;
+            }
+        }
+
         Ok(())
     }
 }

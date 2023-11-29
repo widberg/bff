@@ -4,12 +4,32 @@ use std::path::Path;
 
 use bff::tsc::Psc;
 use bff::BufReader;
+use clap::ValueEnum;
 
 use crate::error::BffCliResult;
 
-pub fn extract_psc(psc: &Path, directory: &Path) -> BffCliResult<()> {
+#[derive(ValueEnum, Clone, Copy)]
+pub enum PscAlgorithm {
+    None,
+    Lz4,
+}
+
+impl From<PscAlgorithm> for bff::tsc::PscAlgorithm {
+    fn from(algorithm: PscAlgorithm) -> Self {
+        match algorithm {
+            PscAlgorithm::None => Self::None,
+            PscAlgorithm::Lz4 => Self::Lz4,
+        }
+    }
+}
+
+pub fn extract_psc(
+    psc: &Path,
+    directory: &Path,
+    algorithm: &PscAlgorithm,
+) -> BffCliResult<()> {
     let mut psc_reader = BufReader::new(File::open(psc)?);
-    let psc = Psc::read(&mut psc_reader)?;
+    let psc = Psc::read(&mut psc_reader, (*algorithm).into())?;
 
     for (path, data) in psc.tscs {
         let tsc_path = directory.join(path);
@@ -43,13 +63,17 @@ fn read_files_into_psc_recursively(
     Ok(())
 }
 
-pub fn create_psc(directory: &Path, psc_path: &Path) -> BffCliResult<()> {
+pub fn create_psc(
+    directory: &Path,
+    psc_path: &Path,
+    algorithm: &PscAlgorithm,
+) -> BffCliResult<()> {
     let mut psc = Psc::default();
     read_files_into_psc_recursively(&mut psc, directory, directory)?;
 
     let mut psc_writer = BufWriter::new(File::create(psc_path)?);
 
-    psc.write(&mut psc_writer)?;
+    psc.write(&mut psc_writer, (*algorithm).into())?;
 
     Ok(())
 }
