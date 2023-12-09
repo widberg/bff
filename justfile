@@ -26,4 +26,8 @@ doc:
 run CMD *OPTIONS:
     cargo run --release --bin {{ CMD }} -- {{ OPTIONS }}
 
+install:
+    cargo install --path bff-cli --bin bff-cli
+    cargo install --path bff-gui --bin bff-gui
+
 check: fmt clippy test
