@@ -4,7 +4,7 @@ use binrw::*;
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::header::{BigFileType, BlockDescription};
-use crate::versions::VersionOneple;
+use crate::bigfile::versions::VersionOneple;
 
 #[binrw]
 #[derive(Serialize, Debug)]

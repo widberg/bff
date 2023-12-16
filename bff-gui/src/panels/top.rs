@@ -35,7 +35,7 @@ impl Gui {
                         };
                         if ui.button("Open BigFile...").clicked() {
                             ui.close_menu();
-                            let dialog = &bff::platforms::extensions()
+                            let dialog = &bff::bigfile::platforms::extensions()
                                 .iter()
                                 .map(|s| s.to_str().unwrap())
                                 .fold(
@@ -82,7 +82,7 @@ impl Gui {
                         .add_enabled(self.bigfile.is_some(), egui::Button::new("Load names..."))
                         .clicked()
                     {
-                        let dialog = &bff::platforms::extensions()
+                        let dialog = &bff::bigfile::platforms::extensions()
                             .iter()
                             .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
                             .filter(|s| !s.contains("BF")) //TODO: actual name files for everything

@@ -59,13 +59,13 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
 
     quote! {
-        pub fn read_platform<R: std::io::Read + std::io::Seek>(reader: &mut R, platform: crate::platforms::Platform) -> crate::BffResult<Self> {
-            use crate::versions::Version::*;
-            use crate::platforms::Platform::*;
+        pub fn read_platform<R: std::io::Read + std::io::Seek>(reader: &mut R, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Self> {
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
             use binrw::BinRead;
             use crate::traits::BigFileIo;
             let endian: crate::Endian = platform.into();
-            let version: crate::versions::Version = crate::helpers::FixedStringNull::<256>::read_be(reader)?.as_str().into();
+            let version: crate::bigfile::versions::Version = crate::helpers::FixedStringNull::<256>::read_be(reader)?.as_str().into();
             match (version.clone(), platform) {
                 #(#arms)*
                 _ => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
@@ -98,8 +98,8 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
 
     quote! {
         pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, tag: Option<&str>) -> crate::BffResult<()> {
-            use crate::versions::Version::*;
-            use crate::platforms::Platform::*;
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
             use binrw::BinWrite;
             use crate::traits::BigFileIo;
             let platform = self.manifest.platform;
@@ -139,8 +139,8 @@ fn impl_dump_resource(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
 
     quote! {
         pub fn dump_resource<W: std::io::Write + std::io::Seek>(&self, resource: &crate::bigfile::resource::Resource, writer: &mut W) -> crate::BffResult<()> {
-            use crate::versions::Version::*;
-            use crate::platforms::Platform::*;
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
             use crate::traits::BigFileIo;
             let platform = self.manifest.platform;
             let endian: crate::Endian = platform.into();
@@ -177,8 +177,8 @@ fn impl_read_resource(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
 
     quote! {
         pub fn read_resource<R: std::io::Read + std::io::Seek>(&self, reader: &mut R) -> crate::BffResult<crate::bigfile::resource::Resource> {
-            use crate::versions::Version::*;
-            use crate::platforms::Platform::*;
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
             use crate::traits::BigFileIo;
             let platform = self.manifest.platform;
             let endian: crate::Endian = platform.into();
@@ -211,12 +211,12 @@ fn impl_version_into_name_type(input: &BffBigFileMacroInput) -> proc_macro2::Tok
         .collect::<Vec<_>>();
 
     quote! {
-        impl TryFrom<&crate::versions::Version> for crate::names::NameType {
+        impl TryFrom<&crate::bigfile::versions::Version> for crate::names::NameType {
             type Error = crate::BffError;
 
-            fn try_from(version: &crate::versions::Version) -> Result<crate::names::NameType, Self::Error> {
-                use crate::versions::Version::*;
-                use crate::platforms::Platform::*;
+            fn try_from(version: &crate::bigfile::versions::Version) -> Result<crate::names::NameType, Self::Error> {
+                use crate::bigfile::versions::Version::*;
+                use crate::bigfile::platforms::Platform::*;
                 use crate::traits::BigFileIo;
                 match (version.clone(), PC) {
                     #(#arms)*

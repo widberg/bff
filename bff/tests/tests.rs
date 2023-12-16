@@ -9,7 +9,7 @@ mod tests {
     use bff::bigfile::resource::Resource;
     use bff::bigfile::BigFile;
     use bff::class::Class;
-    use bff::platforms::Platform;
+    use bff::bigfile::platforms::Platform;
     use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;
 

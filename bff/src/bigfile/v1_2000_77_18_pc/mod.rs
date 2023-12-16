@@ -17,9 +17,9 @@ use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType;
 use crate::names::NameType::Asobo32;
-use crate::platforms::Platform;
+use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::{Version, VersionXple};
+use crate::bigfile::versions::{Version, VersionXple};
 use crate::BffResult;
 
 pub struct BigFileV1_2000_77_18PC;

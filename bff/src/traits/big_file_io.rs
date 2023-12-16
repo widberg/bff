@@ -2,8 +2,8 @@ use std::io::{Read, Seek, Write};
 
 use crate::bigfile::BigFile;
 use crate::names::NameType;
-use crate::platforms::Platform;
-use crate::versions::Version;
+use crate::bigfile::platforms::Platform;
+use crate::bigfile::versions::Version;
 use crate::BffResult;
 
 pub trait BigFileIo {

@@ -10,9 +10,9 @@ use crate::bigfile::BigFile;
 use crate::helpers::{write_align_to, DynArray};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
-use crate::platforms::Platform;
+use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::{Version, VersionTriple, VersionXple};
+use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
 use crate::BffResult;
 
 #[binrw]

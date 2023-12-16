@@ -3,8 +3,8 @@ use std::ffi::OsString;
 use derive_more::{Constructor, Display, Error, From};
 
 use crate::names::Name;
-use crate::platforms::{Platform, Style};
-use crate::versions::Version;
+use crate::bigfile::platforms::{Platform, Style};
+use crate::bigfile::versions::Version;
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(

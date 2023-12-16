@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::helpers::DynArray;
 use crate::names::Name;
-use crate::versions::VersionOneple;
+use crate::bigfile::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct DataDescription {

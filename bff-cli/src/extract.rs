@@ -3,7 +3,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 use bff::bigfile::BigFile;
-use bff::platforms::{try_platform_style_to_name_extension, Platform};
+use bff::bigfile::platforms::{try_platform_style_to_name_extension, Platform};
 use bff::BufReader;
 
 use crate::error::BffCliResult;

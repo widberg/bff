@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 
 use bff::bigfile::BigFile;
-use bff::platforms::Platform;
+use bff::bigfile::platforms::Platform;
 
 pub fn load_bf(ctx: egui::Context, path: PathBuf, tx: Sender<Option<(BigFile, PathBuf)>>) {
     tokio::spawn(async move {

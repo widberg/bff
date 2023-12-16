@@ -1,5 +1,7 @@
 pub mod manifest;
 pub mod resource;
+pub mod versions;
+pub mod platforms;
 mod v1_06_63_02_pc;
 mod v1_08_40_02_pc;
 mod v1_2000_77_18_pc;

@@ -80,11 +80,11 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
 
             fn try_from_version_platform(
                 object: &crate::bigfile::resource::Resource,
-                version: crate::versions::Version,
-                platform: crate::platforms::Platform,
+                version: crate::bigfile::versions::Version,
+                platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<#class> {
-                use crate::versions::Version::*;
-                use crate::platforms::Platform::*;
+                use crate::bigfile::versions::Version::*;
+                use crate::bigfile::platforms::Platform::*;
                 match (version.clone(), platform) {
                     #(#arms)*
                     _ => Err(
@@ -118,11 +118,11 @@ fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::
 
             fn try_from_version_platform(
                 class: &#class,
-                version: crate::versions::Version,
-                platform: crate::platforms::Platform,
+                version: crate::bigfile::versions::Version,
+                platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use crate::versions::Version::*;
-                use crate::platforms::Platform::*;
+                use crate::bigfile::versions::Version::*;
+                use crate::bigfile::platforms::Platform::*;
                 match class {
                     #(#arms)*
                 }

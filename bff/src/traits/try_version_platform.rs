@@ -1,5 +1,5 @@
-use crate::platforms::Platform;
-use crate::versions::Version;
+use crate::bigfile::platforms::Platform;
+use crate::bigfile::versions::Version;
 
 pub trait TryIntoVersionPlatform<T>: Sized {
     type Error;

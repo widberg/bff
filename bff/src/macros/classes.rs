@@ -41,7 +41,7 @@ macro_rules! classes {
         impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for Class {
             type Error = crate::error::Error;
 
-            fn try_from_version_platform(object: &crate::bigfile::resource::Resource, version: crate::versions::Version, platform: crate::platforms::Platform) -> crate::BffResult<Class> {
+            fn try_from_version_platform(object: &crate::bigfile::resource::Resource, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Class> {
                 use crate::traits::NamedClass;
                 match object.class_name {
                     $(crate::names::Name::Asobo32($class::NAME) | crate::names::Name::Asobo32($class::NAME_LEGACY)
@@ -58,7 +58,7 @@ macro_rules! classes {
         impl crate::traits::TryFromVersionPlatform<&Class> for crate::bigfile::resource::Resource {
             type Error = crate::error::Error;
 
-            fn try_from_version_platform(class: &Class, version: crate::versions::Version, platform: crate::platforms::Platform) -> crate::BffResult<crate::bigfile::resource::Resource> {
+            fn try_from_version_platform(class: &Class, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<crate::bigfile::resource::Resource> {
                 use std::ops::Deref;
                 match class {
                     $(Class::$class(class) => Ok(<&$class as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class.deref(), version, platform)?),)*

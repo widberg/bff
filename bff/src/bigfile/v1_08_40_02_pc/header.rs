@@ -2,7 +2,7 @@ use binrw::binrw;
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
-use crate::versions::VersionTriple;
+use crate::bigfile::versions::VersionTriple;
 
 #[binrw]
 #[derive(Serialize, Debug)]

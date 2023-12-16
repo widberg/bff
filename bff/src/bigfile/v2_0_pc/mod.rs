@@ -11,9 +11,9 @@ use crate::helpers::{calculated_padded, read_align_to, write_align_to, DynArray}
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::NameType;
 use crate::names::NameType::Ubisoft64;
-use crate::platforms::Platform;
+use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::versions::Version;
+use crate::bigfile::versions::Version;
 use crate::BffResult;
 
 type Resource = Resource12<20>;

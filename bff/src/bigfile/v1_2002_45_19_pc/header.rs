@@ -4,7 +4,7 @@ use binrw::*;
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::header::BigFileType;
-use crate::versions::VersionOneple;
+use crate::bigfile::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {

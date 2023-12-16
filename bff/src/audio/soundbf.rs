@@ -4,7 +4,7 @@ use binrw::{args, binread, parser, BinRead, BinResult};
 use xbadpcm::XboxADPCMDecoder;
 
 use crate::names::{names, Name, NameType};
-use crate::platforms::Platform;
+use crate::bigfile::platforms::Platform;
 
 pub struct Sound {
     pub name: Name,

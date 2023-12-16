@@ -8,9 +8,9 @@ use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::error::Error;
 use crate::names::Name;
-use crate::platforms::Platform;
+use crate::bigfile::platforms::Platform;
 use crate::traits::TryFromVersionPlatform;
-use crate::versions::Version;
+use crate::bigfile::versions::Version;
 
 #[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {

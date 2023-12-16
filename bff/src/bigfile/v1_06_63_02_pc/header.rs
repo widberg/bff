@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::helpers::FixedStringNull;
 use crate::names::Name;
-use crate::versions::VersionTriple;
+use crate::bigfile::versions::VersionTriple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
