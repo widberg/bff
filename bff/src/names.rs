@@ -10,6 +10,7 @@ use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
+use string_interner::{DefaultSymbol, StringInterner};
 
 use crate::class::class_names;
 use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
@@ -284,43 +285,45 @@ impl Debug for Name {
 #[derive(Debug)]
 pub struct Names {
     pub name_type: NameType,
-    // TODO: Avoid duplicating strings here
-    names: HashMap<Name, String>,
+    strings: StringInterner,
+    names: HashMap<Name, DefaultSymbol>,
 }
 
 impl Names {
     fn insert(&mut self, string: &str) {
         // TODO: optimize this
-        let asobo32_hash = <Asobo32 as NameHashFunction>::hash(string.as_bytes());
-        let asobo_alternate32_hash =
-            <AsoboAlternate32 as NameHashFunction>::hash(string.as_bytes());
-        let kalisto32_hash = <Kalisto32 as NameHashFunction>::hash(string.as_bytes());
-        let blacksheep32_hash = <BlackSheep32 as NameHashFunction>::hash(string.as_bytes());
-        let asobo64_hash = <Asobo64 as NameHashFunction>::hash(string.as_bytes());
-        let ubisoft64_hash = <Ubisoft64 as NameHashFunction>::hash(string.as_bytes());
+        let bytes = string.as_bytes();
+        let asobo32_hash = <Asobo32 as NameHashFunction>::hash(bytes);
+        let asobo_alternate32_hash = <AsoboAlternate32 as NameHashFunction>::hash(bytes);
+        let kalisto32_hash = <Kalisto32 as NameHashFunction>::hash(bytes);
+        let blacksheep32_hash = <BlackSheep32 as NameHashFunction>::hash(bytes);
+        let asobo64_hash = <Asobo64 as NameHashFunction>::hash(bytes);
+        let ubisoft64_hash = <Ubisoft64 as NameHashFunction>::hash(bytes);
+
+        let sym = self.strings.get_or_intern(string);
 
         self.names
             .entry(NameAsobo32::new(asobo32_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
         self.names
             .entry(NameAsoboAlternate32::new(asobo_alternate32_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
         self.names
             .entry(NameKalisto32::new(kalisto32_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
         self.names
             .entry(NameBlackSheep32::new(blacksheep32_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
         self.names
             .entry(NameAsobo64::new(asobo64_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
         self.names
             .entry(NameUbisoft64::new(ubisoft64_hash).into())
-            .or_insert_with(|| string.to_string());
+            .or_insert_with(|| sym);
     }
 
-    fn get(&self, name: &Name) -> Option<&String> {
-        self.names.get(name)
+    fn get(&self, name: &Name) -> Option<&str> {
+        self.names.get(name).and_then(|x| self.strings.resolve(*x))
     }
 }
 
@@ -328,6 +331,7 @@ impl Default for Names {
     fn default() -> Self {
         let mut names = Self {
             name_type: NameType::Asobo32,
+            strings: StringInterner::default(),
             names: Default::default(),
         };
 
@@ -372,7 +376,7 @@ impl Names {
 
     pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
         let mut bytes = String::new();
-        for (name, string) in self.names.iter() {
+        for (name, sym) in self.names.iter() {
             // Only write the names for the current name type
             // TODO: Split names into separate hash maps
             match name {
@@ -401,7 +405,9 @@ impl Names {
                 _ => {}
             }
 
-            writeln!(bytes, r#"{} "{}""#, name, string)?;
+            if let Some(string) = self.strings.resolve(*sym) {
+                writeln!(bytes, r#"{} "{}""#, name, string)?;
+            }
         }
 
         let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&bytes);
