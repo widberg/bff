@@ -3,9 +3,9 @@ use std::io::SeekFrom;
 use binrw::*;
 use serde::Serialize;
 
+use crate::bigfile::versions::VersionOneple;
 use crate::helpers::DynArray;
 use crate::names::Name;
-use crate::bigfile::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct DataDescription {

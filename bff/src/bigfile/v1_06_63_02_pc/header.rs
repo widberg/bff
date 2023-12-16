@@ -3,9 +3,9 @@ use std::io::SeekFrom;
 use binrw::*;
 use serde::Serialize;
 
+use crate::bigfile::versions::VersionTriple;
 use crate::helpers::FixedStringNull;
 use crate::names::Name;
-use crate::bigfile::versions::VersionTriple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {

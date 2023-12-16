@@ -6,14 +6,14 @@ use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
 
 use super::v1_22_pc::Resource as Resource12;
 use crate::bigfile::manifest::Manifest;
+use crate::bigfile::platforms::Platform;
+use crate::bigfile::versions::Version;
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, read_align_to, write_align_to, DynArray};
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::NameType;
 use crate::names::NameType::Ubisoft64;
-use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::bigfile::versions::Version;
 use crate::BffResult;
 
 type Resource = Resource12<20>;

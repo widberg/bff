@@ -3,8 +3,8 @@ use std::io::{Read, Seek, SeekFrom};
 use binrw::{args, binread, parser, BinRead, BinResult};
 use xbadpcm::XboxADPCMDecoder;
 
-use crate::names::{names, Name, NameType};
 use crate::bigfile::platforms::Platform;
+use crate::names::{names, Name, NameType};
 
 pub struct Sound {
     pub name: Name,

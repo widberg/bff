@@ -12,17 +12,17 @@ use header::*;
 use object::Object;
 
 use crate::bigfile::manifest::*;
+use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
+use crate::bigfile::versions::{Version, VersionXple};
 use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
-use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::bigfile::versions::{Version, VersionXple};
 use crate::{BffResult, Endian};
 
 #[binrw::parser(reader, endian)]

@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::names::Name;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::versions::{Version, VersionXple};
+use crate::names::Name;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPoolObjectEntry {

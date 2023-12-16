@@ -5,14 +5,14 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
 
 use crate::bigfile::manifest::Manifest;
+use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
+use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
 use crate::bigfile::BigFile;
 use crate::helpers::{write_align_to, DynArray};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
-use crate::bigfile::platforms::Platform;
 use crate::traits::BigFileIo;
-use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
 use crate::BffResult;
 
 #[binrw]

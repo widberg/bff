@@ -4,9 +4,9 @@ use binrw::*;
 use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::header::BigFileType;
+use crate::bigfile::versions::VersionOneple;
 use crate::helpers::DynArray;
 use crate::names::Name;
-use crate::bigfile::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct DataDescription {

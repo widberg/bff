@@ -1,7 +1,6 @@
 pub mod manifest;
-pub mod resource;
-pub mod versions;
 pub mod platforms;
+pub mod resource;
 mod v1_06_63_02_pc;
 mod v1_08_40_02_pc;
 mod v1_2000_77_18_pc;
@@ -12,6 +11,7 @@ mod v2_0_pc;
 mod v2_128_52_19_pc;
 mod v2_128_92_19_pc;
 mod v2_256_38_19_pc;
+pub mod versions;
 
 use std::collections::HashMap;
 

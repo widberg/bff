@@ -4,13 +4,13 @@ use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
+use crate::bigfile::versions::Version;
 use crate::error::Error;
 use crate::names::Name;
-use crate::bigfile::platforms::Platform;
 use crate::traits::TryFromVersionPlatform;
-use crate::bigfile::versions::Version;
 
 #[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {

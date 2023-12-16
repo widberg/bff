@@ -2,9 +2,9 @@ use std::ffi::OsString;
 
 use derive_more::{Constructor, Display, Error, From};
 
-use crate::names::Name;
 use crate::bigfile::platforms::{Platform, Style};
 use crate::bigfile::versions::Version;
+use crate::names::Name;
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(
