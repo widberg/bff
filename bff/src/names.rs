@@ -33,6 +33,9 @@ where
     pub const fn new(value: H::Target) -> Self {
         Self(value)
     }
+    pub fn hash(bytes: &[u8]) -> Self {
+        Self(H::hash(bytes))
+    }
 }
 
 pub type NameAsobo32 = NameVariant<Asobo32>;
@@ -286,44 +289,66 @@ impl Debug for Name {
 pub struct Names {
     pub name_type: NameType,
     strings: StringInterner,
-    names: HashMap<Name, DefaultSymbol>,
+    asobo32_names: HashMap<NameAsobo32, DefaultSymbol>,
+    asobo_alternate32_names: HashMap<NameAsoboAlternate32, DefaultSymbol>,
+    kalisto32_names: HashMap<NameKalisto32, DefaultSymbol>,
+    blacksheep32_names: HashMap<NameBlackSheep32, DefaultSymbol>,
+    asobo64_names: HashMap<NameAsobo64, DefaultSymbol>,
+    ubisoft64_names: HashMap<NameUbisoft64, DefaultSymbol>,
 }
 
 impl Names {
     fn insert(&mut self, string: &str) {
-        // TODO: optimize this
         let bytes = string.as_bytes();
-        let asobo32_hash = <Asobo32 as NameHashFunction>::hash(bytes);
-        let asobo_alternate32_hash = <AsoboAlternate32 as NameHashFunction>::hash(bytes);
-        let kalisto32_hash = <Kalisto32 as NameHashFunction>::hash(bytes);
-        let blacksheep32_hash = <BlackSheep32 as NameHashFunction>::hash(bytes);
-        let asobo64_hash = <Asobo64 as NameHashFunction>::hash(bytes);
-        let ubisoft64_hash = <Ubisoft64 as NameHashFunction>::hash(bytes);
-
         let sym = self.strings.get_or_intern(string);
 
-        self.names
-            .entry(NameAsobo32::new(asobo32_hash).into())
-            .or_insert_with(|| sym);
-        self.names
-            .entry(NameAsoboAlternate32::new(asobo_alternate32_hash).into())
-            .or_insert_with(|| sym);
-        self.names
-            .entry(NameKalisto32::new(kalisto32_hash).into())
-            .or_insert_with(|| sym);
-        self.names
-            .entry(NameBlackSheep32::new(blacksheep32_hash).into())
-            .or_insert_with(|| sym);
-        self.names
-            .entry(NameAsobo64::new(asobo64_hash).into())
-            .or_insert_with(|| sym);
-        self.names
-            .entry(NameUbisoft64::new(ubisoft64_hash).into())
-            .or_insert_with(|| sym);
+        self.asobo32_names
+            .entry(NameAsobo32::hash(bytes))
+            .or_insert(sym);
+        self.asobo_alternate32_names
+            .entry(NameAsoboAlternate32::hash(bytes))
+            .or_insert(sym);
+        self.kalisto32_names
+            .entry(NameKalisto32::hash(bytes))
+            .or_insert(sym);
+        self.blacksheep32_names
+            .entry(NameBlackSheep32::hash(bytes))
+            .or_insert(sym);
+        self.asobo64_names
+            .entry(NameAsobo64::hash(bytes))
+            .or_insert(sym);
+        self.ubisoft64_names
+            .entry(NameUbisoft64::hash(bytes))
+            .or_insert(sym);
     }
 
     fn get(&self, name: &Name) -> Option<&str> {
-        self.names.get(name).and_then(|x| self.strings.resolve(*x))
+        match name {
+            Name::Asobo32(n) => self
+                .asobo32_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+            Name::AsoboAlternate32(n) => self
+                .asobo_alternate32_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+            Name::Kalisto32(n) => self
+                .kalisto32_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+            Name::BlackSheep32(n) => self
+                .blacksheep32_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+            Name::Asobo64(n) => self
+                .asobo64_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+            Name::Ubisoft64(n) => self
+                .ubisoft64_names
+                .get(n)
+                .and_then(|x| self.strings.resolve(*x)),
+        }
     }
 }
 
@@ -332,7 +357,12 @@ impl Default for Names {
         let mut names = Self {
             name_type: NameType::Asobo32,
             strings: StringInterner::default(),
-            names: Default::default(),
+            asobo32_names: Default::default(),
+            asobo_alternate32_names: Default::default(),
+            kalisto32_names: Default::default(),
+            blacksheep32_names: Default::default(),
+            asobo64_names: Default::default(),
+            ubisoft64_names: Default::default(),
         };
 
         for class_name in class_names() {
@@ -375,42 +405,71 @@ impl Names {
     }
 
     pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
-        let mut bytes = String::new();
-        for (name, sym) in self.names.iter() {
-            // Only write the names for the current name type
-            // TODO: Split names into separate hash maps
-            match name {
-                Name::Asobo32(_) if names().lock().unwrap().name_type != NameType::Asobo32 => {
-                    continue
+        let mut out = String::new();
+        match self.name_type {
+            NameType::Asobo32 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameAsobo32::hash(string.as_bytes()),
+                        string
+                    )?;
                 }
-                Name::AsoboAlternate32(_)
-                    if names().lock().unwrap().name_type != NameType::AsoboAlternate32 =>
-                {
-                    continue
-                }
-                Name::Kalisto32(_) if names().lock().unwrap().name_type != NameType::Kalisto32 => {
-                    continue
-                }
-                Name::BlackSheep32(_)
-                    if names().lock().unwrap().name_type != NameType::BlackSheep32 =>
-                {
-                    continue
-                }
-                Name::Asobo64(_) if names().lock().unwrap().name_type != NameType::Asobo64 => {
-                    continue
-                }
-                Name::Ubisoft64(_) if names().lock().unwrap().name_type != NameType::Ubisoft64 => {
-                    continue
-                }
-                _ => {}
             }
-
-            if let Some(string) = self.strings.resolve(*sym) {
-                writeln!(bytes, r#"{} "{}""#, name, string)?;
+            NameType::AsoboAlternate32 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameAsoboAlternate32::hash(string.as_bytes()),
+                        string
+                    )?;
+                }
+            }
+            NameType::Kalisto32 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameKalisto32::hash(string.as_bytes()),
+                        string
+                    )?;
+                }
+            }
+            NameType::BlackSheep32 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameBlackSheep32::hash(string.as_bytes()),
+                        string
+                    )?;
+                }
+            }
+            NameType::Asobo64 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameAsobo64::hash(string.as_bytes()),
+                        string
+                    )?;
+                }
+            }
+            NameType::Ubisoft64 => {
+                for (_, string) in &self.strings {
+                    writeln!(
+                        out,
+                        r#"{} "{}""#,
+                        NameUbisoft64::hash(string.as_bytes()),
+                        string
+                    )?;
+                }
             }
         }
 
-        let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&bytes);
+        let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&out);
         // TODO: Handle errors
         assert_eq!(encoding_used, WINDOWS_1252);
         assert!(!had_errors, "Name encoding failed");
