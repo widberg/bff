@@ -8,8 +8,11 @@ members = [
 ]
 
 [workspace.package]
+version = "0.1.0"
+authors = ["widberg", "pizzart"]
+edition = "2021"
 rust-version = "1.74.1"
 
 [workspace.lints.clippy]
 if_then_some_else_none = "warn"
-#option_if_let_else = "warn"
+bool_to_int_with_if = "warn"

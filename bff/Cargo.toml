@@ -1,8 +1,9 @@
 [package]
 name = "bff"
-version = "0.1.0"
-authors = ["widberg"]
-edition = "2021"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 absperf-minilzo-sys = "2.10.0"

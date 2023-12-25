@@ -1,8 +1,9 @@
 [package]
 name = "bff-derive"
-version = "0.1.0"
-authors = ["widberg"]
-edition = "2021"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
 
 [lib]
 proc-macro = true

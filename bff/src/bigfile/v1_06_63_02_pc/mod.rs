@@ -161,16 +161,18 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         let mut block_working_buffer_capacity_odd = 0u32;
         let mut block_sector_padding_size = 0u32;
 
-        let pooled = if let Some(pool) = &bigfile.manifest.pool {
-            let mut pooled = HashSet::new();
-            for r in pool.object_entries.iter() {
-                pooled.insert(r.name);
-            }
+        let pooled = bigfile
+            .manifest
+            .pool
+            .as_ref()
+            .map_or_else(HashSet::new, |pool| {
+                let mut pooled = HashSet::new();
+                for r in pool.object_entries.iter() {
+                    pooled.insert(r.name);
+                }
 
-            pooled
-        } else {
-            HashSet::new()
-        };
+                pooled
+            });
 
         let mut block_descriptions = Vec::with_capacity(bigfile.manifest.blocks.len());
 

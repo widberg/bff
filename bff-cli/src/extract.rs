@@ -42,10 +42,10 @@ pub fn write_names(out_names: &Option<PathBuf>) -> BffCliResult<()> {
 }
 
 pub fn read_bigfile(bigfile_path: &Path) -> BffCliResult<BigFile> {
-    let platform = match bigfile_path.extension() {
-        Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-        None => Platform::PC,
-    };
+    let platform = bigfile_path
+        .extension()
+        .and_then(|e| e.try_into().ok())
+        .unwrap_or(Platform::PC);
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
     Ok(BigFile::read_platform(&mut reader, platform)?)
