@@ -6,3 +6,10 @@ members = [
     "bff-derive",
     "bff-gui",
 ]
+
+[workspace.package]
+rust-version = "1.74.1"
+
+[workspace.lints.clippy]
+if_then_some_else_none = "warn"
+#option_if_let_else = "warn"

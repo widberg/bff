@@ -14,7 +14,7 @@ pub struct BlockDescription {
     pub data_size: u32,
     pub working_buffer_offset: u32,
     pub first_object_name: Name,
-    #[br(map = |checksum: i32| if checksum == 0 { None } else { Some(checksum) })]
+    #[br(map = |checksum: i32| (checksum != 0).then_some(checksum))]
     #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
     pub checksum: Option<i32>,
 }
@@ -62,10 +62,10 @@ pub struct Header {
     pub tag: Option<Vec<u8>>,
     #[brw(seek_before = SeekFrom::Start(0x720))]
     pub pool_manifest_padded_size: u32,
-    #[br(map = |pool_offset: u32| if pool_offset != u32::MAX && pool_offset != 0 { Some(pool_offset * 2048) } else { None })]
+    #[br(map = |pool_offset: u32| (pool_offset != u32::MAX && pool_offset != 0).then_some(pool_offset * 2048))]
     #[bw(map = |pool_offset: &Option<u32>| pool_offset.map(|pool_offset| pool_offset / 2048).unwrap_or(0))]
     pub pool_offset: Option<u32>,
-    #[br(map = |pool_manifest_unused: u32| if pool_manifest_unused != u32::MAX { Some(pool_manifest_unused) } else { None })]
+    #[br(map = |pool_manifest_unused: u32| (pool_manifest_unused != u32::MAX).then_some(pool_manifest_unused))]
     pub pool_manifest_unused: Option<u32>,
     #[br(temp)]
     #[bw(calc = pool_manifest_unused.unwrap_or(0))]

@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["widberg"]
 edition = "2021"
 build = "build.rs"
-rust-version = "1.72.1"
 
 [dependencies]
 bff = { path = "../bff" }
@@ -16,3 +15,6 @@ shadow-rs = "0.25.0"
 
 [build-dependencies]
 shadow-rs = "0.25.0"
+
+[lints]
+workspace = true

@@ -357,11 +357,7 @@ pub fn reverse_asobo32(
         .into_par_iter()
         .find_map_any(|filler| {
             let hash = Asobo32::hash_options(&filler, starting_prefixed);
-            if hash == target_suffixed as i32 {
-                Some(filler)
-            } else {
-                None
-            }
+            (hash == target_suffixed as i32).then_some(filler)
         });
 
     filler.map(|filler| {

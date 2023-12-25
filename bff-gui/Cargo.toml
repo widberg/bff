@@ -3,7 +3,6 @@ name = "bff-gui"
 version = "0.1.0"
 authors = ["widberg", "pizzart"]
 edition = "2021"
-rust-version = "1.72.1"
 
 [dependencies]
 bff = { path = "../bff" }
@@ -21,3 +20,6 @@ serde_json = "1.0.107"
 three-d = "0.16.1"
 three-d-asset = "0.6.0"
 tokio = { version = "1.33.0", features = ["rt-multi-thread", "time"] }
+
+[lints]
+workspace = true

@@ -3,7 +3,6 @@ name = "bff"
 version = "0.1.0"
 authors = ["widberg"]
 edition = "2021"
-rust-version = "1.72.1"
 
 [dependencies]
 absperf-minilzo-sys = "2.10.0"
@@ -29,3 +28,6 @@ xbadpcm = "0.1.1"
 
 [dev-dependencies]
 datatest = "0.8.0"
+
+[lints]
+workspace = true
