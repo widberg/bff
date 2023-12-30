@@ -19,17 +19,20 @@ const TITLE: &str = "BFF Studio";
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
 fn main() -> Result<(), eframe::Error> {
-    let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
 
-    let _enter = rt.enter();
+        let _enter = rt.enter();
 
-    std::thread::spawn(move || {
-        rt.block_on(async {
-            loop {
-                tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
-            }
-        })
-    });
+        std::thread::spawn(move || {
+            rt.block_on(async {
+                loop {
+                    tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+                }
+            })
+        });
+    }
 
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -37,7 +40,8 @@ fn main() -> Result<(), eframe::Error> {
             drag_and_drop_support: true,
             renderer: eframe::Renderer::Glow,
             icon_data: Some(
-                eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
+                eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png"))
+                    .unwrap(),
             ),
             initial_window_size: Some(WINDOW_SIZE),
             ..Default::default()
@@ -59,6 +63,7 @@ fn main() -> Result<(), eframe::Error> {
                 .await
                 .expect("failed to start eframe");
         });
+        Ok(())
     }
 }
 
@@ -224,14 +229,17 @@ impl eframe::App for Gui {
                 }
             });
 
-        preview_files_being_dropped(ctx);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            preview_files_being_dropped(ctx);
 
-        ctx.input(|i| {
-            if !i.raw.dropped_files.is_empty() {
-                let path = i.raw.dropped_files.get(0).unwrap().path.as_ref().unwrap();
-                load_bf(ctx.clone(), path.clone(), self.tx.clone());
-            }
-        });
+            ctx.input(|i| {
+                if !i.raw.dropped_files.is_empty() {
+                    let path = i.raw.dropped_files.get(0).unwrap().path.as_ref().unwrap();
+                    load_bf(ctx.clone(), path.clone(), self.tx.clone());
+                }
+            });
+        }
     }
 }
 
