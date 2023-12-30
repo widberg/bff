@@ -3,6 +3,8 @@
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
+wasi_sdk_path := env_var("WASI_SDK_PATH")
+
 list:
     just --list
 
@@ -29,7 +31,7 @@ build:
     cargo build --release
 
 build-wasm:
-    cmake -E env CC="$WASI_SDK_PATH/bin/clang --sysroot=$WASI_SDK_PATH/share/wasi-sysroot" cargo build --target wasm32-wasi --bin bff-gui
+    cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" cargo build --target wasm32-wasi --bin bff-gui
 
 doc:
     cargo doc
