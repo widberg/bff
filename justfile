@@ -31,7 +31,10 @@ build:
     cargo build --release
 
 build-wasm:
-    cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" cargo build --target wasm32-wasi --bin bff-gui
+    cmake -E chdir bff-gui cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release
+
+serve-wasm:
+    cmake -E chdir bff-gui cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release
 
 doc:
     cargo doc

@@ -13,7 +13,7 @@ bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
 binrw = "0.13.3"
 derive_more = "0.99.17"
 encoding_rs = "0.8.33"
-flate2 = { version = "1.0.28", features = ["zlib-ng"], default-features = false }
+flate2 = { version = "1.0.28", default-features = false }
 impl-trait-for-tuples = "0.2.2"
 indexmap = { version = "2.0.0", features = ["serde"] }
 itertools = { version = "0.12.0", features = [] }
