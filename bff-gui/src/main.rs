@@ -7,6 +7,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
+#[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
 
 pub mod artifact;
@@ -15,7 +16,9 @@ mod panels;
 pub mod traits;
 mod views;
 
+#[cfg(not(target_arch = "wasm32"))]
 const TITLE: &str = "BFF Studio";
+#[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
 fn main() -> Result<(), eframe::Error> {
@@ -243,6 +246,7 @@ impl eframe::App for Gui {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn preview_files_being_dropped(ctx: &egui::Context) {
     use std::fmt::Write as _;
 

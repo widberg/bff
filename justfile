@@ -30,11 +30,33 @@ test *TEST:
 build:
     cargo build --release
 
+# trunk (https://github.com/trunk-rs/trunk)
+[unix]
 build-wasm:
-    cmake -E chdir bff-gui cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release
+    cd bff-gui
+    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release
 
+# trunk (https://github.com/trunk-rs/trunk)
+[windows]
+build-wasm:
+    #!powershell -NoLogo
+    cd bff-gui
+    $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
+    trunk build --release
+
+# trunk (https://github.com/trunk-rs/trunk)
+[unix]
 serve-wasm:
-    cmake -E chdir bff-gui cmake -E env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release
+    cd bff-gui
+    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release
+
+# trunk (https://github.com/trunk-rs/trunk)
+[windows]
+serve-wasm:
+    #!powershell -NoLogo
+    cd bff-gui
+    $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
+    trunk serve --release
 
 doc:
     cargo doc
@@ -52,6 +74,10 @@ install-dev-deps:
     cargo install cargo-sort
     cargo install flamegraph
     {{ if os() == 'windows' { 'cargo install blondie' } else { '' } }}
+
+install-dev-deps-wasm:
+    rustup target add wasm32-unknown-unknown
+    cargo install trunk
 
 # flamegraph (https://github.com/flamegraph-rs/flamegraph)
 [unix]

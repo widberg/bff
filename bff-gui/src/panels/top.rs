@@ -1,12 +1,17 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::collections::HashMap;
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs::File;
+#[cfg(not(target_arch = "wasm32"))]
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 
-use bff::bigfile::BigFile;
+#[cfg(not(target_arch = "wasm32"))]
 use bff::names::Name;
 
+#[cfg(not(target_arch = "wasm32"))]
 use crate::artifact::Artifact;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::helpers::class::write_class_json;
 use crate::helpers::load::load_bf;
 use crate::Gui;
@@ -20,7 +25,7 @@ impl Gui {
     pub fn menubar_panel(
         &mut self,
         ui: &mut egui::Ui,
-        frame: &mut eframe::Frame,
+        #[allow(unused_variables)] frame: &mut eframe::Frame,
         id_source: egui::Id,
     ) -> MenubarResponse {
         let mut response = MenubarResponse::default();
@@ -68,8 +73,9 @@ impl Gui {
                                     load_bf(ui.ctx().clone(), path, self.tx.clone());
                                 }
                             }
+                            // TODO: Futures do nothing unless awaited
                             #[cfg(target_arch = "wasm32")]
-                            async {
+                            let _ = async {
                                 let dialog = bff::bigfile::platforms::extensions()
                                     .iter()
                                     .map(|s| s.to_str().unwrap())
@@ -208,6 +214,7 @@ impl Gui {
                                         .unwrap();
                                 }
                             }
+                            // FIXME: This nested cfg will never be active
                             #[cfg(target_arch = "wasm32")]
                             async {
                                 let mut w: std::io::Cursor<Vec<u8>> =
