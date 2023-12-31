@@ -8,12 +8,7 @@ rust-version.workspace = true
 [dependencies]
 bff = { path = "../bff" }
 derive_more = "0.99.17"
-eframe = { version = "0.23.0", default-features = false, features = [
-    "accesskit",     # Make egui comptaible with screen readers. NOTE: adds a lot of dependencies.
-    "default_fonts", # Embed the default egui fonts.
-    "glow",          # Use the glow rendering backend.
-    "persistence",   # Enable restoring app state when restarting the app.
-] }
+eframe = "0.23.0"
 egui = "0.23.0"
 egui_extras = { version = "0.23.0", features = [
     "image",
@@ -28,19 +23,21 @@ rfd = { version = "0.12.0", features = ["file-handle-inner"] }
 rodio = { version = "0.17.1", features = ["wav"], default-features = false }
 serde = "1.0.188"
 serde_json = "1.0.107"
-three-d = { version = "0.16.1", default-features = false, features = [
-    "egui_glow",
-] }
+three-d = { version = "0.16.1", default-features = false }
 three-d-asset = "0.6.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.33.0", features = [
     "rt-multi-thread",
     "time",
-], optional = true }
+] }
 
-# web:
+# https://github.com/rust-lang/cargo/issues/1197
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
-
+three-d = { version = "0.16.1", default-features = false, features = [
+    "egui_glow",
+] }
 
 [lints]
 workspace = true

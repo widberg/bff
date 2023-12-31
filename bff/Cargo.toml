@@ -27,6 +27,10 @@ serde-big-array = "0.5.1"
 string-interner = "0.14.0"
 xbadpcm = "0.1.1"
 
+# https://github.com/rust-lang/cargo/issues/1197
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+flate2 = { version = "1.0.28", default-features = false, features = ["zlib-ng"] }
+
 [dev-dependencies]
 datatest = "0.8.0"
 
