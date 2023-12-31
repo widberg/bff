@@ -1,0 +1,57 @@
+name: Build wasm
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build for wasm
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.74.1
+          targets: wasm32-unknown-unknown
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+
+      - name: Download wasi-sdk
+        uses: suisei-cn/actions-download-file@v1.3.0
+        with:
+          url: "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz"
+
+      - name: Install dependencies
+        run: |
+          mkdir -p ${{ github.workspace }}/wasi-sdk/ && tar -xzvf wasi-sdk-20.0-linux.tar.gz --strip-components=1 -C ${{ github.workspace }}/wasi-sdk/
+          cargo install trunk
+
+      - name: Build
+        run: trunk build --release
+        env:
+          CC: "${{ github.workspace }}/wasi-sdk/bin/clang --sysroot=${{ github.workspace }}/wasi-sdk/share/wasi-sysroot"
+        working-directory: ${{ github.workspace }}/bff-gui/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ github.workspace }}/bff-gui/dist/
+
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

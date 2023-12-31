@@ -16,18 +16,13 @@ jobs:
             bin_extension: .exe
           - name: macos
             os: macos-latest
-          - name: wasm
-            os: ubuntu-latest
-            target: wasm32-unknown-unknown
 
     steps:
       - uses: actions/checkout@v1
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: 1.74.1
-          targets: ${{ matrix.target }}
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.7.0
@@ -36,25 +31,10 @@ jobs:
         run: sudo apt-get -y install libgtk-3-dev libasound2-dev
         if: matrix.name == 'linux'
 
-      - name: Download wasi-sdk (wasm)
-        uses: suisei-cn/actions-download-file@v1.3.0
-        with:
-          url: "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz"
-        if: matrix.name == 'wasm'
-
-      - name: Install dependencies (wasm)
-        run: |
-          mkdir -p ${{ github.workspace }}/wasi-sdk/ && tar -xzvf wasi-sdk-20.0-linux.tar.gz --strip-components=1 -C ${{ github.workspace }}/wasi-sdk/
-          cargo install trunk
-        if: matrix.name == 'wasm'
-
       - name: Build
-        run: cmake -E env CARGO_PROFILE_RELEASE_LTO=true cargo build --release --locked --bins
-        if: matrix.name != 'wasm'
-
-      - name: Build (wasm)
-        run: /usr/bin/env -C bff-gui CC="${{ github.workspace }}/wasi-sdk/bin/clang --sysroot=${{ github.workspace }}/wasi-sdk/share/wasi-sysroot" trunk build --release
-        if: matrix.name == 'wasm'
+        run: cargo build --release --locked --bins
+        env:
+          CARGO_PROFILE_RELEASE_LTO: "true"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3

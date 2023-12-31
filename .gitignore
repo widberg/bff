@@ -18,8 +18,8 @@
 # data
 /data/
 
-/bff-gui/dist
-/bff-gui/node_modules
+# bff-gui
+/bff-gui/dist/
 
 # cargo flamegraph
 /flamegraph.svg
