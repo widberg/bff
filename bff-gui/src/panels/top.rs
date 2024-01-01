@@ -73,28 +73,29 @@ impl Gui {
                                     load_bf(ui.ctx().clone(), path, self.tx.clone());
                                 }
                             }
-                            // TODO: Futures do nothing unless awaited
                             #[cfg(target_arch = "wasm32")]
-                            let _ = async {
-                                let dialog = bff::bigfile::platforms::extensions()
-                                    .iter()
-                                    .map(|s| s.to_str().unwrap())
-                                    .fold(
-                                        rfd::AsyncFileDialog::new().add_filter("All files", &["*"]),
-                                        |acc, d| acc.add_filter(d, &[d]),
-                                    )
-                                    .pick_file()
-                                    .await
-                                    .unwrap();
+                            {
                                 response.bf_loading = true;
-                                load_bf(
-                                    ui.ctx().clone(),
-                                    dialog.file_name(),
-                                    dialog.read().await,
-                                    self.tx.clone(),
-                                );
-                            };
+                                let ctx = ui.ctx().clone();
+                                let tx = self.tx.clone();
+                                let future = async {
+                                    let dialog = bff::bigfile::platforms::extensions()
+                                        .iter()
+                                        .map(|s| s.to_str().unwrap())
+                                        .fold(
+                                            rfd::AsyncFileDialog::new()
+                                                .add_filter("All files", &["*"]),
+                                            |acc, d| acc.add_filter(d, &[d]),
+                                        )
+                                        .pick_file()
+                                        .await
+                                        .unwrap();
+                                    load_bf(ctx, dialog.file_name(), dialog.read().await, tx);
+                                };
+                                async_std::task::block_on(future);
+                            }
                         }
+                        #[cfg(not(target_arch = "wasm32"))]
                         if ui
                             .checkbox(&mut checked, "Auto-load names")
                             .on_hover_text_at_pointer(
@@ -109,35 +110,34 @@ impl Gui {
                         }
                     });
                     #[cfg(not(target_arch = "wasm32"))]
+                    if ui
+                        .add_enabled(self.bigfile.is_some(), egui::Button::new("Load names..."))
+                        .clicked()
                     {
-                        if ui
-                            .add_enabled(self.bigfile.is_some(), egui::Button::new("Load names..."))
-                            .clicked()
-                        {
-                            let dialog = &bff::bigfile::platforms::extensions()
-                                .iter()
-                                .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
-                                .filter(|s| !s.contains("BF")) //TODO: actual name files for everything
-                                .fold(
-                                    rfd::FileDialog::new().add_filter("All files", &["*"]),
-                                    |acc, d| acc.add_filter(d.clone(), &[d.as_str()]),
-                                );
-                            if let Some(paths) = dialog.clone().pick_files() {
-                                ui.close_menu();
-                                for in_name in paths {
-                                    let f: File = File::open(in_name).unwrap();
-                                    let mut reader = bff::BufReader::new(f);
-                                    bff::names::names()
-                                        .lock()
-                                        .unwrap()
-                                        .read(&mut reader)
-                                        .unwrap();
-                                }
+                        let dialog = &bff::bigfile::platforms::extensions()
+                            .iter()
+                            .map(|s| s.to_str().unwrap().replacen('D', "N", 1))
+                            .filter(|s| !s.contains("BF")) //TODO: actual name files for everything
+                            .fold(
+                                rfd::FileDialog::new().add_filter("All files", &["*"]),
+                                |acc, d| acc.add_filter(d.clone(), &[d.as_str()]),
+                            );
+                        if let Some(paths) = dialog.clone().pick_files() {
+                            ui.close_menu();
+                            for in_name in paths {
+                                let f: File = File::open(in_name).unwrap();
+                                let mut reader = bff::BufReader::new(f);
+                                bff::names::names()
+                                    .lock()
+                                    .unwrap()
+                                    .read(&mut reader)
+                                    .unwrap();
                             }
                         }
-                        if ui.button("Quit").clicked() {
-                            frame.close();
-                        }
+                    }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    if ui.button("Quit").clicked() {
+                        frame.close();
                     }
                 });
                 #[cfg(not(target_arch = "wasm32"))]

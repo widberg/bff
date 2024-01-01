@@ -27,10 +27,7 @@ three-d = { version = "0.16.1", default-features = false }
 three-d-asset = "0.6.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.33.0", features = [
-    "rt-multi-thread",
-    "time",
-] }
+tokio = { version = "1.33.0", features = ["rt-multi-thread", "time"] }
 
 # https://github.com/rust-lang/cargo/issues/1197
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -39,6 +36,7 @@ three-d = { version = "0.16.1", default-features = false, features = [
     "egui_glow",
 ] }
 eframe = { version = "0.23.0", features = ["persistence"] }
+async-std = "1.12.0"
 
 [lints]
 workspace = true

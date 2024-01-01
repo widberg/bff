@@ -21,53 +21,45 @@ const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), eframe::Error> {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
+    let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
 
-        let _enter = rt.enter();
+    let _enter = rt.enter();
 
-        std::thread::spawn(move || {
-            rt.block_on(async {
-                loop {
-                    tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
-                }
-            })
-        });
-    }
+    std::thread::spawn(move || {
+        rt.block_on(async {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+            }
+        })
+    });
+    let options = eframe::NativeOptions {
+        drag_and_drop_support: true,
+        renderer: eframe::Renderer::Glow,
+        icon_data: Some(
+            eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
+        ),
+        initial_window_size: Some(WINDOW_SIZE),
+        ..Default::default()
+    };
+    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
+}
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let options = eframe::NativeOptions {
-            drag_and_drop_support: true,
-            renderer: eframe::Renderer::Glow,
-            icon_data: Some(
-                eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png"))
-                    .unwrap(),
-            ),
-            initial_window_size: Some(WINDOW_SIZE),
-            ..Default::default()
-        };
-        eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
-    }
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    let web_options = eframe::WebOptions::default();
 
-    #[cfg(target_arch = "wasm32")]
-    {
-        let web_options = eframe::WebOptions::default();
-
-        wasm_bindgen_futures::spawn_local(async {
-            eframe::WebRunner::new()
-                .start(
-                    "the_canvas_id", // hardcode it
-                    web_options,
-                    Box::new(|cc| Box::new(Gui::new(cc))),
-                )
-                .await
-                .expect("failed to start eframe");
-        });
-        Ok(())
-    }
+    wasm_bindgen_futures::spawn_local(async {
+        eframe::WebRunner::new()
+            .start(
+                "the_canvas_id", // hardcode it
+                web_options,
+                Box::new(|cc| Box::new(Gui::new(cc))),
+            )
+            .await
+            .expect("failed to start eframe");
+    });
 }
 
 fn setup_custom_font(ctx: &egui::Context) {
