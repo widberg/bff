@@ -15,7 +15,7 @@ platforms! {
         PS2([D("DPS", "NPS")], Little),
         PS3([D("DP3", "NP3")], Big),
         PSP([D("DPP", "NPP"), BF("BFPSP", "BFNamePSP")], Little),
-        Xbox([D("DXB", "NXB")], Big),
+        Xbox([D("DXB", "NXB")], Little),
         Xbox360([D("D36", "N36")], Big),
         GameCube([D("DGC", "NGC")], Big),
         Wii([D("DRV", "NRV"), BF("BFWii", "BFNameWii"), DB("DBR", "NBR")], Big),
