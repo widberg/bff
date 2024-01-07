@@ -94,16 +94,12 @@ pub fn crc(
 ) -> BffCliResult<()> {
     match (string, mode) {
         (Some(string), CrcMode::Bytes) => {
-            println!(
-                "{} {:?}",
-                hash(string.as_bytes(), starting, algorithm, format),
-                string.as_bytes()
-            );
+            println!("{}", hash(string.as_bytes(), starting, algorithm, format));
         }
         (Some(string), CrcMode::Lines) => {
             for line in string.lines() {
                 println!(
-                    "{} \"{}\"",
+                    r#"{} "{}""#,
                     hash(line.as_bytes(), starting, algorithm, format),
                     line
                 );
@@ -113,14 +109,14 @@ pub fn crc(
             let stdin = io::stdin();
             let mut buf: Vec<u8> = Vec::new();
             stdin.lock().read_to_end(&mut buf)?;
-            println!("{} {:?}", hash(&buf, starting, algorithm, format), buf);
+            println!("{}", hash(&buf, starting, algorithm, format));
         }
         (None, CrcMode::Lines) => {
             let stdin = io::stdin();
             for line in stdin.lock().lines() {
                 let line = line?;
                 println!(
-                    "{} \"{}\"",
+                    r#"{} "{}""#,
                     hash(line.as_bytes(), starting, algorithm, format),
                     line
                 );
