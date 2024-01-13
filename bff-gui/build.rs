@@ -2,8 +2,8 @@ use derive_more::From;
 
 #[derive(Debug, From)]
 enum BffGuiError {
-    IoError(std::io::Error),
-    ShadowError(shadow_rs::ShadowError),
+    Io(std::io::Error),
+    Shadow(shadow_rs::ShadowError),
 }
 
 type BffGuiResult<T> = Result<T, BffGuiError>;

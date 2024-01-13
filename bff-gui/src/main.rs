@@ -3,14 +3,15 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
-use shadow_rs::shadow;
 
 use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
 use clap::Parser;
+use derive_more::From;
 #[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
+use shadow_rs::shadow;
 
 pub mod artifact;
 pub mod helpers;
@@ -25,16 +26,42 @@ const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
+#[derive(Debug, From)]
+enum BffGuiError {
+    Io(std::io::Error),
+    EFrame(eframe::Error),
+}
+
+type BffGuiResult<T> = Result<T, BffGuiError>;
+
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Parser)]
 #[command(author, version, long_version = build::CLAP_LONG_VERSION, about, long_about = None)]
+#[clap(group = clap::ArgGroup::new("one").multiple(false))]
 struct Args {
+    #[clap(group = "one")]
     file: Option<PathBuf>,
+    #[cfg(target_os = "windows")]
+    #[clap(long, group = "one")]
+    install: bool,
+    #[cfg(target_os = "windows")]
+    #[clap(long, group = "one")]
+    uninstall: bool,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn main() -> Result<(), eframe::Error> {
+fn main() -> BffGuiResult<()> {
     let cli = Args::parse();
     let file = cli.file.clone();
+
+    #[cfg(target_os = "windows")]
+    {
+        if cli.install {
+            return install();
+        } else if cli.uninstall {
+            return uninstall();
+        }
+    }
 
     let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
 
@@ -56,11 +83,91 @@ fn main() -> Result<(), eframe::Error> {
         initial_window_size: Some(WINDOW_SIZE),
         ..Default::default()
     };
-    eframe::run_native(
-        TITLE,
-        options,
-        Box::new(|cc| Box::new(Gui::new(cc, file))),
-    )
+    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc, file))))?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn change_notify() {
+    use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_DWORD, SHCNF_FLUSH};
+
+    unsafe {
+        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_DWORD | SHCNF_FLUSH, None, None);
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn install() -> BffGuiResult<()> {
+    use std::env::current_exe;
+
+    use winreg::enums::HKEY_CLASSES_ROOT;
+    use winreg::RegKey;
+
+    let exe_path = current_exe()?;
+    let exe_name = exe_path
+        .file_name()
+        .map(|s| s.to_str())
+        .flatten()
+        .unwrap_or_default()
+        .to_owned();
+    let exe_path = exe_path.to_str().unwrap_or_default().to_owned();
+
+    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+    let applications = hkcr.open_subkey("Applications")?;
+    let (open, _) = applications.create_subkey(format!("{}\\shell\\open", &exe_name))?;
+    open.set_value("command", &format!(r#""{}" "%1""#, &exe_path))?;
+
+    for extension in bff::bigfile::platforms::extensions() {
+        let (default, _) = hkcr.create_subkey(format!(".{}", extension.to_string_lossy()))?;
+        default.set_value("", &exe_name)?;
+        let (open_with_list, _) = default.create_subkey("OpenWithList")?;
+        open_with_list.create_subkey(&exe_name)?;
+    }
+
+    change_notify();
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn uninstall() -> BffGuiResult<()> {
+    use std::env::current_exe;
+
+    use winreg::enums::{HKEY_CLASSES_ROOT, KEY_ALL_ACCESS};
+    use winreg::RegKey;
+
+    let exe_path = current_exe()?;
+    let exe_name = exe_path
+        .file_name()
+        .map(|s| s.to_str())
+        .flatten()
+        .unwrap_or_default()
+        .to_owned();
+
+    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+    let applications = hkcr.open_subkey("Applications")?;
+    let _ = applications.delete_subkey_all(&exe_name);
+
+    for extension in bff::bigfile::platforms::extensions() {
+        if let Ok(default) =
+            hkcr.open_subkey_with_flags(format!(".{}", extension.to_string_lossy()), KEY_ALL_ACCESS)
+        {
+            if let Ok(default_value) = default.get_value::<String, _>("") {
+                if default_value == exe_name {
+                    default.delete_value("")?;
+                }
+            }
+
+            if let Ok(open_with_list) = default.open_subkey("OpenWithList") {
+                let _ = open_with_list.delete_subkey(&exe_name);
+            }
+        }
+    }
+
+    change_notify();
+
+    Ok(())
 }
 
 #[cfg(target_arch = "wasm32")]
