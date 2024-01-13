@@ -1,13 +1,22 @@
-use std::io::Error;
+use derive_more::From;
 
-fn main() -> Result<(), Error> {
-    if cfg!(target_os = "windows") {
+#[derive(Debug, From)]
+enum BffGuiError {
+    IoError(std::io::Error),
+    ShadowError(shadow_rs::ShadowError),
+}
+
+type BffGuiResult<T> = Result<T, BffGuiError>;
+
+fn main() -> BffGuiResult<()> {
+    #[cfg(target_os = "windows")]
+    {
         let mut res = winres::WindowsResource::new();
         res.set_icon("resources/bff.ico");
         res.compile()?;
-        println!("cargo:rerun-if-changed=resources/bff.ico");
     }
-    println!("cargo:rerun-if-changed=build.rs");
+
+    shadow_rs::new()?;
 
     Ok(())
 }

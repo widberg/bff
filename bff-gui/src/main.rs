@@ -3,10 +3,12 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
+use shadow_rs::shadow;
 
 use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
+use clap::Parser;
 #[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
 
@@ -16,14 +18,23 @@ mod panels;
 pub mod traits;
 mod views;
 
+shadow!(build);
+
 #[cfg(not(target_arch = "wasm32"))]
 const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
+#[derive(Parser)]
+#[command(author, version, long_version = build::CLAP_LONG_VERSION, about, long_about = None)]
+struct Args {
+    file: Option<PathBuf>,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), eframe::Error> {
-    use std::env;
+    let cli = Args::parse();
+    let file = cli.file.clone();
 
     let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
 
@@ -48,7 +59,7 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         TITLE,
         options,
-        Box::new(|cc| Box::new(Gui::new(cc, env::args().collect()))),
+        Box::new(|cc| Box::new(Gui::new(cc, file))),
     )
 }
 
@@ -109,12 +120,12 @@ struct Gui {
 }
 
 impl Gui {
-    fn new(cc: &eframe::CreationContext<'_>, args: Vec<String>) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>, file: Option<PathBuf>) -> Self {
         cc.egui_ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(&cc.egui_ctx);
         setup_custom_font(&cc.egui_ctx);
         let (tx, rx) = std::sync::mpsc::channel();
-        let bf_loading = match args.get(1) {
+        let bf_loading = match file {
             Some(path) => {
                 let p = PathBuf::from(path);
                 load_bf(cc.egui_ctx.clone(), p.clone(), tx.clone());

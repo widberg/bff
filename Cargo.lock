@@ -668,6 +668,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "bff",
+ "clap",
  "derive_more",
  "eframe",
  "egui 0.23.0",
@@ -679,6 +680,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "shadow-rs",
  "three-d",
  "three-d-asset",
  "tokio",
