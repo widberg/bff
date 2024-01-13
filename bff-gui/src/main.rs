@@ -45,7 +45,11 @@ fn main() -> Result<(), eframe::Error> {
         initial_window_size: Some(WINDOW_SIZE),
         ..Default::default()
     };
-    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc, env::args().collect()))))
+    eframe::run_native(
+        TITLE,
+        options,
+        Box::new(|cc| Box::new(Gui::new(cc, env::args().collect()))),
+    )
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -115,7 +119,7 @@ impl Gui {
                 let p = PathBuf::from(path);
                 load_bf(cc.egui_ctx.clone(), p.clone(), tx.clone());
                 true
-            },
+            }
             None => false,
         };
         Self {
