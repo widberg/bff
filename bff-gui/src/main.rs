@@ -89,11 +89,14 @@ fn main() -> BffGuiResult<()> {
 }
 
 #[cfg(target_os = "windows")]
+const PROG_ID: &str = "Widberg.BFF.1";
+
+#[cfg(target_os = "windows")]
 fn change_notify() {
-    use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_DWORD, SHCNF_FLUSH};
+    use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST};
 
     unsafe {
-        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_DWORD | SHCNF_FLUSH, None, None);
+        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, None, None);
     }
 }
 
@@ -101,28 +104,25 @@ fn change_notify() {
 fn install() -> BffGuiResult<()> {
     use std::env::current_exe;
 
-    use winreg::enums::HKEY_CLASSES_ROOT;
+    use winreg::enums::HKEY_CURRENT_USER;
     use winreg::RegKey;
 
-    let exe_path = current_exe()?;
-    let exe_name = exe_path
-        .file_name()
-        .map(|s| s.to_str())
-        .flatten()
-        .unwrap_or_default()
-        .to_owned();
-    let exe_path = exe_path.to_str().unwrap_or_default().to_owned();
+    let exe_path = current_exe()?.to_str().unwrap_or_default().to_owned();
 
-    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-    let applications = hkcr.open_subkey("Applications")?;
-    let (open, _) = applications.create_subkey(format!("{}\\shell\\open", &exe_name))?;
-    open.set_value("command", &format!(r#""{}" "%1""#, &exe_path))?;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let classes = hkcu.open_subkey("Software\\Classes")?;
+
+    let (prog, _) = classes.create_subkey(PROG_ID)?;
+    prog.set_value("", &TITLE)?;
+    let (command, _) = prog.create_subkey("Shell\\Open\\Command")?;
+    command.set_value("", &format!(r#""{}" "%1""#, exe_path))?;
 
     for extension in bff::bigfile::platforms::extensions() {
-        let (default, _) = hkcr.create_subkey(format!(".{}", extension.to_string_lossy()))?;
-        default.set_value("", &exe_name)?;
-        let (open_with_list, _) = default.create_subkey("OpenWithList")?;
-        open_with_list.create_subkey(&exe_name)?;
+        let (extension_key, _) =
+            classes.create_subkey(format!(".{}", extension.to_string_lossy()))?;
+        extension_key.set_value("", &PROG_ID)?;
+        let (open_with, _) = extension_key.create_subkey("OpenWithProgids")?;
+        open_with.set_value(PROG_ID, &"")?;
     }
 
     change_notify();
@@ -132,35 +132,27 @@ fn install() -> BffGuiResult<()> {
 
 #[cfg(target_os = "windows")]
 fn uninstall() -> BffGuiResult<()> {
-    use std::env::current_exe;
-
-    use winreg::enums::{HKEY_CLASSES_ROOT, KEY_ALL_ACCESS};
+    use winreg::enums::{HKEY_CURRENT_USER, KEY_ALL_ACCESS};
     use winreg::RegKey;
 
-    let exe_path = current_exe()?;
-    let exe_name = exe_path
-        .file_name()
-        .map(|s| s.to_str())
-        .flatten()
-        .unwrap_or_default()
-        .to_owned();
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let classes = hkcu.open_subkey("Software\\Classes")?;
 
-    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-    let applications = hkcr.open_subkey("Applications")?;
-    let _ = applications.delete_subkey_all(&exe_name);
+    let _ = classes.delete_subkey_all(PROG_ID);
 
     for extension in bff::bigfile::platforms::extensions() {
-        if let Ok(default) =
-            hkcr.open_subkey_with_flags(format!(".{}", extension.to_string_lossy()), KEY_ALL_ACCESS)
+        if let Ok(default) = classes
+            .open_subkey_with_flags(format!(".{}", extension.to_string_lossy()), KEY_ALL_ACCESS)
         {
-            if let Ok(default_value) = default.get_value::<String, _>("") {
-                if default_value == exe_name {
+            if let Ok(prog_id) = default.get_value::<String, _>("") {
+                if prog_id == PROG_ID {
                     default.delete_value("")?;
                 }
             }
 
-            if let Ok(open_with_list) = default.open_subkey("OpenWithList") {
-                let _ = open_with_list.delete_subkey(&exe_name);
+            if let Ok(open_with) = default.open_subkey_with_flags("OpenWithProgids", KEY_ALL_ACCESS)
+            {
+                let _ = open_with.delete_value(PROG_ID);
             }
         }
     }
