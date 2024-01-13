@@ -41,16 +41,3 @@ impl Export for bff::class::bitmap::v1_06_63_02_pc::BitmapV1_06_63_02PC {
         }
     }
 }
-
-impl Export for bff::class::sound::v1_291_03_06_pc::SoundV1_291_03_06PC {
-    fn export(self) -> Artifact {
-        Artifact::Sound {
-            data: Arc::new(self.body.data),
-            sample_rate: self.body.sample_rate,
-            channels: match self.body.flags.stereo().value() {
-                1 => 2,
-                _ => 1,
-            },
-        }
-    }
-}
