@@ -23,6 +23,8 @@ const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), eframe::Error> {
+    use std::env;
+
     let rt = tokio::runtime::Runtime::new().expect("Unable to create Runtime");
 
     let _enter = rt.enter();
@@ -43,7 +45,7 @@ fn main() -> Result<(), eframe::Error> {
         initial_window_size: Some(WINDOW_SIZE),
         ..Default::default()
     };
-    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc))))
+    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc, env::args().collect()))))
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -103,18 +105,26 @@ struct Gui {
 }
 
 impl Gui {
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>, args: Vec<String>) -> Self {
         cc.egui_ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(&cc.egui_ctx);
         setup_custom_font(&cc.egui_ctx);
         let (tx, rx) = std::sync::mpsc::channel();
+        let bf_loading = match args.get(1) {
+            Some(path) => {
+                let p = PathBuf::from(path);
+                load_bf(cc.egui_ctx.clone(), p.clone(), tx.clone());
+                true
+            },
+            None => false,
+        };
         Self {
             open_window: GuiWindow::default(),
             tx,
             rx,
             bigfile: None,
             bigfile_path: None,
-            bigfile_loading: false,
+            bigfile_loading: bf_loading,
             resource_name: None,
             nicknames: HashMap::new(),
             nickname_editing: (Name::default(), String::new()),
