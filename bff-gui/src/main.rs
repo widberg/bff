@@ -7,11 +7,10 @@ use std::sync::mpsc::{Receiver, Sender};
 use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
+#[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
-use derive_more::From;
 #[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
-use shadow_rs::shadow;
 
 pub mod artifact;
 pub mod helpers;
@@ -19,24 +18,24 @@ mod panels;
 pub mod traits;
 mod views;
 
-shadow!(build);
-
 #[cfg(not(target_arch = "wasm32"))]
 const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
-#[derive(Debug, From)]
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, derive_more::From)]
 enum BffGuiError {
     Io(std::io::Error),
     EFrame(eframe::Error),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 type BffGuiResult<T> = Result<T, BffGuiError>;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Parser)]
-#[command(author, version, long_version = build::CLAP_LONG_VERSION, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 #[clap(group = clap::ArgGroup::new("one").multiple(false))]
 struct Args {
     #[clap(group = "one")]
@@ -219,11 +218,15 @@ struct Gui {
 }
 
 impl Gui {
-    fn new(cc: &eframe::CreationContext<'_>, file: Option<PathBuf>) -> Self {
+    fn new(
+        cc: &eframe::CreationContext<'_>,
+        #[cfg(not(target_arch = "wasm32"))] file: Option<PathBuf>,
+    ) -> Self {
         cc.egui_ctx.set_pixels_per_point(1.25);
         egui_extras::install_image_loaders(&cc.egui_ctx);
         setup_custom_font(&cc.egui_ctx);
         let (tx, rx) = std::sync::mpsc::channel();
+        #[cfg(not(target_arch = "wasm32"))]
         let bf_loading = match file {
             Some(path) => {
                 let p = PathBuf::from(path);
@@ -232,6 +235,9 @@ impl Gui {
             }
             None => false,
         };
+        #[cfg(target_arch = "wasm32")]
+        let bf_loading = false;
+
         Self {
             open_window: GuiWindow::default(),
             tx,

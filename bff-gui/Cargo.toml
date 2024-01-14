@@ -7,6 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 bff = { path = "../bff" }
+clap = { version = "4.2.4", features = ["derive"] }
 derive_more = "0.99.17"
 eframe = "0.23.0"
 egui = "0.23.0"
@@ -23,18 +24,16 @@ rfd = { version = "0.12.0", features = ["file-handle-inner"] }
 rodio = { version = "0.17.1", features = ["wav"], default-features = false }
 serde = "1.0.188"
 serde_json = "1.0.107"
+shadow-rs = { version = "0.26.0", optional = true }
 three-d = { version = "0.16.1", default-features = false }
 three-d-asset = "0.6.0"
-shadow-rs = "0.25.0"
-clap = { version = "4.2.4", features = ["derive"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winreg = "0.52.0"
 windows = { version = "0.52.0", features = ["Win32_UI_Shell"], default-features = false }
 
-[build-dependencies]
-shadow-rs = "0.25.0"
-derive_more = "0.99.17"
+[target.'cfg(target_os = "windows")'.build-dependencies]
+winres = "0.1.12"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.33.0", features = ["rt-multi-thread", "time"] }
@@ -47,9 +46,6 @@ three-d = { version = "0.16.1", default-features = false, features = [
 ] }
 eframe = { version = "0.23.0", features = ["persistence"] }
 async-std = "1.12.0"
-
-[target.'cfg(target_os = "windows")'.build-dependencies]
-winres = "0.1.12"
 
 [lints]
 workspace = true

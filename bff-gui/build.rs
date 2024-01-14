@@ -1,22 +1,17 @@
-use derive_more::From;
+use std::io::Error;
 
-#[derive(Debug, From)]
-enum BffGuiError {
-    Io(std::io::Error),
-    Shadow(shadow_rs::ShadowError),
-}
-
-type BffGuiResult<T> = Result<T, BffGuiError>;
-
-fn main() -> BffGuiResult<()> {
+fn main() -> Result<(), Error> {
     #[cfg(target_os = "windows")]
     {
-        let mut res = winres::WindowsResource::new();
-        res.set_icon("resources/bff.ico");
-        res.compile()?;
-    }
+        // https://users.rust-lang.org/t/compile-for-windows-from-linux-when-have-build-rs/76858
+        let target_arch = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
 
-    shadow_rs::new()?;
+        if target_arch == "windows" {
+            let mut res = winres::WindowsResource::new();
+            res.set_icon("resources/bff.ico");
+            res.compile()?;
+        }
+    }
 
     Ok(())
 }

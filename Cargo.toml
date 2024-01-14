@@ -1,11 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-    "bff",
-    "bff-cli",
-    "bff-derive",
-    "bff-gui",
-]
+members = ["bff", "bff-cli", "bff-derive", "bff-gui"]
 
 [workspace.package]
 version = "0.1.0"

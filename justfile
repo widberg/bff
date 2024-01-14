@@ -34,7 +34,7 @@ build:
 [unix]
 build-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release
+    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
@@ -42,13 +42,13 @@ build-wasm:
     #!powershell -NoLogo
     cd bff-gui
     $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
-    trunk build --release
+    trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [unix]
 serve-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release
+    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
@@ -56,7 +56,7 @@ serve-wasm:
     #!powershell -NoLogo
     cd bff-gui
     $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
-    trunk serve --release
+    trunk serve --release --no-default-features
 
 doc:
     cargo doc
@@ -82,7 +82,7 @@ install-dev-deps-wasm:
 # flamegraph (https://github.com/flamegraph-rs/flamegraph)
 [unix]
 flamegraph CMD *OPTIONS:
-    /usr/bin/env CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph --root --release --bin {{ CMD }} -- -- {{ OPTIONS }}
+    /usr/bin/env CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph --root --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 # flamegraph (https://github.com/flamegraph-rs/flamegraph) and blondie (https://github.com/nico-abram/blondie)
 [windows]
@@ -90,6 +90,6 @@ flamegraph CMD *OPTIONS:
     #!powershell -NoLogo
     $ENV:CARGO_PROFILE_RELEASE_DEBUG = "true"
     $ENV:DTRACE = "blondie_dtrace"
-    cargo flamegraph --release --bin {{ CMD }} -- -- {{ OPTIONS }}
+    cargo flamegraph --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 check: fmt clippy test
