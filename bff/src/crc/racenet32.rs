@@ -1,12 +1,12 @@
 use crate::traits::NameHashFunction;
 use super::blacksheep32::CRC32_TABLE;
 
-pub const fn fuelnet32(bytes: &[u8]) -> i32 {
-    fuelnet32_options(bytes, 0)
+pub const fn racenet32(bytes: &[u8]) -> i32 {
+    racenet32_options(bytes, 0)
 }
 
 // https://github.com/lattera/freebsd/blob/401a161083850a9a4ce916f37520c084cff1543b/sys/libkern/crc32.c#L103-L113
-pub const fn fuelnet32_options(bytes: &[u8], starting: i32) -> i32 {
+pub const fn racenet32_options(bytes: &[u8], starting: i32) -> i32 {
     let mut hash = !starting as u32;
     let mut i: usize = 0;
     while i < bytes.len() {
@@ -19,15 +19,15 @@ pub const fn fuelnet32_options(bytes: &[u8], starting: i32) -> i32 {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FuelNet32;
-impl NameHashFunction for FuelNet32 {
+pub struct RaceNet32;
+impl NameHashFunction for RaceNet32 {
     type Target = i32;
 
     fn hash(bytes: &[u8]) -> Self::Target {
-        fuelnet32(bytes)
+        racenet32(bytes)
     }
 
     fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        fuelnet32_options(bytes, starting)
+        racenet32_options(bytes, starting)
     }
 }
