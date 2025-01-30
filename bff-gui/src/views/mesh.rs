@@ -115,19 +115,19 @@ impl ConvertedFrameInput<'_> {
         // Set where to paint
         let viewport = info.viewport_in_pixels();
         let viewport = Viewport {
-            x: viewport.left_px.round() as _,
-            y: viewport.from_bottom_px.round() as _,
-            width: viewport.width_px.round() as _,
-            height: viewport.height_px.round() as _,
+            x: viewport.left_px as _,
+            y: viewport.from_bottom_px as _,
+            width: viewport.width_px as _,
+            height: viewport.height_px as _,
         };
 
         // Respect the egui clip region (e.g. if we are inside an `egui::ScrollArea`).
         let clip_rect = info.clip_rect_in_pixels();
         let scissor_box = ScissorBox {
-            x: clip_rect.left_px.round() as _,
-            y: clip_rect.from_bottom_px.round() as _,
-            width: clip_rect.width_px.round() as _,
-            height: clip_rect.height_px.round() as _,
+            x: clip_rect.left_px as _,
+            y: clip_rect.from_bottom_px as _,
+            width: clip_rect.width_px as _,
+            height: clip_rect.height_px as _,
         };
         Self {
             screen,
@@ -186,7 +186,7 @@ impl ThreeDApp {
         self.camera.set_viewport(frame_input.viewport);
 
         self.camera
-            .rotate_around_with_fixed_up(&Vector3::zero(), angle.x, angle.y);
+            .rotate_around_with_fixed_up(Vector3::zero(), angle.x, angle.y);
         // self.camera.zoom_towards(point, delta, minimum_distance, maximum_distance)
 
         frame_input
@@ -211,7 +211,7 @@ impl ThreeDApp {
                         &self.context,
                         10.0,
                         Srgba::WHITE,
-                        &vec3(0.0, -1.0, -1.0),
+                        vec3(0.0, -1.0, -1.0),
                     ),
                 ],
             );

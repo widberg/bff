@@ -294,7 +294,7 @@ impl Gui {
                                         ))
                                         .rounding(0.0)
                                         .min_size(egui::vec2(ui.available_width(), 0.0))
-                                        .wrap(true)
+                                        .wrap()
                                         .selected(
                                             if let Some(n) = &self.resource_name {
                                                 resource == n
@@ -303,23 +303,23 @@ impl Gui {
                                             },
                                         ),
                                     )
-                                    .context_menu(|ui| {
-                                        if ui.button("Change nickname").clicked() {
-                                            ui.close_menu();
-                                            response.resource_context_menu = Some(*resource);
-                                        }
-                                        if ui
-                                            .add_enabled(
-                                                nickname.is_some(),
-                                                egui::Button::new("Clear nickname"),
-                                            )
-                                            .clicked()
-                                        {
-                                            ui.close_menu();
-                                            response.nickname_cleared = Some(*resource);
-                                        }
-                                    })
                                     .on_hover_text_at_pointer(tooltip_text);
+                                btn.context_menu(|ui| {
+                                    if ui.button("Change nickname").clicked() {
+                                        ui.close_menu();
+                                        response.resource_context_menu = Some(*resource);
+                                    }
+                                    if ui
+                                        .add_enabled(
+                                            nickname.is_some(),
+                                            egui::Button::new("Clear nickname"),
+                                        )
+                                        .clicked()
+                                    {
+                                        ui.close_menu();
+                                        response.nickname_cleared = Some(*resource);
+                                    }
+                                });
                                 if btn.clicked() {
                                     response.resource_clicked = Some(*resource);
                                     if self.artifacts.get(resource).is_none()

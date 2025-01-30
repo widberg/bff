@@ -50,6 +50,8 @@ struct Args {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> BffGuiResult<()> {
+    use std::sync::Arc;
+
     let cli = Args::parse();
     let file = cli.file.clone();
 
@@ -73,16 +75,29 @@ fn main() -> BffGuiResult<()> {
             }
         })
     });
-    let options = eframe::NativeOptions {
-        drag_and_drop_support: true,
-        renderer: eframe::Renderer::Glow,
-        icon_data: Some(
-            eframe::IconData::try_from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
-        ),
-        initial_window_size: Some(WINDOW_SIZE),
+    let viewport = egui::ViewportBuilder {
+        drag_and_drop: Some(true),
+        icon: Some(Arc::new(
+            eframe::icon_data::from_png_bytes(include_bytes!("../resources/bff.png")).unwrap(),
+        )),
+        inner_size: Some(WINDOW_SIZE),
         ..Default::default()
     };
-    eframe::run_native(TITLE, options, Box::new(|cc| Box::new(Gui::new(cc, file))))?;
+    let options = eframe::NativeOptions {
+        viewport,
+        renderer: eframe::Renderer::Glow,
+        ..Default::default()
+    };
+    eframe::run_native(
+        TITLE,
+        options,
+        Box::new(|cc| {
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+            setup_custom_font(&cc.egui_ctx);
+            cc.egui_ctx.set_pixels_per_point(1.25);
+            Ok(Box::new(Gui::new(cc, file)))
+        }),
+    )?;
 
     Ok(())
 }
@@ -222,9 +237,6 @@ impl Gui {
         cc: &eframe::CreationContext<'_>,
         #[cfg(not(target_arch = "wasm32"))] file: Option<PathBuf>,
     ) -> Self {
-        cc.egui_ctx.set_pixels_per_point(1.25);
-        egui_extras::install_image_loaders(&cc.egui_ctx);
-        setup_custom_font(&cc.egui_ctx);
         let (tx, rx) = std::sync::mpsc::channel();
         #[cfg(not(target_arch = "wasm32"))]
         let bf_loading = match file {
@@ -259,7 +271,11 @@ impl eframe::App for Gui {
         if let Ok(res) = self.rx.try_recv() {
             if let Some((bf, path)) = res {
                 #[cfg(not(target_arch = "wasm32"))]
-                frame.set_window_title(format!("{} - {}", TITLE, path.to_string_lossy()).as_str());
+                ctx.send_viewport_cmd(egui::ViewportCommand::Title(format!(
+                    "{} - {}",
+                    TITLE,
+                    path.to_string_lossy()
+                )));
                 self.bigfile = Some(bf);
                 self.bigfile_path = Some(path);
                 self.nicknames.clear();

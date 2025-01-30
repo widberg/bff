@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::artifact::Artifact;
-use crate::helpers::image::get_image;
+// use crate::helpers::image::get_image_widget;
+use crate::views::image::image_view;
 use crate::views::mesh::mesh_view;
 use crate::views::sound::sound_view;
 use crate::Gui;
@@ -14,7 +15,7 @@ impl Gui {
                 if let Some(a) = artifact {
                     match a {
                         Artifact::Bitmap { is_dds: _, data } => {
-                            ui.add(get_image(&resource_name, data));
+                            image_view(ui, &resource_name, data);
                         }
                         Artifact::Sound {
                             data,

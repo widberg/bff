@@ -137,7 +137,7 @@ impl Gui {
                     }
                     #[cfg(not(target_arch = "wasm32"))]
                     if ui.button("Quit").clicked() {
-                        frame.close();
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
                 #[cfg(not(target_arch = "wasm32"))]

@@ -14,7 +14,7 @@ impl Gui {
                             .collect();
                         let text_style = egui::TextStyle::Body;
                         egui::ScrollArea::vertical()
-                            .id_source("code_scroll")
+                            .id_salt("code_scroll")
                             .show_rows(
                                 ui,
                                 ui.text_style_height(&text_style),
