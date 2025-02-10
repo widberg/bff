@@ -5,12 +5,7 @@ use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffOption,
-    DynArray,
-    DynBox,
-    DynSphere,
-    ObjectLinkHeaderV1_06_63_02PC,
-    Vec3f,
+    BffOption, DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec3f,
 };
 use crate::names::Name;
 
@@ -42,11 +37,11 @@ pub struct LodBodyV1_291_03_06PC {
     box_cols: DynArray<DynBox>,
     cylinder_cols: DynArray<CylindreCol>,
     close: Vec3f,
-    component_crc32s: DynArray<Name>,
-    shadow_crc32: Name,
+    component_names: DynArray<Name>,
+    shadow_name: Name,
     anims: BffOption<DynArray<ClassRes>>,
     sounds: BffOption<DynArray<ClassRes>>,
-    user_define_crc32: Name,
+    user_define_name: Name,
 }
 
 pub type LodV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_291_03_06PC>;

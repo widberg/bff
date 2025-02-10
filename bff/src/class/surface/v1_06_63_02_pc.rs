@@ -3,10 +3,10 @@ use binrw::BinRead;
 use serde::Serialize;
 
 use crate::class::trivial_class::TrivialClass;
+use crate::helpers::BffOption;
 use crate::helpers::DynArray;
 use crate::helpers::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
-use crate::helpers::BffOption;
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -94,7 +94,7 @@ struct Patch {
     displacement_indices: [u16; 8],
     col_cache_index: u16,
     unknown: u16,
-    material_anim_crc32: Name,
+    material_anim_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]

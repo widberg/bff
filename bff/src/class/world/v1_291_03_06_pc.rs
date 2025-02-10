@@ -12,7 +12,7 @@ struct SeadEntry {
     prev_object_of_entry: u32,
     next_entry_of_object: u32,
     grid_id: u32,
-    node_crc32: Name,
+    node_name: Name,
 }
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -52,19 +52,19 @@ struct SubWorldData {
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct WorldBodyV1_291_03_06PC {
-    root_node_crc32: Name,
-    warp_crc32: Name,
-    game_obj_crc32: Name,
-    unk0_crc32: Name,
-    unk1_crc32: Name,
+    root_node_name: Name,
+    warp_name: Name,
+    game_obj_name: Name,
+    unk0_name: Name,
+    unk1_name: Name,
     links: DynArray<Name>,
     sead_handle0: SeadHandle,
     sead_handle1: SeadHandle,
-    anim_frame_crc32s: DynArray<Name>,
-    camera_zone_crc32s: DynArray<Name>,
-    graph_crc32s: DynArray<Name>,
-    occluder_crc32s: DynArray<Name>,
-    unk2_crc32s: DynArray<Name>,
+    anim_frame_names: DynArray<Name>,
+    camera_zone_names: DynArray<Name>,
+    graph_names: DynArray<Name>,
+    occluder_names: DynArray<Name>,
+    unk2_names: DynArray<Name>,
     sub_world_datas: DynArray<SubWorldData>,
 }
 

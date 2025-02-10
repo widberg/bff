@@ -97,12 +97,12 @@ pub struct ObjectLinkHeaderV1_381_67_09PC {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ObjectLinkHeaderV1_06_63_02PC {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    data_crc32: Name,
-    b_sphere_local: Sphere,
-    unknown_matrix: Mat4f,
-    fade_out_distance: f32,
+    link_name: Name,
+    names: DynArray<Name>,
+    data_name: Name,
+    rot: Quat,
+    transform: Mat4f,
+    radius: f32,
     pub flags: u32,
-    r#type: u16,
+    r#type: ObjectType,
 }

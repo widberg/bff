@@ -53,7 +53,7 @@ pub struct RotShapeBodyV1_06_63_02PC {
     material_indices: DynArray<u32>,
     local_vertices: DynArray<Vec3f>,
     local_uvs: DynArray<Vec2f>,
-    material_anim_crc32s: DynArray<Name>,
+    material_anim_names: DynArray<Name>,
     scale: f32,
     rot_shape_type: u16,
 }

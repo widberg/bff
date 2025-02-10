@@ -15,14 +15,14 @@ impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
             .skin_sections
             .iter()
             .flat_map(|section| &section.skin_sub_sections.inner)
-            .map(|subsection| subsection.material_crc32)
+            .map(|subsection| subsection.material_name)
             .collect();
-        [self.body.mesh_crc32s.inner.clone(), material_crc32s].concat()
+        [self.body.mesh_names.inner.clone(), material_crc32s].concat()
     }
     fn export(self, classes: &HashMap<Name, Class>) -> Artifact {
         let tri_meshes: Vec<three_d_asset::Primitive> = self
             .body
-            .mesh_crc32s
+            .mesh_names
             .iter()
             .flat_map(|n| {
                 let class = classes.get(n).unwrap();
@@ -55,15 +55,15 @@ impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
             .flat_map(|section| &section.skin_sub_sections.inner)
             .enumerate()
             .map(|(i, subsection)| {
-                if let Some(class) = classes.get(&subsection.material_crc32) {
+                if let Some(class) = classes.get(&subsection.material_name) {
                     match class {
                         Class::Material(box_material) => match **box_material {
                             bff::class::material::Material::MaterialV1_291_03_06PC(
                                 ref material,
                             ) => three_d::renderer::material::CpuMaterial {
-                                name: format!("{}-mat{}", subsection.material_crc32, i),
-                                albedo: material.body.diffuse_color.into(),
-                                emissive: material.body.emissive_color.into(),
+                                name: format!("{}-mat{}", subsection.material_name, i),
+                                albedo: material.body.diffuse.into(),
+                                emissive: material.body.emission.into(),
                                 ..Default::default()
                             },
                             _ => todo!(),
@@ -72,7 +72,7 @@ impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
                     }
                 } else {
                     three_d::renderer::material::CpuMaterial {
-                        name: format!("{}-mat", subsection.material_crc32),
+                        name: format!("{}-mat", subsection.material_name),
                         ..Default::default()
                     }
                 }

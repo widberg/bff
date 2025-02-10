@@ -4,11 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray,
-    KeyframerBezierRot,
-    KeyframerFloatComp,
-    KeyframerMessage,
-    KeyframerRot,
+    DynArray, KeyframerBezierRot, KeyframerFloatComp, KeyframerMessage, KeyframerRot,
     KeyframerVec3fComp,
 };
 use crate::names::Name;
@@ -25,7 +21,7 @@ struct AnimationNode {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationNodeModifier {
-    bone_name_crc32: Name,
+    bone_name: Name,
     bone_id: u16,
     flag: u16,
     translation_start_frame: u16,
@@ -51,7 +47,7 @@ struct AnimationMaterial {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMaterialModifier {
-    material_link_crc32: Name,
+    material_link_name: Name,
     material_id: u16,
     flag: u16,
     keyframer_float_comp0_start_frame: u16,
@@ -73,7 +69,7 @@ struct AnimationMesh {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMeshModifier {
-    mesh_link_crc32: Name,
+    mesh_link_name: Name,
     mesh_id: u16,
     flag: u16,
     keyframer_float_comp_start_frame: u16,
@@ -87,7 +83,7 @@ struct AnimationMorph {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct AnimationMorphModifier {
-    mesh_link_crc32: Name,
+    mesh_link_name: Name,
     mesh_id: u16,
     flag: u16,
     keyframer_float_comp_start_frame: u16,

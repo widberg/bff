@@ -18,10 +18,10 @@ pub struct CollisionVolBodyV1_291_03_06PC {
     collision_vol_infos: DynArray<CollisionVolInfo>,
     in_message_id: u32,
     out_message_id: u32,
-    node_param_crc32s: [u32; 12],
-    float_param_crc32s: [u32; 12],
-    anim_frame_crc32s: DynArray<Name>,
-    collision_vol_agent_crc32: Name,
+    node_param_names: [u32; 12],
+    float_param_names: [u32; 12],
+    anim_frame_names: DynArray<Name>,
+    collision_vol_agent_name: Name,
     anim_start_time: f32,
 }
 

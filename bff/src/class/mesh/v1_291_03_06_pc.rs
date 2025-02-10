@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, DynBox, DynSphere, Mat4f, Quat, Vec2, Vec2f, Vec3, Vec3f};
+use crate::helpers::{
+    DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec2, Vec2f, Vec3, Vec3f,
+};
 use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -65,18 +67,6 @@ struct Unknown7 {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown8 {
     data: [u8; 16],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct LinkInfo {
-    link_crc32: Name,
-    links: DynArray<Name>,
-    mesh_data_crc32: Name,
-    rotation: Quat,
-    transform: Mat4f,
-    radius: f32,
-    flags: u32,
-    r#type: u16,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -226,7 +216,7 @@ pub struct MeshBuffer {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(link_header: &LinkInfo))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,
     unknown1s: DynArray<Unknown1>,
@@ -236,7 +226,7 @@ pub struct MeshBodyV1_291_03_06PC {
     #[br(count = unknown3s.len() * 4)]
     unknown4s: Option<Vec<u8>>,
     unknown5s: DynArray<Unknown5>,
-    material_crc32s: DynArray<Name>,
+    material_names: DynArray<Name>,
     related_to_counts: [u8; 24],
     sphere_cols: DynArray<DynSphere>,
     box_cols: DynArray<DynBox>,
@@ -249,4 +239,4 @@ pub struct MeshBodyV1_291_03_06PC {
     unknown8s: DynArray<Unknown8>,
 }
 
-pub type MeshV1_291_03_06PC = TrivialClass<LinkInfo, MeshBodyV1_291_03_06PC>;
+pub type MeshV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, MeshBodyV1_291_03_06PC>;

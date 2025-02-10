@@ -23,7 +23,7 @@ struct Extended {
 #[br(import(_link_header: &()))]
 pub struct LodDataBodyV1_291_03_06PC {
     flags: u32,
-    mesh_data_crc32s: DynArray<Name>,
+    mesh_data_names: DynArray<Name>,
     zero: u32,
     extended: BffOption<Extended>,
 }

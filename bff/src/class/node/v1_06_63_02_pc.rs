@@ -8,14 +8,14 @@ use crate::name::Name;
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct NodeBodyV1_06_63_02PC {
-    parent_crc32: Name,
-    head_child_crc32: Name,
-    prev_node_crc32: Name,
-    next_node_crc32: Name,
-    object_crc32: Name,
-    user_define_crc32: Name,
-    bitmap_crc32: Name,
-    unk_crc32: Name,
+    parent_name: Name,
+    head_child_name: Name,
+    prev_node_name: Name,
+    next_node_name: Name,
+    object_name: Name,
+    user_define_name: Name,
+    bitmap_name: Name,
+    unk_name: Name,
     inverse_world_transform: Mat4f,
     unk_vec3f: Vec3f,
     collide_seads_id1: u32,

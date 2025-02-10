@@ -5,15 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffOption,
-    DynArray,
-    Mat4f,
-    ObjectLinkHeaderV1_06_63_02PC,
-    Sphere,
-    Vec2f,
-    Vec3f,
-    Vec4f,
-    RGB,
+    BffOption, DynArray, Mat4f, ObjectLinkHeaderV1_06_63_02PC, Sphere, Vec2f, Vec3f, Vec4f, RGB,
 };
 use crate::names::Name;
 
@@ -88,7 +80,7 @@ struct Patch {
     displacement_indices: [u16; 8],
     col_cache_index: u16,
     unknown: u16,
-    material_anim_crc32: Name,
+    material_anim_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

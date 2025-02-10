@@ -14,9 +14,9 @@ struct ObjectDatas {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct UnkStruct {
-    unk1_crc32: Name,
-    unk2_crc32: Name,
-    unk3_crc32: Name,
+    unk1_name: Name,
+    unk2_name: Name,
+    unk3_name: Name,
     unks: DynArray<u32>,
 }
 
@@ -31,7 +31,7 @@ struct ActorData {
     unk_floats1: [f32; 6],
     placeholder4: [u32; 3],
     unk_uints1: [u32; 4],
-    unk_crc32: Name,
+    unk_name: Name,
     unk_structs: DynArray<UnkStruct>,
 }
 
@@ -40,7 +40,7 @@ struct ActorData {
 pub struct LodDataBodyV1_06_63_02PC {
     obj_datas: ObjectDatas,
     mesh_data_or_skelcrc32s: DynArray<Name>,
-    final_skel_crc32: Name,
+    final_skel_name: Name,
     actor_data: BffOption<ActorData>,
 }
 

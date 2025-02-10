@@ -26,7 +26,7 @@ struct ObjectBlend {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Bone {
-    bone_name_crc32: Name,
+    bone_name: Name,
     object_blends: DynArray<ObjectBlend>,
 }
 
@@ -38,14 +38,14 @@ struct MorphPacketDA {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct MorphPacket {
-    unknown0_crc32: Name,
-    unknown1_crc32: Name,
+    unknown0_name: Name,
+    unknown1_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct SkinSubSection {
-    pub material_crc32: Name,
-    bone_node_name_crc32s: [Name; 7],
+    pub material_name: Name,
+    bone_node_names: [Name; 7],
     placeholder_morph_packet_da: MorphPacketDA,
     morph_packets: DynArray<MorphPacket>,
 }
@@ -58,7 +58,7 @@ pub struct SkinSection {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SkinBodyV1_291_03_06PC {
-    pub mesh_crc32s: DynArray<Name>,
+    pub mesh_names: DynArray<Name>,
     unknown0s: DynArray<Unknown1>,
     bones: DynArray<Bone>,
     is_class_id: u8,

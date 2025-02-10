@@ -16,9 +16,9 @@ struct Box {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct LinkInfo {
-    link_crc32: Name,
-    linked_crc32: DynArray<Name>,
-    data_crc32: Name,
+    link_name: Name,
+    linked_name: DynArray<Name>,
+    data_name: Name,
     b_sphere_local: Sphere,
     b_box: Box,
     fade_out_distance: f32,
@@ -62,7 +62,7 @@ struct Morpher {
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
-    name_crc32: Name,
+    name_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -227,7 +227,7 @@ pub struct MeshBodyV1_06_63_02PC {
     strip_ext_count: u32,
     #[br(count = strip_ext_count)]
     unknown3s: Vec<Unknown3>,
-    material_crc32s: DynArray<Name>,
+    material_names: DynArray<Name>,
     drawing_start_distance: f32,
     drawing_cutoff_distance: f32,
     shadow_related: u32,

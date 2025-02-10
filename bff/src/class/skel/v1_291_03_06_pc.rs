@@ -14,7 +14,7 @@ struct ObjectDatas {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct BoneNode {
-    user_define_crc32: Name,
+    user_define_name: Name,
     local_rotation: Quat,
     scale: Vec3f,
     flags: u32,
@@ -39,12 +39,12 @@ struct BoneNode {
     parent_bone_id: i32,
     next_sibling_bone_id: i32,
     prev_sibling_bone_id: i32,
-    bone_name_crc32: Name,
+    bone_name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct BoneNodeGroup {
-    bone_node_crc32s: DynArray<Name>,
+    bone_node_names: DynArray<Name>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -64,10 +64,10 @@ struct BoxColBone {
 pub struct SkelBodyV1_291_03_06PC {
     object_datas: ObjectDatas,
     bone_nodes: DynArray<BoneNode>,
-    material_crc32s: DynArray<Name>,
-    mesh_data_crc32s: DynArray<Name>,
+    material_names: DynArray<Name>,
+    mesh_data_names: DynArray<Name>,
     bone_node_groups: DynArray<BoneNodeGroup>,
-    unknown_crc32s: DynArray<Name>,
+    unknown_names: DynArray<Name>,
     sphere_col_bones1: DynArray<SphereColBone>,
     sphere_col_bones2: DynArray<SphereColBone>,
     box_col_bones: DynArray<BoxColBone>,

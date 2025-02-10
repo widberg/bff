@@ -22,7 +22,7 @@ struct SphereColNode {
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
-    name_crc32: Name,
+    name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -35,12 +35,12 @@ pub struct LodBodyV1_06_63_02PC {
     box_cols: DynArray<DynBox>,
     cylindre_cols: DynArray<CylindreCol>,
     close: Vec3f,
-    component_crc32s: DynArray<Name>,
-    shadow_crc32: Name,
+    component_names: DynArray<Name>,
+    shadow_name: Name,
     anims: DynArray<ClassRes>,
     #[br(if(link_header.flags & 0x100000 != 0))]
     sounds: Option<DynArray<ClassRes>>,
-    user_define_crc32: Name,
+    user_define_name: Name,
 }
 
 pub type LodV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_06_63_02PC>;

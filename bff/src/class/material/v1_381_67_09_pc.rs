@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{ResourceObjectLinkHeader, Vec2f, RGB};
+use crate::helpers::{ResourceObjectLinkHeader, Vec2f, RGB, RGBA};
 use crate::names::Name;
 
 #[bitsize(32)]
@@ -33,8 +33,7 @@ struct MaterialRdrFlags {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MaterialBodyV1_381_67_09PC {
-    diffuse: RGB,
-    opacity: f32,
+    diffuse: RGBA,
     emission: RGB,
     unknown0: i32,
     t_matrix_top_left: Vec2f,
