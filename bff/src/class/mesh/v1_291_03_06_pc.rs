@@ -207,7 +207,7 @@ struct Morpher {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct MeshBuffer {
+pub struct MeshBuffers {
     pub vertex_buffers: DynArray<VertexBuffer>,
     pub index_buffers: DynArray<IndexBuffer>,
     pub vertex_groups: DynArray<VertexGroup>,
@@ -235,7 +235,7 @@ pub struct MeshBodyV1_291_03_06PC {
     aabb_cols: DynArray<AABBCol>,
     vertices: DynArray<Vertex>,
     unknown6s: DynArray<Unknown6>,
-    pub mesh_buffer: MeshBuffer,
+    pub mesh_buffers: MeshBuffers,
     unknown8s: DynArray<Unknown8>,
 }
 

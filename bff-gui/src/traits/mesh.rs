@@ -14,7 +14,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
     fn generate_mesh(&self) -> Vec<three_d::geometry::CpuMesh> {
         use three_d::{Vec2, Vec3, Vec4};
         self.body
-            .mesh_buffer
+            .mesh_buffers
             .vertex_groups
             .iter()
             .map(|group| {
@@ -26,7 +26,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                     Vec<Vec4>,
                 ) = self
                     .body
-                    .mesh_buffer
+                    .mesh_buffers
                     .vertex_buffers
                     .iter()
                     .flat_map(|buf| &buf.vertex_structs)
@@ -91,7 +91,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                     .multiunzip();
                 let indices: Vec<u16> = self
                     .body
-                    .mesh_buffer
+                    .mesh_buffers
                     .index_buffers
                     .iter()
                     .flat_map(|buf| &buf.tris)
