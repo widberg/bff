@@ -62,7 +62,7 @@ pub struct Header {
     pub tag: Option<Vec<u8>>,
     #[brw(seek_before = SeekFrom::Start(0x720))]
     pub pool_manifest_padded_size: u32,
-    #[br(map = |pool_offset: u32| (pool_offset != u32::MAX && pool_offset != 0).then_some(pool_offset * 2048))]
+    #[br(map = |pool_offset: u32| (pool_offset != u32::MAX && pool_offset != 0).then(|| pool_offset * 2048))]
     #[bw(map = |pool_offset: &Option<u32>| pool_offset.map(|pool_offset| pool_offset / 2048).unwrap_or(0))]
     pub pool_offset: Option<u32>,
     #[br(map = |pool_manifest_unused: u32| (pool_manifest_unused != u32::MAX).then_some(pool_manifest_unused))]
