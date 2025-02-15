@@ -25,9 +25,10 @@ const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, derive_more::From)]
-enum BffGuiError {
+pub enum BffGuiError {
     Io(std::io::Error),
     EFrame(eframe::Error),
+    Hound(hound::Error),
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -292,8 +293,8 @@ impl eframe::App for Gui {
         egui::CentralPanel::default()
             .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
             .show(ctx, |ui| {
-                let menubar_reponse = self.menubar_panel(ui, frame, "menubar".into());
-                if menubar_reponse.bf_loading {
+                let menubar_response = self.menubar_panel(ui, frame, "menubar".into());
+                if menubar_response {
                     self.bigfile_loading = true;
                 }
 

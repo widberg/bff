@@ -6,6 +6,8 @@ use std::sync::Arc;
 use hound::{SampleFormat, WavSpec, WavWriter};
 use three_d::CpuModel;
 
+use crate::BffGuiError;
+
 #[derive(Clone)]
 pub enum Artifact {
     Bitmap {
@@ -23,14 +25,15 @@ pub enum Artifact {
 
 impl Artifact {
     //TODO: write to impl Write
-    pub fn save(&self, path: &PathBuf) {
+    pub fn save(&self, path: &PathBuf) -> Result<(), BffGuiError> {
         match *self {
             Self::Bitmap {
                 is_dds: _,
                 ref data,
             } => {
-                let mut file = File::create(path).unwrap();
-                file.write_all(data).unwrap();
+                let mut file = File::create(path)?;
+                file.write_all(data)?;
+                Ok(())
             }
             Self::Sound {
                 ref data,
@@ -43,16 +46,17 @@ impl Artifact {
                     bits_per_sample: 16,
                     sample_format: SampleFormat::Int,
                 };
-                let mut parent_writer = WavWriter::create(path, spec).unwrap();
+                let mut parent_writer = WavWriter::create(path, spec)?;
                 let mut sample_writer = parent_writer.get_i16_writer(data.len() as u32);
                 for sample in data.iter() {
                     sample_writer.write_sample(*sample);
                 }
-                sample_writer.flush().unwrap();
-                parent_writer.finalize().unwrap();
+                sample_writer.flush()?;
+                parent_writer.finalize()?;
+                Ok(())
             }
             Self::Mesh(_) => todo!(),
             Self::Skin(_) => todo!(),
-        };
+        }
     }
 }
