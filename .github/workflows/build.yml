@@ -22,7 +22,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.74.1
+          toolchain: 1.84.1
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.7.0
@@ -37,7 +37,7 @@ jobs:
           CARGO_PROFILE_RELEASE_LTO: "true"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bff-${{ matrix.name }}-${{ github.sha }}
           path: |
