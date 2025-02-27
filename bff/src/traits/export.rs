@@ -7,6 +7,7 @@ pub enum Artifact {
     Binary(Vec<u8>),
     Text(String),
     Json(String),
+    Rich(Vec<u8>),
 }
 
 pub trait Export {
