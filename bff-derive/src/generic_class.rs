@@ -15,11 +15,13 @@ pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
             .unwrap()
     ); // could be better
     let generic_name = Ident::new(&gen_name, gen_name.span());
-    let fields = match input.data {
-        syn::Data::Struct(data) => data.fields.into_iter(),
+    let data = match input.data {
+        syn::Data::Struct(data) => data,
         _ => panic!("Not a struct"),
     };
-    let intos = fields
+    let intos = data
+        .fields
+        .iter()
         .filter(|f| {
             !f.attrs
                 .iter()
@@ -28,16 +30,40 @@ pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
                 .is_empty()
         })
         .map(|f| {
-            let field_ident = f.ident.unwrap(); // for named structs only
-            quote! { #field_ident: class.#field_ident.into() }
+            let field_ident = f.ident.as_ref().expect("Only named structs are supported");
+            quote! { #field_ident: object.#field_ident.into() }
+        })
+        .collect::<Vec<_>>();
+    let fill_intos = data
+        .fields
+        .iter()
+        .filter(|f| {
+            f.attrs
+                .iter()
+                .filter(|attr| attr.path().is_ident("generic"))
+                .collect::<Vec<_>>()
+                .is_empty()
+        })
+        .map(|f| {
+            let field_ident = f.ident.as_ref().expect("Only named structs are supported");
+            quote! { #field_ident: substitute.#field_ident }
         })
         .collect::<Vec<_>>();
     quote! {
         impl From<#name> for #generic_name {
-            fn from(class: #name) -> #generic_name {
+            fn from(object: #name) -> Self {
                 #generic_name {
                     #(#intos),*
                 }
+            }
+        }
+        impl crate::traits::TryFromGenericSubstitute<#generic_name, #name> for #name {
+            type Error = crate::error::Error;
+            fn try_from_generic_substitute(object: #generic_name, substitute: #name) -> crate::BffResult<Self> {
+                Ok(#name {
+                    #(#intos),*
+                    #(#fill_intos),*
+                })
             }
         }
     }
