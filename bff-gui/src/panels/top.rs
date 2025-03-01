@@ -72,12 +72,13 @@ impl Gui {
     }
     pub fn menubar_panel(
         &mut self,
-        ui: &mut egui::Ui,
+        ctx: &egui::Context,
+        // ui: &mut egui::Ui,
         #[allow(unused_variables)] frame: &mut eframe::Frame,
         id_source: egui::Id,
     ) -> bool {
         let mut response = false;
-        egui::TopBottomPanel::top("top").show_inside(ui, |ui| {
+        egui::TopBottomPanel::top("top").show(ctx, |ui: &mut egui::Ui| {
             ui.horizontal(|ui| {
                 ui.menu_button("File", |ui| {
                     ui.menu_button("BigFile", |ui| {

@@ -1,4 +1,4 @@
-use bff_derive::ReferencedNames;
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
@@ -38,11 +38,13 @@ enum BmTransp {
     Cubemap = 255,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 pub struct LinkHeader {
     link_name: Name,
     bitmap_class: BitmapClass,
+    #[generic]
     width: u32,
+    #[generic]
     height: u32,
     bitmap_data_size: u32,
     flags: u8,
@@ -50,17 +52,20 @@ pub struct LinkHeader {
     pad: u16,
     layer: f32,
     format0: BmFormat,
-    mip_map_count: u8,
+    #[generic]
+    mipmap_count: u8,
     four: u8,
     bitmap_class2: BitmapClass2,
     format1: BmFormat,
     transparency: BmTransp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]
+    #[serde(skip_serializing)]
+    #[generic]
     pub data: Vec<u8>,
 }
 

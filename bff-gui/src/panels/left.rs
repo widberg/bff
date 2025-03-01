@@ -1,6 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
+use bff::bigfile::platforms::Platform;
+use bff::bigfile::versions::Version;
+use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
@@ -40,18 +43,48 @@ pub struct ResourceListResponse {
     pub nickname_cleared: Option<Name>,
 }
 
+fn load_artifact(
+    artifacts: &HashMap<Name, Artifact>,
+    infos: &HashMap<Name, String>,
+    bigfile: &BigFile,
+    resource: &Name,
+    version: &Version,
+    platform: Platform,
+) -> (Option<String>, Option<Artifact>) {
+    if artifacts.get(resource).is_none() || infos.get(resource).is_none() {
+        match bigfile
+            .objects
+            .get(resource)
+            .unwrap()
+            .try_into_version_platform(version.clone(), platform)
+        {
+            Ok(class) => {
+                return (
+                    Some(serde_json::to_string_pretty::<Class>(&class).unwrap()),
+                    create_artifact(bigfile, class),
+                );
+            }
+            Err(e) => {
+                println!("{:?}", e);
+            }
+        }
+    }
+    (None, None)
+}
+
 impl Gui {
     pub fn resource_list_panel(
         &mut self,
-        ui: &mut egui::Ui,
+        ctx: &egui::Context,
+        // ui: &mut egui::Ui,
         id_source: egui::Id,
     ) -> ResourceListResponse {
         let mut response = ResourceListResponse::default();
         let mut changed_list = false;
         egui::SidePanel::left("left")
             .resizable(true)
-            .width_range(70.0..=ui.available_width() / 2.0)
-            .show_inside(ui, |ui| {
+            // .width_range(10.0..=ctx. * 0.9)
+            .show(ctx, |ui: &mut egui::Ui| {
                 if let Some(bigfile) = &self.bigfile {
                     let version = &bigfile.manifest.version;
                     let platform = bigfile.manifest.platform;
@@ -190,162 +223,133 @@ impl Gui {
 
                     ui.add(egui::Separator::default().horizontal().spacing(1.0));
 
+                    ui.style_mut().spacing.interact_size.y += 2.0;
                     let row_height = ui.spacing().interact_size.y;
                     egui::ScrollArea::vertical().show_rows(
                         ui,
                         row_height,
                         resources.len(),
                         |ui, row_range| {
-                            ui.set_min_width(ui.available_width());
-                            if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                                if let Some(cur) = self.resource_name {
-                                    let mut res_iter = resources.iter().cycle();
-                                    if res_iter.any(|n| n == &cur) {
-                                        let res = *res_iter.next().unwrap();
-                                        response.resource_clicked = Some(res);
-                                        if self.artifacts.get(&res).is_none()
-                                            || self.infos.get(&res).is_none()
-                                        {
-                                            match bigfile
-                                                .objects
-                                                .get(&res)
-                                                .unwrap()
-                                                .try_into_version_platform(
-                                                    version.clone(),
+                            ui.with_layout(
+                                egui::Layout::top_down_justified(egui::Align::LEFT),
+                                |ui| {
+                                    ui.set_min_width(10.0);
+                                    // ui.allocate_space(ui.available_size());
+                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+                                        if let Some(cur) = self.resource_name {
+                                            let mut res_iter = resources.iter().cycle();
+                                            if res_iter.any(|n| n == &cur) {
+                                                let res = *res_iter.next().unwrap();
+                                                response.resource_clicked = Some(res);
+                                                (
+                                                    response.info_created,
+                                                    response.artifact_created,
+                                                ) = load_artifact(
+                                                    &self.artifacts,
+                                                    &self.infos,
+                                                    bigfile,
+                                                    &res,
+                                                    version,
                                                     platform,
-                                                ) {
-                                                Ok(class) => {
-                                                    response.info_created = Some(
-                                                        serde_json::to_string_pretty::<Class>(
-                                                            &class,
-                                                        )
-                                                        .unwrap(),
-                                                    );
-                                                    response.artifact_created =
-                                                        create_artifact(bigfile, class);
-                                                }
-                                                Err(e) => {
-                                                    println!("{:?}", e);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                                if let Some(cur) = self.resource_name {
-                                    let mut res_iter = resources.iter();
-                                    if let Some(i) = res_iter.position(|n| n == &cur) {
-                                        let c = if i == 0 { resources.len() - 1 } else { i - 1 };
-                                        let res = *resources.get(c).unwrap();
-                                        response.resource_clicked = Some(res);
-                                        if self.artifacts.get(&res).is_none()
-                                            || self.infos.get(&res).is_none()
-                                        {
-                                            match bigfile
-                                                .objects
-                                                .get(&res)
-                                                .unwrap()
-                                                .try_into_version_platform(
-                                                    version.clone(),
-                                                    platform,
-                                                ) {
-                                                Ok(class) => {
-                                                    response.info_created = Some(
-                                                        serde_json::to_string_pretty::<Class>(
-                                                            &class,
-                                                        )
-                                                        .unwrap(),
-                                                    );
-                                                    response.artifact_created =
-                                                        create_artifact(bigfile, class);
-                                                }
-                                                Err(e) => {
-                                                    println!("{:?}", e);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            // ui.style_mut().spacing.item_spacing.y = 4.0;
-
-                            for row in row_range {
-                                let resource = resources.get(row).unwrap();
-                                let nickname = self.nicknames.get(resource);
-                                let mut tooltip_text = format!(
-                                    "Size: {} bytes",
-                                    bigfile.objects.get(resource).unwrap().size()
-                                );
-                                if nickname.is_some() {
-                                    tooltip_text.push_str(
-                                        format!("\nOriginal name: {}", resource).as_str(),
-                                    );
-                                }
-                                let btn = ui
-                                    .add(
-                                        egui::Button::new(format!(
-                                            "{}.{}",
-                                            match nickname {
-                                                Some(nn) => nn.to_owned(),
-                                                None => resource.to_string(),
-                                            },
-                                            bigfile.objects.get(resource).unwrap().class_name
-                                        ))
-                                        .rounding(0.0)
-                                        .min_size(egui::vec2(ui.available_width(), 0.0))
-                                        .wrap()
-                                        .selected(
-                                            if let Some(n) = &self.resource_name {
-                                                resource == n
-                                            } else {
-                                                false
-                                            },
-                                        ),
-                                    )
-                                    .on_hover_text_at_pointer(tooltip_text);
-                                btn.context_menu(|ui| {
-                                    if ui.button("Change nickname").clicked() {
-                                        ui.close_menu();
-                                        response.resource_context_menu = Some(*resource);
-                                    }
-                                    if ui
-                                        .add_enabled(
-                                            nickname.is_some(),
-                                            egui::Button::new("Clear nickname"),
-                                        )
-                                        .clicked()
-                                    {
-                                        ui.close_menu();
-                                        response.nickname_cleared = Some(*resource);
-                                    }
-                                });
-                                if btn.clicked() {
-                                    response.resource_clicked = Some(*resource);
-                                    if self.artifacts.get(resource).is_none()
-                                        || self.infos.get(resource).is_none()
-                                    {
-                                        match bigfile
-                                            .objects
-                                            .get(resource)
-                                            .unwrap()
-                                            .try_into_version_platform(version.clone(), platform)
-                                        {
-                                            Ok(class) => {
-                                                response.info_created = Some(
-                                                    serde_json::to_string_pretty::<Class>(&class)
-                                                        .unwrap(),
                                                 );
-                                                response.artifact_created =
-                                                    create_artifact(bigfile, class);
-                                            }
-                                            Err(e) => {
-                                                println!("{:?}", e);
                                             }
                                         }
                                     }
-                                }
-                            }
+                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+                                        if let Some(cur) = self.resource_name {
+                                            let mut res_iter = resources.iter();
+                                            if let Some(i) = res_iter.position(|n| n == &cur) {
+                                                let c = if i == 0 {
+                                                    resources.len() - 1
+                                                } else {
+                                                    i - 1
+                                                };
+                                                let res = *resources.get(c).unwrap();
+                                                response.resource_clicked = Some(res);
+                                                (
+                                                    response.info_created,
+                                                    response.artifact_created,
+                                                ) = load_artifact(
+                                                    &self.artifacts,
+                                                    &self.infos,
+                                                    bigfile,
+                                                    &res,
+                                                    version,
+                                                    platform,
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                    // RESOURCE BUTTONS
+                                    ui.style_mut().spacing.item_spacing.y = 4.0;
+                                    for row in row_range {
+                                        let resource = resources.get(row).unwrap();
+                                        let nickname = self.nicknames.get(resource);
+                                        let mut tooltip_text = format!(
+                                            "Size: {} bytes",
+                                            bigfile.objects.get(resource).unwrap().size()
+                                        );
+                                        if nickname.is_some() {
+                                            tooltip_text.push_str(
+                                                format!("\nOriginal name: {}", resource).as_str(),
+                                            );
+                                        }
+                                        let btn = ui
+                                            .add(
+                                                // egui::vec2(ui.available_width(), row_height),
+                                                egui::Button::new(format!(
+                                                    "{}.{}",
+                                                    nickname.unwrap_or(&resource.to_string()),
+                                                    bigfile
+                                                        .objects
+                                                        .get(resource)
+                                                        .unwrap()
+                                                        .class_name
+                                                ))
+                                                .rounding(0.0)
+                                                // .min_size(egui::vec2(
+                                                //     ui.available_width(),
+                                                //     row_height,
+                                                // ))
+                                                .truncate()
+                                                .selected(
+                                                    self.resource_name
+                                                        .map_or_else(|| false, |n| resource == &n),
+                                                ),
+                                            )
+                                            .on_hover_text_at_pointer(tooltip_text);
+                                        btn.context_menu(|ui| {
+                                            if ui.button("Change nickname").clicked() {
+                                                ui.close_menu();
+                                                response.resource_context_menu = Some(*resource);
+                                            }
+                                            if ui
+                                                .add_enabled(
+                                                    nickname.is_some(),
+                                                    egui::Button::new("Clear nickname"),
+                                                )
+                                                .clicked()
+                                            {
+                                                ui.close_menu();
+                                                response.nickname_cleared = Some(*resource);
+                                            }
+                                        });
+                                        if btn.clicked() {
+                                            response.resource_clicked = Some(*resource);
+                                            (response.info_created, response.artifact_created) =
+                                                load_artifact(
+                                                    &self.artifacts,
+                                                    &self.infos,
+                                                    bigfile,
+                                                    resource,
+                                                    version,
+                                                    platform,
+                                                );
+                                        }
+                                    }
+                                },
+                            );
                         },
                     );
                 }

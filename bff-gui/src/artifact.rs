@@ -9,9 +9,15 @@ use three_d::CpuModel;
 use crate::BffGuiError;
 
 #[derive(Clone)]
+pub enum BitmapFormat {
+    Dds,
+    Raw,
+}
+
+#[derive(Clone)]
 pub enum Artifact {
     Bitmap {
-        is_dds: bool, // use enum?
+        format: BitmapFormat,
         data: Arc<Vec<u8>>,
     },
     Sound {
@@ -28,7 +34,7 @@ impl Artifact {
     pub fn save(&self, path: &PathBuf) -> Result<(), BffGuiError> {
         match *self {
             Self::Bitmap {
-                is_dds: _,
+                format: _,
                 ref data,
             } => {
                 let mut file = File::create(path)?;

@@ -9,10 +9,7 @@ use crate::helpers::{ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct MeshDataBodyV1_381_67_09PC {
     flags: ObjectDatasFlagsV1_381_67_09PC,
-    zero0: u32,
-    zero1: u32,
-    zero2: u32,
-    zero3: u32,
+    zeroes: [u32; 4],
 }
 
 pub type MeshDataV1_381_67_09PC =

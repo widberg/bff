@@ -8,14 +8,14 @@ use crate::views::sound::sound_view;
 use crate::Gui;
 
 impl Gui {
-    pub fn preview_panel(&mut self, ui: &mut egui::Ui) {
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+    pub fn preview_panel(&mut self, ctx: &egui::Context) {
+        egui::CentralPanel::default().show(ctx, |ui: &mut egui::Ui| {
             if let Some(resource_name) = self.resource_name {
                 let artifact = self.artifacts.get(&resource_name);
                 if let Some(a) = artifact {
                     match a {
-                        Artifact::Bitmap { is_dds: _, data } => {
-                            image_view(ui, &resource_name, data);
+                        Artifact::Bitmap { format, data } => {
+                            image_view(ui, &resource_name, format, data);
                         }
                         Artifact::Sound {
                             data,

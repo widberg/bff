@@ -1,33 +1,22 @@
+use std::f32;
+
 use crate::Gui;
 
 impl Gui {
-    pub fn resource_info_panel(&mut self, ui: &mut egui::Ui) {
+    pub fn resource_info_panel(&mut self, ctx: &egui::Context) {
         egui::SidePanel::right("right")
             .resizable(true)
-            .width_range(100.0..=ui.available_width() / 2.0)
-            .show_inside(ui, |ui| {
+            // .max_width(800.0)
+            // .width_range(100.0..=ui.available_width())
+            .show(ctx, |ui: &mut egui::Ui| {
                 if let Some(name) = self.resource_name {
                     if let Some(info) = self.infos.get(&name) {
-                        let json_lines: Vec<&str> = info
-                            .split_inclusive('\n')
-                            // .map(|s| s.to_string())
-                            .collect();
-                        let text_style = egui::TextStyle::Body;
-                        egui::ScrollArea::vertical()
+                        egui::ScrollArea::both()
+                            .auto_shrink([false; 2])
                             .id_salt("code_scroll")
-                            .show_rows(
-                                ui,
-                                ui.text_style_height(&text_style),
-                                json_lines.len(),
-                                |ui, row_range| {
-                                    let content: String = row_range
-                                        .into_iter()
-                                        .map(|i| *json_lines.get(i).unwrap())
-                                        .collect();
-                                    ui.set_min_width(ui.available_width());
-                                    selectable_text(ui, content.as_str());
-                                },
-                            );
+                            .show(ui, |ui| {
+                                selectable_text(ui, info);
+                            });
                     }
                 }
             });
@@ -35,5 +24,22 @@ impl Gui {
 }
 
 fn selectable_text(ui: &mut egui::Ui, mut text: &str) -> egui::Response {
-    ui.add(egui::TextEdit::multiline(&mut text))
+    let mut layouter = |ui: &egui::Ui, string: &str, _wrap_width: f32| {
+        let mut layout_job = egui::text::LayoutJob::simple(
+            string.to_owned(),
+            egui::FontId::monospace(10.0),
+            egui::Color32::WHITE,
+            f32::INFINITY,
+        );
+        layout_job.wrap.max_width = f32::INFINITY;
+        ui.fonts(|f| f.layout_job(layout_job))
+    };
+    ui.add(
+        egui::TextEdit::multiline(&mut text)
+            .font(egui::TextStyle::Monospace)
+            .desired_width(f32::INFINITY)
+            .desired_rows(60)
+            // .min_size(egui::vec2(1000.0, 1000.0)),
+            .layouter(&mut layouter),
+    )
 }

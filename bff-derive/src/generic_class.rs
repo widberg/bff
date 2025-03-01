@@ -22,6 +22,7 @@ pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
     let intos = data
         .fields
         .iter()
+        // .filter(|f| !f.attrs.is_empty())
         .filter(|f| {
             !f.attrs
                 .iter()
@@ -50,18 +51,18 @@ pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
         })
         .collect::<Vec<_>>();
     quote! {
-        impl From<#name> for #generic_name {
+        impl From<#name> for super::generic::#generic_name {
             fn from(object: #name) -> Self {
-                #generic_name {
+                super::generic::#generic_name {
                     #(#intos),*
                 }
             }
         }
-        impl crate::traits::TryFromGenericSubstitute<#generic_name, #name> for #name {
+        impl crate::traits::TryFromGenericSubstitute<super::generic::#generic_name, #name> for #name {
             type Error = crate::error::Error;
-            fn try_from_generic_substitute(object: #generic_name, substitute: #name) -> crate::BffResult<Self> {
+            fn try_from_generic_substitute(object: super::generic::#generic_name, substitute: #name) -> crate::BffResult<Self> {
                 Ok(#name {
-                    #(#intos),*
+                    #(#intos),*,
                     #(#fill_intos),*
                 })
             }

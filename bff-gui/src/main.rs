@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
+use std::sync::Arc;
 
 use artifact::Artifact;
 use bff::bigfile::BigFile;
@@ -290,86 +291,87 @@ impl eframe::App for Gui {
             ctx.set_cursor_icon(egui::CursorIcon::Progress);
         }
 
-        egui::CentralPanel::default()
-            .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
-            .show(ctx, |ui| {
-                let menubar_response = self.menubar_panel(ui, frame, "menubar".into());
-                if menubar_response {
-                    self.bigfile_loading = true;
-                }
+        // egui::CentralPanel::default()
+        //     .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
+        // .show(ctx, |ui| {
+        let menubar_response = self.menubar_panel(ctx, frame, "menubar".into());
+        if menubar_response {
+            self.bigfile_loading = true;
+        }
 
-                let resource_list_response = self.resource_list_panel(
-                    ui,
-                    format!(
-                        "resources-{}",
-                        self.bigfile_path
-                            .as_ref()
-                            .unwrap_or(&PathBuf::default())
-                            .display()
-                    )
-                    .into(),
-                );
-                if let Some(name) = resource_list_response.resource_context_menu {
-                    self.open_window = GuiWindow::Rename;
-                    self.nickname_editing.0 = name;
-                    if let Some(nn) = self.nicknames.get(&name) {
-                        self.nickname_editing.1 = nn.clone();
-                    }
-                }
-                if let Some(name) = resource_list_response.nickname_cleared {
-                    self.nicknames.remove(&name);
-                }
-                if let Some(name) = resource_list_response.resource_clicked {
-                    self.resource_name = Some(name);
-                    if let Some(artifact) = resource_list_response.artifact_created {
-                        self.artifacts.insert(name, artifact);
-                    }
-                    if let Some(info) = resource_list_response.info_created {
-                        self.infos.insert(name, info);
-                    }
-                }
+        self.bottom_panel(ctx, "bottom".into());
 
-                self.resource_info_panel(ui);
-                self.preview_panel(ui);
+        let resource_list_response = self.resource_list_panel(
+            ctx,
+            format!(
+                "resources-{}",
+                self.bigfile_path
+                    .as_ref()
+                    .unwrap_or(&PathBuf::default())
+                    .display()
+            )
+            .into(),
+        );
+        if let Some(name) = resource_list_response.resource_context_menu {
+            self.open_window = GuiWindow::Rename;
+            self.nickname_editing.0 = name;
+            if let Some(nn) = self.nicknames.get(&name) {
+                self.nickname_editing.1 = nn.clone();
+            }
+        }
+        if let Some(name) = resource_list_response.nickname_cleared {
+            self.nicknames.remove(&name);
+        }
+        if let Some(name) = resource_list_response.resource_clicked {
+            self.resource_name = Some(name);
+            if let Some(artifact) = resource_list_response.artifact_created {
+                self.artifacts.insert(name, artifact);
+            }
+            if let Some(info) = resource_list_response.info_created {
+                self.infos.insert(name, info);
+            }
+        }
 
-                match self.open_window {
-                    GuiWindow::Rename => {
-                        let mut is_open = true;
-                        egui::Window::new("Change resource nickname")
-                            .open(&mut is_open)
-                            .fixed_size(egui::vec2(100.0, 50.0))
-                            .show(ctx, |ui| {
-                                ui.horizontal(|ui| {
-                                    let output =
-                                        egui::TextEdit::singleline(&mut self.nickname_editing.1)
-                                            .hint_text("Enter nickname...")
-                                            .min_size(ui.available_size())
-                                            .show(ui);
-                                    if (output.response.lost_focus()
-                                        && ui.input(|i| i.key_pressed(egui::Key::Enter)))
-                                        || ui.button("Change").clicked()
-                                    {
-                                        let filtered_nickname = self.nickname_editing.1.trim();
-                                        self.open_window = GuiWindow::None;
-                                        if !filtered_nickname.is_empty() {
-                                            self.nicknames.insert(
-                                                self.nickname_editing.0,
-                                                filtered_nickname.to_owned(),
-                                            );
-                                        } else {
-                                            self.nicknames.remove(&self.nickname_editing.0);
-                                        }
-                                        self.nickname_editing.1 = String::new();
-                                    }
-                                });
-                            });
-                        if !is_open {
-                            self.open_window = GuiWindow::None;
-                        }
-                    }
-                    GuiWindow::None => (),
+        self.resource_info_panel(ctx);
+        self.preview_panel(ctx);
+
+        match self.open_window {
+            GuiWindow::Rename => {
+                let mut is_open = true;
+                egui::Window::new("Change resource nickname")
+                    .open(&mut is_open)
+                    .fixed_size(egui::vec2(100.0, 50.0))
+                    .show(ctx, |ui| {
+                        ui.horizontal(|ui| {
+                            let output = egui::TextEdit::singleline(&mut self.nickname_editing.1)
+                                .hint_text("Enter nickname...")
+                                .min_size(ui.available_size())
+                                .show(ui);
+                            if (output.response.lost_focus()
+                                && ui.input(|i| i.key_pressed(egui::Key::Enter)))
+                                || ui.button("Change").clicked()
+                            {
+                                let filtered_nickname = self.nickname_editing.1.trim();
+                                self.open_window = GuiWindow::None;
+                                if !filtered_nickname.is_empty() {
+                                    self.nicknames.insert(
+                                        self.nickname_editing.0,
+                                        filtered_nickname.to_owned(),
+                                    );
+                                } else {
+                                    self.nicknames.remove(&self.nickname_editing.0);
+                                }
+                                self.nickname_editing.1 = String::new();
+                            }
+                        });
+                    });
+                if !is_open {
+                    self.open_window = GuiWindow::None;
                 }
-            });
+            }
+            GuiWindow::None => (),
+        }
+        // });
 
         #[cfg(not(target_arch = "wasm32"))]
         {
