@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use bff::bigfile::BigFile;
+use bff::class::bitmap::generic::BitmapGeneric;
 use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
@@ -11,11 +12,8 @@ use crate::traits::export::{Export, RecursiveExport};
 pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
     match class {
         Class::Bitmap(box_bitmap) => {
-            let artifact = match *box_bitmap {
-                bff::class::bitmap::Bitmap::BitmapV1_06_63_02PC(bitmap) => bitmap.export(),
-                bff::class::bitmap::Bitmap::BitmapV1_291_03_06PC(bitmap) => bitmap.export(),
-                bff::class::bitmap::Bitmap::BitmapV1_381_67_09PC(bitmap) => bitmap.export(),
-            };
+            let generic = BitmapGeneric::from(*box_bitmap);
+            let artifact = generic.export();
             Some(artifact)
         }
         Class::Sound(box_sound) => {
