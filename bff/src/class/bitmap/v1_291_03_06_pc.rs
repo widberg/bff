@@ -5,23 +5,29 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
-#[binread]
-#[derive(Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
-pub struct BitmapBodyV1_291_03_06PC {
-    // #[generic]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+pub struct BitmapHeader {
+    #[generic]
     width: u32,
-    // #[generic]
+    #[generic]
     height: u32,
     precalculated_size: u32,
     flag: u16,
     format: u8,
-    // #[generic]
+    #[generic]
     mipmap_count: u8,
     unknown: u8,
+}
+
+#[binread]
+#[derive(Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[br(import(_link_header: &()))]
+pub struct BitmapBodyV1_291_03_06PC {
+    #[generic(non_primitive)]
+    bitmap_header: BitmapHeader,
     #[br(parse_with = until_eof)]
     #[serde(skip_serializing)]
-    // #[generic]
+    #[generic]
     pub data: Vec<u8>,
 }
 

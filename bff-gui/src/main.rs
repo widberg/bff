@@ -3,17 +3,18 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
-use std::sync::Arc;
 
 use artifact::Artifact;
 use bff::bigfile::BigFile;
 use bff::names::Name;
 #[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
+use error::BffGuiResult;
 #[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
 
 pub mod artifact;
+pub mod error;
 pub mod helpers;
 mod panels;
 pub mod traits;
@@ -23,17 +24,6 @@ mod views;
 const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
-
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug, derive_more::From)]
-pub enum BffGuiError {
-    Io(std::io::Error),
-    EFrame(eframe::Error),
-    Hound(hound::Error),
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-type BffGuiResult<T> = Result<T, BffGuiError>;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Parser)]

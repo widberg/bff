@@ -6,15 +6,13 @@ use std::sync::Arc;
 use hound::{SampleFormat, WavSpec, WavWriter};
 use three_d::CpuModel;
 
-use crate::BffGuiError;
+use crate::error::BffGuiResult;
 
-#[derive(Clone)]
 pub enum BitmapFormat {
     Dds,
     Raw,
 }
 
-#[derive(Clone)]
 pub enum Artifact {
     Bitmap {
         format: BitmapFormat,
@@ -31,7 +29,7 @@ pub enum Artifact {
 
 impl Artifact {
     //TODO: write to impl Write
-    pub fn save(&self, path: &PathBuf) -> Result<(), BffGuiError> {
+    pub fn save(&self, path: &PathBuf) -> BffGuiResult<()> {
         match *self {
             Self::Bitmap {
                 format: _,

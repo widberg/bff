@@ -21,7 +21,7 @@ pub fn sound_view(
         None => f64::NAN,
     };
     let duration = data.len() as f64 / sample_rate as f64;
-    let elapsed = (ui.input(|i| i.time) - time) / duration;
+    let elapsed = ui.input(|i| i.time) - time;
     let size = ui.available_size();
     ui.horizontal_wrapped(|ui| {
         if ui
@@ -51,9 +51,8 @@ pub fn sound_view(
             });
         }
     });
-    egui::containers::Frame::canvas(ui.style()).show(ui, |ui| {
-        // let time = ui.input(|i| i.time);
 
+    egui::containers::Frame::canvas(ui.style()).show(ui, |ui| {
         let desired_size = size.x * egui::vec2(1.0, 0.35);
         let (_id, rect) = ui.allocate_space(desired_size);
 
