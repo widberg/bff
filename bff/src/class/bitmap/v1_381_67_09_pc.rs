@@ -71,7 +71,7 @@ pub struct LinkHeader {
 #[derive(Debug, Serialize, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
-    #[br(calc = link_header.bitmap_header.clone())]
+    #[br(calc = link_header.bitmap_header)]
     #[bw(ignore)]
     #[generic(non_primitive)]
     bitmap_header: BitmapHeader,

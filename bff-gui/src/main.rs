@@ -233,8 +233,7 @@ impl Gui {
         #[cfg(not(target_arch = "wasm32"))]
         let bf_loading = match file {
             Some(path) => {
-                let p = PathBuf::from(path);
-                load_bf(cc.egui_ctx.clone(), p.clone(), tx.clone());
+                load_bf(cc.egui_ctx.clone(), path.clone(), tx.clone());
                 true
             }
             None => false,
@@ -369,7 +368,7 @@ impl eframe::App for Gui {
 
             ctx.input(|i| {
                 if !i.raw.dropped_files.is_empty() {
-                    let path = i.raw.dropped_files.get(0).unwrap().path.as_ref().unwrap();
+                    let path = i.raw.dropped_files.first().unwrap().path.as_ref().unwrap();
                     load_bf(ctx.clone(), path.clone(), self.tx.clone());
                 }
             });

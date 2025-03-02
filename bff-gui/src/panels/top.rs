@@ -124,7 +124,7 @@ impl Gui {
                                 );
                             if let Some(paths) = dialog.pick_files() {
                                 ui.close_menu();
-                                paths.iter().for_each(|names| load_names(names));
+                                paths.iter().for_each(load_names);
                             }
                         }
                         if ui.button("Quit").clicked() {

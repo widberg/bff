@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{braced, Arm, Attribute, Ident, Result, Token};
+use syn::{braced, Arm, Attribute, Ident, Result};
 
 pub struct BffClassMacroInput {
     class: Ident,

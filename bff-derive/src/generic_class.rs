@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::spanned::Spanned;
-use syn::{DataStruct, DeriveInput, Field, Ident};
+use syn::{DataStruct, DeriveInput, Ident};
 
 fn simple_parse(input: &DeriveInput) -> (&Ident, Ident, &DataStruct) {
     let name = &input.ident;
@@ -19,7 +19,7 @@ fn simple_parse(input: &DeriveInput) -> (&Ident, Ident, &DataStruct) {
         syn::Data::Struct(ref data) => data,
         _ => panic!("Not a struct"),
     };
-    (name, generic_name, &data)
+    (name, generic_name, data)
 }
 
 pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
@@ -78,7 +78,7 @@ fn impl_from_generic_substitute(input: &DeriveInput) -> TokenStream {
                         if meta.path.is_ident("non_primitive") {
                             primitive = false;
                         }
-                        return Ok(());
+                        Ok(())
                     });
                 }
             }

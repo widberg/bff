@@ -6,7 +6,7 @@ impl Gui {
             ui.horizontal(|ui| {
                 ui.label(
                     self.resource_name
-                        .map_or_else(|| String::new(), |f| f.to_string()),
+                        .map_or_else(String::new, |f| f.to_string()),
                 );
             });
         });

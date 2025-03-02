@@ -49,8 +49,8 @@ fn with_three_d<R>(
 ) -> R {
     use std::cell::RefCell;
     thread_local! {
-        pub static THREE_D: RefCell<Option<ThreeDApp>> = RefCell::new(None);
-        pub static MODEL: RefCell<Option<Arc<CpuModel>>> = RefCell::new(None);
+        pub static THREE_D: RefCell<Option<ThreeDApp>> = const { RefCell::new(None) };
+        pub static MODEL: RefCell<Option<Arc<CpuModel>>> = const { RefCell::new(None) };
     }
 
     THREE_D.with(|three_d| {
