@@ -56,6 +56,19 @@ pub enum Name {
     Ubisoft64(NameUbisoft64),
 }
 
+impl Name {
+    pub fn is_default(&self) -> bool {
+        match *self {
+            Name::Asobo32(name) => name == NameAsobo32::default(),
+            Name::AsoboAlternate32(name) => name == NameAsoboAlternate32::default(),
+            Name::Kalisto32(name) => name == NameKalisto32::default(),
+            Name::BlackSheep32(name) => name == NameBlackSheep32::default(),
+            Name::Asobo64(name) => name == NameAsobo64::default(),
+            Name::Ubisoft64(name) => name == NameUbisoft64::default(),
+        }
+    }
+}
+
 impl BinRead for Name {
     type Args<'a> = ();
 

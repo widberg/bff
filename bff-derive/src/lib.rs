@@ -33,7 +33,7 @@ pub fn bigfiles(input: TokenStream) -> TokenStream {
     derive_bigfiles(parse_macro_input!(input as BffBigFileMacroInput)).into()
 }
 
-#[proc_macro_derive(ReferencedNames)]
+#[proc_macro_derive(ReferencedNames, attributes(referenced_names))]
 pub fn referenced_names(input: TokenStream) -> TokenStream {
     derive_referenced_names(parse_macro_input!(input as DeriveInput)).into()
 }

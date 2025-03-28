@@ -8,65 +8,71 @@ use indexmap::IndexMap;
 use crate::names::Name;
 
 pub trait ReferencedNames {
-    fn names(&self) -> HashSet<Name>;
-}
-
-impl<T: ReferencedNames, const N: usize> ReferencedNames for [T; N] {
-    fn names(&self) -> HashSet<Name> {
-        self.iter().flat_map(ReferencedNames::names).collect()
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>);
+    fn referenced_names(&self) -> HashSet<Name> {
+        let mut names = HashSet::default();
+        ReferencedNames::extend_referenced_names(self, &mut names);
+        names
     }
 }
 
-impl<T: ReferencedNames> ReferencedNames for Vec<T> {
-    fn names(&self) -> HashSet<Name> {
-        self.iter().flat_map(ReferencedNames::names).collect()
+impl<T: ReferencedNames, const N: usize> ReferencedNames for [T; N] {
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
+        for item in self {
+            ReferencedNames::extend_referenced_names(item, names);
+        }
+    }
+}
+
+impl<T> ReferencedNames for Vec<T>
+where
+    T: ReferencedNames,
+{
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
+        for item in self {
+            ReferencedNames::extend_referenced_names(item, names);
+        }
     }
 }
 
 impl ReferencedNames for Name {
-    fn names(&self) -> HashSet<Name> {
-        let mut names = HashSet::new();
-        names.insert(*self);
-        names
+    #[inline]
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
+        if !self.is_default() {
+            names.insert(*self);
+        }
     }
 }
 
 #[impl_for_tuples(1, 12)]
 impl ReferencedNames for Tuple {
-    fn names(&self) -> HashSet<Name> {
-        let mut names = HashSet::new();
-        for_tuples!( #( names.extend(&self.Tuple.names()); )* );
-        names
+    #[inline]
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
+        for_tuples!( #( ReferencedNames::extend_referenced_names(&self.Tuple, names); )* );
     }
 }
 
 impl<T> ReferencedNames for PhantomData<T> {
-    fn names(&self) -> HashSet<Name> {
-        HashSet::new()
-    }
+    fn extend_referenced_names(&self, _: &mut HashSet<Name>) {}
 }
 
 impl<T> ReferencedNames for Option<T>
 where
     T: ReferencedNames,
 {
-    fn names(&self) -> HashSet<Name> {
-        self.as_ref()
-            .map(ReferencedNames::names)
-            .unwrap_or_default()
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
+        if let Some(item) = self {
+            ReferencedNames::extend_referenced_names(item, names);
+        }
     }
 }
 
 impl<T> ReferencedNames for Range<T> {
-    fn names(&self) -> HashSet<Name> {
-        HashSet::new()
-    }
+    fn extend_referenced_names(&self, _: &mut HashSet<Name>) {}
 }
 
 impl<T> ReferencedNames for RangeInclusive<T> {
-    fn names(&self) -> HashSet<Name> {
-        HashSet::new()
-    }
+    fn extend_referenced_names(&self, _: &mut HashSet<Name>) {}
 }
 
 impl<KeyType, ValueType> ReferencedNames for IndexMap<KeyType, ValueType>
@@ -74,21 +80,19 @@ where
     KeyType: ReferencedNames,
     ValueType: ReferencedNames,
 {
-    fn names(&self) -> HashSet<Name> {
-        let mut names = HashSet::new();
+    fn extend_referenced_names(&self, names: &mut HashSet<Name>) {
         for (k, v) in self.iter() {
-            names.extend(k.names());
-            names.extend(v.names());
+            ReferencedNames::extend_referenced_names(k, names);
+            ReferencedNames::extend_referenced_names(v, names);
         }
-        names
     }
 }
 
 macro_rules! impl_referenced_names {
     ($($t:ty),+) => {
         $(impl ReferencedNames for $t {
-            fn names(&self) -> HashSet<Name> {
-                HashSet::new()
+            #[inline]
+            fn extend_referenced_names(&self, _: &mut HashSet<Name>) {
             }
         })+
     }

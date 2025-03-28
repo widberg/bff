@@ -14,8 +14,11 @@ use crate::traits::TryFromVersionPlatform;
 
 #[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {
+    #[referenced_names(skip)]
     pub class_name: Name,
+    #[referenced_names(skip)]
     pub name: Name,
+    #[referenced_names(skip)]
     pub link_name: Option<Name>,
     pub compress: bool,
     pub link_header: LinkHeaderType,
