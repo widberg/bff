@@ -1,11 +1,16 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs::File;
+#[cfg(not(target_arch = "wasm32"))]
 use std::io::Write;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[cfg(not(target_arch = "wasm32"))]
 use hound::{SampleFormat, WavSpec, WavWriter};
 use three_d::CpuModel;
 
+#[cfg(not(target_arch = "wasm32"))]
 use crate::error::BffGuiResult;
 
 pub enum BitmapFormat {
@@ -27,6 +32,7 @@ pub enum Artifact {
     Skin(Arc<CpuModel>),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Artifact {
     //TODO: write to impl Write
     pub fn save(&self, path: &PathBuf) -> BffGuiResult<()> {

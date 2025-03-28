@@ -1,5 +1,6 @@
 use bff_derive::{GenericClass, ReferencedNames};
-use binrw::{helpers::until_eof, BinRead, BinWrite};
+use binrw::helpers::until_eof;
+use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;

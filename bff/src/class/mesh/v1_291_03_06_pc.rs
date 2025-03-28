@@ -5,7 +5,14 @@ use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec2, Vec2f, Vec3, Vec3f,
+    DynArray,
+    DynBox,
+    DynSphere,
+    ObjectLinkHeaderV1_06_63_02PC,
+    Vec2,
+    Vec2f,
+    Vec3,
+    Vec3f,
 };
 use crate::names::Name;
 
@@ -110,13 +117,13 @@ pub struct Triangle {
 #[br(import(length: u32))]
 pub enum VertexStruct {
     #[br(pre_assert(length == 24))]
-    VertexStruct24 {
+    Format24 {
         position: Vec3f,
         unknown: f32,
         uv: Vec2f,
     },
     #[br(pre_assert(length == 36))]
-    VertexStruct36 {
+    Format36 {
         position: Vec3f,
         tangent: Vec3<u8>,
         tangent_padding: u8,
@@ -126,7 +133,7 @@ pub enum VertexStruct {
         luv: Vec2f,
     },
     #[br(pre_assert(length == 48))]
-    VertexStruct48 {
+    Format48 {
         position: Vec3f,
         tangent: Vec3<u8>,
         tangent_padding: u8,
@@ -136,7 +143,7 @@ pub enum VertexStruct {
         unknown: [f32; 5],
     },
     #[br(pre_assert(length == 60))]
-    VertexStruct60 {
+    Format60 {
         position: Vec3f,
         tangent: Vec3<u8>,
         tangent_padding: u8,
@@ -146,7 +153,7 @@ pub enum VertexStruct {
         blend_indices: [f32; 4],
         blends: [f32; 4],
     },
-    VertexStructUnknown {
+    FormatUnknown {
         #[br(count = length)]
         data: Vec<u8>,
     },

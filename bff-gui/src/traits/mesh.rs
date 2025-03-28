@@ -35,12 +35,12 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                         ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
                     .iter()
                     .map(|vs| match vs {
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct24 {
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format24 {
                             position,
                             uv,
                             ..
                         } => (position, uv, &[0u8; 3], [0u8; 4]),
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct36 {
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format36 {
                             position,
                             uv,
                             normal,
@@ -48,7 +48,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                             tangent_padding,
                             ..
                         }
-                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct48 {
+                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format48 {
                             position,
                             uv,
                             normal,
@@ -56,7 +56,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                             tangent_padding,
                             ..
                         }
-                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStruct60 {
+                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format60 {
                             position,
                             uv,
                             normal,
@@ -72,7 +72,7 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                                 .try_into()
                                 .unwrap(),
                         ),
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::VertexStructUnknown {
+                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::FormatUnknown {
                             ..
                         } => (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4]),
                     })

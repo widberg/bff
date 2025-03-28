@@ -10,6 +10,7 @@ use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
+use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
 
 use crate::class::class_names;
@@ -288,7 +289,7 @@ impl Debug for Name {
 #[derive(Debug)]
 pub struct Names {
     pub name_type: NameType,
-    strings: StringInterner,
+    strings: StringInterner<BucketBackend>,
     asobo32_names: HashMap<NameAsobo32, DefaultSymbol>,
     asobo_alternate32_names: HashMap<NameAsoboAlternate32, DefaultSymbol>,
     kalisto32_names: HashMap<NameKalisto32, DefaultSymbol>,
@@ -356,7 +357,7 @@ impl Default for Names {
     fn default() -> Self {
         let mut names = Self {
             name_type: NameType::Asobo32,
-            strings: StringInterner::default(),
+            strings: StringInterner::new(),
             asobo32_names: Default::default(),
             asobo_alternate32_names: Default::default(),
             kalisto32_names: Default::default(),

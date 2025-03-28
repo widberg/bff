@@ -29,8 +29,7 @@ pub struct FixedStringNull<const S: usize>(pub String);
 
 #[derive(Debug, Display, Error, Constructor)]
 #[display(
-    fmt = "FixedStringNull: expected null terminated string of maximum length {}, read {} bytes and did not get a null terminator",
-    expected_length,
+    "FixedStringNull: expected null terminated string of maximum length {0}, read {0} bytes and did not get a null terminator",
     expected_length
 )]
 pub struct FixedStringNullUnterminatedError {
@@ -39,7 +38,7 @@ pub struct FixedStringNullUnterminatedError {
 
 #[derive(Debug, Display, Error, Constructor)]
 #[display(
-    fmt = "FixedStringNull: expected null terminated string of maximum length {} + 1 null terminator, string was {} bytes long + 1 null terminator",
+    "FixedStringNull: expected null terminated string of maximum length {} + 1 null terminator, string was {} bytes long + 1 null terminator",
     maximum_length,
     actual_length
 )]

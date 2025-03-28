@@ -21,7 +21,7 @@ type Resource = Resource12<20>;
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
-    pub checksum: Option<u32>,
+    pub checksum: Option<i32>,
     pub resources: Vec<Resource>,
 }
 
@@ -46,7 +46,7 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
     for block_size in block_sizes {
         let block_start = reader.stream_position()?;
 
-        let checksum = Some(u32::read_options(reader, endian, ())?);
+        let checksum = Some(i32::read_options(reader, endian, ())?);
         let resource_count = u32::read_options(reader, endian, ())?;
 
         if *block_size != decompressed_block_size {
@@ -128,7 +128,7 @@ impl From<BigFileV2_0PC> for BigFile {
 
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
-                checksum: None,
+                checksum: block.checksum,
                 compressed: Some(block.compressed),
                 objects,
             });

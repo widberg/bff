@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray, KeyframerBezierRot, KeyframerFloatComp, KeyframerMessage, KeyframerRot,
+    DynArray,
+    KeyframerBezierRot,
+    KeyframerFloatComp,
+    KeyframerMessage,
+    KeyframerRot,
     KeyframerVec3fComp,
 };
 use crate::names::Name;

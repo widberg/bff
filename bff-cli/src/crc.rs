@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64, RaceNet32};
+use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, RaceNet32, Ubisoft64};
 use bff::traits::NameHashFunction;
 use clap::ValueEnum;
 

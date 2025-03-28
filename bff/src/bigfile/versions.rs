@@ -8,40 +8,36 @@ use crate::names::names;
 #[derive(Debug, Display, Clone)]
 pub enum Version {
     #[display(
-        fmt = "v{}.{:02}.{:02}.{:02} - Asobo Studio - Internal Cross Technology",
-        "_0",
-        "_1",
-        "_2",
-        "_3"
+        "v{}.{:02}.{:02}.{:02} - Asobo Studio - Internal Cross Technology",
+        _0,
+        _1,
+        _2,
+        _3
     )]
     Asobo(u32, u32, u32, u32),
-    #[display(
-        fmt = "v{}.{:02} - Asobo Studio - Internal Cross Technology",
-        "_0",
-        "_1"
-    )]
+    #[display("v{}.{:02} - Asobo Studio - Internal Cross Technology", _0, _1)]
     AsoboLegacy(u32, u32),
     #[display(
-        fmt = "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
-        "_0",
-        "_1"
+        "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
+        _0,
+        _1
     )]
     Kalisto(u32, u32),
     // The space is intentional :(
     // This format is used in Shaun White Snowboarding: World Stage by Ubisoft as well
-    #[display(fmt = "Bigfile Data v{}.{} ", "_0", "_1")]
+    #[display("Bigfile Data v{}.{} ", _0, _1)]
     BlackSheep(u32, u32),
     // Used in The Mighty Quest for Epic Loot by Ubisoft
     #[display(
-        fmt = "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
-        "opal_version.0",
-        "opal_version.1",
-        "data_version.0",
-        "data_version.1",
-        "cvt",
-        "cvanim",
-        "cvmesh",
-        "cvshader"
+        "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
+        opal_version.0,
+        opal_version.1,
+        data_version.0,
+        data_version.1,
+        cvt,
+        cvanim,
+        cvmesh,
+        cvshader
     )]
     Ubisoft {
         opal_version: (u32, u32),

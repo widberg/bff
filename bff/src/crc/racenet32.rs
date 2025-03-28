@@ -1,5 +1,5 @@
-use crate::traits::NameHashFunction;
 use super::blacksheep32::CRC32_TABLE;
+use crate::traits::NameHashFunction;
 
 pub const fn racenet32(bytes: &[u8]) -> i32 {
     racenet32_options(bytes, 0)

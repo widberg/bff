@@ -5,7 +5,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffOption, DynArray, Mat4f, ObjectLinkHeaderV1_06_63_02PC, Sphere, Vec2f, Vec3f, Vec4f, RGB,
+    BffOption,
+    DynArray,
+    Mat4f,
+    ObjectLinkHeaderV1_06_63_02PC,
+    Sphere,
+    Vec2f,
+    Vec3f,
+    Vec4f,
+    RGB,
 };
 use crate::names::Name;
 

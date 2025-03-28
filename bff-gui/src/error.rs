@@ -1,6 +1,7 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use derive_more::From;
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, From)]
 pub enum BffGuiError {
     Io(std::io::Error),
@@ -9,5 +10,4 @@ pub enum BffGuiError {
     Other(String),
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 pub type BffGuiResult<T> = Result<T, BffGuiError>;

@@ -8,7 +8,7 @@ use crate::names::Name;
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(
-    fmt = "unimplemented class {} (version: {}, platform: {}) for object {}",
+    "unimplemented class {} (version: {}, platform: {}) for object {}",
     class_name,
     version,
     platform,
@@ -23,7 +23,7 @@ pub struct UnimplementedClassError {
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(
-    fmt = "Unsupported BigFile version, platform combination: {}, {}",
+    "Unsupported BigFile version, platform combination: {}, {}",
     version,
     platform
 )]
@@ -33,19 +33,19 @@ pub struct UnimplementedVersionPlatformError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "Unsupported BigFile version: {}", version)]
+#[display("Unsupported BigFile version: {}", version)]
 pub struct UnimplementedVersionError {
     pub version: Version,
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "Invalid BigFile extension {:#?}", extension)]
+#[display("Invalid BigFile extension {:#?}", extension)]
 pub struct InvalidExtensionError {
     pub extension: OsString,
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(fmt = "Invalid Platform/Style combination: {} {}", platform, style)]
+#[display("Invalid Platform/Style combination: {} {}", platform, style)]
 pub struct InvalidPlatformStyleError {
     pub platform: Platform,
     pub style: Style,

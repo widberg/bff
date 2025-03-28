@@ -1,6 +1,6 @@
-use crate::traits::TryFromGenericSubstitute;
-use crate::traits::TryIntoSpecific;
 use bff_derive::bff_class;
+
+use crate::traits::{TryFromGenericSubstitute, TryIntoSpecific};
 
 mod generic;
 mod v1_291_03_06_pc;

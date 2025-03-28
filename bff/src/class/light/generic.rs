@@ -1,7 +1,5 @@
-use crate::{
-    class::trivial_class::TrivialClass,
-    helpers::{Quat, Vec3f, RGBA},
-};
+use crate::class::trivial_class::TrivialClass;
+use crate::helpers::{Quat, Vec3f, RGBA};
 
 pub struct LightBodyGeneric {
     pub rotation: Quat,

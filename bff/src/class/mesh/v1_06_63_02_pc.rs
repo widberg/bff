@@ -154,13 +154,13 @@ struct Unknown3 {
 #[br(import(length: u16))]
 enum VertexStruct {
     #[br(pre_assert(length == 24))]
-    VertexStruct24 {
+    Format24 {
         position: Vec3f,
         unknown: f32,
         uv: Vec2f,
     },
     #[br(pre_assert(length == 36))]
-    VertexStruct36 {
+    Format36 {
         position: Vec3f,
         tangent: Vec3<u8>,
         tangent_padding: u8,
@@ -170,14 +170,14 @@ enum VertexStruct {
         luv: Vec2f,
     },
     #[br(pre_assert(length == 48))]
-    VertexStruct48 {
+    Format48 {
         position: Vec3f,
         unknown1: Vec3f,
         unknown2: Vec3f,
         blend_indices: Vec3f,
     },
     #[br(pre_assert(length == 60))]
-    VertexStruct60 {
+    Format60 {
         position: Vec3f,
         tangent: Vec3<u8>,
         tangent_padding: u8,
@@ -187,7 +187,7 @@ enum VertexStruct {
         blend_indices: [f32; 4],
         blends: [f32; 4],
     },
-    VertexStructUnknown {
+    FormatUnknown {
         #[br(count = length)]
         data: Vec<u8>,
     },
