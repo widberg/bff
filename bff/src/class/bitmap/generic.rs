@@ -7,8 +7,7 @@ pub struct BitmapHeaderGeneric {
 }
 
 pub struct BitmapBodyGeneric {
-    pub bitmap_header: BitmapHeaderGeneric,
     pub data: Vec<u8>,
 }
 
-pub type BitmapGeneric = TrivialClass<(), BitmapBodyGeneric>;
+pub type BitmapGeneric = TrivialClass<BitmapHeaderGeneric, BitmapBodyGeneric>;

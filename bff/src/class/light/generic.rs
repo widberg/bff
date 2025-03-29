@@ -1,6 +1,6 @@
 use crate::{
     class::trivial_class::TrivialClass,
-    helpers::{Quat, Vec3f, RGBA},
+    helpers::{ObjectLinkHeaderGeneric, Quat, Vec3f, RGBA},
 };
 
 pub struct LightBodyGeneric {
@@ -11,4 +11,4 @@ pub struct LightBodyGeneric {
     pub position: Vec3f,
 }
 
-pub type LightGeneric = TrivialClass<(), LightBodyGeneric>;
+pub type LightGeneric = TrivialClass<ObjectLinkHeaderGeneric, LightBodyGeneric>;

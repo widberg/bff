@@ -1,8 +1,8 @@
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::PascalString;
+use crate::helpers::{PascalString, ResourceObjectLinkHeader};
 
 pub struct UserDefineBodyGeneric {
     pub data: PascalString,
 }
 
-pub type UserDefineGeneric = TrivialClass<(), UserDefineBodyGeneric>;
+pub type UserDefineGeneric = TrivialClass<ResourceObjectLinkHeader, UserDefineBodyGeneric>;

@@ -1,4 +1,4 @@
-use bff_derive::{GenericClass, ReferencedNames};
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -20,5 +20,7 @@ pub struct LightBodyV1_381_67_09PC {
     position: Vec3f,
 }
 
-pub type LightV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC>;
+trivial_class!(
+    LightV1_381_67_09PC(ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC),
+    LightGeneric
+);

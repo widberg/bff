@@ -4,11 +4,24 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use super::{DynArray, Mat4f, Quat};
-use crate::names::Name;
+use crate::{names::Name, traits::TryFromGenericSubstitute};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ResourceObjectLinkHeader {
     link_name: Name,
+}
+
+// this is just silly. i'm sure there's a better way
+impl TryFromGenericSubstitute<ResourceObjectLinkHeader, ResourceObjectLinkHeader>
+    for ResourceObjectLinkHeader
+{
+    type Error = crate::error::Error;
+    fn try_from_generic_substitute(
+        generic: ResourceObjectLinkHeader,
+        _: ResourceObjectLinkHeader,
+    ) -> Result<Self, Self::Error> {
+        Ok(generic)
+    }
 }
 
 #[bitsize(32)]
@@ -31,7 +44,7 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, FromBits, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
 pub struct ObjectFlagsV1_381_67_09PC {
     fl_object_init: u1,
     fl_object_max_bsphere: u1,
@@ -105,4 +118,100 @@ pub struct ObjectLinkHeaderV1_06_63_02PC {
     radius: f32,
     pub flags: u32,
     r#type: ObjectType,
+}
+
+pub struct ObjectLinkHeaderGeneric {
+    pub link_name: Name,
+    pub names: DynArray<Name>,
+    pub data_name: Name,
+    pub rot: Quat,
+    pub transform: Mat4f,
+    pub radius: f32,
+    pub flags: u32,
+    pub r#type: ObjectType,
+}
+
+impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
+    fn from(header: ObjectLinkHeaderV1_381_67_09PC) -> Self {
+        ObjectLinkHeaderGeneric {
+            link_name: header.link_name,
+            names: vec![].into(),
+            data_name: header.data_name,
+            rot: header.rot,
+            transform: header.transform,
+            radius: header.radius,
+            flags: header.flags.value,
+            r#type: header.r#type,
+        }
+    }
+}
+
+impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
+    fn from(header: ObjectLinkHeaderV1_06_63_02PC) -> Self {
+        ObjectLinkHeaderGeneric {
+            link_name: header.link_name,
+            names: header.names,
+            data_name: header.data_name,
+            rot: header.rot,
+            transform: header.transform,
+            radius: header.radius,
+            flags: header.flags,
+            r#type: header.r#type,
+        }
+    }
+}
+
+impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
+    fn from(header: ObjectLinkHeaderGeneric) -> Self {
+        ObjectLinkHeaderV1_381_67_09PC {
+            link_name: header.link_name,
+            data_name: header.data_name,
+            rot: header.rot,
+            transform: header.transform,
+            radius: header.radius,
+            flags: ObjectFlagsV1_381_67_09PC::from(header.flags),
+            r#type: header.r#type,
+        }
+    }
+}
+
+impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
+    fn from(header: ObjectLinkHeaderGeneric) -> Self {
+        ObjectLinkHeaderV1_06_63_02PC {
+            link_name: header.link_name,
+            names: header.names,
+            data_name: header.data_name,
+            rot: header.rot,
+            transform: header.transform,
+            radius: header.radius,
+            flags: header.flags,
+            r#type: header.r#type,
+        }
+    }
+}
+
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, ObjectLinkHeaderV1_06_63_02PC>
+    for ObjectLinkHeaderV1_06_63_02PC
+{
+    type Error = crate::error::Error;
+
+    fn try_from_generic_substitute(
+        generic: ObjectLinkHeaderGeneric,
+        _: ObjectLinkHeaderV1_06_63_02PC,
+    ) -> Result<Self, Self::Error> {
+        Ok(generic.into())
+    }
+}
+
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, ObjectLinkHeaderV1_381_67_09PC>
+    for ObjectLinkHeaderV1_381_67_09PC
+{
+    type Error = crate::error::Error;
+
+    fn try_from_generic_substitute(
+        generic: ObjectLinkHeaderGeneric,
+        _: ObjectLinkHeaderV1_381_67_09PC,
+    ) -> Result<Self, Self::Error> {
+        Ok(generic.into())
+    }
 }

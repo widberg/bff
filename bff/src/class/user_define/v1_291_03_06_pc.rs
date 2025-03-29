@@ -1,4 +1,4 @@
-use bff_derive::{GenericClass, ReferencedNames};
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -12,5 +12,7 @@ pub struct UserDefineBodyV1_291_03_06PC {
     pub data: PascalString,
 }
 
-pub type UserDefineV1_291_03_06PC =
-    TrivialClass<ResourceObjectLinkHeader, UserDefineBodyV1_291_03_06PC>;
+trivial_class!(
+    UserDefineV1_291_03_06PC(ResourceObjectLinkHeader, UserDefineBodyV1_291_03_06PC),
+    UserDefineGeneric
+);

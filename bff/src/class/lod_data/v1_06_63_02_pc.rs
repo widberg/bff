@@ -8,7 +8,7 @@ use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
-    unknown: f32,
+    flags: u32,
     color: RGBA,
 }
 

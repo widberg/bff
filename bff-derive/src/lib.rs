@@ -6,12 +6,14 @@ use crate::bigfiles::{derive_bigfiles, BffBigFileMacroInput};
 use crate::generic_class::derive_generic_class;
 use crate::named_class::derive_named_class;
 use crate::referenced_names::derive_referenced_names;
+use crate::trivial_class::{derive_trivial_class, TrivialClassMacroInput};
 
 mod bff_class;
 mod bigfiles;
 mod generic_class;
 mod named_class;
 mod referenced_names;
+mod trivial_class;
 
 #[proc_macro_derive(NamedClass)]
 pub fn named_class(input: TokenStream) -> TokenStream {
@@ -31,6 +33,11 @@ pub fn bff_class(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn bigfiles(input: TokenStream) -> TokenStream {
     derive_bigfiles(parse_macro_input!(input as BffBigFileMacroInput)).into()
+}
+
+#[proc_macro]
+pub fn trivial_class(input: TokenStream) -> TokenStream {
+    derive_trivial_class(parse_macro_input!(input as TrivialClassMacroInput)).into()
 }
 
 #[proc_macro_derive(ReferencedNames)]

@@ -1,10 +1,12 @@
-use bff_derive::{GenericClass, ReferencedNames};
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{helpers::until_eof, BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass, Clone,
+)]
 pub struct BitmapHeader {
     #[generic]
     width: u32,
@@ -24,12 +26,15 @@ pub struct BitmapHeader {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(_link_header: &()))]
 pub struct BitmapBodyV1_06_63_02PC {
-    #[generic(non_primitive)]
-    bitmap_header: BitmapHeader,
+    header: BitmapHeader,
     #[br(parse_with = until_eof)]
     #[serde(skip_serializing)]
     #[generic]
-    pub data: Vec<u8>,
+    data: Vec<u8>,
 }
 
-pub type BitmapV1_06_63_02PC = TrivialClass<(), BitmapBodyV1_06_63_02PC>;
+trivial_class!(
+    BitmapV1_06_63_02PC((), BitmapBodyV1_06_63_02PC),
+    BitmapGeneric
+);
+// pub type BitmapV1_06_63_02PC = TrivialClass<(), BitmapBodyV1_06_63_02PC>;

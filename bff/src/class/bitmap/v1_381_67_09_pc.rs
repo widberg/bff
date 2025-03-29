@@ -1,4 +1,4 @@
-use bff_derive::{GenericClass, ReferencedNames};
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{binrw, BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
@@ -41,7 +41,9 @@ enum BmTransp {
 #[derive(
     BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,
 )]
-pub struct BitmapHeader {
+#[generic(name(BitmapHeaderGeneric))]
+pub struct LinkHeader {
+    link_name: Name,
     bitmap_class: BitmapClass,
     #[generic]
     width: u32,
@@ -61,24 +63,17 @@ pub struct BitmapHeader {
     transparency: BmTransp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct LinkHeader {
-    link_name: Name,
-    bitmap_header: BitmapHeader,
-}
-
 #[binrw]
 #[derive(Debug, Serialize, Deserialize, ReferencedNames, GenericClass)]
-#[br(import(link_header: &LinkHeader))]
+#[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
-    #[br(calc = link_header.bitmap_header)]
-    #[bw(ignore)]
-    #[generic(non_primitive)]
-    bitmap_header: BitmapHeader,
     #[br(parse_with = until_eof)]
     #[serde(skip_serializing)]
     #[generic]
-    pub data: Vec<u8>,
+    data: Vec<u8>,
 }
 
-pub type BitmapV1_381_67_09PC = TrivialClass<LinkHeader, BitmapBodyV1_381_67_09PC>;
+trivial_class!(
+    BitmapV1_381_67_09PC(LinkHeader, BitmapBodyV1_381_67_09PC),
+    BitmapGeneric
+);

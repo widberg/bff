@@ -1,12 +1,9 @@
-use crate::traits::TryFromGenericSubstitute;
-use crate::traits::TryIntoSpecific;
 use bff_derive::bff_class;
 
 mod generic;
 mod v1_291_03_06_pc;
 mod v1_381_67_09_pc;
 
-use generic::LightGeneric;
 use v1_291_03_06_pc::LightV1_291_03_06PC;
 use v1_381_67_09_pc::LightV1_381_67_09PC;
 

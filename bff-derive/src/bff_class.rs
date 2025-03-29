@@ -41,7 +41,6 @@ pub fn derive_bff_class(input: BffClassMacroInput) -> TokenStream {
     let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input);
     let from_shadow_class_to_object = impl_from_shadow_class_to_object(&input);
     let from_shadow_class_to_generic = impl_from_shadow_class_to_generic(&input);
-    let from_generic_to_object = impl_from_generic_to_object(&input);
 
     if input.has_generic {
         quote! {
@@ -49,7 +48,6 @@ pub fn derive_bff_class(input: BffClassMacroInput) -> TokenStream {
             #from_object_to_shadow_class
             #from_shadow_class_to_object
             #from_shadow_class_to_generic
-            #from_generic_to_object
         }
     } else {
         quote! {
@@ -171,68 +169,21 @@ fn impl_from_shadow_class_to_generic(input: &BffClassMacroInput) -> proc_macro2:
             quote! {
                 #(#attrs)*
                 #class::#body(class) => {
-                    #generic_class {
-                        class_name: class.class_name,
-                        name: class.name,
-                        link_name: class.link_name,
-                        compress: class.compress,
-                        link_header: (), // preferrably the generic class should always have an empty link header
-                        body: class.body.into(),
-                    }
+                    class.into()
                 }
             }
         })
         .collect::<Vec<_>>();
 
     quote! {
-        impl From<#class> for #generic_class {
+        impl From<#class> for generic::#generic_class {
             fn from(
                 class: #class,
-            ) -> #generic_class {
+            ) -> generic::#generic_class {
                 match class {
                     #(#arms)*
                 }
             }
         }
-    }
-}
-
-fn impl_from_generic_to_object(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
-    let class = &input.class;
-    let generic_class_str = format!("{}Generic", class);
-    let generic_class = Ident::new(&generic_class_str, generic_class_str.span());
-
-    let impls = input
-        .forms
-        .iter()
-        .map(|form| {
-            let attrs = &form.attrs;
-            let body = &form.body;
-            quote! {
-                #(#attrs)*
-                impl TryFromGenericSubstitute<#generic_class, #body> for #body {
-                    type Error = crate::error::Error;
-
-                    fn try_from_generic_substitute(
-                        generic: #generic_class,
-                        substitute: #body,
-                    ) -> crate::BffResult<#body> {
-                        let object = #body {
-                            class_name: generic.class_name,
-                            name: generic.name,
-                            link_name: generic.link_name,
-                            compress: generic.compress,
-                            link_header: substitute.link_header, // preferrably the generic class should always have an empty link header
-                            body: generic.body.try_into_specific(substitute.body)?,
-                        };
-                        Ok(object)
-                    }
-                }
-            }
-        })
-        .collect::<Vec<_>>();
-
-    quote! {
-        #(#impls)*
     }
 }
