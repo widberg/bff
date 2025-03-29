@@ -5,6 +5,7 @@ use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
 use std::hash::Hash;
 use std::io::{BufRead, Read, Seek, Write};
+use std::str::FromStr;
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
@@ -32,8 +33,17 @@ where
 
 impl<H: NameHashFunction> NameVariant<H>
 where
-    for<'a> H::Target:
-        PartialEq + Eq + Hash + Copy + Clone + BinRead + BinWrite<Args<'a> = ()> + Display + Debug,
+    for<'a> H::Target: PartialEq
+        + Eq
+        + Hash
+        + Copy
+        + Clone
+        + BinRead
+        + BinWrite<Args<'a> = ()>
+        + Display
+        + Debug
+        + FromStr,
+    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
     for<'a> <H::Target as BinRead>::Args<'a>: Default,
 {
     pub const fn new(value: H::Target) -> Self {
@@ -41,6 +51,16 @@ where
     }
     pub fn hash(bytes: &[u8]) -> Self {
         Self(H::hash(bytes))
+    }
+    pub fn hash_string(string: &str) -> Self {
+        if let Some(string) = string.strip_prefix('$') {
+            if let Some((value, _)) = string.split_once('$') {
+                if let Ok(value) = value.parse::<H::Target>() {
+                    return Self::new(value);
+                }
+            }
+        }
+        Self::hash(string.as_bytes())
     }
 }
 
@@ -78,6 +98,12 @@ where
     out
 }
 
+pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
+    let value = name.get_value();
+    let string = string.as_ref();
+    format!("${value}${string}")
+}
+
 impl Name {
     pub fn is_default(&self) -> bool {
         match *self {
@@ -101,6 +127,17 @@ impl Name {
             Name::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
             Name::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
             Name::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
+        }
+    }
+
+    pub fn get_value(&self) -> i64 {
+        match self {
+            Name::Asobo32(name) => name.0 as i64,
+            Name::AsoboAlternate32(name) => name.0 as i64,
+            Name::Kalisto32(name) => name.0 as i64,
+            Name::BlackSheep32(name) => name.0 as i64,
+            Name::Asobo64(name) => name.0,
+            Name::Ubisoft64(name) => name.0,
         }
     }
 }
@@ -185,24 +222,42 @@ enum SerdeName<'a, T> {
 
 impl<H: NameHashFunction> From<&str> for NameVariant<H>
 where
-    for<'a> H::Target:
-        PartialEq + Eq + Hash + Copy + Clone + BinRead + BinWrite<Args<'a> = ()> + Display + Debug,
+    for<'a> H::Target: PartialEq
+        + Eq
+        + Hash
+        + Copy
+        + Clone
+        + BinRead
+        + BinWrite<Args<'a> = ()>
+        + Display
+        + Debug
+        + FromStr,
+    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
     for<'a> <H::Target as BinRead>::Args<'a>: Default,
 {
     fn from(value: &str) -> Self {
         NAMES.lock().unwrap().insert(value);
-        Self(H::hash(value.as_bytes()))
+        Self::hash_string(value)
     }
 }
 
 impl<H: NameHashFunction> Default for NameVariant<H>
 where
-    for<'a> H::Target:
-        PartialEq + Eq + Hash + Copy + Clone + BinRead + BinWrite<Args<'a> = ()> + Display + Debug,
+    for<'a> H::Target: PartialEq
+        + Eq
+        + Hash
+        + Copy
+        + Clone
+        + BinRead
+        + BinWrite<Args<'a> = ()>
+        + Display
+        + Debug
+        + FromStr,
+    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
     for<'a> <H::Target as BinRead>::Args<'a>: Default,
 {
     fn default() -> Self {
-        Self(H::hash(b""))
+        Self::hash_string("")
     }
 }
 
@@ -348,31 +403,30 @@ pub struct Names {
 }
 
 impl Names {
-    fn insert(&mut self, string: &str) {
-        let bytes = string.as_bytes();
+    pub fn insert(&mut self, string: &str) {
         let sym = self.strings.get_or_intern(string);
 
         self.asobo32_names
-            .entry(NameAsobo32::hash(bytes))
+            .entry(NameAsobo32::hash_string(string))
             .or_insert(sym);
         self.asobo_alternate32_names
-            .entry(NameAsoboAlternate32::hash(bytes))
+            .entry(NameAsoboAlternate32::hash_string(string))
             .or_insert(sym);
         self.kalisto32_names
-            .entry(NameKalisto32::hash(bytes))
+            .entry(NameKalisto32::hash_string(string))
             .or_insert(sym);
         self.blacksheep32_names
-            .entry(NameBlackSheep32::hash(bytes))
+            .entry(NameBlackSheep32::hash_string(string))
             .or_insert(sym);
         self.asobo64_names
-            .entry(NameAsobo64::hash(bytes))
+            .entry(NameAsobo64::hash_string(string))
             .or_insert(sym);
         self.ubisoft64_names
-            .entry(NameUbisoft64::hash(bytes))
+            .entry(NameUbisoft64::hash_string(string))
             .or_insert(sym);
     }
 
-    fn get(&self, name: &Name) -> Option<&str> {
+    pub fn get(&self, name: &Name) -> Option<&str> {
         match name {
             Name::Asobo32(n) => self
                 .asobo32_names
@@ -459,12 +513,7 @@ impl Names {
         match self.name_type {
             NameType::Asobo32 => {
                 for (_, string) in &self.strings {
-                    writeln!(
-                        out,
-                        r#"{} "{}""#,
-                        NameAsobo32::hash(string.as_bytes()),
-                        string
-                    )?;
+                    writeln!(out, r#"{} "{}""#, NameAsobo32::hash_string(string), string)?;
                 }
             }
             NameType::AsoboAlternate32 => {
@@ -472,7 +521,7 @@ impl Names {
                     writeln!(
                         out,
                         r#"{} "{}""#,
-                        NameAsoboAlternate32::hash(string.as_bytes()),
+                        NameAsoboAlternate32::hash_string(string),
                         string
                     )?;
                 }
@@ -482,7 +531,7 @@ impl Names {
                     writeln!(
                         out,
                         r#"{} "{}""#,
-                        NameKalisto32::hash(string.as_bytes()),
+                        NameKalisto32::hash_string(string),
                         string
                     )?;
                 }
@@ -492,19 +541,14 @@ impl Names {
                     writeln!(
                         out,
                         r#"{} "{}""#,
-                        NameBlackSheep32::hash(string.as_bytes()),
+                        NameBlackSheep32::hash_string(string),
                         string
                     )?;
                 }
             }
             NameType::Asobo64 => {
                 for (_, string) in &self.strings {
-                    writeln!(
-                        out,
-                        r#"{} "{}""#,
-                        NameAsobo64::hash(string.as_bytes()),
-                        string
-                    )?;
+                    writeln!(out, r#"{} "{}""#, NameAsobo64::hash_string(string), string)?;
                 }
             }
             NameType::Ubisoft64 => {
@@ -512,7 +556,7 @@ impl Names {
                     writeln!(
                         out,
                         r#"{} "{}""#,
-                        NameUbisoft64::hash(string.as_bytes()),
+                        NameUbisoft64::hash_string(string),
                         string
                     )?;
                 }

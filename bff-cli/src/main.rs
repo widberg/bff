@@ -63,8 +63,12 @@ enum Commands {
     Names {
         bigfile: PathBuf,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = Wordlist::BIP39)]
-        wordlist: Wordlist,
+        #[arg(short, long)]
+        wordlist: Option<Wordlist>,
+        #[arg(long)]
+        in_names: Vec<PathBuf>,
+        #[arg(long)]
+        out_names: Option<PathBuf>,
     },
     Crc {
         string: Option<String>,
@@ -192,7 +196,12 @@ fn main() -> BffCliResult<()> {
             in_names,
             out_reference_map: out_dependencies,
         } => info::info(bigfile, in_names, out_dependencies),
-        Commands::Names { bigfile, wordlist } => names::names(bigfile, wordlist),
+        Commands::Names {
+            bigfile,
+            wordlist,
+            in_names,
+            out_names,
+        } => names::names(bigfile, wordlist, in_names, out_names),
         Commands::Crc {
             string,
             starting,
