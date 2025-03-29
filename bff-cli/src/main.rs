@@ -16,6 +16,7 @@ mod extract;
 mod fat_lin;
 mod info;
 mod lz;
+mod names;
 mod psc;
 mod reverse_crc32;
 mod round_trip;
@@ -23,6 +24,7 @@ mod stdio_or_path;
 
 use shadow_rs::shadow;
 
+use crate::names::Wordlist;
 use crate::psc::PscAlgorithm;
 use crate::stdio_or_path::StdioOrPath;
 
@@ -58,6 +60,12 @@ enum Commands {
     },
     #[clap(alias = "rt")]
     RoundTrip { bigfile: PathBuf },
+    Names {
+        bigfile: PathBuf,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = Wordlist::BIP39)]
+        wordlist: Wordlist,
+    },
     Crc {
         string: Option<String>,
         #[arg(
@@ -184,6 +192,7 @@ fn main() -> BffCliResult<()> {
             in_names,
             out_reference_map: out_dependencies,
         } => info::info(bigfile, in_names, out_dependencies),
+        Commands::Names { bigfile, wordlist } => names::names(bigfile, wordlist),
         Commands::Crc {
             string,
             starting,

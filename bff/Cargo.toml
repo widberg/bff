@@ -11,6 +11,7 @@ arcode = "0.2.4"
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = [ "serde" ] }
 binrw = "0.14.1"
+const_power_of_two = "1.0.0"
 derive_more = { version = "2.0.1", features = ["full"] }
 encoding_rs = "0.8.33"
 flate2 = { version = "1.0.28", default-features = false }

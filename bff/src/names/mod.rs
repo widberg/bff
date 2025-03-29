@@ -1,3 +1,5 @@
+mod wordlist;
+
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
@@ -6,12 +8,15 @@ use std::io::{BufRead, Read, Seek, Write};
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
+use const_power_of_two::PowerOfTwoUsize;
 use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
+use num_traits::AsPrimitive;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
 use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
+pub use wordlist::*;
 
 use crate::class::class_names;
 use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
@@ -56,6 +61,23 @@ pub enum Name {
     Ubisoft64(NameUbisoft64),
 }
 
+fn get_wordlist_encoded_string<T, const N: usize>(x: T, wordlist: [&str; N]) -> String
+where
+    T: AsPrimitive<usize>,
+    usize: PowerOfTwoUsize<N>,
+{
+    let wordlist_mask = wordlist.len() - 1;
+    let wordlist_bits = wordlist_mask.count_ones() as usize;
+    let mut out = String::new();
+    let mut x = x.as_();
+    for _ in 0..(size_of::<T>() * 8).div_ceil(wordlist_bits) {
+        let index = x & wordlist_mask;
+        out.push_str(wordlist[index]);
+        x >>= wordlist_bits;
+    }
+    out
+}
+
 impl Name {
     pub fn is_default(&self) -> bool {
         match *self {
@@ -65,6 +87,20 @@ impl Name {
             Name::BlackSheep32(name) => name == NameBlackSheep32::default(),
             Name::Asobo64(name) => name == NameAsobo64::default(),
             Name::Ubisoft64(name) => name == NameUbisoft64::default(),
+        }
+    }
+
+    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
+    where
+        usize: PowerOfTwoUsize<N>,
+    {
+        match self {
+            Name::Asobo32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::AsoboAlternate32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Kalisto32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
         }
     }
 }
