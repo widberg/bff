@@ -161,11 +161,15 @@ pub fn derive_referenced_names(mut input: DeriveInput) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
-            quote! {
-                match self {
-                    #(#variants)*
-                }
-            }
+            (!variants.is_empty())
+                .then(|| {
+                    quote! {
+                        match self {
+                            #(#variants)*
+                        }
+                    }
+                })
+                .unwrap_or_default()
         }
         Data::Union(_) => {
             unimplemented!()

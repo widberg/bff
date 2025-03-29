@@ -12,7 +12,6 @@ pub struct BffClassMacroInput {
 
 impl Parse for BffClassMacroInput {
     fn parse(input: ParseStream) -> Result<Self> {
-        // let first: Ident = input.parse()?;
         let attrs: Vec<Attribute> = input.call(Attribute::parse_inner)?;
         let has_generic = !attrs
             .iter()
@@ -20,7 +19,6 @@ impl Parse for BffClassMacroInput {
             .collect::<Vec<_>>()
             .is_empty();
         let class = input.parse()?;
-        // panic!("class is {}", class);
         let content;
         braced!(content in input);
         let mut forms = Vec::new();
@@ -100,6 +98,24 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
         }
     }).collect::<Vec<_>>();
 
+    let body = if arms.is_empty() {
+        quote! {
+            todo!()
+        }
+    } else {
+        quote! {
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
+            match (version.clone(), platform) {
+                #(#arms)*
+                _ => Err(
+                    // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
+                    crate::error::UnimplementedClassError::new(object.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
+                ),
+            }
+        }
+    };
+
     quote! {
         impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for #class {
             type Error = crate::error::Error;
@@ -109,15 +125,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<#class> {
-                use crate::bigfile::versions::Version::*;
-                use crate::bigfile::platforms::Platform::*;
-                match (version.clone(), platform) {
-                    #(#arms)*
-                    _ => Err(
-                        // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
-                        crate::error::UnimplementedClassError::new(object.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
-                    ),
-                }
+                #body
             }
         }
     }
@@ -138,6 +146,20 @@ fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::
         }
     }).collect::<Vec<_>>();
 
+    let body = if arms.is_empty() {
+        quote! {
+            todo!()
+        }
+    } else {
+        quote! {
+            use crate::bigfile::versions::Version::*;
+            use crate::bigfile::platforms::Platform::*;
+            match class {
+                #(#arms)*
+            }
+        }
+    };
+
     quote! {
         impl crate::traits::TryFromVersionPlatform<&#class> for crate::bigfile::resource::Resource {
             type Error = crate::error::Error;
@@ -147,11 +169,7 @@ fn impl_from_shadow_class_to_object(input: &BffClassMacroInput) -> proc_macro2::
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use crate::bigfile::versions::Version::*;
-                use crate::bigfile::platforms::Platform::*;
-                match class {
-                    #(#arms)*
-                }
+                #body
             }
         }
     }
@@ -184,14 +202,24 @@ fn impl_from_shadow_class_to_generic(input: &BffClassMacroInput) -> proc_macro2:
         })
         .collect::<Vec<_>>();
 
+    let body = if arms.is_empty() {
+        quote! {
+            todo!()
+        }
+    } else {
+        quote! {
+            match class {
+                #(#arms)*
+            }
+        }
+    };
+
     quote! {
         impl From<#class> for #generic_class {
             fn from(
                 class: #class,
             ) -> #generic_class {
-                match class {
-                    #(#arms)*
-                }
+                #body
             }
         }
     }
