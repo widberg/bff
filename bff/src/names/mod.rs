@@ -446,9 +446,9 @@ impl Names {
         assert!(!had_errors, "Name decoding failed");
 
         for line in cow.lines() {
-            let (_, string) = line.split_once(' ').unwrap();
-            let string = string.trim_matches('"');
-            self.insert(string);
+            if let Some((_, string)) = line.split_once(' ') {
+                self.insert(string.trim_matches('"'));
+            }
         }
 
         Ok(())
