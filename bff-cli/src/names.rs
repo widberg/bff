@@ -8,6 +8,7 @@ use crate::extract::{read_bigfile, read_names, write_names};
 
 #[derive(ValueEnum, Clone, Copy)]
 pub enum Wordlist {
+    Empty,
     Animals,
     BIP39,
 }
@@ -27,6 +28,7 @@ pub fn names(
         for name in bigfile.objects.keys() {
             if names_db.get(name).is_none() {
                 let string = match wordlist {
+                    Wordlist::Empty => "".to_string(),
                     Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
                     Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                 };

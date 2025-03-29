@@ -1,8 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
-use syn::{braced, parenthesized, Ident, Result, Token, Type};
+use syn::{parenthesized, Ident, Result, Token, Type};
 
 pub struct TrivialClassMacroInput {
     class: Ident,

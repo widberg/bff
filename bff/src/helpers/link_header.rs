@@ -4,7 +4,8 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use super::{DynArray, Mat4f, Quat};
-use crate::{names::Name, traits::TryFromGenericSubstitute};
+use crate::names::Name;
+use crate::traits::TryFromGenericSubstitute;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ResourceObjectLinkHeader {
