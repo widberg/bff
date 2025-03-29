@@ -1,7 +1,5 @@
-use std::{
-    f64,
-    sync::{Arc, Mutex},
-};
+use std::f64;
+use std::sync::{Arc, Mutex};
 
 use crate::helpers::sound::play_sound;
 
@@ -94,7 +92,7 @@ pub fn sound_view(
                         to_screen * egui::pos2((elapsed / duration) as f32, -1.0),
                         to_screen * egui::pos2((elapsed / duration) as f32, 1.0),
                     ],
-                    egui::epaint::PathStroke::new(2.0, egui::Color32::GRAY),
+                    egui::epaint::Stroke::new(2.0, egui::Color32::GRAY),
                 ));
             }
         }

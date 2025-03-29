@@ -9,6 +9,7 @@ use bff::bigfile::BigFile;
 use bff::names::Name;
 #[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
+#[cfg(not(target_arch = "wasm32"))]
 use error::BffGuiResult;
 #[cfg(not(target_arch = "wasm32"))]
 use helpers::load::load_bf;
@@ -170,20 +171,34 @@ fn uninstall() -> BffGuiResult<()> {
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
+    use web_sys::wasm_bindgen::JsCast as _;
+
     let web_options = eframe::WebOptions::default();
 
     wasm_bindgen_futures::spawn_local(async {
+        let document = web_sys::window()
+            .expect("No window")
+            .document()
+            .expect("No document");
+
+        let canvas = document
+            .get_element_by_id("the_canvas_id")
+            .expect("Failed to find the_canvas_id")
+            .dyn_into::<web_sys::HtmlCanvasElement>()
+            .expect("the_canvas_id was not a HtmlCanvasElement");
+
         eframe::WebRunner::new()
             .start(
-                "the_canvas_id", // hardcode it
+                canvas,
                 web_options,
-                Box::new(|cc| Box::new(Gui::new(cc))),
+                Box::new(|cc| Ok(Box::new(Gui::new(cc)))),
             )
             .await
             .expect("failed to start eframe");
     });
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn setup_custom_font(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
 
@@ -226,7 +241,7 @@ struct Gui {
 
 impl Gui {
     fn new(
-        cc: &eframe::CreationContext<'_>,
+        #[allow(unused_variables)] cc: &eframe::CreationContext<'_>,
         #[cfg(not(target_arch = "wasm32"))] file: Option<PathBuf>,
     ) -> Self {
         let (tx, rx) = std::sync::mpsc::channel();

@@ -1,5 +1,6 @@
 use bff_derive::{trivial_class, GenericClass, ReferencedNames};
-use binrw::{helpers::until_eof, BinRead, BinWrite};
+use binrw::helpers::until_eof;
+use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -37,4 +38,3 @@ trivial_class!(
     BitmapV1_06_63_02PC((), BitmapBodyV1_06_63_02PC),
     BitmapGeneric
 );
-// pub type BitmapV1_06_63_02PC = TrivialClass<(), BitmapBodyV1_06_63_02PC>;

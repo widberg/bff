@@ -1,3 +1,5 @@
+mod wordlist;
+
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
@@ -6,11 +8,15 @@ use std::io::{BufRead, Read, Seek, Write};
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
+use const_power_of_two::PowerOfTwoUsize;
 use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
+use num_traits::AsPrimitive;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize};
+use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
+pub use wordlist::*;
 
 use crate::class::class_names;
 use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
@@ -53,6 +59,50 @@ pub enum Name {
     BlackSheep32(NameBlackSheep32),
     Asobo64(NameAsobo64),
     Ubisoft64(NameUbisoft64),
+}
+
+fn get_wordlist_encoded_string<T, const N: usize>(x: T, wordlist: [&str; N]) -> String
+where
+    T: AsPrimitive<usize>,
+    usize: PowerOfTwoUsize<N>,
+{
+    let wordlist_mask = wordlist.len() - 1;
+    let wordlist_bits = wordlist_mask.count_ones() as usize;
+    let mut out = String::new();
+    let mut x = x.as_();
+    for _ in 0..(size_of::<T>() * 8).div_ceil(wordlist_bits) {
+        let index = x & wordlist_mask;
+        out.push_str(wordlist[index]);
+        x >>= wordlist_bits;
+    }
+    out
+}
+
+impl Name {
+    pub fn is_default(&self) -> bool {
+        match *self {
+            Name::Asobo32(name) => name == NameAsobo32::default(),
+            Name::AsoboAlternate32(name) => name == NameAsoboAlternate32::default(),
+            Name::Kalisto32(name) => name == NameKalisto32::default(),
+            Name::BlackSheep32(name) => name == NameBlackSheep32::default(),
+            Name::Asobo64(name) => name == NameAsobo64::default(),
+            Name::Ubisoft64(name) => name == NameUbisoft64::default(),
+        }
+    }
+
+    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
+    where
+        usize: PowerOfTwoUsize<N>,
+    {
+        match self {
+            Name::Asobo32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::AsoboAlternate32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Kalisto32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Name::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
+        }
+    }
 }
 
 impl BinRead for Name {
@@ -288,7 +338,7 @@ impl Debug for Name {
 #[derive(Debug)]
 pub struct Names {
     pub name_type: NameType,
-    strings: StringInterner,
+    strings: StringInterner<BucketBackend>,
     asobo32_names: HashMap<NameAsobo32, DefaultSymbol>,
     asobo_alternate32_names: HashMap<NameAsoboAlternate32, DefaultSymbol>,
     kalisto32_names: HashMap<NameKalisto32, DefaultSymbol>,
@@ -356,7 +406,7 @@ impl Default for Names {
     fn default() -> Self {
         let mut names = Self {
             name_type: NameType::Asobo32,
-            strings: StringInterner::default(),
+            strings: StringInterner::new(),
             asobo32_names: Default::default(),
             asobo_alternate32_names: Default::default(),
             kalisto32_names: Default::default(),
@@ -396,9 +446,9 @@ impl Names {
         assert!(!had_errors, "Name decoding failed");
 
         for line in cow.lines() {
-            let (_, string) = line.split_once(' ').unwrap();
-            let string = string.trim_matches('"');
-            self.insert(string);
+            if let Some((_, string)) = line.split_once(' ') {
+                self.insert(string.trim_matches('"'));
+            }
         }
 
         Ok(())

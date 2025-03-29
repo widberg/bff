@@ -5,7 +5,12 @@ use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffOption, DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec3f,
+    BffOption,
+    DynArray,
+    DynBox,
+    DynSphere,
+    ObjectLinkHeaderV1_06_63_02PC,
+    Vec3f,
 };
 use crate::names::Name;
 

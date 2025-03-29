@@ -19,7 +19,6 @@ use crate::BffResult;
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
-    pub checksum: Option<u32>,
     pub resources: Vec<Resource>,
 }
 
@@ -68,7 +67,6 @@ fn parse_blocks<const GAME: usize>(
             let mut decompressed = Cursor::new(decompressed);
             blocks.push(Block {
                 compressed: true,
-                checksum: None,
                 resources: Vec::<Resource>::read_options(
                     &mut decompressed,
                     endian,
@@ -79,7 +77,6 @@ fn parse_blocks<const GAME: usize>(
         } else {
             blocks.push(Block {
                 compressed: false,
-                checksum: None,
                 resources: Vec::<Resource>::read_options(
                     reader,
                     endian,

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 #[cfg(not(target_arch = "wasm32"))]
 use std::io::Write;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -17,6 +18,7 @@ use crate::helpers::class::write_class_json;
 use crate::helpers::load::load_bf;
 use crate::Gui;
 
+#[cfg(not(target_arch = "wasm32"))]
 fn load_names(in_name: &PathBuf) {
     if let Ok(f) = File::open(in_name) {
         let mut reader = bff::BufReader::new(f);
@@ -82,6 +84,7 @@ impl Gui {
             ui.horizontal(|ui| {
                 ui.menu_button("File", |ui| {
                     ui.menu_button("BigFile", |ui| {
+                        #[allow(unused_mut)]
                         let mut checked = match ui
                             .memory(|mem| mem.data.get_temp::<Arc<Mutex<bool>>>(id_source))
                         {

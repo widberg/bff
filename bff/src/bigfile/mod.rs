@@ -13,7 +13,7 @@ mod v2_128_92_19_pc;
 mod v2_256_38_19_pc;
 pub mod versions;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use bff_derive::bigfiles;
 use serde::Serialize;
@@ -34,7 +34,9 @@ use crate::bigfile::v2_0_pc::BigFileV2_0PC;
 use crate::bigfile::v2_128_52_19_pc::BigFileV2_128_52_19PC;
 use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::bigfile::v2_256_38_19_pc::BigFileV2_256_38_19PC;
+use crate::class::Class;
 use crate::names::Name;
+use crate::traits::{ReferencedNames, TryIntoVersionPlatform};
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
@@ -46,8 +48,28 @@ pub struct BigFile {
     pub objects: HashMap<Name, Resource>,
 }
 
+impl BigFile {
+    pub fn reference_map(&self) -> HashMap<Name, HashSet<Name>> {
+        self.objects
+            .iter()
+            .map(|(name, resource)| {
+                (
+                    *name,
+                    <&Resource as TryIntoVersionPlatform<Class>>::try_into_version_platform(
+                        resource,
+                        self.manifest.version.clone(),
+                        self.manifest.platform,
+                    )
+                    .map(|class| class.referenced_names())
+                    .unwrap_or_default(),
+                )
+            })
+            .collect()
+    }
+}
+
 bigfiles! {
-    (Kalisto(1, 75) | BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
+    (Kalisto(1, 75 | 73) | BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
     (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,
     (BlackSheep(2, ..=7) | BlackSheep(2, 158..), _) => BigFileV2_07PCPROTO,
     (BlackSheep(2, _), _) => BigFileV2_07PCSHAUN,
@@ -58,6 +80,7 @@ bigfiles! {
     (Asobo(1, 0 | 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
     (Asobo(2, 128, 92, _), _) => BigFileV2_128_92_19PC,
+    (Asobo(2, 256, 49, _), _) => BigFileV2_128_52_19PC,
     (Asobo(2, 256, _, _), _) => BigFileV2_256_38_19PC,
     (Asobo(2, 128, 52, _), _) => BigFileV2_128_52_19PC,
 }

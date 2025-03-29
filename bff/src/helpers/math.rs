@@ -26,6 +26,7 @@ pub type Mat<const ROWS: usize, const COLUMNS: usize = ROWS, InnerType = f32> =
     [[InnerType; COLUMNS]; ROWS];
 pub type Mat3f = Mat<3>;
 pub type Mat4f = Mat<4>;
+pub type Mat3x4f = Mat<3, 4>;
 
 // A fixed precision float with a variable numerator and constant denominator.
 #[derive(BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize, ReferencedNames)]
@@ -112,6 +113,13 @@ where
 pub struct Sphere {
     pub center: Vec3f,
     pub radius: f32,
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct Box {
+    pub matrix: Mat3x4f,
+    pub vec: Vec3f,
+    pub scale: f32,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

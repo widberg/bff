@@ -40,7 +40,7 @@ pub fn trivial_class(input: TokenStream) -> TokenStream {
     derive_trivial_class(parse_macro_input!(input as TrivialClassMacroInput)).into()
 }
 
-#[proc_macro_derive(ReferencedNames)]
+#[proc_macro_derive(ReferencedNames, attributes(referenced_names))]
 pub fn referenced_names(input: TokenStream) -> TokenStream {
     derive_referenced_names(parse_macro_input!(input as DeriveInput)).into()
 }

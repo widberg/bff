@@ -27,8 +27,11 @@ test *TEST:
     $ENV:RUST_TEST_THREADS = "1"
     cargo +nightly test --release -j 1 {{ TEST }}
 
-build:
-    cargo build --release
+build CMD:
+    cargo build --bin {{ CMD }}
+
+build-release CMD:
+    cargo build --release --bin {{ CMD }}
 
 # trunk (https://github.com/trunk-rs/trunk)
 [unix]
@@ -62,6 +65,9 @@ doc:
     cargo doc
 
 run CMD *OPTIONS:
+    cargo run --bin {{ CMD }} -- {{ OPTIONS }}
+
+run-release CMD *OPTIONS:
     cargo run --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 install:
