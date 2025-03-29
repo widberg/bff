@@ -508,16 +508,26 @@ impl Names {
         Ok(())
     }
 
-    pub fn write<W: Write>(&self, writer: &mut W) -> BffResult<()> {
+    pub fn write<W: Write>(&self, writer: &mut W, names: &Option<Vec<&Name>>) -> BffResult<()> {
         let mut out = String::new();
-        match self.name_type {
-            NameType::Asobo32 => {
-                for (_, string) in &self.strings {
-                    writeln!(out, r#"{} "{}""#, NameAsobo32::hash_string(string), string)?;
+        for (_, string) in &self.strings {
+            match self.name_type {
+                NameType::Asobo32 => {
+                    let name = NameAsobo32::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::Asobo32(name)) {
+                            continue;
+                        }
+                    }
+                    writeln!(out, r#"{} "{}""#, name, string)?;
                 }
-            }
-            NameType::AsoboAlternate32 => {
-                for (_, string) in &self.strings {
+                NameType::AsoboAlternate32 => {
+                    let name = NameAsoboAlternate32::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::AsoboAlternate32(name)) {
+                            continue;
+                        }
+                    }
                     writeln!(
                         out,
                         r#"{} "{}""#,
@@ -525,9 +535,13 @@ impl Names {
                         string
                     )?;
                 }
-            }
-            NameType::Kalisto32 => {
-                for (_, string) in &self.strings {
+                NameType::Kalisto32 => {
+                    let name = NameKalisto32::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::Kalisto32(name)) {
+                            continue;
+                        }
+                    }
                     writeln!(
                         out,
                         r#"{} "{}""#,
@@ -535,9 +549,13 @@ impl Names {
                         string
                     )?;
                 }
-            }
-            NameType::BlackSheep32 => {
-                for (_, string) in &self.strings {
+                NameType::BlackSheep32 => {
+                    let name = NameBlackSheep32::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::BlackSheep32(name)) {
+                            continue;
+                        }
+                    }
                     writeln!(
                         out,
                         r#"{} "{}""#,
@@ -545,14 +563,22 @@ impl Names {
                         string
                     )?;
                 }
-            }
-            NameType::Asobo64 => {
-                for (_, string) in &self.strings {
+                NameType::Asobo64 => {
+                    let name = NameAsobo64::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::Asobo64(name)) {
+                            continue;
+                        }
+                    }
                     writeln!(out, r#"{} "{}""#, NameAsobo64::hash_string(string), string)?;
                 }
-            }
-            NameType::Ubisoft64 => {
-                for (_, string) in &self.strings {
+                NameType::Ubisoft64 => {
+                    let name = NameUbisoft64::hash_string(string);
+                    if let Some(names) = names {
+                        if !names.contains(&&Name::Ubisoft64(name)) {
+                            continue;
+                        }
+                    }
                     writeln!(
                         out,
                         r#"{} "{}""#,

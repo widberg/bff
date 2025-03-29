@@ -38,8 +38,6 @@ enum Commands {
         directory: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
-        #[arg(long)]
-        out_names: Option<PathBuf>,
     },
     #[clap(alias = "c")]
     Create {
@@ -61,7 +59,7 @@ enum Commands {
     #[clap(alias = "rt")]
     RoundTrip { bigfile: PathBuf },
     Names {
-        bigfile: PathBuf,
+        bigfile: Option<PathBuf>,
         #[clap(value_enum)]
         #[arg(short, long)]
         wordlist: Option<Wordlist>,
@@ -183,8 +181,7 @@ fn main() -> BffCliResult<()> {
             bigfile,
             directory,
             in_names,
-            out_names,
-        } => extract::extract(bigfile, directory, in_names, out_names),
+        } => extract::extract(bigfile, directory, in_names),
         Commands::Create {
             directory,
             bigfile,

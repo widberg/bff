@@ -4,12 +4,12 @@ use std::path::{Path, PathBuf};
 
 use bff::bigfile::platforms::{try_platform_style_to_name_extension, Platform};
 use bff::bigfile::BigFile;
+use bff::names::Name;
 use bff::BufReader;
 
 use crate::error::BffCliResult;
 
-pub fn read_names(bigfile_path: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<()> {
-    // Read the associated name file if it exists
+pub fn read_bigfile_names(bigfile_path: &Path) -> BffCliResult<()> {
     if let Some(extension) = bigfile_path.extension() {
         let name_extension =
             try_platform_style_to_name_extension(extension.try_into()?, extension.try_into()?)?;
@@ -21,7 +21,10 @@ pub fn read_names(bigfile_path: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<
         }
     }
 
-    // Read the names from the input name files
+    Ok(())
+}
+
+pub fn read_in_names(in_names: &Vec<PathBuf>) -> BffCliResult<()> {
     for in_name in in_names {
         let f = File::open(in_name)?;
         let mut reader = BufReader::new(f);
@@ -31,11 +34,14 @@ pub fn read_names(bigfile_path: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<
     Ok(())
 }
 
-pub fn write_names(out_names: &Option<PathBuf>) -> BffCliResult<()> {
+pub fn write_names(out_names: &Option<PathBuf>, names: &Option<Vec<&Name>>) -> BffCliResult<()> {
     if let Some(out_name) = out_names {
         let f = File::create(out_name)?;
         let mut writer = BufWriter::new(f);
-        bff::names::names().lock().unwrap().write(&mut writer)?;
+        bff::names::names()
+            .lock()
+            .unwrap()
+            .write(&mut writer, names)?;
     }
 
     Ok(())
@@ -68,13 +74,9 @@ fn clean_path(path: String) -> String {
         .collect()
 }
 
-pub fn extract(
-    bigfile_path: &Path,
-    directory: &Path,
-    in_names: &Vec<PathBuf>,
-    out_names: &Option<PathBuf>,
-) -> BffCliResult<()> {
-    read_names(bigfile_path, in_names)?;
+pub fn extract(bigfile_path: &Path, directory: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<()> {
+    read_bigfile_names(bigfile_path)?;
+    read_in_names(in_names)?;
 
     let bigfile = read_bigfile(bigfile_path)?;
 
@@ -102,8 +104,6 @@ pub fn extract(
         let mut writer = BufWriter::new(File::create(path)?);
         bigfile.dump_resource(resource, &mut writer)?;
     }
-
-    write_names(out_names)?;
 
     Ok(())
 }

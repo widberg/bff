@@ -6,7 +6,7 @@ use bff::bigfile::BigFile;
 use bff::BufReader;
 
 use crate::error::BffCliResult;
-use crate::extract::{read_names, write_names};
+use crate::extract::{read_bigfile_names, read_in_names, write_names};
 
 pub fn create(
     directory: &Path,
@@ -14,7 +14,8 @@ pub fn create(
     in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
 ) -> BffCliResult<()> {
-    read_names(bigfile_path, in_names)?;
+    read_bigfile_names(bigfile_path)?;
+    read_in_names(in_names)?;
 
     let manifest_path = directory.join("manifest.json");
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
@@ -40,7 +41,7 @@ pub fn create(
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
     bigfile.write(&mut bigfile_writer, None)?;
 
-    write_names(out_names)?;
+    write_names(out_names, &None)?;
 
     Ok(())
 }
