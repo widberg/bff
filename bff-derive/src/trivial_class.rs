@@ -1,13 +1,14 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{parenthesized, Ident, Result, Token, Type};
+use syn::{parenthesized, Ident, LitBool, Result, Token, Type};
 
 pub struct TrivialClassMacroInput {
     class: Ident,
     link_header: Type,
     body: Type,
     generic: Ident,
+    has_header: bool,
 }
 
 impl Parse for TrivialClassMacroInput {
@@ -20,11 +21,17 @@ impl Parse for TrivialClassMacroInput {
         let body = content.parse()?;
         let _: Token![,] = input.parse()?;
         let generic = input.parse()?;
+        let comma: Result<Token![,]> = input.parse();
+        let has_header = match comma {
+            Ok(_) => input.parse::<LitBool>()?.value(),
+            _ => true,
+        };
         Ok(TrivialClassMacroInput {
             class,
             link_header,
             body,
             generic,
+            has_header,
         })
     }
 }
@@ -45,10 +52,14 @@ fn impl_from_trivial_to_generic(input: &TrivialClassMacroInput) -> TokenStream {
     let generic_class = &input.generic;
 
     let link_header_str = input.link_header.to_token_stream().to_string();
-    let link_header = if &link_header_str == "()" {
-        quote! {class.body.header.clone().into()}
+    let link_header = if input.has_header {
+        if &link_header_str == "()" {
+            quote! { Some(class.body.header.clone().into()) }
+        } else {
+            quote! { Some(class.link_header.into()) }
+        }
     } else {
-        quote! {class.link_header.into()}
+        quote! { None }
     };
 
     quote! {
@@ -75,23 +86,30 @@ fn impl_from_generic_to_trivial(input: &TrivialClassMacroInput) -> proc_macro2::
 
     let link_header_str = input.link_header.to_token_stream().to_string();
     let (body, link_header) = if &link_header_str == "()" {
-        (
-            quote! {
-                {
-                    let header = generic.link_header.try_into_specific(substitute.body.header.clone())?;
-                    let mut body = generic.body.try_into_specific(substitute.body)?;
-                    body.header = header;
-                    body
-                }
-            },
-            quote! {()},
-        )
+        if input.has_header {
+            (
+                quote! {
+                    {
+                        let header = generic.link_header.unwrap().try_into_specific(substitute.body.header.clone())?;
+                        let mut body = generic.body.try_into_specific(substitute.body)?;
+                        body.header = header;
+                        body
+                    }
+                },
+                quote! {()},
+            )
+        } else {
+            (
+                quote! { generic.body.try_into_specific(substitute.body)? },
+                quote! {()},
+            )
+        }
     } else {
         (
             quote! {
                 generic.body.try_into_specific(substitute.body)?
             },
-            quote! {generic.link_header.try_into_specific(substitute.link_header)?},
+            quote! { generic.link_header.unwrap().try_into_specific(substitute.link_header)? },
         )
     };
 

@@ -22,12 +22,7 @@ pub fn named_class(input: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(GenericClass, attributes(generic))]
 pub fn generic_class(input: TokenStream) -> TokenStream {
-    derive_generic_class(parse_macro_input!(input as DeriveInput), false).into()
-}
-
-#[proc_macro_derive(GenericClassComplete, attributes(generic))]
-pub fn generic_class_complete(input: TokenStream) -> TokenStream {
-    derive_generic_class(parse_macro_input!(input as DeriveInput), true).into()
+    derive_generic_class(parse_macro_input!(input as DeriveInput)).into()
 }
 
 #[proc_macro]

@@ -48,6 +48,7 @@ struct SpecificClass<'a> {
     name: &'a Ident,
     generic_name: Ident,
     data: &'a DataStruct,
+    is_complete: bool,
     // is_link_header: LitBool,
 }
 
@@ -55,7 +56,7 @@ fn simple_parse(input: &DeriveInput) -> SpecificClass {
     let attrs = &input.attrs;
     let name = &input.ident;
     let mut custom_name: Option<Ident> = None;
-    // let mut is_link_header: LitBool = LitBool::new(false, false.span());
+    let mut is_complete = false;
     for attr in attrs {
         if attr.path().is_ident("generic") {
             attr.parse_nested_meta(|meta| {
@@ -66,12 +67,10 @@ fn simple_parse(input: &DeriveInput) -> SpecificClass {
                     custom_name = Some(name);
                     return Ok(());
                 }
-                // if meta.path.is_ident("link_header") {
-                //     let content;
-                //     parenthesized!(content in meta.input);
-                //     is_link_header = content.parse()?;
-                //     return Ok(());
-                // }
+                if meta.path.is_ident("complete") {
+                    is_complete = true;
+                    return Ok(());
+                }
                 Err(meta.error(format!("unknown attribute {:?}", meta.path)))
             })
             .unwrap();
@@ -101,7 +100,7 @@ fn simple_parse(input: &DeriveInput) -> SpecificClass {
         name,
         generic_name,
         data,
-        // is_link_header,
+        is_complete,
     }
 }
 
@@ -120,18 +119,18 @@ fn attrs(attrs: &Vec<syn::Attribute>) -> bool {
     into
 }
 
-pub fn derive_generic_class(input: DeriveInput, complete: bool) -> TokenStream {
-    let from_specific_to_generic = impl_from_specific_to_generic(&input, complete);
-    let from_generic_substitute = impl_from_generic_substitute(&input, complete);
+pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
+    let from_specific_to_generic = impl_from_specific_to_generic(&input);
+    let from_generic_substitute = impl_from_generic_substitute(&input);
     quote! {
         #from_specific_to_generic
         #from_generic_substitute
     }
 }
 
-fn impl_from_specific_to_generic(input: &DeriveInput, complete: bool) -> TokenStream {
+fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
     let class = simple_parse(input);
-    let (name, generic_name) = (class.name, class.generic_name);
+    let (name, generic_name, complete) = (class.name, class.generic_name, class.is_complete);
     let generic_intos = class
         .data
         .fields
@@ -187,9 +186,9 @@ fn impl_from_specific_to_generic(input: &DeriveInput, complete: bool) -> TokenSt
     }
 }
 
-fn impl_from_generic_substitute(input: &DeriveInput, complete: bool) -> TokenStream {
+fn impl_from_generic_substitute(input: &DeriveInput) -> TokenStream {
     let class = simple_parse(input);
-    let (name, generic_name) = (class.name, class.generic_name);
+    let (name, generic_name, complete) = (class.name, class.generic_name, class.is_complete);
     let fields = class.data.fields.iter()
         .map(|f| {
             let replace_generic =

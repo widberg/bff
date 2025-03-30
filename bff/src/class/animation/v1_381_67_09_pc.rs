@@ -1,90 +1,39 @@
-use bff_derive::ReferencedNames;
+use bff_derive::{GenericClassComplete, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{
-    DynArray,
-    KeyframerBezierRot,
-    KeyframerFloatComp,
-    KeyframerMessage,
-    KeyframerRot,
-    KeyframerVec3fComp,
-    ResourceObjectLinkHeader,
+use crate::helpers::{DynArray, ResourceObjectLinkHeader};
+
+use super::generic::{
+    AnimationMaterial, AnimationMaterialModifier, AnimationMesh, AnimationMeshModifier,
+    AnimationMorph, AnimationMorphModifier, AnimationNode, AnimationNodeModifier,
 };
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AnimationNode {
-    unknown0: KeyframerRot,
-    unknown1: KeyframerBezierRot,
-    unknown2: KeyframerVec3fComp,
-    unknown3: KeyframerVec3fComp,
-    unknown4: KeyframerMessage,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AnimationMaterial {
-    unknown0: KeyframerFloatComp,
-    unknown1: KeyframerFloatComp,
-    unknown2: KeyframerVec3fComp,
-    unknown3: KeyframerVec3fComp,
-    unknown4: KeyframerFloatComp,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AnimationMesh {
-    unknown: KeyframerFloatComp,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AnimationMorph {
-    unknown: KeyframerFloatComp,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown12 {
-    unknown0: u32,
-    unknown1: u32,
-    unknown2: u32,
-    unknown3: u32,
-    unknown4: u32,
-    unknown5: u32,
-    unknown6: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown13 {
-    unknown0: u32,
-    unknown1: u32,
-    unknown2: u32,
-    unknown3: u32,
-    unknown4: u32,
-    unknown5: u32,
-    unknown6: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown14 {
-    unknown0: u32,
-    unknown1: u32,
-    unknown2: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClassComplete,
+)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct AnimationBodyV1_381_67_09PC {
     duration: f32,
     blending: f32,
-    c: u16,
-    d: u16,
+    unknown: u16,
+    #[generic(no_convert)]
     animation_node: AnimationNode,
+    #[generic(no_convert)]
     animation_material: AnimationMaterial,
+    #[generic(no_convert)]
     animation_mesh: AnimationMesh,
+    #[generic(no_convert)]
     animation_morph: AnimationMorph,
-    unknown12s: DynArray<Unknown12>,
-    unknown13s: DynArray<Unknown13>,
-    unknown14s: DynArray<Unknown14>,
-    unknown15s: DynArray<Unknown14>,
+    #[generic(no_convert)]
+    animation_node_modifiers: DynArray<AnimationNodeModifier>,
+    #[generic(no_convert)]
+    animation_material_modifiers: DynArray<AnimationMaterialModifier>,
+    #[generic(no_convert)]
+    animation_mesh_modifiers: DynArray<AnimationMeshModifier>,
+    #[generic(no_convert)]
+    animation_morph_modifiers: DynArray<AnimationMorphModifier>,
 }
 
 pub type AnimationV1_381_67_09PC =
