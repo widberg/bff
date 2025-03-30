@@ -5,16 +5,11 @@ use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray,
-    DynBox,
-    DynSphere,
-    ObjectLinkHeaderV1_06_63_02PC,
-    Vec2,
-    Vec2f,
-    Vec3,
-    Vec3f,
+    DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3, Vec3f, Vec3i16,
 };
 use crate::names::Name;
+
+use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -42,14 +37,6 @@ struct Unknown2 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown3 {
-    unknown4_count: u32,
-    #[br(count = unknown4_count * 2)]
-    unknown4: Vec<u8>,
-    unknown5: [u8; 8],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown5 {
     unknown8_count: u32,
     #[br(count = unknown8_count * 8)]
@@ -58,7 +45,7 @@ struct Unknown5 {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown6 {
-    data: [u8; 32],
+    unknowns: [u32; 8],
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -91,104 +78,43 @@ struct CylindreCol {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AABBColRelated {
-    unknowns: [u16; 4],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AABBCol {
-    unknown1s: Vec3f,
-    unknown2s: Vec2<i16>,
-    unknown3s: Vec3f,
-    unknown4s: Vec2<i16>,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Vertex {
-    position: Vec3<i16>,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct Triangle {
-    pub indices: Vec3<i16>,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(length: u32))]
-pub enum VertexStruct {
-    #[br(pre_assert(length == 24))]
-    Format24 {
-        position: Vec3f,
-        unknown: f32,
-        uv: Vec2f,
-    },
-    #[br(pre_assert(length == 36))]
-    Format36 {
-        position: Vec3f,
-        tangent: Vec3<u8>,
-        tangent_padding: u8,
-        normal: Vec3<u8>,
-        normal_padding: u8,
-        uv: Vec2f,
-        luv: Vec2f,
-    },
-    #[br(pre_assert(length == 48))]
-    Format48 {
-        position: Vec3f,
-        tangent: Vec3<u8>,
-        tangent_padding: u8,
-        normal: Vec3<u8>,
-        normal_padding: u8,
-        uv: Vec2f,
-        unknown: [f32; 5],
-    },
-    #[br(pre_assert(length == 60))]
-    Format60 {
-        position: Vec3f,
-        tangent: Vec3<u8>,
-        tangent_padding: u8,
-        normal: Vec3<u8>,
-        normal_padding: u8,
-        uv: Vec2f,
-        blend_indices: [f32; 4],
-        blends: [f32; 4],
-    },
-    FormatUnknown {
-        #[br(count = length)]
-        data: Vec<u8>,
-    },
+struct AABBColTri {
+    first_vertex_id: i16,
+    second_vertex_id: i16,
+    third_vertex_id: i16,
+    material_index: i16,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct VertexBuffer {
-    vertex_struct_count: u32,
-    vertex_struct_length: u32,
-    unknown: u32,
-    #[br(args { count: vertex_struct_count as usize, inner: (vertex_struct_length,) })]
-    pub vertex_structs: Vec<VertexStruct>,
+    vertex_count: u32,
+    vertex_layout: u32,
+    flags: u32,
+    #[br(args { count: vertex_count as usize, inner: (vertex_layout,) })]
+    pub vertices: Vec<Vertex>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct IndexBuffer {
     index_count: u32,
-    unknown: u32,
+    flags: u32,
     #[br(count = index_count / 3)]
-    pub tris: Vec<Triangle>,
+    pub tris: Vec<Vec3i16>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct VertexGroup {
     zeroes: Vec3<u32>,
-    primitive: u32,
+    flags: VertexGroupFlags,
     pub vertex_offset_in_groups: u16,
     unknown0: u16,
     pub vertex_count: u32,
-    pub index_buffer_offset_in_shorts: u32,
+    pub index_buffer_index_begin: u32,
     pub face_count: u32,
-    unknown1: u32,
-    unknown2: u32,
-    vertex_size: u16,
-    cdcdcdcd: u16,
+    zero: u32,
+    vertex_buffer_range_begin: u32,
+    vertex_layout: u16,
+    unused: u16,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -226,21 +152,24 @@ pub struct MeshBuffers {
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,
-    unknown1s: DynArray<Unknown1>,
-    unknown2s: DynArray<Unknown2>,
-    unknown3s: DynArray<Unknown3>,
+    texcoords: DynArray<Vec2f>,
+    normals: DynArray<Vec3f>,
+    strips: DynArray<Strip>,
     #[br(if(link_header.flags & 2 > 0))]
-    #[br(count = unknown3s.len() * 4)]
+    #[br(count = strips.len() * 4)]
     unknown4s: Option<Vec<u8>>,
     unknown5s: DynArray<Unknown5>,
     material_names: DynArray<Name>,
-    related_to_counts: [u8; 24],
+    drawing_start_distance: f32,
+    drawing_cutoff_distance: f32,
+    shadow_related: u32,
+    related_to_counts: [u32; 3],
     sphere_cols: DynArray<DynSphere>,
     box_cols: DynArray<DynBox>,
     cylindre_cols: DynArray<CylindreCol>,
-    aabb_col_relateds: DynArray<AABBColRelated>,
-    aabb_cols: DynArray<AABBCol>,
-    vertices: DynArray<Vertex>,
+    collision_aabb_tris: DynArray<AABBColTri>,
+    collision_aabbs: DynArray<CollisionAABB>,
+    vertices: DynArray<Vec3i16>,
     unknown6s: DynArray<Unknown6>,
     pub mesh_buffers: MeshBuffers,
     unknown8s: DynArray<Unknown8>,

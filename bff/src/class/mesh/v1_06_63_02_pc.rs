@@ -4,27 +4,12 @@ use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, DynBox, DynSphere, Mat, Sphere, Vec2f, Vec3, Vec3f};
+use crate::helpers::{
+    DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3, Vec3f, Vec3i16,
+};
 use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Box {
-    mat: Mat<3, 4>,
-    vec: Vec3f,
-    maybe_scale: f32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct LinkInfo {
-    link_name: Name,
-    linked_name: DynArray<Name>,
-    data_name: Name,
-    b_sphere_local: Sphere,
-    b_box: Box,
-    fade_out_distance: f32,
-    flags: u32,
-    r#type: u16,
-}
+use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -33,7 +18,7 @@ struct PointsRelated0 {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated1 {
-    data: [u8; 16],
+    data: [u32; 4],
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -48,7 +33,7 @@ struct MorphTargetDescRelated {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct MorphTargetDesc {
-    name: u32,
+    name: Name,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
@@ -62,7 +47,7 @@ struct Morpher {
 struct CylindreCol {
     #[serde(with = "BigArray")]
     data: [u8; 40],
-    name_name: Name,
+    name: Name,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -74,180 +59,83 @@ struct AABBColTri {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct AABBCol {
-    unk1: f32,
-    unk2: f32,
-    unk3: f32,
-    unk4: i16,
-    unk5: i16,
-    unk6: f32,
-    unk7: f32,
-    unk8: f32,
-    unk9: i16,
-    unk10: i16,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Vertex {
-    position: Vec3<i16>,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct VertexGroup {
-    zero0: u32,
-    zero1: u32,
-    zero2: u32,
-    maybe_primitive: u32,
-    cdcd: u16,
+    zeroes: Vec3<u32>,
+    flags: VertexGroupFlags,
+    unused0: u16,
     vertex_buffer_offset: u16,
     vertex_count: u16,
     index_buffer_offset_in_shorts: u16,
     face_count: u32,
-    unk1: u16,
-    vertex_size: u16,
-    cdcdcdcd: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Triangle {
-    index1: i16,
-    index2: i16,
-    index3: i16,
+    vertex_buffer_range_begin: u16,
+    vertex_layout: u16,
+    unused1: u32,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Points {
-    points_relateds0: DynArray<PointsRelated0>,
+    points_relateds0: DynArray<Vec3f>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown0 {
-    u: f32,
-    v: f32,
+struct Unused00 {
+    unused0: u32,
+    unused1: u32,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown1 {
-    x: f32,
-    y: f32,
-    z: f32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown2 {
-    unk4_count: u32,
-    #[br(count = 2 * unk4_count)]
-    unk4s: Vec<u8>,
-    unk5: [u8; 8],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Unknown3 {
-    unk8_count: u32,
-    #[br(count = 8 * unk8_count)]
-    unk8s: Vec<u8>,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(length: u16))]
-enum VertexStruct {
-    #[br(pre_assert(length == 24))]
-    Format24 {
-        position: Vec3f,
-        unknown: f32,
-        uv: Vec2f,
-    },
-    #[br(pre_assert(length == 36))]
-    Format36 {
-        position: Vec3f,
-        tangent: Vec3<u8>,
-        tangent_padding: u8,
-        normal: Vec3<u8>,
-        normal_padding: u8,
-        uv: Vec2f,
-        luv: Vec2f,
-    },
-    #[br(pre_assert(length == 48))]
-    Format48 {
-        position: Vec3f,
-        unknown1: Vec3f,
-        unknown2: Vec3f,
-        blend_indices: Vec3f,
-    },
-    #[br(pre_assert(length == 60))]
-    Format60 {
-        position: Vec3f,
-        tangent: Vec3<u8>,
-        tangent_padding: u8,
-        normal: Vec3<u8>,
-        normal_padding: u8,
-        uv: Vec2f,
-        blend_indices: [f32; 4],
-        blends: [f32; 4],
-    },
-    FormatUnknown {
-        #[br(count = length)]
-        data: Vec<u8>,
-    },
+struct Unused4 {
+    unused0s: DynArray<Unused00>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct VertexBuffer {
-    vertex_struct_count: u16,
-    vertex_struct_length: u16,
-    #[br(args { count: vertex_struct_count as usize, inner: (vertex_struct_length,) })]
-    vertex_structs: Vec<VertexStruct>,
+    vertex_count: u16,
+    vertex_layout: u16,
+    #[br(args { count: vertex_count as usize, inner: (vertex_layout as u32,) })]
+    vertices: Vec<Vertex>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct IndexBuffer {
     index_count: u16,
     #[br(count = index_count / 3)]
-    tris: Vec<Triangle>,
+    tris: Vec<Vec3i16>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(link_header: &LinkInfo))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_06_63_02PC {
     points: Points,
     uv_count: u32,
     #[br(count = 8 * uv_count)]
-    unknown0s: Vec<Unknown0>,
+    unknown0s: Vec<Vec2f>,
     normal_count: u32,
     #[br(count = 12 * normal_count)]
-    unknown1s: Vec<Unknown1>,
-    strip_count: u32,
-    #[br(count = strip_count)]
-    unknown2s: Vec<Unknown2>,
+    unknown1s: Vec<Vec3f>,
+    strips: DynArray<Strip>,
     #[br(if(link_header.flags & 2 >= 1))]
-    #[br(count = 4 * strip_count)]
+    #[br(count = 4 * strips.len())]
     unk6: Option<Vec<u8>>,
-    strip_ext_count: u32,
-    #[br(count = strip_ext_count)]
-    unknown3s: Vec<Unknown3>,
+    unused4s: DynArray<Unused4>,
     material_names: DynArray<Name>,
     drawing_start_distance: f32,
     drawing_cutoff_distance: f32,
     shadow_related: u32,
-    unk_uint_related_to_count2: u32,
-    unk_uint_related_to_count3: u32,
-    unk_uint_related_to_count4: u32,
+    related_to_counts: [u32; 3],
     sphere_cols: DynArray<DynSphere>,
     box_cols: DynArray<DynBox>,
     cylindre_cols: DynArray<CylindreCol>,
-    aabb_col_tris: DynArray<AABBColTri>,
-    aabb_cols: DynArray<AABBCol>,
-    vertices: DynArray<Vertex>,
+    collision_aabb_tris: DynArray<AABBColTri>,
+    collision_aabbs: DynArray<CollisionAABB>,
+    vertices: DynArray<Vec3i16>,
     zero2: u32,
     unk_uints: DynArray<u32>,
-    vertex_buffer_count: u32,
-    vertex_buffer: VertexBuffer,
-    index_buffer_count: u32,
-    #[br(count = index_buffer_count)]
-    index_buffers: Vec<IndexBuffer>,
+    vertex_buffers: DynArray<VertexBuffer>,
+    index_buffers: DynArray<IndexBuffer>,
     vertex_groups: DynArray<VertexGroup>,
 }
 
-pub type MeshV1_06_63_02PC = TrivialClass<LinkInfo, MeshBodyV1_06_63_02PC>;
+pub type MeshV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, MeshBodyV1_06_63_02PC>;

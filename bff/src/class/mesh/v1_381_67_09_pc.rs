@@ -5,23 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffMap,
-    DynArray,
-    DynBox,
-    DynSphere,
-    NumeratorFloat,
-    ObjectLinkHeaderV1_381_67_09PC,
-    PascalString,
-    RangeBeginSize,
-    RangeFirstLast,
-    Vec2f,
-    Vec3f,
+    BffMap, DynArray, DynBox, DynSphere, NumeratorFloat, ObjectLinkHeaderV1_381_67_09PC,
+    PascalString, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f, Vec3i16,
 };
 use crate::names::Name;
 
-type VertexVectorComponent = u8;
-type VertexVector3u8 = [VertexVectorComponent; 3];
-type VertexBlendIndex = f32;
+use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
+
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
 
@@ -50,13 +40,6 @@ struct Unused0 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct Strip {
-    strip_vertices_indices: DynArray<u16>,
-    material_name: Name,
-    tri_order: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unused00 {
     unused0: u32,
     unused1: u32,
@@ -68,69 +51,15 @@ struct Unused4 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct CollisionAABB {
-    min: Vec3f,
-    collision_aabb_range: RangeFirstLast,
-    max: Vec3f,
-    collision_faces_range: RangeBeginSize,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct CollisionFace {
     short_vec_weirds_indices: [u16; 3],
     surface_type: u16,
 }
 
+// same as Unknown6 in wall-e
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unused8 {
-    unused0: u32,
-    unused1: u32,
-    unused2: u32,
-    unused3: u32,
-    unused4: u32,
-    unused5: u32,
-    unused6: u32,
-    unused7: u32,
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(vertex_layout: u32))]
-enum Vertex {
-    #[br(pre_assert(vertex_layout == 12))]
-    LayoutPosition { position: Vec3f },
-    #[br(pre_assert(vertex_layout == 36))]
-    LayoutNoBlend {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        luv: Vec2f,
-    },
-    #[br(pre_assert(vertex_layout == 48))]
-    Layout1Blend {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        blend_index: VertexBlendIndex,
-        pad2: [i32; 3],
-        blend_weight: f32,
-    },
-    #[br(pre_assert(vertex_layout == 60))]
-    Layout4Blend {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        blend_indices: [VertexBlendIndex; 4],
-        blend_weights: [f32; 4],
-    },
+    unuseds: [u32; 8],
 }
 
 #[bitsize(32)]
@@ -161,8 +90,8 @@ struct VertexBufferExt {
 struct IndexBufferExt {
     index_count: u32,
     flags: D3DFlags,
-    #[br(count = index_count)]
-    data: Vec<u16>,
+    #[br(count = index_count / 3)]
+    data: Vec<Vec3i16>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -180,16 +109,6 @@ struct Unused1 {
     unused4: u32,
     unused5: u32,
     unused6: u32,
-}
-
-#[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
-struct VertexGroupFlags {
-    padding: u2,
-    visible: u1,
-    padding0: u16,
-    morph: u1,
-    padding1: u12,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

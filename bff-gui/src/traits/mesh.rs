@@ -24,83 +24,80 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
                     Vec<Vec2>,
                     Vec<Vec3>,
                     Vec<Vec4>,
-                ) = self
-                    .body
-                    .mesh_buffers
-                    .vertex_buffers
-                    .iter()
-                    .flat_map(|buf| &buf.vertex_structs)
-                    .collect::<Vec<&bff::class::mesh::v1_291_03_06_pc::VertexStruct>>()
-                    [group.vertex_offset_in_groups as usize
-                        ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
-                    .iter()
-                    .map(|vs| match vs {
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format24 {
-                            position,
-                            uv,
-                            ..
-                        } => (position, uv, &[0u8; 3], [0u8; 4]),
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format36 {
-                            position,
-                            uv,
-                            normal,
-                            tangent,
-                            tangent_padding,
-                            ..
-                        }
-                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format48 {
-                            position,
-                            uv,
-                            normal,
-                            tangent,
-                            tangent_padding,
-                            ..
-                        }
-                        | bff::class::mesh::v1_291_03_06_pc::VertexStruct::Format60 {
-                            position,
-                            uv,
-                            normal,
-                            tangent,
-                            tangent_padding,
-                            ..
-                        } => (
-                            position,
-                            uv,
-                            normal,
-                            [&tangent[..], &[*tangent_padding]]
-                                .concat()
-                                .try_into()
-                                .unwrap(),
-                        ),
-                        bff::class::mesh::v1_291_03_06_pc::VertexStruct::FormatUnknown {
-                            ..
-                        } => (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4]),
-                    })
-                    .map(|(p, u, n, t)| {
-                        (
-                            Vec3::from(*p),
-                            Vec2::from(*u),
-                            {
-                                let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
-                                norm[2] *= -1.0;
-                                Vec3::from(norm)
-                            },
-                            Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
-                        )
-                    })
-                    .multiunzip();
+                ) =
+                    self.body
+                        .mesh_buffers
+                        .vertex_buffers
+                        .iter()
+                        .flat_map(|buf| &buf.vertices)
+                        .collect::<Vec<&bff::class::mesh::generic::Vertex>>()
+                        [group.vertex_offset_in_groups as usize
+                            ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
+                        .iter()
+                        .map(|vs| match vs {
+                            bff::class::mesh::generic::Vertex::Format12 { position } => {
+                                (position, &[0f32; 2], &[0u8; 3], [0u8; 4])
+                            }
+                            bff::class::mesh::generic::Vertex::Format24 {
+                                position, uv, ..
+                            } => (position, uv, &[0u8; 3], [0u8; 4]),
+                            bff::class::mesh::generic::Vertex::Format36 {
+                                position,
+                                uv,
+                                normal,
+                                tangent,
+                                tangent_w,
+                                ..
+                            }
+                            | bff::class::mesh::generic::Vertex::Format48 {
+                                position,
+                                uv,
+                                normal,
+                                tangent,
+                                tangent_w,
+                                ..
+                            }
+                            | bff::class::mesh::generic::Vertex::Format60 {
+                                position,
+                                uv,
+                                normal,
+                                tangent,
+                                tangent_w,
+                                ..
+                            } => (
+                                position,
+                                uv,
+                                normal,
+                                [&tangent[..], &[*tangent_w]].concat().try_into().unwrap(),
+                            ),
+                            bff::class::mesh::generic::Vertex::FormatUnknown { .. } => {
+                                (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4])
+                            }
+                        })
+                        .map(|(p, u, n, t)| {
+                            (
+                                Vec3::from(*p),
+                                Vec2::from(*u),
+                                {
+                                    let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
+                                    norm[2] *= -1.0;
+                                    Vec3::from(norm)
+                                },
+                                Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
+                            )
+                        })
+                        .multiunzip();
                 let indices: Vec<u16> = self
                     .body
                     .mesh_buffers
                     .index_buffers
                     .iter()
                     .flat_map(|buf| &buf.tris)
-                    .flat_map(|tri| tri.indices)
-                    .collect::<Vec<i16>>()[group.index_buffer_offset_in_shorts
-                    as usize
-                    ..group.index_buffer_offset_in_shorts as usize + group.face_count as usize * 3]
+                    .flatten()
+                    .collect::<Vec<&i16>>()[group.index_buffer_index_begin as usize
+                    ..group.index_buffer_index_begin as usize + group.face_count as usize * 3]
                     .iter()
-                    .map(|i| u16::try_from(*i).unwrap_or(0) - group.vertex_offset_in_groups)
+                    .map(|i| u16::try_from(**i).unwrap_or(0) - group.vertex_offset_in_groups)
                     .collect();
                 three_d::geometry::CpuMesh {
                     positions: three_d::Positions::F32(positions),
