@@ -3,14 +3,23 @@ use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    BffMap, DynArray, DynBox, DynSphere, NumeratorFloat, ObjectLinkHeaderV1_381_67_09PC,
-    PascalString, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f, Vec3i16,
+    BffMap,
+    DynArray,
+    DynBox,
+    DynSphere,
+    NumeratorFloat,
+    ObjectLinkHeaderV1_381_67_09PC,
+    PascalString,
+    RangeBeginSize,
+    RangeFirstLast,
+    Vec2f,
+    Vec3f,
+    Vec3i16,
 };
 use crate::names::Name;
-
-use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];

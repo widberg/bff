@@ -2,13 +2,18 @@ use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use super::generic::{
+    AnimationMaterial,
+    AnimationMaterialModifier,
+    AnimationMesh,
+    AnimationMeshModifier,
+    AnimationMorph,
+    AnimationMorphModifier,
+    AnimationNode,
+    AnimationNodeModifier,
+};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::DynArray;
-
-use super::generic::{
-    AnimationMaterial, AnimationMaterialModifier, AnimationMesh, AnimationMeshModifier,
-    AnimationMorph, AnimationMorphModifier, AnimationNode, AnimationNodeModifier,
-};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]

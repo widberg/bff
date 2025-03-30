@@ -4,8 +4,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray, KeyframerBezierRot, KeyframerFloatComp, KeyframerMessage, KeyframerRot,
-    KeyframerVec3fComp, ResourceObjectLinkHeader,
+    DynArray,
+    KeyframerBezierRot,
+    KeyframerFloatComp,
+    KeyframerMessage,
+    KeyframerRot,
+    KeyframerVec3fComp,
+    ResourceObjectLinkHeader,
 };
 use crate::names::Name;
 

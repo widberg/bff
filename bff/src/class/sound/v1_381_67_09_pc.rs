@@ -2,10 +2,9 @@ use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use super::generic::SoundFlags;
 use crate::class::trivial_class::TrivialClass;
 use crate::names::Name;
-
-use super::generic::SoundFlags;
 
 #[derive(
     BinRead, Clone, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,

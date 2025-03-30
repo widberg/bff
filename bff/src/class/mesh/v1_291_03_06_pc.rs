@@ -3,13 +3,19 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
+use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3, Vec3f, Vec3i16,
+    DynArray,
+    DynBox,
+    DynSphere,
+    ObjectLinkHeaderV1_06_63_02PC,
+    Vec2f,
+    Vec3,
+    Vec3f,
+    Vec3i16,
 };
 use crate::names::Name;
-
-use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {

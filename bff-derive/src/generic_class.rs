@@ -154,9 +154,9 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
                 if let Type::Path(p) = field_type {
                     if p.path.get_ident().is_none() {
                         let first = p.path.segments.first().unwrap();
-                        if first.ident.to_string() == "DynArray" {
+                        if first.ident == "DynArray" {
                             return quote! { #field_ident: object.#field_ident.inner.into_iter().map(|x| x.into()).collect::<Vec<_>>().into() };
-                        } else if first.ident.to_string() == "Vec" {
+                        } else if first.ident == "Vec" {
                             let item_type = match first.arguments {
                                 PathArguments::AngleBracketed(ref args) => args.args.first().unwrap(),
                                 _ => panic!("Invalid type"),
@@ -215,11 +215,11 @@ fn impl_from_generic_substitute(input: &DeriveInput) -> TokenStream {
                         }
                     } else {
                         let first = p.path.segments.first().unwrap();
-                        if first.ident.to_string() == "DynArray" {
+                        if first.ident == "DynArray" {
                             return quote! { #field_ident: std::iter::zip(generic.#field_ident.inner, substitute.#field_ident.inner)
                                 .map(|(gen, sub)| <_>::try_from_generic_substitute(gen, sub).unwrap()).collect::<Vec<_>>().into() };
                         }
-                        else if first.ident.to_string() == "Vec" {
+                        else if first.ident == "Vec" {
                             let item_type = match first.arguments {
                                 PathArguments::AngleBracketed(ref args) => args.args.first().unwrap(),
                                 _ => panic!("Invalid type"),
