@@ -64,7 +64,8 @@ macro_rules! platforms {
             $($style,)*
         }
 
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize, derive_more::FromStr)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize, derive_more::FromStr, binrw::BinRead, binrw::BinWrite)]
+        #[brw(repr = u8)]
         pub enum Platform {
             $($platform,)*
         }

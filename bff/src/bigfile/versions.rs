@@ -1,12 +1,13 @@
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, NullString};
 use derive_more::{Display, From};
 use scanf::sscanf;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::names::names;
 
-#[derive(Debug, Display, Clone)]
+#[derive(Debug, Display, Clone, Eq, PartialEq, BinRead, BinWrite)]
 pub enum Version {
+    #[brw(magic = 0u8)]
     #[display(
         "v{}.{:02}.{:02}.{:02} - Asobo Studio - Internal Cross Technology",
         _0,
@@ -15,18 +16,22 @@ pub enum Version {
         _3
     )]
     Asobo(u32, u32, u32, u32),
+    #[brw(magic = 1u8)]
     #[display("v{}.{:02} - Asobo Studio - Internal Cross Technology", _0, _1)]
     AsoboLegacy(u32, u32),
+    #[brw(magic = 2u8)]
     #[display(
         "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
         _0,
         _1
     )]
     Kalisto(u32, u32),
+    #[brw(magic = 3u8)]
     // The space is intentional :(
     // This format is used in Shaun White Snowboarding: World Stage by Ubisoft as well
     #[display("Bigfile Data v{}.{} ", _0, _1)]
     BlackSheep(u32, u32),
+    #[brw(magic = 4u8)]
     // Used in The Mighty Quest for Epic Loot by Ubisoft
     #[display(
         "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
@@ -47,7 +52,12 @@ pub enum Version {
         cvmesh: u32,
         cvshader: u32,
     },
-    Other(String),
+    #[brw(magic = 5u8)]
+    Other(
+        #[br(map = |x: NullString| x.to_string())]
+        #[bw(map = |x| Into::<NullString>::into(x.clone()))]
+        String,
+    ),
 }
 
 impl From<&str> for Version {

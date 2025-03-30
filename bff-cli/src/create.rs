@@ -37,7 +37,7 @@ pub fn create(
         let path = file?.path();
         if path.is_file() {
             let mut file_reader = BufReader::new(File::open(&path)?);
-            let resource = bigfile.read_resource(&mut file_reader)?;
+            let resource = bigfile.read_bff_resource(&mut file_reader)?;
             bigfile.objects.insert(resource.name, resource);
         }
     }

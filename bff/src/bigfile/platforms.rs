@@ -5,6 +5,8 @@ use binrw::Endian;
 use crate::macros::platforms::platforms;
 use crate::BffResult;
 
+// Add new platforms to the end of this list
+// The order of the list is used to generate the platform id used in the BFF resource header
 platforms! {
     styles: [BF, D, DB],
     platforms: [

@@ -119,7 +119,7 @@ pub fn extract(
             i += 1;
         }
         let mut writer = BufWriter::new(File::create(path)?);
-        bigfile.dump_resource(resource, &mut writer)?;
+        bigfile.dump_bff_resource(resource, &mut writer)?;
     }
 
     Ok(())

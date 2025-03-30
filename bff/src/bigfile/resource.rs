@@ -1,3 +1,8 @@
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
+
+use super::platforms::Platform;
+use super::versions::Version;
 use crate::names::Name;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -22,4 +27,11 @@ impl Resource {
             ResourceData::SplitData { link_header, body } => link_header.len() + body.len(),
         }
     }
+}
+
+#[derive(Debug, Eq, PartialEq, BinRead, BinWrite, Serialize, Deserialize)]
+#[brw(little, magic = b"BFF0")] // Increment number when format changes
+pub struct BffResourceHeader {
+    pub platform: Platform,
+    pub version: Version,
 }

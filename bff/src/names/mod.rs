@@ -24,6 +24,8 @@ use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ub
 use crate::traits::NameHashFunction;
 use crate::BffResult;
 
+const FORCED_NAME_STRING_CHAR: char = '$';
+
 #[derive(PartialEq, Eq, Hash, Copy, Clone, BinRead, BinWrite, Debug, Display)]
 pub struct NameVariant<H: NameHashFunction>(H::Target)
 where
@@ -53,14 +55,20 @@ where
         Self(H::hash(bytes))
     }
     pub fn hash_string(string: &str) -> Self {
-        if let Some(string) = string.strip_prefix('$') {
-            if let Some((value, _)) = string.split_once('$') {
+        if let Some((name, _)) = Self::parse_forced_hash_name(string) {
+            return name;
+        }
+        Self::hash(string.as_bytes())
+    }
+    pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Self, String)> {
+        if let Some(string) = string.as_ref().strip_prefix(FORCED_NAME_STRING_CHAR) {
+            if let Some((value, s)) = string.split_once(FORCED_NAME_STRING_CHAR) {
                 if let Ok(value) = value.parse::<H::Target>() {
-                    return Self::new(value);
+                    return Some((Self::new(value), s.to_string()));
                 }
             }
         }
-        Self::hash(string.as_bytes())
+        None
     }
 }
 
@@ -101,7 +109,7 @@ where
 pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
     let value = name.get_value();
     let string = string.as_ref();
-    format!("${value}${string}")
+    format!("{FORCED_NAME_STRING_CHAR}{value}{FORCED_NAME_STRING_CHAR}{string}")
 }
 
 impl Name {
@@ -217,7 +225,8 @@ pub enum NameType {
 #[serde(untagged)]
 enum SerdeName<'a, T> {
     Name(T),
-    String(&'a str),
+    Str(&'a str),
+    String(String),
 }
 
 impl<H: NameHashFunction> From<&str> for NameVariant<H>
@@ -309,47 +318,56 @@ impl<'de> Deserialize<'de> for Name {
     where
         D: Deserializer<'de>,
     {
-        match names().lock().unwrap().name_type {
+        let name_type = names().lock().unwrap().name_type;
+        match name_type {
             NameType::Asobo32 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameAsobo32::new(name).into()),
-                    SerdeName::String(string) => Ok(NameAsobo32::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameAsobo32::from(string).into()),
+                    SerdeName::String(string) => Ok(NameAsobo32::from(string.as_str()).into()),
                 }
             }
             NameType::AsoboAlternate32 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameAsoboAlternate32::new(name).into()),
-                    SerdeName::String(string) => Ok(NameAsoboAlternate32::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameAsoboAlternate32::from(string).into()),
+                    SerdeName::String(string) => {
+                        Ok(NameAsoboAlternate32::from(string.as_str()).into())
+                    }
                 }
             }
             NameType::Kalisto32 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameKalisto32::new(name).into()),
-                    SerdeName::String(string) => Ok(NameKalisto32::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameKalisto32::from(string).into()),
+                    SerdeName::String(string) => Ok(NameKalisto32::from(string.as_str()).into()),
                 }
             }
             NameType::BlackSheep32 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameBlackSheep32::new(name).into()),
-                    SerdeName::String(string) => Ok(NameBlackSheep32::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameBlackSheep32::from(string).into()),
+                    SerdeName::String(string) => Ok(NameBlackSheep32::from(string.as_str()).into()),
                 }
             }
             NameType::Asobo64 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameAsobo64::new(name).into()),
-                    SerdeName::String(string) => Ok(NameAsobo64::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameAsobo64::from(string).into()),
+                    SerdeName::String(string) => Ok(NameAsobo64::from(string.as_str()).into()),
                 }
             }
             NameType::Ubisoft64 => {
                 let serde_name = SerdeName::deserialize(deserializer)?;
                 match serde_name {
                     SerdeName::Name(name) => Ok(NameUbisoft64::new(name).into()),
-                    SerdeName::String(string) => Ok(NameUbisoft64::from(string).into()),
+                    SerdeName::Str(string) => Ok(NameUbisoft64::from(string).into()),
+                    SerdeName::String(string) => Ok(NameUbisoft64::from(string.as_str()).into()),
                 }
             }
         }
