@@ -8,6 +8,7 @@ use reverse_crc32::DEFAULT_CHARACTER_SET;
 
 use crate::lz::LzAlgorithm;
 
+mod cps;
 mod crc;
 mod create;
 mod csc;
@@ -152,6 +153,24 @@ enum Commands {
         #[arg(short, long, default_value_t = PscAlgorithm::Lz4)]
         algorithm: PscAlgorithm,
     },
+    #[clap(alias = "xcps")]
+    ExtractCps {
+        cps: PathBuf,
+        directory: PathBuf,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
+        endian: LzEndian,
+    },
+    #[clap(alias = "ccps")]
+    CreateCps {
+        directory: PathBuf,
+        cps: PathBuf,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = LzEndian::Little)]
+        endian: LzEndian,
+        #[arg(short, long)]
+        unencrypted: bool,
+    },
     #[clap(alias = "xfl")]
     ExtractFatLin {
         fat: PathBuf,
@@ -245,6 +264,17 @@ fn main() -> BffCliResult<()> {
             psc,
             algorithm,
         } => psc::create_psc(directory, psc, algorithm),
+        Commands::ExtractCps {
+            cps,
+            directory,
+            endian,
+        } => cps::extract_cps(cps, directory, endian),
+        Commands::CreateCps {
+            directory,
+            cps,
+            endian,
+            unencrypted,
+        } => cps::create_cps(directory, cps, endian, unencrypted),
         Commands::ExtractFatLin {
             fat,
             lin,

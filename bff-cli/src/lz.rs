@@ -27,6 +27,15 @@ pub enum LzEndian {
     Little,
 }
 
+impl From<LzEndian> for Endian {
+    fn from(endian: LzEndian) -> Self {
+        match endian {
+            LzEndian::Big => Endian::Big,
+            LzEndian::Little => Endian::Little,
+        }
+    }
+}
+
 #[derive(ValueEnum, Clone, Copy)]
 pub enum LzAlgorithm {
     Lzrs,
@@ -67,10 +76,7 @@ pub fn lz(
     endian: &LzEndian,
     algorithm: &LzAlgorithm,
 ) -> BffCliResult<()> {
-    let endian = match endian {
-        LzEndian::Big => Endian::Big,
-        LzEndian::Little => Endian::Little,
-    };
+    let endian: Endian = (*endian).into();
     let algorithm = *algorithm;
 
     match (uncompressed, compressed) {
@@ -131,10 +137,7 @@ pub fn unlz(
     endian: &LzEndian,
     algorithm: &LzAlgorithm,
 ) -> BffCliResult<()> {
-    let endian = match endian {
-        LzEndian::Big => Endian::Big,
-        LzEndian::Little => Endian::Little,
-    };
+    let endian: Endian = (*endian).into();
     let algorithm = *algorithm;
 
     match (compressed, uncompressed) {
