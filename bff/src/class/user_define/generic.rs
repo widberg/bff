@@ -5,4 +5,4 @@ pub struct UserDefineBodyGeneric {
     pub data: PascalString,
 }
 
-pub type UserDefineGeneric = TrivialClass<ResourceObjectLinkHeader, UserDefineBodyGeneric>;
+pub type UserDefineGeneric = TrivialClass<Option<ResourceObjectLinkHeader>, UserDefineBodyGeneric>;

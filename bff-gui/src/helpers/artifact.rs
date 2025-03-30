@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use bff::bigfile::BigFile;
 use bff::class::bitmap::generic::BitmapGeneric;
+use bff::class::sound::generic::SoundGeneric;
 use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
@@ -17,15 +18,8 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
             Some(artifact)
         }
         Class::Sound(box_sound) => {
-            let artifact = match *box_sound {
-                bff::class::sound::Sound::SoundV1_291_03_06PC(sound) => {
-                    // let points = sound.body.data.iter().enumerate().map(|(i, s)| eframe::epaint::Pos2{x: ((i as f32 * ui.available_width()) / sound.body.data.len() as f32), y: (s / 200 + 200).into()}).collect();
-                    // let shape = eframe::epaint::PathShape::line(points, eframe::epaint::Stroke::new(1.0, eframe::epaint::Color32::WHITE));
-                    // ui.painter().add(shape);
-                    sound.export()
-                }
-                bff::class::sound::Sound::SoundV1_381_67_09PC(sound) => sound.export(),
-            };
+            let generic = SoundGeneric::from(*box_sound);
+            let artifact = generic.export();
             Some(artifact)
         }
         Class::Mesh(box_mesh) => match *box_mesh {

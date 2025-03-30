@@ -1,4 +1,4 @@
-use bff_derive::{GenericClassComplete, ReferencedNames};
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,8 @@ use super::generic::{
     AnimationMorph, AnimationMorphModifier, AnimationNode, AnimationNodeModifier,
 };
 
-#[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClassComplete,
-)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[generic(complete)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
 pub struct AnimationBodyV1_381_67_09PC {
     duration: f32,
@@ -36,5 +35,8 @@ pub struct AnimationBodyV1_381_67_09PC {
     animation_morph_modifiers: DynArray<AnimationMorphModifier>,
 }
 
-pub type AnimationV1_381_67_09PC =
-    TrivialClass<ResourceObjectLinkHeader, AnimationBodyV1_381_67_09PC>;
+trivial_class!(
+    AnimationV1_381_67_09PC(ResourceObjectLinkHeader, AnimationBodyV1_381_67_09PC),
+    AnimationGeneric,
+    false
+);

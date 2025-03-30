@@ -13,6 +13,7 @@ pub struct BitmapHeader {
     width: u32,
     #[generic]
     height: u32,
+    #[generic]
     precalculated_size: u32,
     flag: u16,
     format: u8,

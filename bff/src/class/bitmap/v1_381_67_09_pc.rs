@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::names::Name;
 
-#[derive(BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u16)]
 enum BitmapClass {
     Single = 0,
     Cubemap = 2,
 }
 
-#[derive(BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u8)]
 enum BmFormat {
     BmMultipleBitmaps = 0,
@@ -22,14 +22,14 @@ enum BmFormat {
     BmDxt5 = 16,
 }
 
-#[derive(BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u8)]
 enum BitmapClass2 {
     Cubemap2 = 0,
     Single2 = 3,
 }
 
-#[derive(BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u8)]
 enum BmTransp {
     NoTransp = 0,
@@ -38,9 +38,7 @@ enum BmTransp {
     Cubemap = 255,
 }
 
-#[derive(
-    BinRead, Clone, Copy, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,
-)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(name(BitmapHeaderGeneric))]
 pub struct LinkHeader {
     link_name: Name,
@@ -49,7 +47,8 @@ pub struct LinkHeader {
     width: u32,
     #[generic]
     height: u32,
-    bitmap_data_size: u32,
+    #[generic]
+    precalculated_size: u32,
     flags: u8,
     bitmap_type: u8,
     pad: u16,

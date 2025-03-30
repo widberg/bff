@@ -1,28 +1,34 @@
-use bff_derive::ReferencedNames;
-use bilge::prelude::*;
+use bff_derive::{trivial_class, GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 
-#[bitsize(16)]
-#[derive(DebugBits, BinRead, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
-pub struct SoundFlags {
-    paused: u1,
-    looping: u1,
-    pub stereo: u1,
-    padding: u13,
+use super::generic::SoundFlags;
+
+#[derive(
+    Debug, Clone, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,
+)]
+pub struct SoundHeader {
+    #[generic]
+    sample_rate: u32,
+    #[generic]
+    data_size: u32,
+    #[generic(no_convert)]
+    flags: SoundFlags,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(_link_header: &()))]
 pub struct SoundBodyV1_291_03_06PC {
-    pub sample_rate: u32,
-    data_size: u32,
-    pub flags: SoundFlags,
-    #[br(count = data_size / 2)]
+    header: SoundHeader,
+    #[br(count = header.data_size / 2)]
     #[serde(skip_serializing)]
-    pub data: Vec<i16>,
+    #[generic]
+    data: Vec<i16>,
 }
 
-pub type SoundV1_291_03_06PC = TrivialClass<(), SoundBodyV1_291_03_06PC>;
+trivial_class!(
+    SoundV1_291_03_06PC((), SoundBodyV1_291_03_06PC),
+    SoundGeneric
+);

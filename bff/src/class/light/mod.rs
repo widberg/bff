@@ -1,6 +1,6 @@
 use bff_derive::bff_class;
 
-mod generic;
+pub mod generic;
 mod v1_291_03_06_pc;
 mod v1_381_67_09_pc;
 

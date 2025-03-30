@@ -6,17 +6,13 @@ use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, Vec3f, RGBA};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[generic(complete)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct LightBodyV1_381_67_09PC {
-    #[generic]
     rotation: Quat,
-    #[generic]
     direction: Vec3f,
-    #[generic]
     color: RGBA,
-    #[generic]
     ambient: Vec3f,
-    #[generic]
     position: Vec3f,
 }
 
