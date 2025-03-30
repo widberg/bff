@@ -72,6 +72,8 @@ These formats from Black Sheep Studios games also use the csc cypher and therefo
 
 ### Audio
 
+These formats are low priority since they can all be played using the instructions on the [FMTK Wiki Asobo Audio Formats page](https://github.com/widberg/fmtk/wiki/Asobo-Audio-Formats). The implementation of these formats is being tracked in [issue #27](https://github.com/widberg/bff/issues/27).
+
 | Format  | Status |
 |---------|--------|
 | SoundBF | ❌      |
