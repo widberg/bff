@@ -24,7 +24,7 @@ pub fn names(
     if let Some(bigfile_path) = bigfile_path {
         read_bigfile_names(bigfile_path)?;
 
-        let bigfile = read_bigfile(bigfile_path)?;
+        let bigfile = read_bigfile(bigfile_path, &None, &None)?;
 
         if let Some(wordlist) = wordlist {
             let mut names_db = bff::names::names().lock().unwrap();

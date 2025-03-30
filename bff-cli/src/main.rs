@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use bff::bigfile::platforms::Platform;
+use bff::bigfile::versions::Version;
 use clap::*;
 use crc::{CrcAlgorithm, CrcFormat, CrcMode};
 use error::BffCliResult;
@@ -39,6 +41,10 @@ enum Commands {
         directory: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
+        #[arg(short, long)]
+        platform_override: Option<Platform>,
+        #[arg(short, long)]
+        version_override: Option<Version>,
     },
     #[clap(alias = "c")]
     Create {
@@ -48,6 +54,10 @@ enum Commands {
         in_names: Vec<PathBuf>,
         #[arg(long)]
         out_names: Option<PathBuf>,
+        #[arg(short, long)]
+        platform_override: Option<Platform>,
+        #[arg(short, long)]
+        version_override: Option<Version>,
     },
     #[clap(alias = "t")]
     Info {
@@ -200,13 +210,30 @@ fn main() -> BffCliResult<()> {
             bigfile,
             directory,
             in_names,
-        } => extract::extract(bigfile, directory, in_names),
+            platform_override,
+            version_override,
+        } => extract::extract(
+            bigfile,
+            directory,
+            in_names,
+            platform_override,
+            version_override,
+        ),
         Commands::Create {
             directory,
             bigfile,
             in_names,
             out_names,
-        } => create::create(directory, bigfile, in_names, out_names),
+            platform_override,
+            version_override,
+        } => create::create(
+            directory,
+            bigfile,
+            in_names,
+            out_names,
+            platform_override,
+            version_override,
+        ),
         Commands::Info {
             bigfile,
             in_names,

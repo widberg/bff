@@ -14,7 +14,7 @@ pub fn load_bf(ctx: egui::Context, path: PathBuf, tx: Sender<Option<(BigFile, Pa
             .unwrap_or(Platform::PC);
         let f = File::open(&path).unwrap();
         let mut reader = bff::BufReader::new(f);
-        match BigFile::read_platform(&mut reader, platform) {
+        match BigFile::read_platform(&mut reader, platform, &None) {
             Ok(bf) => {
                 let _ = tx.send(Some((bf, path)));
             }
@@ -41,7 +41,7 @@ pub fn load_bf(
         .and_then(|e| OsStr::new(e.1).try_into().ok())
         .unwrap_or(Platform::PC);
     let mut reader = bff::BufReader::new(std::io::Cursor::new(data));
-    match BigFile::read_platform(&mut reader, platform) {
+    match BigFile::read_platform(&mut reader, platform, &None) {
         Ok(bf) => {
             let _ = tx.send(Some((bf, PathBuf::from(file_name))));
         }

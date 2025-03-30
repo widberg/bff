@@ -59,14 +59,15 @@ fn impl_read_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
 
     quote! {
-        pub fn read_platform<R: std::io::Read + std::io::Seek>(reader: &mut R, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Self> {
+        pub fn read_platform<R: std::io::Read + std::io::Seek>(reader: &mut R, platform: crate::bigfile::platforms::Platform, version_override: &Option<crate::bigfile::versions::Version>) -> crate::BffResult<Self> {
             use crate::bigfile::versions::Version::*;
             use crate::bigfile::platforms::Platform::*;
             use binrw::BinRead;
             use crate::traits::BigFileIo;
             let endian: crate::Endian = platform.into();
             let version: crate::bigfile::versions::Version = crate::helpers::FixedStringNull::<256>::read_be(reader)?.as_str().into();
-            match (version.clone(), platform) {
+            let version = version_override.clone().unwrap_or(version);
+            match (&version, platform) {
                 #(#arms)*
                 _ => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
             }
@@ -97,14 +98,15 @@ fn impl_write_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream 
         .collect::<Vec<_>>();
 
     quote! {
-        pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, tag: Option<&str>) -> crate::BffResult<()> {
+        pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, platform_override: Option<crate::bigfile::platforms::Platform>, version_override: &Option<crate::bigfile::versions::Version>, tag: Option<&str>) -> crate::BffResult<()> {
             use crate::bigfile::versions::Version::*;
             use crate::bigfile::platforms::Platform::*;
             use binrw::BinWrite;
             use crate::traits::BigFileIo;
-            let platform = self.manifest.platform;
+            let platform = platform_override.unwrap_or(self.manifest.platform);
             let endian: crate::Endian = platform.into();
             let version = &self.manifest.version;
+            let version = version_override.as_ref().unwrap_or(version);
             let version_string = version.to_string();
             crate::helpers::FixedStringNull::<256>::write_be(&version_string.into(), writer)?;
             match (version.clone(), platform) {

@@ -59,12 +59,12 @@ macro_rules! platforms {
             $($platform:ident($styles:tt,$endian:ident)),* $(,)?
         ]
     ) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize, derive_more::FromStr)]
         pub enum Style {
             $($style,)*
         }
 
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, derive_more::Display, serde::Serialize, serde::Deserialize, derive_more::FromStr)]
         pub enum Platform {
             $($platform,)*
         }

@@ -3,6 +3,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 use bff::bigfile::platforms::{try_platform_style_to_name_extension, Platform};
+use bff::bigfile::versions::Version;
 use bff::bigfile::BigFile;
 use bff::names::Name;
 use bff::BufReader;
@@ -47,14 +48,24 @@ pub fn write_names(out_names: &Option<PathBuf>, names: &Option<Vec<&Name>>) -> B
     Ok(())
 }
 
-pub fn read_bigfile(bigfile_path: &Path) -> BffCliResult<BigFile> {
-    let platform = bigfile_path
-        .extension()
-        .and_then(|e| e.try_into().ok())
-        .unwrap_or(Platform::PC);
+pub fn read_bigfile(
+    bigfile_path: &Path,
+    platform_override: &Option<Platform>,
+    version_override: &Option<Version>,
+) -> BffCliResult<BigFile> {
+    let platform = platform_override.unwrap_or_else(|| {
+        bigfile_path
+            .extension()
+            .and_then(|e| e.try_into().ok())
+            .unwrap_or(Platform::PC)
+    });
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
-    Ok(BigFile::read_platform(&mut reader, platform)?)
+    Ok(BigFile::read_platform(
+        &mut reader,
+        platform,
+        version_override,
+    )?)
 }
 
 const INVALID_PATH_CHARS: [u8; 41] = [
@@ -74,11 +85,17 @@ fn clean_path(path: String) -> String {
         .collect()
 }
 
-pub fn extract(bigfile_path: &Path, directory: &Path, in_names: &Vec<PathBuf>) -> BffCliResult<()> {
+pub fn extract(
+    bigfile_path: &Path,
+    directory: &Path,
+    in_names: &Vec<PathBuf>,
+    platform_override: &Option<Platform>,
+    version_override: &Option<Version>,
+) -> BffCliResult<()> {
     read_bigfile_names(bigfile_path)?;
     read_in_names(in_names)?;
 
-    let bigfile = read_bigfile(bigfile_path)?;
+    let bigfile = read_bigfile(bigfile_path, platform_override, version_override)?;
 
     std::fs::create_dir(directory)?;
 

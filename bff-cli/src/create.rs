@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
+use bff::bigfile::platforms::Platform;
+use bff::bigfile::versions::Version;
 use bff::bigfile::BigFile;
 use bff::BufReader;
 
@@ -13,6 +15,8 @@ pub fn create(
     bigfile_path: &Path,
     in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
+    platform_override: &Option<Platform>,
+    version_override: &Option<Version>,
 ) -> BffCliResult<()> {
     read_bigfile_names(bigfile_path)?;
     read_in_names(in_names)?;
@@ -39,7 +43,12 @@ pub fn create(
     }
 
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
-    bigfile.write(&mut bigfile_writer, None)?;
+    bigfile.write(
+        &mut bigfile_writer,
+        *platform_override,
+        version_override,
+        None,
+    )?;
 
     write_names(out_names, &None)?;
 
