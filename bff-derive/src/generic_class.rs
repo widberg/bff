@@ -1,7 +1,48 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
-use syn::{parenthesized, DataStruct, DeriveInput, Ident};
+use syn::{parenthesized, DataStruct, DeriveInput, Ident, PathArguments, Type};
+
+const PRIMITIVES: &[&str] = &[
+    "bool",
+    "char",
+    "f32",
+    "f64",
+    "i8",
+    "i16",
+    "i32",
+    "i64",
+    "i128",
+    "isize",
+    "u8",
+    "u16",
+    "u32",
+    "u64",
+    "u128",
+    "usize",
+    "Name",
+    "PascalString",
+    "Vec2",
+    "Vec2f",
+    "Vec2i16",
+    "Vec3",
+    "Vec3f",
+    "Vec4",
+    "Vec4f",
+    "Vec4i16",
+    "Quat",
+    "RGB",
+    "RGBA",
+    "Mat",
+    "Mat3f",
+    "Mat4f",
+    "Mat3x4f",
+    "KeyframerBezierRot",
+    "KeyframerFloatComp",
+    "KeyframerMessage",
+    "KeyframerRot",
+    "KeyframerVec3fComp",
+];
 
 struct SpecificClass<'a> {
     name: &'a Ident,
@@ -64,16 +105,31 @@ fn simple_parse(input: &DeriveInput) -> SpecificClass {
     }
 }
 
-pub fn derive_generic_class(input: DeriveInput) -> TokenStream {
-    let from_specific_to_generic = impl_from_specific_to_generic(&input);
-    let from_generic_substitute = impl_from_generic_substitute(&input);
+fn attrs(attrs: &Vec<syn::Attribute>) -> bool {
+    let mut into = true;
+    for attr in attrs {
+        if attr.path().is_ident("generic") {
+            let _ = attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("no_convert") {
+                    into = false;
+                }
+                Ok(())
+            });
+        }
+    }
+    into
+}
+
+pub fn derive_generic_class(input: DeriveInput, complete: bool) -> TokenStream {
+    let from_specific_to_generic = impl_from_specific_to_generic(&input, complete);
+    let from_generic_substitute = impl_from_generic_substitute(&input, complete);
     quote! {
         #from_specific_to_generic
         #from_generic_substitute
     }
 }
 
-fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
+fn impl_from_specific_to_generic(input: &DeriveInput, complete: bool) -> TokenStream {
     let class = simple_parse(input);
     let (name, generic_name) = (class.name, class.generic_name);
     let generic_intos = class
@@ -81,24 +137,46 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
         .fields
         .iter()
         .filter(|f| {
-            !f.attrs
-                .iter()
-                .filter(|attr| attr.path().is_ident("generic"))
-                .collect::<Vec<_>>()
-                .is_empty()
+            complete
+                || !f
+                    .attrs
+                    .iter()
+                    .filter(|attr| attr.path().is_ident("generic"))
+                    .collect::<Vec<_>>()
+                    .is_empty()
         })
         .map(|f| {
             let field_ident = f.ident.as_ref().expect("Only named structs are supported");
-            quote! { #field_ident: object.#field_ident.into() }
+            let field_type = &f.ty;
+
+            let into = attrs(&f.attrs);
+
+            if into {
+                if let Type::Path(p) = field_type {
+                    if p.path.get_ident().is_none() {
+                        let first = p.path.segments.first().unwrap();
+                        if first.ident.to_string() == "DynArray" {
+                            return quote! { #field_ident: object.#field_ident.inner.into_iter().map(|x| x.into()).collect::<Vec<_>>().into() };
+                        } else if first.ident.to_string() == "Vec" {
+                            let item_type = match first.arguments {
+                                PathArguments::AngleBracketed(ref args) => args.args.first().unwrap(),
+                                _ => panic!("Invalid type"),
+                            };
+                            if PRIMITIVES.contains(&item_type.to_token_stream().to_string().as_str()) {
+                                return quote! { #field_ident: object.#field_ident };
+                            } else {
+                                return quote! { #field_ident: object.#field_ident.into_iter().map(|x| x.into()).collect::<Vec<_>>() };
+                            }
+                        }
+                    }
+                }
+                quote! { #field_ident: object.#field_ident.into() }
+            } else {
+                quote! { #field_ident: object.#field_ident }
+            }
         })
         .collect::<Vec<_>>();
-    // let is_link_header = class.is_link_header;
     quote! {
-        // impl crate::traits::IsLinkHeader for #name {
-        //     fn is_link_header(&self) -> bool {
-        //         #is_link_header
-        //     }
-        // }
         impl From<#name> for super::generic::#generic_name {
             fn from(object: #name) -> Self {
                 super::generic::#generic_name {
@@ -109,51 +187,57 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
     }
 }
 
-fn impl_from_generic_substitute(input: &DeriveInput) -> TokenStream {
+fn impl_from_generic_substitute(input: &DeriveInput, complete: bool) -> TokenStream {
     let class = simple_parse(input);
     let (name, generic_name) = (class.name, class.generic_name);
-    let substitute_intos = class.data.fields.iter().filter(|f| {
-            !f.attrs
-                .iter()
-                .filter(|attr| attr.path().is_ident("generic"))
-                .collect::<Vec<_>>()
-                .is_empty()
-        })
+    let fields = class.data.fields.iter()
         .map(|f| {
+            let replace_generic =
+                complete || !f.attrs
+                    .iter()
+                    .filter(|attr| attr.path().is_ident("generic"))
+                    .collect::<Vec<_>>()
+                    .is_empty();
+
             let field_ident = f.ident.as_ref().expect("Only named structs are supported");
             let field_type = &f.ty;
-            let mut primitive = true;
-            for attr in &f.attrs {
-                if attr.path().is_ident("generic") {
-                    let _ = attr.parse_nested_meta(|meta| {
-                        if meta.path.is_ident("non_primitive") {
-                            primitive = false;
+
+            if !replace_generic {
+                return quote! { #field_ident: substitute.#field_ident };
+            }
+
+            let into = attrs(&f.attrs);
+
+            if into {
+                if let Type::Path(p) = field_type {
+                    if let Some(id) = p.path.get_ident() {
+                        if PRIMITIVES.contains(&id.to_string().as_str()) {
+                            return quote! { #field_ident: substitute.#field_ident.into() };
                         }
-                        Ok(())
-                    });
+                    } else {
+                        let first = p.path.segments.first().unwrap();
+                        if first.ident.to_string() == "DynArray" {
+                            return quote! { #field_ident: std::iter::zip(generic.#field_ident.inner, substitute.#field_ident.inner)
+                                .map(|(gen, sub)| <_>::try_from_generic_substitute(gen, sub).unwrap()).collect::<Vec<_>>().into() };
+                        }
+                        else if first.ident.to_string() == "Vec" {
+                            let item_type = match first.arguments {
+                                PathArguments::AngleBracketed(ref args) => args.args.first().unwrap(),
+                                _ => panic!("Invalid type"),
+                            };
+                            if PRIMITIVES.contains(&item_type.to_token_stream().to_string().as_str()) {
+                                return quote! { #field_ident: generic.#field_ident };
+                            } else {
+                                return quote! { #field_ident: std::iter::zip(generic.#field_ident, substitute.#field_ident)
+                                    .map(|(gen, sub)| <_>::try_from_generic_substitute(gen, sub).unwrap()).collect::<Vec<_>>() };
+                            }
+                        }
+                    }
                 }
-            }
-            if primitive {
-                quote! { #field_ident: generic.#field_ident.into() }
-            } else {
                 quote! { #field_ident: #field_type::try_from_generic_substitute(generic.#field_ident, substitute.#field_ident)? }
+            } else {
+                quote! { #field_ident: generic.#field_ident }
             }
-        })
-        .collect::<Vec<_>>();
-    let fill_intos = class
-        .data
-        .fields
-        .iter()
-        .filter(|f| {
-            f.attrs
-                .iter()
-                .filter(|attr| attr.path().is_ident("generic"))
-                .collect::<Vec<_>>()
-                .is_empty()
-        })
-        .map(|f| {
-            let field_ident = f.ident.as_ref().expect("Only named structs are supported");
-            quote! { #field_ident: substitute.#field_ident }
         })
         .collect::<Vec<_>>();
     quote! {
@@ -161,8 +245,7 @@ fn impl_from_generic_substitute(input: &DeriveInput) -> TokenStream {
             type Error = crate::error::Error;
             fn try_from_generic_substitute(generic: super::generic::#generic_name, substitute: #name) -> crate::BffResult<Self> {
                 Ok(#name {
-                    #(#substitute_intos),*,
-                    #(#fill_intos),*
+                    #(#fields),*,
                 })
             }
         }
