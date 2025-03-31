@@ -35,15 +35,13 @@ pub fn read_in_names(in_names: &Vec<PathBuf>) -> BffCliResult<()> {
     Ok(())
 }
 
-pub fn write_names(out_names: &Option<PathBuf>, names: &Option<Vec<&Name>>) -> BffCliResult<()> {
-    if let Some(out_name) = out_names {
-        let f = File::create(out_name)?;
-        let mut writer = BufWriter::new(f);
-        bff::names::names()
-            .lock()
-            .unwrap()
-            .write(&mut writer, names)?;
-    }
+pub fn write_names(out_names: &Path, names: &Option<Vec<&Name>>) -> BffCliResult<()> {
+    let f = File::create(out_names)?;
+    let mut writer = BufWriter::new(f);
+    bff::names::names()
+        .lock()
+        .unwrap()
+        .write(&mut writer, names)?;
 
     Ok(())
 }

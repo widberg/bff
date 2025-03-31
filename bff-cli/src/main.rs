@@ -13,9 +13,11 @@ use crate::lz::LzAlgorithm;
 mod cps;
 mod crc;
 mod create;
+mod create_resource;
 mod csc;
 mod error;
 mod extract;
+mod extract_resource;
 mod fat_lin;
 mod info;
 mod lz;
@@ -51,7 +53,27 @@ enum Commands {
         directory: PathBuf,
         bigfile: PathBuf,
         #[arg(long)]
+        out_names: Option<PathBuf>,
+        #[arg(short, long)]
+        platform_override: Option<Platform>,
+        #[arg(short, long)]
+        version_override: Option<Version>,
+    },
+    #[clap(alias = "xr")]
+    ExtractResource {
+        resource: PathBuf,
+        directory: PathBuf,
+        #[arg(long)]
         in_names: Vec<PathBuf>,
+        #[arg(short, long)]
+        platform_override: Option<Platform>,
+        #[arg(short, long)]
+        version_override: Option<Version>,
+    },
+    #[clap(alias = "cr")]
+    CreateResource {
+        directory: PathBuf,
+        resource: PathBuf,
         #[arg(long)]
         out_names: Option<PathBuf>,
         #[arg(short, long)]
@@ -222,14 +244,38 @@ fn main() -> BffCliResult<()> {
         Commands::Create {
             directory,
             bigfile,
-            in_names,
             out_names,
             platform_override,
             version_override,
         } => create::create(
             directory,
             bigfile,
+            out_names,
+            platform_override,
+            version_override,
+        ),
+        Commands::ExtractResource {
+            resource,
+            directory,
             in_names,
+            platform_override,
+            version_override,
+        } => extract_resource::extract_resource(
+            resource,
+            directory,
+            in_names,
+            platform_override,
+            version_override,
+        ),
+        Commands::CreateResource {
+            directory,
+            resource,
+            out_names,
+            platform_override,
+            version_override,
+        } => create_resource::create_resource(
+            directory,
+            resource,
             out_names,
             platform_override,
             version_override,

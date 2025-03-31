@@ -8,19 +8,15 @@ use bff::bigfile::BigFile;
 use bff::BufReader;
 
 use crate::error::BffCliResult;
-use crate::extract::{read_bigfile_names, read_in_names, write_names};
+use crate::extract::write_names;
 
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,
-    in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
 ) -> BffCliResult<()> {
-    read_bigfile_names(bigfile_path)?;
-    read_in_names(in_names)?;
-
     let manifest_path = directory.join("manifest.json");
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
     let manifest = serde_json::from_reader(manifest_reader)?;
@@ -50,7 +46,9 @@ pub fn create(
         None,
     )?;
 
-    write_names(out_names, &None)?;
+    if let Some(out_names) = out_names {
+        write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
+    }
 
     Ok(())
 }

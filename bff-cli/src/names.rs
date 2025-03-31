@@ -40,8 +40,10 @@ pub fn names(
             }
         }
 
-        write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
-    } else {
+        if let Some(out_names) = out_names {
+            write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
+        }
+    } else if let Some(out_names) = out_names {
         write_names(out_names, &None)?;
     }
 

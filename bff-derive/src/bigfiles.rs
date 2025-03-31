@@ -168,6 +168,18 @@ fn impl_dump_resource(
             }
         },
         quote! {
+            pub fn dump_resource<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, platform: crate::bigfile::platforms::Platform, version: &crate::bigfile::versions::Version) -> crate::BffResult<()> {
+                use crate::bigfile::versions::Version::*;
+                use crate::bigfile::platforms::Platform::*;
+                use crate::traits::BigFileIo;
+                let endian: crate::Endian = platform.into();
+                let resource = self;
+                match (version.clone(), platform) {
+                    #(#arms)*
+                    (version, platform) => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
+                }
+            }
+
             pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, platform: crate::bigfile::platforms::Platform, version: &crate::bigfile::versions::Version) -> crate::BffResult<()> {
                 use crate::bigfile::versions::Version::*;
                 use crate::bigfile::platforms::Platform::*;
@@ -241,7 +253,18 @@ fn impl_read_resource(
             }
         },
         quote! {
-            pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(&self, reader: &mut R) -> crate::BffResult<crate::bigfile::resource::Resource> {
+            pub fn read_resource<R: std::io::Read + std::io::Seek>(reader: &mut R, platform: crate::bigfile::platforms::Platform, version: &crate::bigfile::versions::Version) -> crate::BffResult<crate::bigfile::resource::Resource> {
+                use crate::bigfile::versions::Version::*;
+                use crate::bigfile::platforms::Platform::*;
+                use crate::traits::BigFileIo;
+                let endian: crate::Endian = platform.into();
+                match (version.clone(), platform) {
+                    #(#arms)*
+                    (version, platform) => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
+                }
+            }
+
+            pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(reader: &mut R) -> crate::BffResult<crate::bigfile::resource::Resource> {
                 use crate::bigfile::versions::Version::*;
                 use crate::bigfile::platforms::Platform::*;
                 use crate::traits::BigFileIo;
