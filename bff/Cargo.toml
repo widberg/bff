@@ -2,6 +2,7 @@
 name = "bff"
 version.workspace = true
 authors.workspace = true
+license.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
@@ -26,7 +27,6 @@ scanf = "1.2.1"
 serde = { version = "1.0", features = ["derive"] }
 serde-big-array = "0.5.1"
 string-interner = "0.19.0"
-xbadpcm = "0.1.1"
 
 # https://github.com/rust-lang/cargo/issues/1197
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

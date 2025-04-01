@@ -5,6 +5,7 @@ members = ["bff", "bff-cli", "bff-derive", "bff-gui"]
 [workspace.package]
 version = "0.1.0"
 authors = ["widberg", "pizzart"]
+license = "MIT"
 edition = "2024"
 rust-version = "1.85.0"
 

@@ -1,4 +1,3 @@
-pub mod audio;
 pub mod bigfile;
 pub mod class;
 pub mod crc;

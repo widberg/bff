@@ -17,6 +17,9 @@ fmt:
 clippy:
     cargo clippy
 
+deny:
+    cargo deny check
+
 [unix]
 test *TEST:
     /usr/bin/env RUST_TEST_THREADS=1 cargo +nightly test --release -j 1 {{ TEST }}
@@ -79,6 +82,7 @@ install-dev-deps:
     rustup update nightly
     cargo install cargo-sort
     cargo install flamegraph
+    cargo install cargo-deny
     {{ if os() == 'windows' { 'cargo install blondie' } else { '' } }}
 
 install-dev-deps-wasm:
@@ -99,3 +103,5 @@ flamegraph CMD *OPTIONS:
     cargo flamegraph --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 check: fmt clippy test
+
+flint: fmt clippy deny
