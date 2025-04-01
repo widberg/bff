@@ -187,18 +187,36 @@ fn main() {
             .dyn_into::<web_sys::HtmlCanvasElement>()
             .expect("the_canvas_id was not a HtmlCanvasElement");
 
-        eframe::WebRunner::new()
+        let start_result = eframe::WebRunner::new()
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(Gui::new(cc)))),
+                Box::new(|cc| {
+                    egui_extras::install_image_loaders(&cc.egui_ctx);
+                    setup_custom_font(&cc.egui_ctx);
+                    cc.egui_ctx.set_pixels_per_point(1.25);
+                    Ok(Box::new(Gui::new(cc)))
+                }),
             )
-            .await
-            .expect("failed to start eframe");
+            .await;
+
+        // Remove the loading text and spinner:
+        if let Some(loading_text) = document.get_element_by_id("loading_text") {
+            match start_result {
+                Ok(_) => {
+                    loading_text.remove();
+                }
+                Err(e) => {
+                    loading_text.set_inner_html(
+                        "<p> The app has crashed. See the developer console for details. </p>",
+                    );
+                    panic!("Failed to start eframe: {e:?}");
+                }
+            }
+        }
     });
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn setup_custom_font(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
 
