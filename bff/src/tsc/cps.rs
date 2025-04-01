@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
-use binrw::{args, BinRead, BinResult, BinWrite, Endian, NullString};
+use binrw::{BinRead, BinResult, BinWrite, Endian, NullString, args};
 use itertools::Itertools;
 
-use crate::lz::{lzo_compress, lzo_decompress};
 use crate::BffResult;
+use crate::lz::{lzo_compress, lzo_decompress};
 
 #[derive(Debug, Default)]
 pub struct Cps {

@@ -55,7 +55,7 @@ impl BinRead for EncodedPoint {
     ) -> BinResult<Self> {
         let a = i32::read_be(reader)?;
         let b = u8::read_be(reader)?;
-        Ok(EncodedPoint([
+        Ok(Self([
             // 2 packed 20-bit signed integers this takes 5 bytes which is 3 less than the 8 it
             // would take to store 2 floats. Sign extend and divide by 4 to get the float value.
             // a           b

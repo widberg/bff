@@ -120,7 +120,7 @@ impl Export for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
             .map(|m| {
                 let triangles = three_d_asset::geometry::Geometry::Triangles(m);
                 three_d_asset::Primitive {
-                    name: "mesh".to_string(),
+                    name: "mesh".to_owned(),
                     transformation: three_d_asset::Mat4::from_translation([0.0; 3].into()),
                     animations: vec![],
                     geometry: triangles,

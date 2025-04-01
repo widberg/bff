@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, Write};
 
-use binrw::{binread, BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinResult, BinWrite, Endian, binread};
 use serde::Serialize;
 
 use crate::bigfile::resource::Resource;
@@ -58,7 +58,7 @@ impl Object {
 
 impl From<Object> for Resource {
     fn from(value: Object) -> Self {
-        Resource {
+        Self {
             class_name: value.class_name,
             name: value.name,
             link_name: None,

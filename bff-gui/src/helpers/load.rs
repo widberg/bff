@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 
-use bff::bigfile::platforms::Platform;
 use bff::bigfile::BigFile;
+use bff::bigfile::platforms::Platform;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn load_bf(ctx: egui::Context, path: PathBuf, tx: Sender<Option<(BigFile, PathBuf)>>) {

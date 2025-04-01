@@ -1,10 +1,10 @@
 use std::default::Default;
 
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use serde::Serialize;
 
 use super::object::PoolObject;
-use crate::helpers::{calculated_padded, DynArray};
+use crate::helpers::{DynArray, calculated_padded};
 use crate::names::Name;
 
 #[binrw]

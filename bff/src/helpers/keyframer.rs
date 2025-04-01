@@ -1,11 +1,10 @@
 use std::io::Seek;
 
 use bff_derive::ReferencedNames;
-use binrw::{binread, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binread};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    calculate_padding,
     DynArray,
     NumeratorFloat,
     Vec,
@@ -14,9 +13,10 @@ use super::{
     Vec3f,
     Vec4f,
     Vec4i16,
+    calculate_padding,
 };
-use crate::names::Name;
 use crate::Endian;
+use crate::names::Name;
 
 type Key = f32;
 

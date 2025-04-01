@@ -4,7 +4,7 @@ use std::str::from_utf8;
 use bff_derive::ReferencedNames;
 use binrw::io::{Read, Seek};
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
-use binrw::{args, BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString};
+use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString, args};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +62,7 @@ impl<const S: usize> BinRead for FixedStringNull<S> {
 
         if let Some(null_terminator) = null_terminator {
             match from_utf8(&values[..null_terminator]) {
-                Ok(value) => Ok(Self(value.to_string())),
+                Ok(value) => Ok(Self(value.to_owned())),
                 Err(e) => Err(Error::Custom {
                     pos: begin + e.valid_up_to() as u64,
                     err: Box::new(e),
@@ -137,7 +137,7 @@ impl BinRead for PascalString {
         )?;
 
         match from_utf8(&value) {
-            Ok(value) => Ok(Self(value.to_string())),
+            Ok(value) => Ok(Self(value.to_owned())),
             Err(e) => Err(Error::Custom {
                 pos: ascii_string_position + e.valid_up_to() as u64,
                 err: Box::new(e),
@@ -204,7 +204,7 @@ impl BinRead for PascalStringNull {
         <u8>::read_options(reader, endian, ())?;
 
         match from_utf8(&value) {
-            Ok(value) => Ok(Self(value.to_string())),
+            Ok(value) => Ok(Self(value.to_owned())),
             Err(e) => Err(Error::Custom {
                 pos: begin + e.valid_up_to() as u64,
                 err: Box::new(e),
@@ -259,7 +259,7 @@ impl BinRead for StringUntilNull {
         let ascii_string_position = reader.stream_position()?;
         let value = NullString::read(reader)?;
         match from_utf8(&value) {
-            Ok(value) => Ok(Self(value.to_string())),
+            Ok(value) => Ok(Self(value.to_owned())),
             Err(e) => Err(Error::Custom {
                 pos: ascii_string_position + e.valid_up_to() as u64,
                 err: Box::new(e),

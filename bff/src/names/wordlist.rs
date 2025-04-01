@@ -1,4 +1,4 @@
-pub const WORDLIST_ANIMALS: [&str; 256] = [
+pub static WORDLIST_ANIMALS: [&str; 256] = [
     "Aardvark",
     "Albatross",
     "Alpaca",
@@ -257,7 +257,7 @@ pub const WORDLIST_ANIMALS: [&str; 256] = [
     "Zuchon",
 ];
 
-pub const WORDLIST_BIP39: [&str; 2048] = [
+pub static WORDLIST_BIP39: [&str; 2048] = [
     "Abandon", "Ability", "Able", "About", "Above", "Absent", "Absorb", "Abstract", "Absurd",
     "Abuse", "Access", "Accident", "Account", "Accuse", "Achieve", "Acid", "Acoustic", "Acquire",
     "Across", "Act", "Action", "Actor", "Actress", "Actual", "Adapt", "Add", "Addict", "Address",

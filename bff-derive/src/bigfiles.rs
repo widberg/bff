@@ -13,7 +13,7 @@ impl Parse for BffBigFileMacroInput {
         while !input.is_empty() {
             forms.push(input.parse()?);
         }
-        Ok(BffBigFileMacroInput { forms })
+        Ok(Self { forms })
     }
 }
 

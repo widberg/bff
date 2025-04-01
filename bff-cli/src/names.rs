@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bff::names::{get_forced_hash_string, WORDLIST_ANIMALS, WORDLIST_BIP39};
+use bff::names::{WORDLIST_ANIMALS, WORDLIST_BIP39, get_forced_hash_string};
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;
@@ -31,7 +31,7 @@ pub fn names(
             for name in bigfile.objects.keys() {
                 if names_db.get(name).is_none() {
                     let string = match wordlist {
-                        Wordlist::Empty => "".to_string(),
+                        Wordlist::Empty => "".to_owned(),
                         Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
                         Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                     };

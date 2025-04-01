@@ -43,7 +43,7 @@ where
             map.insert(key, value);
         }
 
-        Ok(BffMap {
+        Ok(Self {
             map,
             _phantom: PhantomData,
         })

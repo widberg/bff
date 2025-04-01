@@ -1,10 +1,10 @@
 use std::io::{Read, Seek, Write};
 
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::versions::Version;
-use crate::bigfile::BigFile;
 use crate::names::NameType;
-use crate::BffResult;
 
 pub trait BigFileIo {
     fn read<R: Read + Seek>(

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use bff::bigfile::BigFile;
+use bff::class::Class;
 use bff::class::bitmap::generic::BitmapGeneric;
 use bff::class::sound::generic::SoundGeneric;
-use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 

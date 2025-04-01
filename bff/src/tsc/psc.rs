@@ -6,6 +6,7 @@ use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use itertools::Itertools;
 
+use crate::BffResult;
 use crate::helpers::StringUntilNull;
 use crate::lz::{
     gzip_compress_data_with_header_writer_internal,
@@ -13,7 +14,6 @@ use crate::lz::{
     lz4_compress_data_with_header_writer_internal,
     lz4_decompress_data_with_header_parser_internal,
 };
-use crate::BffResult;
 
 #[derive(Debug, Default)]
 pub struct Psc {

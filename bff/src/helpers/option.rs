@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use bff_derive::ReferencedNames;
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use derive_more::Deref;
 use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,6 @@ pub struct BffOption<
 > where
     for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
     for<'a> <ConditionType as BinRead>::Args<'a>: Default,
-
     for<'a> InnerType: BinWrite<Args<'a> = ()>,
     for<'a> ConditionType: BinWrite<Args<'a> = ()>,
 {

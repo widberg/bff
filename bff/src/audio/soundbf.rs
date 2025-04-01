@@ -1,10 +1,10 @@
 use std::io::{Read, Seek, SeekFrom};
 
-use binrw::{args, binread, parser, BinRead, BinResult};
+use binrw::{BinRead, BinResult, args, binread, parser};
 use xbadpcm::XboxADPCMDecoder;
 
 use crate::bigfile::platforms::Platform;
-use crate::names::{names, Name, NameType};
+use crate::names::{Name, NameType, names};
 
 pub struct Sound {
     pub name: Name,

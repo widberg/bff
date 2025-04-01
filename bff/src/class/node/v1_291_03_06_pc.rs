@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{Mat4f, Quat, Rect, Sphere, Vec3f, RGBA};
+use crate::helpers::{Mat4f, Quat, RGBA, Rect, Sphere, Vec3f};
 use crate::names::Name;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

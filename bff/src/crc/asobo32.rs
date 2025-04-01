@@ -361,7 +361,7 @@ pub fn reverse_asobo32(
         });
 
     filler.map(|filler| {
-        let mut string = string.to_string();
+        let mut string = string.to_owned();
         string.insert_str(insert_position, from_utf8(&filler).unwrap());
         string
     })

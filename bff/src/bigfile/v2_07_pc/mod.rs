@@ -2,19 +2,19 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
-use binrw::{args, binread, parser, BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
 
 use super::v1_22_pc::Resource;
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::versions::Version;
-use crate::bigfile::BigFile;
-use crate::helpers::{calculated_padded, read_align_to, write_align_to, DynArray};
+use crate::helpers::{DynArray, calculated_padded, read_align_to, write_align_to};
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::NameType;
 use crate::names::NameType::BlackSheep32;
 use crate::traits::BigFileIo;
-use crate::BffResult;
 
 #[derive(Debug)]
 pub struct Block {
@@ -122,7 +122,7 @@ pub type BigFileV2_07PCSHAUN = BigFileV2_07PC<SHAUN>;
 pub type BigFileV2_07PCPROTO = BigFileV2_07PC<SHAUN_PROTO>;
 
 impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
-    fn from(bigfile: BigFileV2_07PC<GAME>) -> BigFile {
+    fn from(bigfile: BigFileV2_07PC<GAME>) -> Self {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -145,7 +145,7 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
             });
         }
 
-        BigFile {
+        Self {
             manifest: Manifest {
                 version: bigfile.version,
                 version_xple: None,
@@ -168,8 +168,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         platform: Platform,
     ) -> BffResult<BigFile> {
         let endian = platform.into();
-        let bigfile: BigFileV2_07PC<GAME> =
-            BigFileV2_07PC::read_options(reader, endian, (version, platform))?;
+        let bigfile = Self::read_options(reader, endian, (version, platform))?;
         Ok(bigfile.into())
     }
 

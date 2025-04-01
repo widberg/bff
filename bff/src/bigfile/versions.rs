@@ -81,6 +81,7 @@ impl From<&str> for Version {
         )
         .is_ok()
         {
+            #[allow(clippy::used_underscore_binding)]
             Self::Asobo(_0, _1, _2, _3)
         } else if sscanf!(
             value,
@@ -89,6 +90,7 @@ impl From<&str> for Version {
         )
         .is_ok()
         {
+            #[allow(clippy::used_underscore_binding)]
             Self::AsoboLegacy(_0, _1)
         } else if sscanf!(
             value,
@@ -97,11 +99,14 @@ impl From<&str> for Version {
         )
         .is_ok()
         {
+            #[allow(clippy::used_underscore_binding)]
             Self::Kalisto(_0, _1)
         } else if sscanf!(value, "Bigfile Data v{}.{} ", _0, _1).is_ok() {
+            #[allow(clippy::used_underscore_binding)]
             Self::BlackSheep(_0, _1)
         } else if sscanf!(value, "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
             _0, _1, _2, _3, _4, _5, _6, _7).is_ok() {
+            #[allow(clippy::used_underscore_binding)]
             Self::Ubisoft {
                 opal_version: (_0, _1),
                 data_version: (_2, _3),
@@ -111,7 +116,7 @@ impl From<&str> for Version {
                 cvshader: _7,
             }
         } else {
-            Self::Other(value.to_string())
+            Self::Other(value.to_owned())
         }
     }
 }
@@ -125,7 +130,7 @@ impl Serialize for Version {
 impl<'de> Deserialize<'de> for Version {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let string = String::deserialize(deserializer)?;
-        let version: Version = string.as_str().into();
+        let version: Self = string.as_str().into();
         names().lock().unwrap().name_type = (&version).try_into().unwrap(); // FIXME: name_type should not exist
         Ok(version)
     }

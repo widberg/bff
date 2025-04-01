@@ -1,12 +1,12 @@
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{DeriveInput, parse_macro_input};
 
-use crate::bff_class::{derive_bff_class, BffClassMacroInput};
-use crate::bigfiles::{derive_bigfiles, BffBigFileMacroInput};
+use crate::bff_class::{BffClassMacroInput, derive_bff_class};
+use crate::bigfiles::{BffBigFileMacroInput, derive_bigfiles};
 use crate::generic_class::derive_generic_class;
 use crate::named_class::derive_named_class;
 use crate::referenced_names::derive_referenced_names;
-use crate::trivial_class::{derive_trivial_class, TrivialClassMacroInput};
+use crate::trivial_class::{TrivialClassMacroInput, derive_trivial_class};
 
 mod bff_class;
 mod bigfiles;

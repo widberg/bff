@@ -100,7 +100,7 @@ const PROG_ID: &str = "Widberg.BFF.1";
 
 #[cfg(target_os = "windows")]
 fn change_notify() {
-    use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST};
+    use windows::Win32::UI::Shell::{SHCNE_ASSOCCHANGED, SHCNF_IDLIST, SHChangeNotify};
 
     unsafe {
         SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, None, None);
@@ -111,8 +111,8 @@ fn change_notify() {
 fn install() -> BffGuiResult<()> {
     use std::env::current_exe;
 
-    use winreg::enums::HKEY_CURRENT_USER;
     use winreg::RegKey;
+    use winreg::enums::HKEY_CURRENT_USER;
 
     let exe_path = current_exe()?.to_str().unwrap_or_default().to_owned();
 
@@ -139,8 +139,8 @@ fn install() -> BffGuiResult<()> {
 
 #[cfg(target_os = "windows")]
 fn uninstall() -> BffGuiResult<()> {
-    use winreg::enums::{HKEY_CURRENT_USER, KEY_ALL_ACCESS};
     use winreg::RegKey;
+    use winreg::enums::{HKEY_CURRENT_USER, KEY_ALL_ACCESS};
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let classes = hkcu.open_subkey("Software\\Classes")?;

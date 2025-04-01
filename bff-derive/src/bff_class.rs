@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{braced, Arm, Attribute, Ident, Result};
+use syn::{Arm, Attribute, Ident, Result, braced};
 
 pub struct BffClassMacroInput {
     class: Ident,
@@ -25,7 +25,7 @@ impl Parse for BffClassMacroInput {
         while !content.is_empty() {
             forms.push(content.parse()?);
         }
-        Ok(BffClassMacroInput {
+        Ok(Self {
             class,
             forms,
             has_generic,

@@ -2,11 +2,11 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
+use bff::BufReader;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
 use bff::traits::TryIntoVersionPlatform;
-use bff::BufReader;
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;

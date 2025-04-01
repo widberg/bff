@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{args, BinRead, BinReaderExt, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinReaderExt, BinResult, BinWrite, Endian, args};
 
 use crate::BffResult;
 

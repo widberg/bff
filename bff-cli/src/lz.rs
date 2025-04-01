@@ -30,8 +30,8 @@ pub enum LzEndian {
 impl From<LzEndian> for Endian {
     fn from(endian: LzEndian) -> Self {
         match endian {
-            LzEndian::Big => Endian::Big,
-            LzEndian::Little => Endian::Little,
+            LzEndian::Big => Self::Big,
+            LzEndian::Little => Self::Little,
         }
     }
 }

@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{parenthesized, Ident, LitBool, Result, Token, Type};
+use syn::{Ident, LitBool, Result, Token, Type, parenthesized};
 
 pub struct TrivialClassMacroInput {
     class: Ident,
@@ -26,7 +26,7 @@ impl Parse for TrivialClassMacroInput {
             Ok(_) => input.parse::<LitBool>()?.value(),
             _ => true,
         };
-        Ok(TrivialClassMacroInput {
+        Ok(Self {
             class,
             link_header,
             body,

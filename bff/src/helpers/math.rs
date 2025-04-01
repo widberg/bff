@@ -2,9 +2,9 @@ use std::marker::PhantomData;
 use std::ops::{Add, Div, Mul, Range, RangeInclusive, Sub};
 
 use bff_derive::ReferencedNames;
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use derive_more::{Deref, DerefMut};
-use num_traits::{cast, Float, NumCast, PrimInt, Signed, Unsigned};
+use num_traits::{Float, NumCast, PrimInt, Signed, Unsigned, cast};
 use serde::{Deserialize, Serialize};
 
 use crate::names::Name;

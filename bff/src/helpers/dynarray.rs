@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use bff_derive::ReferencedNames;
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,6 @@ where
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     SizeType: TryInto<usize>,
     <SizeType as TryInto<usize>>::Error: Debug,
-
     // BinWrite derive doesnt support generics well because it assumes the Args type is always the unit type. We can work around this by forcing the Args type to be the unit type.
     for<'a> InnerType: BinWrite<Args<'a> = ()>,
     for<'a> SizeType: BinWrite<Args<'a> = ()>,
@@ -41,7 +40,6 @@ where
     for<'a> <SizeType as BinRead>::Args<'a>: Default,
     SizeType: TryInto<usize>,
     <SizeType as TryInto<usize>>::Error: Debug,
-
     for<'a> InnerType: BinWrite<Args<'a> = ()>,
     for<'a> SizeType: BinWrite<Args<'a> = ()>,
     usize: TryInto<SizeType>,

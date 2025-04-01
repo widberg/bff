@@ -13,14 +13,9 @@ pub struct ResourceObjectLinkHeader {
 }
 
 // this is just silly. i'm sure there's a better way
-impl TryFromGenericSubstitute<ResourceObjectLinkHeader, ResourceObjectLinkHeader>
-    for ResourceObjectLinkHeader
-{
+impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeader {
     type Error = crate::error::Error;
-    fn try_from_generic_substitute(
-        generic: ResourceObjectLinkHeader,
-        _: ResourceObjectLinkHeader,
-    ) -> Result<Self, Self::Error> {
+    fn try_from_generic_substitute(generic: Self, _: Self) -> Result<Self, Self::Error> {
         Ok(generic)
     }
 }
@@ -134,7 +129,7 @@ pub struct ObjectLinkHeaderGeneric {
 
 impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
     fn from(header: ObjectLinkHeaderV1_381_67_09PC) -> Self {
-        ObjectLinkHeaderGeneric {
+        Self {
             link_name: header.link_name,
             names: vec![].into(),
             data_name: header.data_name,
@@ -149,7 +144,7 @@ impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
 
 impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
     fn from(header: ObjectLinkHeaderV1_06_63_02PC) -> Self {
-        ObjectLinkHeaderGeneric {
+        Self {
             link_name: header.link_name,
             names: header.names,
             data_name: header.data_name,
@@ -164,7 +159,7 @@ impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
 
 impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
     fn from(header: ObjectLinkHeaderGeneric) -> Self {
-        ObjectLinkHeaderV1_381_67_09PC {
+        Self {
             link_name: header.link_name,
             data_name: header.data_name,
             rot: header.rot,
@@ -178,7 +173,7 @@ impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
 
 impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
     fn from(header: ObjectLinkHeaderGeneric) -> Self {
-        ObjectLinkHeaderV1_06_63_02PC {
+        Self {
             link_name: header.link_name,
             names: header.names,
             data_name: header.data_name,
@@ -191,27 +186,23 @@ impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
     }
 }
 
-impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, ObjectLinkHeaderV1_06_63_02PC>
-    for ObjectLinkHeaderV1_06_63_02PC
-{
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_06_63_02PC {
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
         generic: ObjectLinkHeaderGeneric,
-        _: ObjectLinkHeaderV1_06_63_02PC,
+        _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())
     }
 }
 
-impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, ObjectLinkHeaderV1_381_67_09PC>
-    for ObjectLinkHeaderV1_381_67_09PC
-{
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_381_67_09PC {
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
         generic: ObjectLinkHeaderGeneric,
-        _: ObjectLinkHeaderV1_381_67_09PC,
+        _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())
     }

@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io;
 use std::io::BufWriter;
 
-use bff::tsc::csc_copy;
 use bff::BufReader;
+use bff::tsc::csc_copy;
 
 use crate::error::BffCliResult;
 use crate::stdio_or_path::StdioOrPath;

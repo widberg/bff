@@ -1,16 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
+use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
-use bff::bigfile::BigFile;
 use bff::class::Class;
 use bff::names::Name;
 use bff::traits::TryIntoVersionPlatform;
 
+use crate::Gui;
 use crate::artifact::Artifact;
 use crate::helpers::artifact::create_artifact;
-use crate::Gui;
 
 #[derive(Clone, PartialEq, Default)]
 enum SortType {

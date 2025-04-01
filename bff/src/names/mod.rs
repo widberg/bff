@@ -19,10 +19,10 @@ use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
 pub use wordlist::*;
 
+use crate::BffResult;
 use crate::class::class_names;
 use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
 use crate::traits::NameHashFunction;
-use crate::BffResult;
 
 const FORCED_NAME_STRING_CHAR: char = '$';
 
@@ -64,7 +64,7 @@ where
         if let Some(string) = string.as_ref().strip_prefix(FORCED_NAME_STRING_CHAR) {
             if let Some((value, s)) = string.split_once(FORCED_NAME_STRING_CHAR) {
                 if let Ok(value) = value.parse::<H::Target>() {
-                    return Some((Self::new(value), s.to_string()));
+                    return Some((Self::new(value), s.to_owned()));
                 }
             }
         }
@@ -115,12 +115,12 @@ pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
 impl Name {
     pub fn is_default(&self) -> bool {
         match *self {
-            Name::Asobo32(name) => name == NameAsobo32::default(),
-            Name::AsoboAlternate32(name) => name == NameAsoboAlternate32::default(),
-            Name::Kalisto32(name) => name == NameKalisto32::default(),
-            Name::BlackSheep32(name) => name == NameBlackSheep32::default(),
-            Name::Asobo64(name) => name == NameAsobo64::default(),
-            Name::Ubisoft64(name) => name == NameUbisoft64::default(),
+            Self::Asobo32(name) => name == NameAsobo32::default(),
+            Self::AsoboAlternate32(name) => name == NameAsoboAlternate32::default(),
+            Self::Kalisto32(name) => name == NameKalisto32::default(),
+            Self::BlackSheep32(name) => name == NameBlackSheep32::default(),
+            Self::Asobo64(name) => name == NameAsobo64::default(),
+            Self::Ubisoft64(name) => name == NameUbisoft64::default(),
         }
     }
 
@@ -129,23 +129,23 @@ impl Name {
         usize: PowerOfTwoUsize<N>,
     {
         match self {
-            Name::Asobo32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Name::AsoboAlternate32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Name::Kalisto32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Name::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Name::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Name::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::Asobo32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::AsoboAlternate32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::Kalisto32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
+            Self::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
         }
     }
 
     pub fn get_value(&self) -> i64 {
         match self {
-            Name::Asobo32(name) => name.0 as i64,
-            Name::AsoboAlternate32(name) => name.0 as i64,
-            Name::Kalisto32(name) => name.0 as i64,
-            Name::BlackSheep32(name) => name.0 as i64,
-            Name::Asobo64(name) => name.0,
-            Name::Ubisoft64(name) => name.0,
+            Self::Asobo32(name) => name.0 as i64,
+            Self::AsoboAlternate32(name) => name.0 as i64,
+            Self::Kalisto32(name) => name.0 as i64,
+            Self::BlackSheep32(name) => name.0 as i64,
+            Self::Asobo64(name) => name.0,
+            Self::Ubisoft64(name) => name.0,
         }
     }
 }
@@ -188,22 +188,22 @@ impl BinWrite for Name {
     ) -> BinResult<()> {
         let name_type = names().lock().unwrap().name_type;
         match self {
-            Name::Asobo32(name) if name_type == NameType::Asobo32 => {
+            Self::Asobo32(name) if name_type == NameType::Asobo32 => {
                 name.write_options(writer, endian, ())
             }
-            Name::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
+            Self::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
                 name.write_options(writer, endian, ())
             }
-            Name::Kalisto32(name) if name_type == NameType::Kalisto32 => {
+            Self::Kalisto32(name) if name_type == NameType::Kalisto32 => {
                 name.write_options(writer, endian, ())
             }
-            Name::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
+            Self::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
                 name.write_options(writer, endian, ())
             }
-            Name::Asobo64(name) if name_type == NameType::Asobo64 => {
+            Self::Asobo64(name) if name_type == NameType::Asobo64 => {
                 name.write_options(writer, endian, ())
             }
-            Name::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
+            Self::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
                 name.write_options(writer, endian, ())
             }
             _ => todo!("Cannot convert between name types"),
@@ -289,22 +289,22 @@ impl Serialize for Name {
         match NAMES.lock().unwrap().get(self) {
             Some(name) => name.serialize(serializer),
             None => match self {
-                Name::Asobo32(name) if name_type == NameType::Asobo32 => {
+                Self::Asobo32(name) if name_type == NameType::Asobo32 => {
                     name.0.serialize(serializer)
                 }
-                Name::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
+                Self::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
                     name.0.serialize(serializer)
                 }
-                Name::Kalisto32(name) if name_type == NameType::Kalisto32 => {
+                Self::Kalisto32(name) if name_type == NameType::Kalisto32 => {
                     name.0.serialize(serializer)
                 }
-                Name::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
+                Self::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
                     name.0.serialize(serializer)
                 }
-                Name::Asobo64(name) if name_type == NameType::Asobo64 => {
+                Self::Asobo64(name) if name_type == NameType::Asobo64 => {
                     name.0.serialize(serializer)
                 }
-                Name::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
+                Self::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
                     name.0.serialize(serializer)
                 }
                 _ => todo!("Cannot convert between name types"),
@@ -380,12 +380,12 @@ impl Display for Name {
             write!(f, "{}", name)
         } else {
             match self {
-                Name::Asobo32(name) => write!(f, "{}", name.0),
-                Name::AsoboAlternate32(name) => write!(f, "{}", name.0),
-                Name::Kalisto32(name) => write!(f, "{}", name.0),
-                Name::BlackSheep32(name) => write!(f, "{}", name.0),
-                Name::Asobo64(name) => write!(f, "{}", name.0),
-                Name::Ubisoft64(name) => write!(f, "{}", name.0),
+                Self::Asobo32(name) => write!(f, "{}", name.0),
+                Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
+                Self::Kalisto32(name) => write!(f, "{}", name.0),
+                Self::BlackSheep32(name) => write!(f, "{}", name.0),
+                Self::Asobo64(name) => write!(f, "{}", name.0),
+                Self::Ubisoft64(name) => write!(f, "{}", name.0),
             }
         }
     }
@@ -397,12 +397,12 @@ impl Debug for Name {
             write!(f, r#""{}""#, name)
         } else {
             match self {
-                Name::Asobo32(name) => write!(f, "{}", name.0),
-                Name::AsoboAlternate32(name) => write!(f, "{}", name.0),
-                Name::Kalisto32(name) => write!(f, "{}", name.0),
-                Name::BlackSheep32(name) => write!(f, "{}", name.0),
-                Name::Asobo64(name) => write!(f, "{}", name.0),
-                Name::Ubisoft64(name) => write!(f, "{}", name.0),
+                Self::Asobo32(name) => write!(f, "{}", name.0),
+                Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
+                Self::Kalisto32(name) => write!(f, "{}", name.0),
+                Self::BlackSheep32(name) => write!(f, "{}", name.0),
+                Self::Asobo64(name) => write!(f, "{}", name.0),
+                Self::Ubisoft64(name) => write!(f, "{}", name.0),
             }
         }
     }

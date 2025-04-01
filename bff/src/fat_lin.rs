@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::io::{BufRead, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
-use crate::helpers::write_align_to;
 use crate::BffResult;
+use crate::helpers::write_align_to;
 
 pub struct FatEntry {
     pub path: PathBuf,
@@ -17,8 +17,8 @@ pub struct Fat {
 }
 
 impl Fat {
-    pub fn read<R: BufRead>(reader: &mut R) -> BffResult<Fat> {
-        let mut fat = Fat::default();
+    pub fn read<R: BufRead>(reader: &mut R) -> BffResult<Self> {
+        let mut fat = Self::default();
 
         for line in reader.lines() {
             let line = line?;
@@ -55,8 +55,8 @@ pub struct Lin {
 }
 
 impl Lin {
-    pub fn read<R: Read + Seek>(reader: &mut R, fat: Fat) -> BffResult<Lin> {
-        let mut lin = Lin::default();
+    pub fn read<R: Read + Seek>(reader: &mut R, fat: Fat) -> BffResult<Self> {
+        let mut lin = Self::default();
 
         for entry in fat.entries {
             let mut file = vec![0; entry.size];

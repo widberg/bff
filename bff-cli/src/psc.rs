@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-use bff::tsc::Psc;
 use bff::BufReader;
+use bff::tsc::Psc;
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;

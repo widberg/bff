@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use super::platforms::Platform;
 use super::versions::Version;
+use crate::BffResult;
 use crate::class::Class;
 use crate::names::Name;
-use crate::BffResult;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {

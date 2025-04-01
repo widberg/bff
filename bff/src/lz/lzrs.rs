@@ -170,7 +170,7 @@ impl Match {
     }
 
     // Insert node between self and self.prev
-    fn insert_before(&mut self, node: *mut Match) {
+    fn insert_before(&mut self, node: *mut Self) {
         unsafe {
             node.as_mut().unwrap().prev = self.prev;
             if !node.as_mut().unwrap().prev.is_null() {
@@ -302,7 +302,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
     let mut window_index = 0u32;
 
     for i in 0..window_size {
-        let match_index: u16 = u16::from_be_bytes(
+        let match_index = u16::from_be_bytes(
             uncompressed_buffer[i as usize..i as usize + 2]
                 .try_into()
                 .unwrap(),
@@ -386,7 +386,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
             );
             for i in buffer_size_2..window_size_1 {
                 let ptr: u32 = i;
-                let match_index: u16 = u16::from_be_bytes(
+                let match_index = u16::from_be_bytes(
                     uncompressed_buffer[ptr as usize..ptr as usize + 2]
                         .try_into()
                         .unwrap(),

@@ -2,11 +2,11 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
-use bff::bigfile::platforms::{try_platform_style_to_name_extension, Platform};
-use bff::bigfile::versions::Version;
-use bff::bigfile::BigFile;
-use bff::names::Name;
 use bff::BufReader;
+use bff::bigfile::BigFile;
+use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
+use bff::bigfile::versions::Version;
+use bff::names::Name;
 
 use crate::error::BffCliResult;
 

@@ -30,7 +30,6 @@ impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&Resource>
 where
     for<'a> LinkHeaderType: BinRead + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
-
     for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + 'a,
 {
     type Error = Error;
@@ -87,7 +86,6 @@ impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&TrivialClass<LinkHeaderTy
 where
     for<'a> LinkHeaderType: BinWrite + 'a,
     for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
-
     for<'a> BodyType: BinWrite + 'a,
     for<'a> <BodyType as BinWrite>::Args<'a>: Default,
 {

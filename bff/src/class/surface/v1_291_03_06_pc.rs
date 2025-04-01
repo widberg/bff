@@ -9,11 +9,11 @@ use crate::helpers::{
     DynArray,
     Mat4f,
     ObjectLinkHeaderV1_06_63_02PC,
+    RGB,
     Sphere,
     Vec2f,
     Vec3f,
     Vec4f,
-    RGB,
 };
 use crate::names::Name;
 

@@ -1,9 +1,9 @@
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinResult, Endian};
+use flate2::Compression;
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
-use flate2::Compression;
 
 use crate::BffResult;
 

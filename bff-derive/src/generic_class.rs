@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::spanned::Spanned;
-use syn::{parenthesized, DataStruct, DeriveInput, Ident, PathArguments, Type};
+use syn::{DataStruct, DeriveInput, Ident, PathArguments, Type, parenthesized};
 
 const PRIMITIVES: &[&str] = &[
     "bool",

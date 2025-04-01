@@ -2,18 +2,18 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{binread, binrw, parser, BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead, BinResult, BinWrite, Endian, binread, binrw, parser};
 
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
-use crate::bigfile::BigFile;
-use crate::helpers::{write_align_to, DynArray};
+use crate::helpers::{DynArray, write_align_to};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
-use crate::BffResult;
 
 #[binrw]
 #[derive(Debug)]
@@ -62,8 +62,8 @@ impl<const S: u32> Resource<S> {
 }
 
 impl<const S: u32> From<Resource<S>> for crate::bigfile::resource::Resource {
-    fn from(resource: Resource<S>) -> crate::bigfile::resource::Resource {
-        crate::bigfile::resource::Resource {
+    fn from(resource: Resource<S>) -> Self {
+        Self {
             class_name: resource.class_name,
             name: resource.name,
             link_name: None,
@@ -140,7 +140,7 @@ pub type BigFileV1_22PCNoVersionTripleBlackSheep = BigFileV1_22PC<false, false>;
 impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
     From<BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>> for BigFile
 {
-    fn from(bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>) -> BigFile {
+    fn from(bigfile: BigFileV1_22PC<HAS_VERSION_TRIPLE, KALISTO>) -> Self {
         let mut blocks = Vec::with_capacity(bigfile.blocks.len());
         let mut resources = HashMap::new();
 
@@ -164,7 +164,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
             });
         }
 
-        BigFile {
+        Self {
             manifest: Manifest {
                 version: bigfile.version,
                 version_xple: bigfile.version_triple.map(|x| x.into()),

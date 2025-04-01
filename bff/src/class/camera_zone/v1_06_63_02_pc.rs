@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3f, Vec4f, RGBA};
+use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, RGBA, Vec2f, Vec3f, Vec4f};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct RangeSizeOffset {

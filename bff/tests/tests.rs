@@ -6,9 +6,9 @@ mod tests {
     use std::fs::File;
     use std::path::PathBuf;
 
+    use bff::bigfile::BigFile;
     use bff::bigfile::platforms::Platform;
     use bff::bigfile::resource::Resource;
-    use bff::bigfile::BigFile;
     use bff::class::Class;
     use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;

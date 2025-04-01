@@ -1,4 +1,4 @@
-use bff_derive::{trivial_class, GenericClass, ReferencedNames};
+use bff_derive::{GenericClass, ReferencedNames, trivial_class};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 

@@ -14,24 +14,24 @@ use header::{BlockDescription, Header};
 use object::Object;
 use pool::Pool;
 
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::bigfile::v1_06_63_02_pc::pool::{
-    calculate_padded_pool_header_size,
     ObjectDescription,
     PoolHeader,
     ReferenceRecord,
+    calculate_padded_pool_header_size,
 };
 use crate::bigfile::versions::{Version, VersionXple};
-use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
-use crate::BffResult;
 
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(

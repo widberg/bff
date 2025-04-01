@@ -10,15 +10,15 @@ use block::*;
 use header::*;
 use object::*;
 
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::versions::Version;
-use crate::bigfile::BigFile;
 use crate::names::NameType::Asobo64;
 use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
-use crate::BffResult;
 
 pub struct BigFileV2_128_92_19PC;
 

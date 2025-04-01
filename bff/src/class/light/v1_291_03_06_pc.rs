@@ -1,9 +1,9 @@
-use bff_derive::{trivial_class, GenericClass, ReferencedNames};
+use bff_derive::{GenericClass, ReferencedNames, trivial_class};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{ObjectLinkHeaderV1_06_63_02PC, Quat, Vec3f, RGBA};
+use crate::helpers::{ObjectLinkHeaderV1_06_63_02PC, Quat, RGBA, Vec3f};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]

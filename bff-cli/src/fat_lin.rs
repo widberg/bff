@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io::{BufWriter, Read, Write};
 use std::path::Path;
 
-use bff::fat_lin::{read_fat_lin, write_fat_lin, Lin};
 use bff::BufReader;
+use bff::fat_lin::{Lin, read_fat_lin, write_fat_lin};
 use pathdiff::diff_paths;
 
 use crate::error::BffCliResult;

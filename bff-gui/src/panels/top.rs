@@ -11,12 +11,12 @@ use std::sync::{Arc, Mutex};
 #[cfg(not(target_arch = "wasm32"))]
 use bff::names::Name;
 
+use crate::Gui;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::artifact::Artifact;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::helpers::class::write_class_json;
 use crate::helpers::load::load_bf;
-use crate::Gui;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn load_names(in_name: &PathBuf) {

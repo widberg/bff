@@ -7,6 +7,8 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{BinRead, BinWrite, Endian};
 use header::*;
 
+use crate::BffResult;
+use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::SplitData;
@@ -14,13 +16,11 @@ use crate::bigfile::v1_06_63_02_pc::blocks_parser;
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::v1_06_63_02_pc::object::Object;
 use crate::bigfile::versions::{Version, VersionXple};
-use crate::bigfile::BigFile;
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType;
 use crate::names::NameType::Asobo32;
 use crate::traits::BigFileIo;
-use crate::BffResult;
 
 pub struct BigFileV1_2000_77_18PC;
 
