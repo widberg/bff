@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, Mat4f, ResourceObjectLinkHeader};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown2 {
@@ -44,3 +45,6 @@ pub struct WorldBodyV1_381_67_09PC {
 }
 
 pub type WorldV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, WorldBodyV1_381_67_09PC>;
+
+impl Export for WorldV1_381_67_09PC {}
+impl Import for WorldV1_381_67_09PC {}

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -37,3 +38,6 @@ pub struct RotShapeBodyV1_291_03_06PC {
 
 pub type RotShapeV1_291_03_06PC =
     TrivialClass<ObjectLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;
+
+impl Export for RotShapeV1_291_03_06PC {}
+impl Import for RotShapeV1_291_03_06PC {}

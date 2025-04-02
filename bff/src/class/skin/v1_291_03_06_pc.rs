@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{BffMap, DynArray, ObjectLinkHeaderV1_06_63_02PC};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unknown1 {
@@ -71,3 +72,6 @@ pub struct SkinBodyV1_291_03_06PC {
 }
 
 pub type SkinV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SkinBodyV1_291_03_06PC>;
+
+impl Export for SkinV1_291_03_06PC {}
+impl Import for SkinV1_291_03_06PC {}

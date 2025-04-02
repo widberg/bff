@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u16)]
@@ -76,3 +77,6 @@ trivial_class!(
     BitmapV1_381_67_09PC(LinkHeader, BitmapBodyV1_381_67_09PC),
     BitmapGeneric
 );
+
+impl Export for BitmapV1_381_67_09PC {}
+impl Import for BitmapV1_381_67_09PC {}

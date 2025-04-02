@@ -11,6 +11,7 @@ use crate::helpers::{
     Vec3f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Extended {
@@ -42,3 +43,6 @@ pub struct LodDataBodyV1_381_67_09PC {
 }
 
 pub type LodDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, LodDataBodyV1_381_67_09PC>;
+
+impl Export for LodDataV1_381_67_09PC {}
+impl Import for LodDataV1_381_67_09PC {}

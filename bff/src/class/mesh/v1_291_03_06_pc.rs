@@ -16,6 +16,7 @@ use crate::helpers::{
     Vec3i16,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -182,3 +183,6 @@ pub struct MeshBodyV1_291_03_06PC {
 }
 
 pub type MeshV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, MeshBodyV1_291_03_06PC>;
+
+impl Export for MeshV1_291_03_06PC {}
+impl Import for MeshV1_291_03_06PC {}

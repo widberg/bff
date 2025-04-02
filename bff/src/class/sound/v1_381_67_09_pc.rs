@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::generic::SoundFlags;
 use crate::class::trivial_class::TrivialClass;
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(
     BinRead, Clone, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,
@@ -32,3 +33,6 @@ trivial_class!(
     SoundV1_381_67_09PC(LinkHeader, SoundBodyV1_381_67_09PC),
     SoundGeneric
 );
+
+impl Export for SoundV1_381_67_09PC {}
+impl Import for SoundV1_381_67_09PC {}

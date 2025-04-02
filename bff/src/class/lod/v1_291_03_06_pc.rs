@@ -13,6 +13,7 @@ use crate::helpers::{
     Vec3f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct CylindreCol {
@@ -50,3 +51,6 @@ pub struct LodBodyV1_291_03_06PC {
 }
 
 pub type LodV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_291_03_06PC>;
+
+impl Export for LodV1_291_03_06PC {}
+impl Import for LodV1_291_03_06PC {}

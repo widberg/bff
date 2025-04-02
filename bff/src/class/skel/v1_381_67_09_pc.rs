@@ -14,6 +14,7 @@ use crate::helpers::{
     Vec3f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Bone {
@@ -73,3 +74,6 @@ pub struct SkelBodyV1_381_67_09PC {
 }
 
 pub type SkelV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, SkelBodyV1_381_67_09PC>;
+
+impl Export for SkelV1_381_67_09PC {}
+impl Import for SkelV1_381_67_09PC {}

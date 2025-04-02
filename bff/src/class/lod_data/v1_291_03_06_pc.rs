@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{BffOption, DynArray, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Extended {
@@ -29,3 +30,6 @@ pub struct LodDataBodyV1_291_03_06PC {
 }
 
 pub type LodDataV1_291_03_06PC = TrivialClass<(), LodDataBodyV1_291_03_06PC>;
+
+impl Export for LodDataV1_291_03_06PC {}
+impl Import for LodDataV1_291_03_06PC {}

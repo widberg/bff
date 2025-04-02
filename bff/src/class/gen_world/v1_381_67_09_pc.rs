@@ -14,6 +14,7 @@ use crate::helpers::{
     Vec3f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Category {
@@ -88,3 +89,6 @@ pub struct GenWorldBodyV1_381_67_09PC {
 
 pub type GenWorldV1_381_67_09PC =
     TrivialClass<ObjectLinkHeaderV1_381_67_09PC, GenWorldBodyV1_381_67_09PC>;
+
+impl Export for GenWorldV1_381_67_09PC {}
+impl Import for GenWorldV1_381_67_09PC {}

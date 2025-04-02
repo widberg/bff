@@ -12,6 +12,7 @@ use crate::helpers::{
     ObjectLinkHeaderV1_381_67_09PC,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct FadeDistances {
@@ -34,3 +35,6 @@ pub struct LodBodyV1_381_67_09PC {
 }
 
 pub type LodV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, LodBodyV1_381_67_09PC>;
+
+impl Export for LodV1_381_67_09PC {}
+impl Import for LodV1_381_67_09PC {}

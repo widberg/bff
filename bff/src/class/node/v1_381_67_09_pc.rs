@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{Mat4f, Quat, RGBA, Rect, ResourceObjectLinkHeader, Sphere, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
@@ -36,3 +37,6 @@ pub struct NodeBodyV1_381_67_09PC {
 }
 
 pub type NodeV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, NodeBodyV1_381_67_09PC>;
+
+impl Export for NodeV1_381_67_09PC {}
+impl Import for NodeV1_381_67_09PC {}

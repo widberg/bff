@@ -15,6 +15,7 @@ use crate::helpers::{
     Vec3f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
@@ -77,3 +78,6 @@ pub struct ParticlesBodyV1_381_67_09PC {
 
 pub type ParticlesV1_381_67_09PC =
     TrivialClass<ObjectLinkHeaderV1_381_67_09PC, ParticlesBodyV1_381_67_09PC>;
+
+impl Export for ParticlesV1_381_67_09PC {}
+impl Import for ParticlesV1_381_67_09PC {}

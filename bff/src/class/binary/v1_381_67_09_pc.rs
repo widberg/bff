@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::ResourceObjectLinkHeader;
+use crate::traits::{Export, Import};
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
@@ -59,3 +60,6 @@ pub struct BinaryBodyV1_381_67_09PC {
 }
 
 pub type BinaryV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, BinaryBodyV1_381_67_09PC>;
+
+impl Export for BinaryV1_381_67_09PC {}
+impl Import for BinaryV1_381_67_09PC {}

@@ -7,7 +7,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
 use bff::class::Class;
-use bff::traits::TryIntoVersionPlatform;
+use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
 
 use crate::error::BffCliResult;
 use crate::extract::read_in_names;
@@ -43,6 +43,19 @@ pub fn extract_resource(
     let resource_serialized_path = directory.join("resource.json");
     let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
     serde_json::to_writer_pretty(resource_serialized_writer, &bff_class)?;
+
+    if let Ok(artifacts) = bff_class.class.export() {
+        for (name, artifact) in artifacts {
+            let artifact_path = directory.join(name);
+
+            match artifact {
+                Artifact::Binary(bytes) => {
+                    std::fs::write(artifact_path.with_extension("bin"), bytes)?
+                }
+                Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
+            }
+        }
+    }
 
     Ok(())
 }

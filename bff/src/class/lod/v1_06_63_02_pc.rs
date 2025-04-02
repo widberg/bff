@@ -6,6 +6,7 @@ use serde_big_array::BigArray;
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ClassRes {
@@ -44,3 +45,6 @@ pub struct LodBodyV1_06_63_02PC {
 }
 
 pub type LodV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_06_63_02PC>;
+
+impl Export for LodV1_06_63_02PC {}
+impl Import for LodV1_06_63_02PC {}

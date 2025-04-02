@@ -14,6 +14,7 @@ use super::generic::{
 };
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ResourceObjectLinkHeader};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]
@@ -45,3 +46,6 @@ trivial_class!(
     AnimationGeneric,
     false
 );
+
+impl Export for AnimationV1_381_67_09PC {}
+impl Import for AnimationV1_381_67_09PC {}

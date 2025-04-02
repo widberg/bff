@@ -70,6 +70,24 @@ macro_rules! classes {
             use crate::traits::NamedClass;
             vec![$($class::NAME,$class::NAME_LEGACY,)*]
         }
+
+        impl crate::traits::Export for Class {
+            fn export(&self) -> crate::BffResult<std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>> {
+                use std::ops::Deref;
+                match self {
+                    $(Class::$class(class) => <$class as crate::traits::Export>::export(class.deref()),)*
+                }
+            }
+        }
+
+        impl crate::traits::Import for Class {
+            fn import(&mut self, artifacts: &std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>) -> crate::BffResult<()> {
+                use std::ops::DerefMut;
+                match self {
+                    $(Class::$class(class) => <$class as crate::traits::Import>::import(class.deref_mut(), artifacts),)*
+                }
+            }
+        }
     };
 }
 

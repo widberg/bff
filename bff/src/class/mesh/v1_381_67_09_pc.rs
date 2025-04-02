@@ -20,6 +20,7 @@ use crate::helpers::{
     Vec3i16,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
@@ -195,3 +196,6 @@ pub struct MeshBodyV1_381_67_09PC {
 }
 
 pub type MeshV1_381_67_09PC = TrivialClass<LinkHeader, MeshBodyV1_381_67_09PC>;
+
+impl Export for MeshV1_381_67_09PC {}
+impl Import for MeshV1_381_67_09PC {}

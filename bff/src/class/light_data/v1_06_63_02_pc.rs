@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{RGB, RGBA, Vec3f};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
@@ -23,3 +24,6 @@ pub struct LightDataBodyV1_06_63_02PC {
 }
 
 pub type LightDataV1_06_63_02PC = TrivialClass<(), LightDataBodyV1_06_63_02PC>;
+
+impl Export for LightDataV1_06_63_02PC {}
+impl Import for LightDataV1_06_63_02PC {}

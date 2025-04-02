@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]
@@ -20,3 +21,6 @@ trivial_class!(
     LightV1_381_67_09PC(ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC),
     LightGeneric
 );
+
+impl Export for LightV1_381_67_09PC {}
+impl Import for LightV1_381_67_09PC {}

@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ResourceObjectLinkHeader, Vec2f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[bitsize(7)]
 #[derive(TryFromBits, Debug, Serialize, Deserialize, ReferencedNames)]
@@ -125,3 +126,6 @@ pub struct GwRoadBodyV1_381_67_09PC {
 }
 
 pub type GwRoadV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, GwRoadBodyV1_381_67_09PC>;
+
+impl Export for GwRoadV1_381_67_09PC {}
+impl Import for GwRoadV1_381_67_09PC {}

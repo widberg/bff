@@ -63,4 +63,6 @@ pub enum Error {
     UnimplementedVersion(UnimplementedVersionError),
     UnimplementedVersionPlatform(UnimplementedVersionPlatformError),
     Utf8(std::string::FromUtf8Error),
+    UnimplementedImportExport,
+    ImportBadArtifact,
 }

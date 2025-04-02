@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::DynArray;
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
@@ -13,3 +14,6 @@ pub struct GameObjBodyV1_291_03_06PC {
 }
 
 pub type GameObjV1_291_03_06PC = TrivialClass<(), GameObjBodyV1_291_03_06PC>;
+
+impl Export for GameObjV1_291_03_06PC {}
+impl Import for GameObjV1_291_03_06PC {}

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, Vec3f, Vec4f};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Segment {
@@ -30,3 +31,6 @@ pub struct SplineBodyV1_06_63_02PC {
 }
 
 pub type SplineV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SplineBodyV1_06_63_02PC>;
+
+impl Export for SplineV1_06_63_02PC {}
+impl Import for SplineV1_06_63_02PC {}

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader, Vec3f};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct FadeDistances {
@@ -24,3 +25,6 @@ pub struct ParticlesDataBodyV1_381_67_09PC {
 
 pub type ParticlesDataV1_381_67_09PC =
     TrivialClass<ResourceObjectLinkHeader, ParticlesDataBodyV1_381_67_09PC>;
+
+impl Export for ParticlesDataV1_381_67_09PC {}
+impl Import for ParticlesDataV1_381_67_09PC {}

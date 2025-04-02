@@ -7,6 +7,7 @@ use crate::helpers::BffOption;
 use crate::helpers::DynArray;
 use crate::helpers::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
 use crate::name::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -160,3 +161,6 @@ pub struct SurfaceBodyV1_06_63_02PC {
 }
 
 pub type SurfaceV1_06_63_02PC = TrivialClass<ObjectV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;
+
+impl Export for SurfaceV1_06_63_02PC {}
+impl Import for SurfaceV1_06_63_02PC {}

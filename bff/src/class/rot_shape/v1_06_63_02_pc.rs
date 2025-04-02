@@ -5,6 +5,7 @@ use crate::class::trivial_class::TrivialClass;
 use crate::helpers::DynArray;
 use crate::helpers::{Mat, Sphere, Vec2f, Vec3f};
 use crate::name::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
 struct PointsRelated0 {
@@ -59,3 +60,6 @@ pub struct RotShapeBodyV1_06_63_02PC {
 }
 
 pub type RotShapeV1_06_63_02PC = TrivialClass<LinkInfo, RotShapeBodyV1_06_63_02PC>;
+
+impl Export for RotShapeV1_06_63_02PC {}
+impl Import for RotShapeV1_06_63_02PC {}

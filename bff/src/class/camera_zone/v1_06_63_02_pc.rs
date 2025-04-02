@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, RGBA, Vec2f, Vec3f, Vec4f};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct RangeSizeOffset {
@@ -84,3 +85,6 @@ pub struct CameraZoneBodyV1_06_63_02PC {
 
 pub type CameraZoneV1_06_63_02PC =
     TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CameraZoneBodyV1_06_63_02PC>;
+
+impl Export for CameraZoneV1_06_63_02PC {}
+impl Import for CameraZoneV1_06_63_02PC {}

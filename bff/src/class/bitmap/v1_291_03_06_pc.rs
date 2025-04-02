@@ -4,6 +4,7 @@ use binrw::{BinRead, BinWrite, binread};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
+use crate::traits::{Export, Import};
 
 #[derive(
     BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass, Clone,
@@ -37,3 +38,6 @@ trivial_class!(
     BitmapV1_291_03_06PC((), BitmapBodyV1_291_03_06PC),
     BitmapGeneric
 );
+
+impl Export for BitmapV1_291_03_06PC {}
+impl Import for BitmapV1_291_03_06PC {}

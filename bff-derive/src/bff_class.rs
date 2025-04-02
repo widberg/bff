@@ -68,11 +68,56 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         })
         .collect::<Vec<_>>();
 
+    let import_export = if input.forms.is_empty() {
+        quote! {
+            impl crate::traits::Export for #class {}
+            impl crate::traits::Import for #class {}
+        }
+    } else {
+        let arms_export = input
+            .forms
+            .iter()
+            .map(|form| {
+                let body = &form.body;
+                quote! { #class::#body(class) => <#body as crate::traits::Export>::export(class) }
+            })
+            .collect::<Vec<_>>();
+
+        let arms_import = input
+            .forms
+            .iter()
+            .map(|form| {
+                let body = &form.body;
+                quote! { #class::#body(class) => <#body as crate::traits::Import>::import(class, artifacts) }
+            })
+            .collect::<Vec<_>>();
+
+        quote! {
+            impl crate::traits::Export for #class {
+                fn export(&self) -> crate::BffResult<std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>> {
+                    match self {
+                        #(#arms_export,)*
+                    }
+                }
+            }
+
+            impl crate::traits::Import for #class {
+                fn import(&mut self, artifacts: &std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>) -> crate::BffResult<()> {
+                    match self {
+                        #(#arms_import,)*
+                    }
+                }
+            }
+        }
+    };
+
     quote! {
         #[derive(serde::Serialize, serde::Deserialize, Debug, bff_derive::NamedClass, derive_more::From, derive_more::IsVariant, bff_derive::ReferencedNames)]
         pub enum #class {
             #(#variants),*
         }
+
+        #import_export
     }
 }
 

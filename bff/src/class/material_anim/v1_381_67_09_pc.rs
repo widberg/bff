@@ -14,6 +14,7 @@ use crate::helpers::{
     ResourceObjectLinkHeader,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[bitsize(8)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
@@ -49,3 +50,6 @@ pub struct MaterialAnimBodyV1_381_67_09PC {
 
 pub type MaterialAnimV1_381_67_09PC =
     TrivialClass<ResourceObjectLinkHeader, MaterialAnimBodyV1_381_67_09PC>;
+
+impl Export for MaterialAnimV1_381_67_09PC {}
+impl Import for MaterialAnimV1_381_67_09PC {}

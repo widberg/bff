@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, Vec2f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SeadEntry {
@@ -69,3 +70,6 @@ pub struct WorldBodyV1_291_03_06PC {
 }
 
 pub type WorldV1_291_03_06PC = TrivialClass<(), WorldBodyV1_291_03_06PC>;
+
+impl Export for WorldV1_291_03_06PC {}
+impl Import for WorldV1_291_03_06PC {}

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{RGB, RGBA, ResourceObjectLinkHeader, Vec2f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
@@ -67,3 +68,6 @@ pub struct MaterialBodyV1_381_67_09PC {
 
 pub type MaterialV1_381_67_09PC =
     TrivialClass<ResourceObjectLinkHeader, MaterialBodyV1_381_67_09PC>;
+
+impl Export for MaterialV1_381_67_09PC {}
+impl Import for MaterialV1_381_67_09PC {}

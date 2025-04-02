@@ -2,25 +2,21 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 
 use crate::BffResult;
+use crate::error::Error;
 
 pub enum Artifact {
     Binary(Vec<u8>),
     Text(String),
-    Json(String),
-    Rich(Vec<u8>),
 }
 
 pub trait Export {
     fn export(&self) -> BffResult<HashMap<OsString, Artifact>> {
-        todo!()
+        Err(Error::UnimplementedImportExport)
     }
 }
 
-pub trait Import
-where
-    Self: Sized,
-{
-    fn import(_artifacts: &HashMap<OsString, Artifact>) -> BffResult<Self> {
-        todo!()
+pub trait Import {
+    fn import(&mut self, _artifacts: &HashMap<OsString, Artifact>) -> BffResult<()> {
+        Err(Error::UnimplementedImportExport)
     }
 }

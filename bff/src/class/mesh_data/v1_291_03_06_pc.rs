@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::RGBA;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
@@ -18,3 +19,6 @@ pub struct MeshDataBodyV1_291_03_06PC {
 }
 
 pub type MeshDataV1_291_03_06PC = TrivialClass<(), MeshDataBodyV1_291_03_06PC>;
+
+impl Export for MeshDataV1_291_03_06PC {}
+impl Import for MeshDataV1_291_03_06PC {}

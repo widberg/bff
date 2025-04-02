@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct ObjectDatas {
@@ -74,3 +75,6 @@ pub struct SkelBodyV1_291_03_06PC {
 }
 
 pub type SkelV1_291_03_06PC = TrivialClass<(), SkelBodyV1_291_03_06PC>;
+
+impl Export for SkelV1_291_03_06PC {}
+impl Import for SkelV1_291_03_06PC {}

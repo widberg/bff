@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{BffMap, DynArray, ResourceObjectLinkHeader, Vec2f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 type CharacterID = u32;
 
@@ -24,3 +25,6 @@ pub struct FontsBodyV1_381_67_09PC {
 }
 
 pub type FontsV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, FontsBodyV1_381_67_09PC>;
+
+impl Export for FontsV1_381_67_09PC {}
+impl Import for FontsV1_381_67_09PC {}

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, Mat4f, ObjectLinkHeaderV1_06_63_02PC};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct CollisionVolInfo {
@@ -27,3 +28,6 @@ pub struct CollisionVolBodyV1_291_03_06PC {
 
 pub type CollisionVolV1_291_03_06PC =
     TrivialClass<ObjectLinkHeaderV1_06_63_02PC, CollisionVolBodyV1_291_03_06PC>;
+
+impl Export for CollisionVolV1_291_03_06PC {}
+impl Import for CollisionVolV1_291_03_06PC {}

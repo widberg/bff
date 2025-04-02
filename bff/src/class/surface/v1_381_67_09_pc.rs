@@ -16,6 +16,7 @@ use crate::helpers::{
     Vec4f,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct Unused2 {
@@ -101,3 +102,6 @@ pub struct SurfaceBodyV1_381_67_09PC {
 
 pub type SurfaceV1_381_67_09PC =
     TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SurfaceBodyV1_381_67_09PC>;
+
+impl Export for SurfaceV1_381_67_09PC {}
+impl Import for SurfaceV1_381_67_09PC {}

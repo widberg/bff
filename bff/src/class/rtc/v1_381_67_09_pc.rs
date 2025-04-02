@@ -14,6 +14,7 @@ use crate::helpers::{
     ResourceObjectLinkHeader,
 };
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct RtcAnimationNode {
@@ -81,3 +82,6 @@ pub struct RtcBodyV1_381_67_09PC {
 }
 
 pub type RtcV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, RtcBodyV1_381_67_09PC>;
+
+impl Export for RtcV1_381_67_09PC {}
+impl Import for RtcV1_381_67_09PC {}

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectDatasFlagsV1_381_67_09PC, ResourceObjectLinkHeader};
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeader))]
@@ -16,3 +17,6 @@ pub struct RotShapeDataBodyV1_381_67_09PC {
 
 pub type RotShapeDataV1_381_67_09PC =
     TrivialClass<ResourceObjectLinkHeader, RotShapeDataBodyV1_381_67_09PC>;
+
+impl Export for RotShapeDataV1_381_67_09PC {}
+impl Import for RotShapeDataV1_381_67_09PC {}

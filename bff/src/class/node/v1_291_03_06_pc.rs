@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{Mat4f, Quat, RGBA, Rect, Sphere, Vec3f};
 use crate::names::Name;
+use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
@@ -45,3 +46,6 @@ pub struct NodeBodyV1_291_03_06PC {
 }
 
 pub type NodeV1_291_03_06PC = TrivialClass<(), NodeBodyV1_291_03_06PC>;
+
+impl Export for NodeV1_291_03_06PC {}
+impl Import for NodeV1_291_03_06PC {}
