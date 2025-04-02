@@ -3,7 +3,6 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use super::generic::SoundFlags;
-use crate::class::trivial_class::TrivialClass;
 use crate::traits::{Export, Import};
 
 #[derive(

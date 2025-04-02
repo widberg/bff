@@ -37,6 +37,11 @@ pub fn create_resource(
                     let bytes = std::fs::read(path)?;
                     artifacts.insert(name, Artifact::Binary(bytes));
                 }
+                "dds" => {
+                    let name = path.file_stem().unwrap().to_os_string();
+                    let bytes = std::fs::read(path)?;
+                    artifacts.insert(name, Artifact::Dds(bytes));
+                }
                 "txt" => {
                     let name = path.file_stem().unwrap().to_os_string();
                     let text = std::fs::read_to_string(path)?;

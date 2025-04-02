@@ -52,6 +52,7 @@ pub fn extract_resource(
                 Artifact::Binary(bytes) => {
                     std::fs::write(artifact_path.with_extension("bin"), bytes)?
                 }
+                Artifact::Dds(bytes) => std::fs::write(artifact_path.with_extension("dds"), bytes)?,
                 Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
             }
         }

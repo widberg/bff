@@ -6,6 +6,7 @@ use crate::error::Error;
 
 pub enum Artifact {
     Binary(Vec<u8>),
+    Dds(Vec<u8>),
     Text(String),
 }
 

@@ -2,7 +2,6 @@ use bff_derive::{GenericClass, ReferencedNames, trivial_class};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
 use crate::traits::{Export, Import};
 

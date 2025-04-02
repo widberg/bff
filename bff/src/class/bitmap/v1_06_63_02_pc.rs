@@ -3,7 +3,6 @@ use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use crate::class::trivial_class::TrivialClass;
 use crate::traits::{Export, Import};
 
 #[derive(

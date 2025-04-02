@@ -6,7 +6,6 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::BffResult;
-use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
 use crate::helpers::{PascalString, ResourceObjectLinkHeader};
 use crate::traits::{Artifact, Export, Import};

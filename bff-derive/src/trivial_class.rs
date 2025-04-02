@@ -41,7 +41,7 @@ pub fn derive_trivial_class(input: TrivialClassMacroInput) -> TokenStream {
     let from_trivial_to_generic = impl_from_trivial_to_generic(&input);
     let from_generic_to_trivial = impl_from_generic_to_trivial(&input);
     quote! {
-        pub type #class = TrivialClass<#link_header, #body>;
+        pub type #class = crate::class::trivial_class::TrivialClass<#link_header, #body>;
         #from_trivial_to_generic
         #from_generic_to_trivial
     }

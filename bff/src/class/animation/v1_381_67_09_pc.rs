@@ -12,7 +12,6 @@ use super::generic::{
     AnimationNode,
     AnimationNodeModifier,
 };
-use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ResourceObjectLinkHeader};
 use crate::traits::{Export, Import};
 
