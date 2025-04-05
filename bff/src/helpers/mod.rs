@@ -20,7 +20,7 @@ pub fn calculate_padding(position: usize, alignment: usize) -> usize {
 }
 
 pub fn calculated_padded(position: usize, alignment: usize) -> usize {
-    position + calculate_padding(position, alignment)
+    position + calculate_padding(position, alignment) // TODO: Use div_ceil
 }
 
 pub fn write_align_to<W: Write + Seek>(
@@ -29,7 +29,7 @@ pub fn write_align_to<W: Write + Seek>(
     value: u8,
 ) -> BinResult<usize> {
     let padding = calculate_padding(writer.stream_position()? as usize, alignment);
-    writer.write_all(&vec![value; padding])?;
+    writer.write_all(&vec![value; padding])?; // TODO: Use repeat
     Ok(padding)
 }
 

@@ -48,8 +48,10 @@ where
                     platform.into(),
                     <LinkHeaderType as binrw::BinRead>::Args::default(),
                 )?;
+                // TODO: Make sure whole link_header was consumed
                 let body =
                     BodyType::read_options(&mut body_cursor, platform.into(), (&link_header,))?;
+                // TODO: Make sure whole body was consumed
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,
@@ -68,6 +70,7 @@ where
                 )?;
                 let body =
                     BodyType::read_options(&mut data_cursor, platform.into(), (&link_header,))?;
+                // TODO: Make sure whole data was consumed
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,

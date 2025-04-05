@@ -21,6 +21,7 @@ type Resource = Resource12<20>;
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
+    // TODO: Always big endian 0xDEADBEEF
     pub checksum: Option<i32>,
     pub resources: Vec<Resource>,
 }
