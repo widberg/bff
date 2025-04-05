@@ -26,6 +26,8 @@ pub struct LodDataBodyV1_291_03_06PC {
     flags: u32,
     mesh_data_names: DynArray<Name>,
     zero: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     extended: BffOption<Extended>,
 }
 

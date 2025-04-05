@@ -76,7 +76,7 @@ pub enum Vertex {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 pub struct VertexGroupFlags {
     padding: u2,
     visible: u1,

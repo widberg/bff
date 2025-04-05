@@ -29,7 +29,11 @@ pub struct LodBodyV1_381_67_09PC {
     fade: FadeDistances,
     skin_or_mesh_or_particles_names: DynArray<Name>,
     zero: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     animation_entries: BffOption<BffMap<u32, Name>, u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     sound_entries: BffOption<BffMap<u32, Name>, u32>,
     user_define_name: Name,
 }

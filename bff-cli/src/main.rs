@@ -5,6 +5,7 @@ use bff::bigfile::versions::Version;
 use clap::*;
 use crc::{CrcAlgorithm, CrcFormat, CrcMode};
 use error::BffCliResult;
+use extract::ExportStrategy;
 use lz::LzEndian;
 use reverse_crc32::DEFAULT_CHARACTER_SET;
 
@@ -47,6 +48,9 @@ enum Commands {
         platform_override: Option<Platform>,
         #[arg(short, long)]
         version_override: Option<Version>,
+        #[clap(value_enum)]
+        #[arg(short, long, default_value_t = ExportStrategy::Binary)]
+        export_strategy: ExportStrategy,
     },
     #[clap(alias = "c")]
     Create {
@@ -234,12 +238,14 @@ fn main() -> BffCliResult<()> {
             in_names,
             platform_override,
             version_override,
+            export_strategy,
         } => extract::extract(
             bigfile,
             directory,
             in_names,
             platform_override,
             version_override,
+            export_strategy,
         ),
         Commands::Create {
             directory,

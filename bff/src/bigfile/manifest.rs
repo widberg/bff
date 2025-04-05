@@ -26,6 +26,7 @@ pub struct ManifestPool {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestObject {
     pub name: Name,
+    // TODO: Instead of a bool this should be an enum for compression type
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
 }

@@ -45,7 +45,11 @@ pub struct LodBodyV1_291_03_06PC {
     close: Vec3f,
     component_names: DynArray<Name>,
     shadow_name: Name,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     anims: BffOption<DynArray<ClassRes>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     sounds: BffOption<DynArray<ClassRes>>,
     user_define_name: Name,
 }

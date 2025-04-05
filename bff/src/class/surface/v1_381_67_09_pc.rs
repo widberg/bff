@@ -49,7 +49,7 @@ struct Edge {
 }
 
 #[bitsize(16)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 struct ShouldDrawBitfield {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
@@ -97,6 +97,8 @@ pub struct SurfaceBodyV1_381_67_09PC {
     vertex10s: DynArray<Vec2f>,
     should_draw_relateds: DynArray<ShouldDrawBitfield>,
     unused12s: DynArray<Unused12>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     sead_index: BffOption<SeadIndex>,
 }
 

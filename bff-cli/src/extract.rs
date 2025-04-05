@@ -5,10 +5,22 @@ use std::path::{Path, PathBuf};
 use bff::BufReader;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
+use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
 use bff::bigfile::versions::Version;
+use bff::class::Class;
 use bff::names::Name;
+use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
+use clap::ValueEnum;
 
 use crate::error::BffCliResult;
+
+#[derive(ValueEnum, Clone, Copy, Debug)]
+pub enum ExportStrategy {
+    #[value(alias("b"))]
+    Binary,
+    #[value(alias("r"))]
+    Rich,
+}
 
 pub fn read_bigfile_names(bigfile_path: &Path) -> BffCliResult<()> {
     if let Some(extension) = bigfile_path.extension() {
@@ -83,12 +95,78 @@ fn clean_path(path: String) -> String {
         .collect()
 }
 
+fn dump_bff_resource(
+    resources_path: &Path,
+    bigfile: &BigFile,
+    resource: &Resource,
+) -> BffCliResult<()> {
+    let name = clean_path(format!("{}", resource.name));
+    let class_name = resource.class_name;
+    let mut path = resources_path.join(format!("{}.{}", name, class_name));
+    let mut i = 0;
+    while path.exists() {
+        path.set_file_name(format!("{}_{}.{}", name, i, class_name));
+        i += 1;
+    }
+    let mut writer = BufWriter::new(File::create(path)?);
+    bigfile.dump_bff_resource(resource, &mut writer)?;
+    Ok(())
+}
+
+fn export_bff_resource(
+    resources_path: &Path,
+    bigfile: &BigFile,
+    resource: &Resource,
+) -> BffCliResult<()> {
+    let platform = bigfile.manifest.platform;
+    let version = bigfile.manifest.version.clone();
+    let header = BffResourceHeader {
+        platform,
+        version: version.clone(),
+    };
+
+    let class: Class = resource.try_into_version_platform(version.clone(), platform)?;
+    let bff_class = BffClass { header, class };
+
+    let name = clean_path(format!("{}", resource.name));
+    let class_name = resource.class_name;
+    let mut directory = resources_path.join(format!("{}.{}.d", name, class_name));
+    let mut i = 0;
+    while directory.exists() {
+        directory.set_file_name(format!("{}_{}.{}.d", name, i, class_name));
+        i += 1;
+    }
+
+    std::fs::create_dir(&directory)?;
+
+    let resource_serialized_path = directory.join("resource.json");
+    let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
+    serde_json::to_writer_pretty(resource_serialized_writer, &bff_class)?;
+
+    if let Ok(artifacts) = bff_class.class.export() {
+        for (name, artifact) in artifacts {
+            let artifact_path = directory.join(name);
+
+            match artifact {
+                Artifact::Binary(bytes) => {
+                    std::fs::write(artifact_path.with_extension("bin"), bytes)?
+                }
+                Artifact::Dds(bytes) => std::fs::write(artifact_path.with_extension("dds"), bytes)?,
+                Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
+            }
+        }
+    }
+
+    Ok(())
+}
+
 pub fn extract(
     bigfile_path: &Path,
     directory: &Path,
     in_names: &Vec<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
+    export_strategy: &ExportStrategy,
 ) -> BffCliResult<()> {
     read_bigfile_names(bigfile_path)?;
     read_in_names(in_names)?;
@@ -105,19 +183,12 @@ pub fn extract(
     std::fs::create_dir(&resources_path)?;
 
     for resource in bigfile.objects.values() {
-        let name = clean_path(format!("{}", resource.name));
-        let class_name = resource.class_name;
-        let mut path = resources_path.join(format!("{}.{}", name, class_name));
-        let mut i = 0;
-        // TODO: Should check if the file contains the same object and overwrite it.
-        // This will be easier once there is a bff header for the files.
-        // Also need to think about a "--sync" option to apply names after an extract.
-        while path.exists() {
-            path.set_file_name(format!("{}_{}.{}", name, i, class_name));
-            i += 1;
+        if matches!(*export_strategy, ExportStrategy::Rich)
+            && export_bff_resource(&resources_path, &bigfile, resource).is_ok()
+        {
+            continue;
         }
-        let mut writer = BufWriter::new(File::create(path)?);
-        bigfile.dump_bff_resource(resource, &mut writer)?;
+        dump_bff_resource(&resources_path, &bigfile, resource)?;
     }
 
     Ok(())

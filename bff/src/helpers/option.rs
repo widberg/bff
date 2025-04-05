@@ -28,3 +28,19 @@ pub struct BffOption<
     #[serde(skip)]
     _phantom: PhantomData<ConditionType>,
 }
+
+impl<InnerType: BinRead + BinWrite, ConditionType: BinRead + BinWrite + One + Zero + Eq> Default
+    for BffOption<InnerType, ConditionType>
+where
+    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
+    for<'a> <ConditionType as BinRead>::Args<'a>: Default,
+    for<'a> InnerType: BinWrite<Args<'a> = ()>,
+    for<'a> ConditionType: BinWrite<Args<'a> = ()>,
+{
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+            _phantom: Default::default(),
+        }
+    }
+}

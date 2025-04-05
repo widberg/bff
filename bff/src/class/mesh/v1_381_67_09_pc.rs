@@ -73,7 +73,7 @@ struct Unused8 {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 struct D3DFlags {
     d3d_pool_default: u1,
     d3d_pool_managed: u1,

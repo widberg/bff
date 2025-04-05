@@ -42,6 +42,8 @@ pub struct LodDataBodyV1_06_63_02PC {
     obj_datas: ObjectDatas,
     mesh_data_or_skelcrc32s: DynArray<Name>,
     final_skel_name: Name,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     actor_data: BffOption<ActorData>,
 }
 

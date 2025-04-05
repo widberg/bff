@@ -52,7 +52,7 @@ pub fn create_resource(
         }
     }
 
-    bff_class.class.import(&artifacts)?;
+    let _ = bff_class.class.import(&artifacts);
 
     let platform = platform_override.unwrap_or(bff_class.header.platform);
     let version = version_override

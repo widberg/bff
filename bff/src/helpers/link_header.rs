@@ -21,7 +21,7 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeader {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
 pub struct ObjectDatasFlagsV1_381_67_09PC {
     fl_objectdatas_hide: u1,
     fl_objectdatas_code_control: u1,
@@ -40,7 +40,9 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, FromBits, DebugBits, SerializeBits, BinWrite, Deserialize, ReferencedNames)]
+#[derive(
+    BinRead, FromBits, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames,
+)]
 pub struct ObjectFlagsV1_381_67_09PC {
     fl_object_init: u1,
     fl_object_max_bsphere: u1,
