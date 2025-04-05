@@ -60,6 +60,7 @@ pub struct LinkHeader {
     #[serde(skip)]
     height: u32,
     #[generic]
+    #[serde(skip)]
     precalculated_size: u32,
     flags: u8,
     bitmap_type: u8,
@@ -72,6 +73,7 @@ pub struct LinkHeader {
     mipmap_count: u8,
     four: u8,
     bitmap_class2: BitmapClass2,
+    #[serde(skip)]
     format1: BmFormat,
     transparency: BmTransp,
 }
@@ -148,8 +150,10 @@ impl Import for BitmapV1_381_67_09PC {
         let dds = Dds::read(dds_reader).map_err(|_| Error::ImportBadArtifact)?;
         self.link_header.width = dds.get_width();
         self.link_header.height = dds.get_height();
+        self.link_header.precalculated_size = dds.data.len() as u32;
         self.link_header.mipmap_count = dds.get_num_mipmap_levels() as u8;
         self.link_header.format0 = dds.get_d3d_format().unwrap().try_into()?;
+        self.link_header.format1 = dds.get_d3d_format().unwrap().try_into()?;
         self.body.data = dds.data;
         Ok(())
     }
