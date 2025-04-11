@@ -91,7 +91,7 @@ enum Commands {
         #[arg(long)]
         in_names: Vec<PathBuf>,
         #[arg(long)]
-        out_reference_map: Option<PathBuf>,
+        out_reference_graph: Option<PathBuf>,
     },
     #[clap(alias = "rt")]
     RoundTrip { bigfile: PathBuf },
@@ -289,7 +289,7 @@ fn main() -> BffCliResult<()> {
         Commands::Info {
             bigfile,
             in_names,
-            out_reference_map: out_dependencies,
+            out_reference_graph: out_dependencies,
         } => info::info(bigfile, in_names, out_dependencies),
         Commands::Names {
             bigfile,

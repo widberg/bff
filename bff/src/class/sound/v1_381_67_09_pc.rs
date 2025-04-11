@@ -11,6 +11,7 @@ use crate::traits::{Export, Import};
 )]
 #[generic(name(SoundHeaderGeneric))]
 pub struct LinkHeader {
+    #[referenced_names(skip)]
     link_name: Name,
     #[generic]
     sample_rate: u32,

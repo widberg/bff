@@ -9,6 +9,7 @@ use crate::traits::TryFromGenericSubstitute;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ResourceObjectLinkHeader {
+    #[referenced_names(skip)]
     link_name: Name,
 }
 
@@ -97,6 +98,7 @@ pub enum ObjectType {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ObjectLinkHeaderV1_381_67_09PC {
+    #[referenced_names(skip)]
     link_name: Name,
     data_name: Name,
     rot: Quat,
@@ -108,6 +110,7 @@ pub struct ObjectLinkHeaderV1_381_67_09PC {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct ObjectLinkHeaderV1_06_63_02PC {
+    #[referenced_names(skip)]
     link_name: Name,
     names: DynArray<Name>,
     data_name: Name,

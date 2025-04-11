@@ -9,6 +9,7 @@ pub mod macros;
 pub mod names;
 pub mod traits;
 pub mod tsc;
+pub use petgraph; // Re-export petgraph for use with BigFile::reference_graph
 
 pub type BffError = crate::error::Error;
 pub type BffResult<T> = std::result::Result<T, BffError>;

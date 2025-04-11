@@ -51,6 +51,7 @@ enum BmTransp {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(name(BitmapHeaderGeneric))]
 pub struct LinkHeader {
+    #[referenced_names(skip)]
     link_name: Name,
     bitmap_class: BitmapClass,
     #[generic]

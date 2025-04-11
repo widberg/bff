@@ -13,9 +13,10 @@ mod v2_128_92_19_pc;
 mod v2_256_38_19_pc;
 pub mod versions;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use bff_derive::bigfiles;
+use petgraph::Graph;
 use serde::Serialize;
 
 use crate::bigfile::manifest::Manifest;
@@ -49,22 +50,27 @@ pub struct BigFile {
 }
 
 impl BigFile {
-    pub fn reference_map(&self) -> HashMap<Name, HashSet<Name>> {
-        self.objects
-            .iter()
-            .map(|(name, resource)| {
-                (
-                    *name,
-                    <&Resource as TryIntoVersionPlatform<Class>>::try_into_version_platform(
-                        resource,
-                        self.manifest.version.clone(),
-                        self.manifest.platform,
-                    )
-                    .map(|class| class.referenced_names())
-                    .unwrap_or_default(),
+    pub fn reference_graph(&self) -> Graph<Name, ()> {
+        let mut graph = Graph::new();
+        let mut node_ids = HashMap::new();
+        for (&name, resource) in &self.objects {
+            let references =
+                <&Resource as TryIntoVersionPlatform<Class>>::try_into_version_platform(
+                    resource,
+                    self.manifest.version.clone(),
+                    self.manifest.platform,
                 )
-            })
-            .collect()
+                .map(|class| class.referenced_names())
+                .unwrap_or_default();
+            let from_id = *node_ids.entry(name).or_insert_with(|| graph.add_node(name));
+            for reference in references {
+                let to_id = *node_ids
+                    .entry(reference)
+                    .or_insert_with(|| graph.add_node(reference));
+                graph.add_edge(from_id, to_id, ());
+            }
+        }
+        graph
     }
 }
 
