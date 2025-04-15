@@ -22,6 +22,8 @@ pub enum CrcAlgorithm {
     Ubisoft64,
     #[value(alias("net"))]
     RaceNet32,
+    #[value(alias("m"))]
+    MQFEL32,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -84,7 +86,7 @@ fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcForm
         }
         CrcAlgorithm::Asobo64 => format_hash64(Asobo64::hash_options(bytes, starting), format),
         CrcAlgorithm::Ubisoft64 => format_hash64(Ubisoft64::hash_options(bytes, starting), format),
-        CrcAlgorithm::RaceNet32 => {
+        CrcAlgorithm::RaceNet32 | CrcAlgorithm::MQFEL32 => {
             format_hash(RaceNet32::hash_options(bytes, starting as i32), format)
         }
     }
