@@ -37,6 +37,7 @@ impl Resource {
 #[brw(little, magic = b"BFF0")] // Increment number when format changes
 pub struct BffResourceHeader {
     pub platform: Platform,
+    #[brw(align_after = 0x4)]
     pub version: Version,
 }
 
