@@ -7,7 +7,6 @@ use crc::{CrcAlgorithm, CrcFormat, CrcMode};
 use error::BffCliResult;
 use extract::ExportStrategy;
 use lz::LzEndian;
-use reverse_crc32::DEFAULT_CHARACTER_SET;
 
 use crate::lz::LzAlgorithm;
 
@@ -24,8 +23,6 @@ mod info;
 mod lz;
 mod names;
 mod psc;
-mod reverse_crc32;
-mod round_trip;
 mod stdio_or_path;
 mod try_your_best;
 
@@ -94,8 +91,6 @@ enum Commands {
         #[arg(long)]
         out_reference_graph: Option<PathBuf>,
     },
-    #[clap(alias = "rt")]
-    RoundTrip { bigfile: PathBuf },
     Names {
         bigfile: Option<PathBuf>,
         #[clap(value_enum)]
@@ -124,24 +119,6 @@ enum Commands {
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcFormat::Signed)]
         format: CrcFormat,
-    },
-    #[clap(alias = "rcrc32")]
-    ReverseCrc32 {
-        string: String,
-        target: i32,
-        #[arg(
-            short,
-            long,
-            default_value_t = 0,
-            help = "Starting value for the CRC-32 calculation"
-        )]
-        starting: i32,
-        #[arg(short, long, default_value_t = 0)]
-        min_filler_length: usize,
-        #[arg(short, long, default_value_t = 10)]
-        max_filler_length: usize,
-        #[arg(short, long, default_value_t = DEFAULT_CHARACTER_SET.to_string())]
-        character_set: String,
     },
     Unlz {
         compressed: StdioOrPath,
@@ -319,22 +296,6 @@ fn main() -> BffCliResult<()> {
             endian,
             algorithm,
         } => lz::lz(uncompressed, compressed, endian, algorithm),
-        Commands::ReverseCrc32 {
-            string,
-            target,
-            starting,
-            min_filler_length,
-            max_filler_length,
-            character_set,
-        } => reverse_crc32::reverse_crc32(
-            string,
-            target,
-            starting,
-            min_filler_length,
-            max_filler_length,
-            character_set,
-        ),
-        Commands::RoundTrip { bigfile } => round_trip::round_trip(bigfile),
         Commands::Csc { input, output, key } => csc::csc(input, output, key),
         Commands::ExtractPsc {
             psc,
