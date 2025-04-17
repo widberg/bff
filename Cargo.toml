@@ -24,3 +24,11 @@ use_self = "warn"
 used_underscore_binding = "warn"
 used_underscore_items = "warn"
 useless_let_if_seq = "warn"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 3
