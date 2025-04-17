@@ -67,7 +67,7 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         .iter()
         .map(|form| {
             let body = &form.body;
-            quote! { #body(#body) }
+            quote! { #body(std::boxed::Box<#body>) }
         })
         .collect::<Vec<_>>();
 
@@ -182,7 +182,7 @@ fn impl_from_object_to_shadow_class(input: &BffClassMacroInput) -> proc_macro2::
             #(#attrs)*
             #pat #guard => {
                 let shadow_class: #body = <&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<#body>>::try_into_version_platform(object, version, platform)?;
-                Ok(shadow_class.into())
+                Ok(std::boxed::Box::new(shadow_class).into())
             }
         }
     }).collect::<Vec<_>>();
@@ -278,7 +278,7 @@ fn impl_from_shadow_class_to_generic(input: &BffClassMacroInput) -> proc_macro2:
             quote! {
                 #(#attrs)*
                 #class::#body(class) => {
-                    class.into()
+                    (*class).into()
                 }
             }
         })

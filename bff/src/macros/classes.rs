@@ -2,7 +2,7 @@ macro_rules! classes {
     ($($class:ident),* $(,)?) => {
         #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames)]
         pub enum Class {
-            $($class(Box<$class>),)*
+            $($class($class),)*
         }
 
         #[derive(serde::Serialize, Debug, serde::Deserialize)]
@@ -47,7 +47,7 @@ macro_rules! classes {
                     | crate::names::Name::Kalisto32($class::NAME) | crate::names::Name::Kalisto32($class::NAME_LEGACY)
                     | crate::names::Name::BlackSheep32($class::NAME) | crate::names::Name::BlackSheep32($class::NAME_LEGACY)
                     | crate::names::Name::Asobo64($class::NAME) | crate::names::Name::Asobo64($class::NAME_LEGACY)
-                        => Ok(Box::new(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?).into()),)*
+                        => Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?.into()),)*
                     _ => Err(crate::error::UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
                 }
             }
@@ -57,9 +57,8 @@ macro_rules! classes {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(class: &Class, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use std::ops::Deref;
                 match class {
-                    $(Class::$class(class) => Ok(<&$class as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class.deref(), version, platform)?),)*
+                    $(Class::$class(class) => Ok(<&$class as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)?),)*
                 }
             }
         }
@@ -110,18 +109,16 @@ macro_rules! classes {
 
         impl crate::traits::Export for Class {
             fn export(&self) -> crate::BffResult<std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>> {
-                use std::ops::Deref;
                 match self {
-                    $(Class::$class(class) => <$class as crate::traits::Export>::export(class.deref()),)*
+                    $(Class::$class(class) => <$class as crate::traits::Export>::export(class),)*
                 }
             }
         }
 
         impl crate::traits::Import for Class {
             fn import(&mut self, artifacts: &std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>) -> crate::BffResult<()> {
-                use std::ops::DerefMut;
                 match self {
-                    $(Class::$class(class) => <$class as crate::traits::Import>::import(class.deref_mut(), artifacts),)*
+                    $(Class::$class(class) => <$class as crate::traits::Import>::import(class, artifacts),)*
                 }
             }
         }

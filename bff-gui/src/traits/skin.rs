@@ -27,7 +27,7 @@ impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
             .flat_map(|n| {
                 let class = classes.get(n).unwrap();
                 match class {
-                    Class::Mesh(box_mesh) => match **box_mesh {
+                    Class::Mesh(mesh) => match *mesh {
                         bff::class::mesh::Mesh::MeshV1_291_03_06PC(ref mesh) => {
                             mesh.generate_mesh()
                         }
@@ -57,7 +57,7 @@ impl RecursiveExport for bff::class::skin::v1_291_03_06_pc::SkinV1_291_03_06PC {
             .map(|(i, subsection)| {
                 if let Some(class) = classes.get(&subsection.material_name) {
                     match class {
-                        Class::Material(box_material) => match **box_material {
+                        Class::Material(material) => match *material {
                             bff::class::material::Material::MaterialV1_291_03_06PC(
                                 ref material,
                             ) => three_d::renderer::material::CpuMaterial {

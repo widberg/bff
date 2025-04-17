@@ -12,43 +12,37 @@ use crate::traits::export::{Export, RecursiveExport};
 
 pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
     match class {
-        Class::Bitmap(box_bitmap) => {
-            let generic = BitmapGeneric::from(*box_bitmap);
+        Class::Bitmap(bitmap) => {
+            let generic = BitmapGeneric::from(bitmap);
             let artifact = generic.export();
             Some(artifact)
         }
-        Class::Sound(box_sound) => {
-            let generic = SoundGeneric::from(*box_sound);
+        Class::Sound(sound) => {
+            let generic = SoundGeneric::from(sound);
             let artifact = generic.export();
             Some(artifact)
         }
-        Class::Mesh(box_mesh) => match *box_mesh {
-            bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh) => Some(mesh.export()),
-            _ => None,
-        },
-        Class::Skin(box_skin) => match *box_skin {
-            bff::class::skin::Skin::SkinV1_291_03_06PC(skin) => {
-                // let dependency_names = ;
-                let dependency_classes: HashMap<Name, Class> = skin
-                    .dependencies()
-                    .iter()
-                    .filter_map(|n| bigfile.objects.get(n))
-                    .map(|r| {
-                        (
-                            r.name,
-                            TryIntoVersionPlatform::<Class>::try_into_version_platform(
-                                r,
-                                bigfile.manifest.version.clone(),
-                                bigfile.manifest.platform,
-                            )
-                            .unwrap(),
+        Class::Mesh(bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh)) => Some(mesh.export()),
+        Class::Skin(bff::class::skin::Skin::SkinV1_291_03_06PC(skin)) => {
+            // let dependency_names = ;
+            let dependency_classes: HashMap<Name, Class> = skin
+                .dependencies()
+                .iter()
+                .filter_map(|n| bigfile.objects.get(n))
+                .map(|r| {
+                    (
+                        r.name,
+                        TryIntoVersionPlatform::<Class>::try_into_version_platform(
+                            r,
+                            bigfile.manifest.version.clone(),
+                            bigfile.manifest.platform,
                         )
-                    })
-                    .collect();
-                Some(skin.export(&dependency_classes))
-            }
-            _ => None,
-        },
+                        .unwrap(),
+                    )
+                })
+                .collect();
+            Some(skin.export(&dependency_classes))
+        }
         _ => None,
     }
 }
