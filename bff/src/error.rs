@@ -65,4 +65,5 @@ pub enum Error {
     Utf8(std::string::FromUtf8Error),
     UnimplementedImportExport,
     ImportBadArtifact,
+    UnconsumedInput,
 }

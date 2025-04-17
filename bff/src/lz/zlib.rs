@@ -15,15 +15,33 @@ pub fn zlib_decompress_body_parser(
     let read_decompressed_size = reader.read_le::<u32>()?;
     let read_compressed_size = reader.read_le::<u32>()?;
 
-    assert_eq!(decompressed_size, read_decompressed_size);
-    assert_eq!(compressed_size - 8, read_compressed_size);
+    let compressed_size = compressed_size - 8;
 
-    zlib_decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
+    if decompressed_size != read_decompressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position()?,
+            message: format!(
+                "LZRS decompressed size from resource header does not match compressed data: {} != {}",
+                decompressed_size, read_decompressed_size
+            ),
+        });
+    }
+
+    if compressed_size != read_compressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position().unwrap(),
+            message: format!(
+                "LZRS compressed size from resource header does not match compressed data: {} != {}",
+                compressed_size, read_compressed_size
+            ),
+        });
+    }
+
+    zlib_decompress_data_parser(reader, endian, (decompressed_size, compressed_size))
 }
 
 #[binrw::writer(writer)]
 pub fn zlib_compress_data_writer(data: &[u8]) -> BinResult<()> {
-    // TODO: Don't use asserts. Add proper error handling.
     // TODO: Not the same parameters used by the game.
     let mut encoder = ZlibEncoder::new(Vec::new(), flate2::Compression::best());
     encoder.write_all(data)?;
@@ -70,7 +88,16 @@ pub fn zlib_decompress_data_parser(
         let mut decompressed_buffer = Vec::with_capacity(decompressed_size as usize);
         decoder.read_to_end(&mut decompressed_buffer)?;
 
-        assert_eq!(decompressed_buffer.len(), decompressed_size as usize);
+        if decompressed_buffer.len() != decompressed_size as usize {
+            return BinResult::Err(binrw::Error::AssertFail {
+                pos: reader.stream_position()?,
+                message: format!(
+                    "LZ4 decompressed buffer length was unexpected: {} != {}",
+                    decompressed_buffer.len(),
+                    decompressed_size as usize
+                ),
+            });
+        }
 
         Ok(decompressed_buffer)
     } else {

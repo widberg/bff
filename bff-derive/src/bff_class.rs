@@ -39,6 +39,7 @@ pub fn derive_bff_class(input: BffClassMacroInput) -> TokenStream {
     let from_object_to_shadow_class = impl_from_object_to_shadow_class(&input);
     let from_shadow_class_to_object = impl_from_shadow_class_to_object(&input);
     let from_shadow_class_to_generic = impl_from_shadow_class_to_generic(&input);
+    let try_your_best = impl_try_your_best(&input);
 
     if input.has_generic {
         quote! {
@@ -46,12 +47,14 @@ pub fn derive_bff_class(input: BffClassMacroInput) -> TokenStream {
             #from_object_to_shadow_class
             #from_shadow_class_to_object
             #from_shadow_class_to_generic
+            #try_your_best
         }
     } else {
         quote! {
             #enum_class
             #from_object_to_shadow_class
             #from_shadow_class_to_object
+            #try_your_best
         }
     }
 }
@@ -118,6 +121,49 @@ fn impl_enum_class(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
         }
 
         #import_export
+    }
+}
+
+fn impl_try_your_best(input: &BffClassMacroInput) -> proc_macro2::TokenStream {
+    let class = &input.class;
+
+    let variants = input
+        .forms
+        .iter()
+        .map(|form| &form.body)
+        .collect::<Vec<_>>();
+
+    let report_struct = quote::format_ident!("{}TryYourBestReport", class);
+
+    quote! {
+        #[allow(non_snake_case)]
+        #[derive(Default, Clone, Copy, Debug)]
+        pub struct #report_struct {
+            pub total: usize,
+            #(#variants: usize),*
+        }
+
+        impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for #class {
+            type Report = #report_struct;
+            fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
+                report.total += 1;
+                // TODO: Probably need a way to do this without specifying a version.
+                #(
+                    report.#variants += <bool as Into<usize>>::into(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<#variants>>::try_into_version_platform(resource, crate::bigfile::versions::Version::Asobo(0, 0, 0, 0), platform).is_ok());
+                )*
+            }
+        }
+
+        impl std::fmt::Display for #report_struct {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                writeln!(f, "{}", stringify!(#class))?;
+                writeln!(f, "Total: {}", self.total)?;
+                #(
+                    writeln!(f, "{}: {}", stringify!(#variants), self.#variants)?;
+                )*
+                Ok(())
+            }
+        }
     }
 }
 

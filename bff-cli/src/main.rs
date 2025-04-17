@@ -27,6 +27,7 @@ mod psc;
 mod reverse_crc32;
 mod round_trip;
 mod stdio_or_path;
+mod try_your_best;
 
 use shadow_rs::shadow;
 
@@ -219,6 +220,8 @@ enum Commands {
         fat: PathBuf,
         lin: PathBuf,
     },
+    #[clap(alias = "tyb")]
+    TryYourBest { path: PathBuf },
 }
 
 #[derive(Parser)]
@@ -364,5 +367,6 @@ fn main() -> BffCliResult<()> {
             fat,
             lin,
         } => fat_lin::create_fat_lin(directory, fat, lin),
+        Commands::TryYourBest { path } => try_your_best::try_your_best(path),
     }
 }

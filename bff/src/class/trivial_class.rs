@@ -1,9 +1,10 @@
-use std::io::Cursor;
+use std::io::{BufRead, Cursor};
 
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use crate::BffError;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
@@ -23,6 +24,10 @@ pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub compress: bool,
     pub link_header: LinkHeaderType,
     pub body: BodyType,
+}
+
+fn is_eof(cursor: &mut std::io::Cursor<&&std::vec::Vec<u8>>) -> bool {
+    cursor.fill_buf().map(|buf| buf.is_empty()).unwrap_or(true)
 }
 
 impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&Resource>
@@ -48,10 +53,14 @@ where
                     platform.into(),
                     <LinkHeaderType as binrw::BinRead>::Args::default(),
                 )?;
-                // TODO: Make sure whole link_header was consumed
+                is_eof(&mut link_header_cursor)
+                    .then_some(())
+                    .ok_or(BffError::UnconsumedInput)?;
                 let body =
                     BodyType::read_options(&mut body_cursor, platform.into(), (&link_header,))?;
-                // TODO: Make sure whole body was consumed
+                is_eof(&mut body_cursor)
+                    .then_some(())
+                    .ok_or(BffError::UnconsumedInput)?;
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,
@@ -70,7 +79,9 @@ where
                 )?;
                 let body =
                     BodyType::read_options(&mut data_cursor, platform.into(), (&link_header,))?;
-                // TODO: Make sure whole data was consumed
+                is_eof(&mut data_cursor)
+                    .then_some(())
+                    .ok_or(BffError::UnconsumedInput)?;
                 Ok(Self {
                     class_name: object.class_name,
                     name: object.name,

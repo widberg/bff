@@ -13,15 +13,31 @@ pub fn lz4_decompress_body_parser(
     let read_decompressed_size = reader.read_le::<u32>()?;
     let read_compressed_size = reader.read_le::<u32>()?;
 
-    assert_eq!(decompressed_size, read_decompressed_size);
-    assert_eq!(compressed_size, read_compressed_size);
+    if decompressed_size != read_decompressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position()?,
+            message: format!(
+                "LZ4 decompressed size from resource header does not match compressed data: {} != {}",
+                decompressed_size, read_decompressed_size
+            ),
+        });
+    }
+
+    if compressed_size != read_compressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position().unwrap(),
+            message: format!(
+                "LZ4 compressed size from resource header does not match compressed data: {} != {}",
+                compressed_size, read_compressed_size
+            ),
+        });
+    }
 
     lz4_decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
 }
 
 #[binrw::writer(writer)]
 pub fn lz4_compress_data_writer(data: &[u8]) -> BinResult<()> {
-    // TODO: Don't use asserts. Add proper error handling.
     // TODO: Not the same parameters used by the game.
     let compress_bound = unsafe { lz4::liblz4::LZ4_compressBound(data.len() as i32) as usize };
     let mut compressed_buffer: Vec<u8> = Vec::with_capacity(compress_bound);
@@ -32,7 +48,12 @@ pub fn lz4_compress_data_writer(data: &[u8]) -> BinResult<()> {
             data.len() as i32,
             compressed_buffer.capacity() as i32,
         );
-        assert!(result >= 0);
+        if result < 0 {
+            return BinResult::Err(binrw::Error::AssertFail {
+                pos: writer.stream_position()?,
+                message: format!("LZ4 compression failed with code {}", result),
+            });
+        }
         compressed_buffer.set_len(result as usize);
     }
     writer.write_all(&compressed_buffer)?;
@@ -71,7 +92,6 @@ pub fn lz4_decompress_data_parser(
     decompressed_size: u32,
     compressed_size: u32,
 ) -> BinResult<Vec<u8>> {
-    // TODO: Don't use asserts. Add proper error handling.
     if compressed_size != 0 {
         let compressed_buffer =
             Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
@@ -83,10 +103,24 @@ pub fn lz4_decompress_data_parser(
                 compressed_size as i32,
                 decompressed_size as i32,
             );
-            assert!(result >= 0);
+            if result < 0 {
+                return BinResult::Err(binrw::Error::AssertFail {
+                    pos: reader.stream_position()?,
+                    message: format!("LZ4 decompression failed with code {}", result),
+                });
+            }
             decompressed_buffer.set_len(result as usize);
         }
-        assert_eq!(decompressed_buffer.len(), decompressed_size as usize);
+        if decompressed_buffer.len() != decompressed_size as usize {
+            return BinResult::Err(binrw::Error::AssertFail {
+                pos: reader.stream_position()?,
+                message: format!(
+                    "LZ4 decompressed buffer length was unexpected: {} != {}",
+                    decompressed_buffer.len(),
+                    decompressed_size as usize
+                ),
+            });
+        }
 
         Ok(decompressed_buffer)
     } else {

@@ -18,6 +18,7 @@ impl Parse for BffBigFileMacroInput {
 }
 
 pub fn derive_bigfiles(input: BffBigFileMacroInput) -> TokenStream {
+    let try_your_best_bigfile = impl_try_your_best_bigfile(&input);
     let read_bigfile = impl_read_bigfile(&input);
     let write_bigfile = impl_write_bigfile(&input);
     let (dump_resource, dump_resource_resource) = impl_dump_resource(&input);
@@ -32,12 +33,56 @@ pub fn derive_bigfiles(input: BffBigFileMacroInput) -> TokenStream {
             #read_resource
         }
 
+        #try_your_best_bigfile
+
         impl crate::bigfile::resource::Resource {
             #dump_resource_resource
             #read_resource_resource
         }
 
         #version_into_name_type
+    }
+}
+
+fn impl_try_your_best_bigfile(input: &BffBigFileMacroInput) -> proc_macro2::TokenStream {
+    let variants = input
+        .forms
+        .iter()
+        .map(|form| &form.body)
+        .collect::<Vec<_>>();
+    quote! {
+        #[allow(non_snake_case)]
+        #[derive(Default, Clone, Copy, Debug)]
+        pub struct BigFileTryYourBestReport {
+            pub total: usize,
+            #(#variants: usize),*
+        }
+
+        impl<R: std::io::Read + std::io::Seek> crate::traits::TryYourBest<&mut R> for BigFile {
+            type Report = BigFileTryYourBestReport;
+            fn update_report(reader: &mut R, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
+                use crate::traits::BigFileIo;
+                report.total += 1;
+                // TODO: Probably need a way to do this without specifying a version.
+                #(
+                    reader.seek(std::io::SeekFrom::Start(256)).unwrap();
+                    report.#variants += {crate::names::names().lock().unwrap().name_type = <#variants as BigFileIo>::NAME_TYPE;
+                        <bool as Into<usize>>::into(<#variants as BigFileIo>::read(reader, crate::bigfile::versions::Version::Asobo(0, 0, 0, 0), platform).is_ok())};
+                )*
+                reader.rewind().unwrap();
+            }
+        }
+
+        impl std::fmt::Display for BigFileTryYourBestReport {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                writeln!(f, "BigFile")?;
+                writeln!(f, "Total: {}", self.total)?;
+                #(
+                    writeln!(f, "{}: {}", stringify!(#variants), self.#variants)?;
+                )*
+                Ok(())
+            }
+        }
     }
 }
 

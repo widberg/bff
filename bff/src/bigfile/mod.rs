@@ -86,7 +86,6 @@ bigfiles! {
     (Asobo(1, 0 | 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
     (Asobo(2, 128, 92 | 18, _), _) => BigFileV2_128_92_19PC,
-    (Asobo(2, 256, 49, _), _) => BigFileV2_128_52_19PC,
+    (Asobo(2, 256, 49, _) | Asobo(2, 128, 52, _), _) => BigFileV2_128_52_19PC,
     (Asobo(2, 256, _, _), _) => BigFileV2_256_38_19PC,
-    (Asobo(2, 128, 52, _), _) => BigFileV2_128_52_19PC,
 }

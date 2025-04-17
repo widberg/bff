@@ -19,8 +19,25 @@ pub fn lzrs_decompress_body_parser(
     // in the compressed data.
     // compressed_size includes the 8 bytes taken up by the duplicate
     // size fields.
-    assert_eq!(decompressed_size, read_decompressed_size);
-    assert_eq!(compressed_size, read_compressed_size);
+    if decompressed_size != read_decompressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position()?,
+            message: format!(
+                "LZRS decompressed size from resource header does not match compressed data: {} != {}",
+                decompressed_size, read_decompressed_size
+            ),
+        });
+    }
+
+    if compressed_size != read_compressed_size {
+        return BinResult::Err(binrw::Error::AssertFail {
+            pos: reader.stream_position().unwrap(),
+            message: format!(
+                "LZRS compressed size from resource header does not match compressed data: {} != {}",
+                compressed_size, read_compressed_size
+            ),
+        });
+    }
 
     lzrs_decompress_data_parser(reader, endian, (decompressed_size, compressed_size - 8))
 }

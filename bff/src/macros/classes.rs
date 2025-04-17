@@ -64,9 +64,48 @@ macro_rules! classes {
             }
         }
 
-        pub fn class_names() -> Vec<&'static str> {
+        pastey::paste! {
+            #[allow(non_snake_case)]
+            #[derive(Default, Debug, Clone, Copy)]
+            pub struct ClassTryYourBestReport {
+                pub total: usize,
+                $($class: crate::class::[<#$class:snake>]::[<$class TryYourBestReport>]),*
+            }
+        }
+
+        impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for Class {
+            type Report = ClassTryYourBestReport;
+            fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
+                use crate::traits::NamedClass;
+                report.total += 1;
+                match resource.class_name {
+                    $(crate::names::Name::Asobo32($class::NAME) | crate::names::Name::Asobo32($class::NAME_LEGACY)
+                    | crate::names::Name::AsoboAlternate32($class::NAME) | crate::names::Name::AsoboAlternate32($class::NAME_LEGACY)
+                    | crate::names::Name::Kalisto32($class::NAME) | crate::names::Name::Kalisto32($class::NAME_LEGACY)
+                    | crate::names::Name::BlackSheep32($class::NAME) | crate::names::Name::BlackSheep32($class::NAME_LEGACY)
+                    | crate::names::Name::Asobo64($class::NAME) | crate::names::Name::Asobo64($class::NAME_LEGACY)
+                        => <$class as crate::traits::TryYourBest<&crate::bigfile::resource::Resource>>::update_report(resource, platform, &mut report.$class),)*
+                    _ => {},
+                }
+            }
+        }
+
+        pastey::paste! {
+            impl std::fmt::Display for ClassTryYourBestReport {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    writeln!(f, "ClassTryYourBestReport")?;
+                    writeln!(f, "Total: {}", self.total)?;
+                    $(if self.$class.total != 0 {
+                        <crate::class::[<#$class:snake>]::[<$class TryYourBestReport>] as std::fmt::Display>::fmt(&self.$class, f)?;
+                    })*
+                    Ok(())
+                }
+            }
+        }
+
+        pub fn class_names() -> &'static[&'static str] {
             use crate::traits::NamedClass;
-            vec![$($class::NAME,$class::NAME_LEGACY,)*]
+            &[$($class::NAME,$class::NAME_LEGACY,)*]
         }
 
         impl crate::traits::Export for Class {
