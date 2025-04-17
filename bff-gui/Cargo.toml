@@ -42,7 +42,7 @@ windows = { version = "0.61.1", features = [
 winres = "0.1.12"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.33.0", features = ["rt-multi-thread", "time"] }
+tokio = { version = "1.44.2", features = ["rt-multi-thread", "time"] }
 
 # https://github.com/rust-lang/cargo/issues/1197
 [target.'cfg(target_arch = "wasm32")'.dependencies]
