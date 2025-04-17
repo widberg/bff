@@ -1,9 +1,9 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use serde::{Deserialize, Serialize};
 
-use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
+use super::generic::{CollisionAABB, Strip, VertexGroupFlags, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     BffMap,
@@ -87,21 +87,29 @@ struct D3DFlags {
     padding1: u24,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 struct VertexBufferExt {
+    #[br(temp)]
+    #[bw(calc = vertices.len() as u32)]
     vertex_count: u32,
+    #[br(temp)]
+    #[bw(calc = vertices.layout() as u32)]
     vertex_layout: u32,
     flags: D3DFlags,
-    #[br(args { count: vertex_count as usize, inner: (vertex_layout,) })]
-    vertices: Vec<Vertex>,
+    #[br(args(vertex_count as usize, vertex_layout as usize))]
+    pub vertices: Vertices,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 struct IndexBufferExt {
+    #[br(temp)]
+    #[bw(calc = tris.len() as u32 * 3)]
     index_count: u32,
     flags: D3DFlags,
     #[br(count = index_count / 3)]
-    data: Vec<Vec3i16>,
+    tris: Vec<Vec3i16>,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]

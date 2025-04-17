@@ -1,9 +1,9 @@
 use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
-use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
+use super::generic::{CollisionAABB, Strip, VertexGroupFlags, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     DynArray,
@@ -97,16 +97,24 @@ struct Unused4 {
     unused0s: DynArray<Unused00>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 struct VertexBuffer {
+    #[br(temp)]
+    #[bw(calc = vertices.len() as u16)]
     vertex_count: u16,
+    #[br(temp)]
+    #[bw(calc = vertices.layout() as u16)]
     vertex_layout: u16,
-    #[br(args { count: vertex_count as usize, inner: (vertex_layout as u32,) })]
-    vertices: Vec<Vertex>,
+    #[br(args(vertex_count as usize, vertex_layout as usize))]
+    vertices: Vertices,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 struct IndexBuffer {
+    #[br(temp)]
+    #[bw(calc = tris.len() as u16 * 3)]
     index_count: u16,
     #[br(count = index_count / 3)]
     tris: Vec<Vec3i16>,

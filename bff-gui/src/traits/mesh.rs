@@ -19,74 +19,96 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
             .iter()
             .map(|group| {
                 // println!("{}", mesh.body.mesh_buffer.vertex_buffers.len());
+                type VertexInfo = ([f32; 3], [f32; 2], [u8; 3], [u8; 4]);
                 let (positions, uvs, normals, tangents): (
                     Vec<Vec3>,
                     Vec<Vec2>,
                     Vec<Vec3>,
                     Vec<Vec4>,
-                ) =
-                    self.body
-                        .mesh_buffers
-                        .vertex_buffers
-                        .iter()
-                        .flat_map(|buf| &buf.vertices)
-                        .collect::<Vec<&bff::class::mesh::generic::Vertex>>()
-                        [group.vertex_offset_in_groups as usize
-                            ..group.vertex_offset_in_groups as usize + group.vertex_count as usize]
-                        .iter()
-                        .map(|vs| match vs {
-                            bff::class::mesh::generic::Vertex::Format12 { position } => {
-                                (position, &[0f32; 2], &[0u8; 3], [0u8; 4])
-                            }
-                            bff::class::mesh::generic::Vertex::Format24 {
-                                position, uv, ..
-                            } => (position, uv, &[0u8; 3], [0u8; 4]),
-                            bff::class::mesh::generic::Vertex::Format36 {
-                                position,
-                                uv,
-                                normal,
-                                tangent,
-                                tangent_w,
-                                ..
-                            }
-                            | bff::class::mesh::generic::Vertex::Format48 {
-                                position,
-                                uv,
-                                normal,
-                                tangent,
-                                tangent_w,
-                                ..
-                            }
-                            | bff::class::mesh::generic::Vertex::Format60 {
-                                position,
-                                uv,
-                                normal,
-                                tangent,
-                                tangent_w,
-                                ..
-                            } => (
-                                position,
-                                uv,
-                                normal,
-                                [&tangent[..], &[*tangent_w]].concat().try_into().unwrap(),
-                            ),
-                            bff::class::mesh::generic::Vertex::FormatUnknown { .. } => {
-                                (&[0f32; 3], &[0f32; 2], &[0u8; 3], [0u8; 4])
-                            }
-                        })
-                        .map(|(p, u, n, t)| {
-                            (
-                                Vec3::from(*p),
-                                Vec2::from(*u),
-                                {
-                                    let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
-                                    norm[2] *= -1.0;
-                                    Vec3::from(norm)
-                                },
-                                Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
-                            )
-                        })
-                        .multiunzip();
+                ) = self
+                    .body
+                    .mesh_buffers
+                    .vertex_buffers
+                    .iter()
+                    .flat_map(|buf| match &buf.vertices {
+                        bff::class::mesh::generic::Vertices::LayoutPosition(layout_positions) => {
+                            Box::new(
+                                layout_positions
+                                    .iter()
+                                    .map(|vs| (vs.position, [0f32; 2], [0u8; 3], [0u8; 4])),
+                            ) as Box<dyn Iterator<Item = VertexInfo>>
+                        }
+                        bff::class::mesh::generic::Vertices::LayoutPositionUV(
+                            layout_position_uvs,
+                        ) => Box::new(
+                            layout_position_uvs
+                                .iter()
+                                .map(|vs| (vs.position, vs.uv, [0u8; 3], [0u8; 4])),
+                        ) as Box<dyn Iterator<Item = VertexInfo>>,
+                        bff::class::mesh::generic::Vertices::LayoutNoBlend(layout_no_blends) => {
+                            Box::new(layout_no_blends.iter().map(|vs| {
+                                (
+                                    vs.position,
+                                    vs.uv,
+                                    vs.normal,
+                                    [&vs.tangent[..], &[vs.tangent_w]]
+                                        .concat()
+                                        .try_into()
+                                        .unwrap(),
+                                )
+                            })) as Box<dyn Iterator<Item = VertexInfo>>
+                        }
+                        bff::class::mesh::generic::Vertices::Layout1Blend(layout1_blends) => {
+                            Box::new(layout1_blends.iter().map(|vs| {
+                                (
+                                    vs.position,
+                                    vs.uv,
+                                    vs.normal,
+                                    [&vs.tangent[..], &[vs.tangent_w]]
+                                        .concat()
+                                        .try_into()
+                                        .unwrap(),
+                                )
+                            })) as Box<dyn Iterator<Item = VertexInfo>>
+                        }
+                        bff::class::mesh::generic::Vertices::Layout4Blend(layout4_blends) => {
+                            Box::new(layout4_blends.iter().map(|vs| {
+                                (
+                                    vs.position,
+                                    vs.uv,
+                                    vs.normal,
+                                    [&vs.tangent[..], &[vs.tangent_w]]
+                                        .concat()
+                                        .try_into()
+                                        .unwrap(),
+                                )
+                            })) as Box<dyn Iterator<Item = VertexInfo>>
+                        }
+                        bff::class::mesh::generic::Vertices::LayoutUnknown { data, .. } => {
+                            Box::new(
+                                data.iter()
+                                    .map(|_| ([0f32; 3], [0f32; 2], [0u8; 3], [0u8; 4])),
+                            ) as Box<dyn Iterator<Item = VertexInfo>>
+                        }
+                    })
+                    .skip(group.vertex_offset_in_groups as usize)
+                    .take(
+                        (group.vertex_offset_in_groups as usize + group.vertex_count as usize)
+                            - group.vertex_offset_in_groups as usize,
+                    )
+                    .map(|(p, u, n, t)| {
+                        (
+                            Vec3::from(p),
+                            Vec2::from(u),
+                            {
+                                let mut norm = n.map(|i| (i as f32 - 128.0) / 128.0);
+                                norm[2] *= -1.0;
+                                Vec3::from(norm)
+                            },
+                            Vec4::from(t.map(|i| (i as f32 - 128.0) / 128.0)),
+                        )
+                    })
+                    .multiunzip();
                 let indices: Vec<u16> = self
                     .body
                     .mesh_buffers

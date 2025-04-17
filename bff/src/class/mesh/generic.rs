@@ -1,6 +1,6 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, args};
 use serde::{Deserialize, Serialize};
 
 use crate::helpers::{DynArray, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f};
@@ -26,53 +26,128 @@ pub struct Strip {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(vertex_layout: u32))]
-pub enum Vertex {
-    #[br(pre_assert(vertex_layout == 12))]
-    Format12 { position: Vec3f },
-    #[br(pre_assert(vertex_layout == 24))]
-    Format24 {
-        position: Vec3f,
-        unknown: f32,
-        uv: Vec2f,
+pub struct LayoutPosition {
+    pub position: Vec3f,
+}
+
+impl LayoutPosition {
+    pub const SIZE: usize = 12;
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct LayoutPositionUV {
+    pub position: Vec3f,
+    pub unknown: f32,
+    pub uv: Vec2f,
+}
+
+impl LayoutPositionUV {
+    pub const SIZE: usize = 24;
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct LayoutNoBlend {
+    pub position: Vec3f,
+    pub tangent: VertexVector3u8,
+    pub tangent_w: VertexVectorComponent,
+    pub normal: VertexVector3u8,
+    pub normal_w: VertexVectorComponent,
+    pub uv: Vec2f,
+    pub luv: Vec2f,
+}
+
+impl LayoutNoBlend {
+    pub const SIZE: usize = 36;
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct Layout1Blend {
+    pub position: Vec3f,
+    pub tangent: VertexVector3u8,
+    pub tangent_w: VertexVectorComponent,
+    pub normal: VertexVector3u8,
+    pub normal_w: VertexVectorComponent,
+    pub uv: Vec2f,
+    pub blend_index: VertexBlendIndex,
+    pub pad2: [i32; 3],
+    pub blend_weight: f32,
+}
+
+impl Layout1Blend {
+    pub const SIZE: usize = 48;
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct Layout4Blend {
+    pub position: Vec3f,
+    pub tangent: VertexVector3u8,
+    pub tangent_w: VertexVectorComponent,
+    pub normal: VertexVector3u8,
+    pub normal_w: VertexVectorComponent,
+    pub uv: Vec2f,
+    pub blend_indices: [VertexBlendIndex; 4],
+    pub blend_weights: [f32; 4],
+}
+
+impl Layout4Blend {
+    pub const SIZE: usize = 60;
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[br(import(count: usize, layout: usize))]
+pub enum Vertices {
+    #[br(pre_assert(layout == LayoutPosition::SIZE))]
+    LayoutPosition(#[br(count = count)] Vec<LayoutPosition>),
+    #[br(pre_assert(layout == LayoutPositionUV::SIZE))]
+    LayoutPositionUV(#[br(count = count)] Vec<LayoutPositionUV>),
+    #[br(pre_assert(layout == LayoutNoBlend::SIZE))]
+    LayoutNoBlend(#[br(count = count)] Vec<LayoutNoBlend>),
+    #[br(pre_assert(layout == Layout1Blend::SIZE))]
+    Layout1Blend(#[br(count = count)] Vec<Layout1Blend>),
+    #[br(pre_assert(layout == Layout4Blend::SIZE))]
+    Layout4Blend(#[br(count = count)] Vec<Layout4Blend>),
+    LayoutUnknown {
+        #[br(calc = layout)]
+        #[bw(ignore)]
+        layout: usize,
+        #[br(args { count: count, inner: args! { count: layout } })]
+        data: Vec<Vec<u8>>,
     },
-    #[br(pre_assert(vertex_layout == 36))]
-    Format36 {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        luv: Vec2f,
-    },
-    #[br(pre_assert(vertex_layout == 48))]
-    Format48 {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        blend_index: VertexBlendIndex,
-        pad2: [i32; 3],
-        blend_weight: f32,
-    },
-    #[br(pre_assert(vertex_layout == 60))]
-    Format60 {
-        position: Vec3f,
-        tangent: VertexVector3u8,
-        tangent_w: VertexVectorComponent,
-        normal: VertexVector3u8,
-        normal_w: VertexVectorComponent,
-        uv: Vec2f,
-        blend_indices: [VertexBlendIndex; 4],
-        blend_weights: [f32; 4],
-    },
-    FormatUnknown {
-        #[br(count = vertex_layout)]
-        data: Vec<u8>,
-    },
+}
+
+impl Vertices {
+    pub fn len(&self) -> usize {
+        match self {
+            Self::LayoutPosition(layout_positions) => layout_positions.len(),
+            Self::LayoutPositionUV(layout_position_uvs) => layout_position_uvs.len(),
+            Self::LayoutNoBlend(layout_no_blends) => layout_no_blends.len(),
+            Self::Layout1Blend(layout1_blends) => layout1_blends.len(),
+            Self::Layout4Blend(layout4_blends) => layout4_blends.len(),
+            Self::LayoutUnknown { data, .. } => data.len(),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Self::LayoutPosition(layout_positions) => layout_positions.is_empty(),
+            Self::LayoutPositionUV(layout_position_uvs) => layout_position_uvs.is_empty(),
+            Self::LayoutNoBlend(layout_no_blends) => layout_no_blends.is_empty(),
+            Self::Layout1Blend(layout1_blends) => layout1_blends.is_empty(),
+            Self::Layout4Blend(layout4_blends) => layout4_blends.is_empty(),
+            Self::LayoutUnknown { data, .. } => data.is_empty(),
+        }
+    }
+
+    pub fn layout(&self) -> usize {
+        match self {
+            Self::LayoutPosition(_) => LayoutPosition::SIZE,
+            Self::LayoutPositionUV(_) => LayoutPositionUV::SIZE,
+            Self::LayoutNoBlend(_) => LayoutNoBlend::SIZE,
+            Self::Layout1Blend(_) => Layout1Blend::SIZE,
+            Self::Layout4Blend(_) => Layout4Blend::SIZE,
+            Self::LayoutUnknown { layout, .. } => *layout,
+        }
+    }
 }
 
 #[bitsize(32)]

@@ -1,9 +1,9 @@
 use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
-use super::generic::{CollisionAABB, Strip, Vertex, VertexGroupFlags};
+use super::generic::{CollisionAABB, Strip, VertexGroupFlags, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     DynArray,
@@ -92,17 +92,25 @@ struct AABBColTri {
     material_index: i16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct VertexBuffer {
+    #[br(temp)]
+    #[bw(calc = vertices.len() as u32)]
     vertex_count: u32,
+    #[br(temp)]
+    #[bw(calc = vertices.layout() as u32)]
     vertex_layout: u32,
     flags: u32,
-    #[br(args { count: vertex_count as usize, inner: (vertex_layout,) })]
-    pub vertices: Vec<Vertex>,
+    #[br(args(vertex_count as usize, vertex_layout as usize))]
+    pub vertices: Vertices,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[binrw]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
 pub struct IndexBuffer {
+    #[br(temp)]
+    #[bw(calc = tris.len() as u32 * 3)]
     index_count: u32,
     flags: u32,
     #[br(count = index_count / 3)]

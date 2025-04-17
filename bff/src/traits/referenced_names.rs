@@ -113,5 +113,7 @@ impl_referenced_names!(
     i32,
     i64,
     i128,
-    String
+    String,
+    usize,
+    isize
 );
