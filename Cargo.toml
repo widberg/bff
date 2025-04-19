@@ -4,7 +4,7 @@ members = ["bff", "bff-cli", "bff-derive", "bff-gui"]
 
 [workspace.package]
 version = "0.1.0"
-authors = ["widberg", "pizzart"]
+authors = ["The bff Developers"]
 license = "MIT"
 repository = "https://github.com/widberg/bff"
 edition = "2024"

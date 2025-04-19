@@ -13,10 +13,10 @@ clap = { version = "4.2.4", features = ["derive"] }
 derive_more = { version = "2.0.1", features = ["full"] }
 pathdiff = "0.2.1"
 serde_json = "1.0.96"
-shadow-rs = "1.1.1"
+shadow-rs = { version = "1.1.1", default-features = false, features = ["build"] }
 
 [build-dependencies]
-shadow-rs = "1.1.1"
+shadow-rs = { version = "1.1.1", default-features = false, features = ["build"] }
 
 [lints]
 workspace = true
