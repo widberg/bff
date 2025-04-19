@@ -15,7 +15,6 @@ pub mod versions;
 
 use std::collections::HashMap;
 
-use bff_derive::bigfiles;
 use petgraph::Graph;
 use serde::Serialize;
 
@@ -36,6 +35,7 @@ use crate::bigfile::v2_128_52_19_pc::BigFileV2_128_52_19PC;
 use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::bigfile::v2_256_38_19_pc::BigFileV2_256_38_19PC;
 use crate::class::Class;
+use crate::macros::bigfiles::bigfiles;
 use crate::names::Name;
 use crate::traits::{ReferencedNames, TryIntoVersionPlatform};
 

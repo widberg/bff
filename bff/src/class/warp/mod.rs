@@ -1,4 +1,4 @@
-use bff_derive::bff_class;
+use crate::macros::bff_class::bff_class;
 
 mod v1_06_63_02_pc;
 use v1_06_63_02_pc::WarpV1_06_63_02PC;

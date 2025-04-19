@@ -1,3 +1,3 @@
-use bff_derive::bff_class;
+use crate::macros::bff_class::bff_class;
 
 bff_class!(Occluder {});

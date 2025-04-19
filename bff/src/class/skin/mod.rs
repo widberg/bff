@@ -1,4 +1,4 @@
-use bff_derive::bff_class;
+use crate::macros::bff_class::bff_class;
 
 pub mod v1_291_03_06_pc;
 pub mod v1_381_67_09_pc;
