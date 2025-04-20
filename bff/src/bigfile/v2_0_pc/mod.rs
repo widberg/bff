@@ -21,9 +21,11 @@ type Resource = Resource12<20>;
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
-    // TODO: Always big endian 0xDEADBEEF
-    pub checksum: Option<i32>,
     pub resources: Vec<Resource>,
+}
+
+impl Block {
+    pub const PLACEHOLDER_CHECKSUM: i32 = 0xDEADBEEFu32 as i32;
 }
 
 impl BinWrite for Block {
@@ -47,7 +49,7 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
     for block_size in block_sizes {
         let block_start = reader.stream_position()?;
 
-        let checksum = Some(i32::read_options(reader, endian, ())?);
+        let _checksum = u32::read_options(reader, endian, ())?;
         let resource_count = u32::read_options(reader, endian, ())?;
 
         if *block_size != decompressed_block_size {
@@ -58,7 +60,6 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
             let mut decompressed = Cursor::new(decompressed);
             blocks.push(Block {
                 compressed: true,
-                checksum,
                 resources: Vec::<Resource>::read_options(
                     &mut decompressed,
                     endian,
@@ -69,7 +70,6 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
         } else {
             blocks.push(Block {
                 compressed: false,
-                checksum,
                 resources: Vec::<Resource>::read_options(
                     reader,
                     endian,
@@ -129,7 +129,7 @@ impl From<BigFileV2_0PC> for BigFile {
 
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
-                checksum: block.checksum,
+                checksum: None,
                 compressed: Some(block.compressed),
                 objects,
             });
@@ -190,7 +190,6 @@ impl BigFileIo for BigFileV2_0PC {
 
             blocks.push((
                 block.objects.len() as u32,
-                block.checksum.unwrap_or(0),
                 block.compressed.unwrap_or(false),
                 block_data,
             ));
@@ -200,10 +199,10 @@ impl BigFileIo for BigFileV2_0PC {
         let mut block_sizes = Vec::new();
         let mut compression_type = CompressionType::None;
 
-        for (resource_count, checksum, compressed, mut block_data) in blocks {
+        for (resource_count, compressed, mut block_data) in blocks {
             let block_begin = writer.stream_position()?;
 
-            checksum.write_options(writer, endian, ())?;
+            Block::PLACEHOLDER_CHECKSUM.write_options(writer, endian, ())?;
 
             resource_count.write_options(writer, endian, ())?;
 
