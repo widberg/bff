@@ -20,7 +20,7 @@ macro_rules! bigfiles {
             }
 
             #[allow(unused_imports)]
-            pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, platform_override: Option<crate::bigfile::platforms::Platform>, version_override: &Option<crate::bigfile::versions::Version>, tag: Option<&str>) -> crate::BffResult<()> {
+            pub fn write<W: std::io::Write + std::io::Seek>(&self, writer: &mut W, platform_override: Option<crate::bigfile::platforms::Platform>, version_override: &Option<crate::bigfile::versions::Version>, version_to_write: &Option<crate::bigfile::versions::Version>, tag: Option<&str>) -> crate::BffResult<()> {
                 use crate::bigfile::versions::Version::*;
                 use crate::bigfile::platforms::Platform::*;
                 use binrw::BinWrite;
@@ -29,7 +29,11 @@ macro_rules! bigfiles {
                 let _endian: crate::Endian = platform.into();
                 let version = &self.manifest.version;
                 let version = version_override.as_ref().unwrap_or(version);
-                let version_string = version.to_string();
+                let version_string = if let Some(version_to_write) = version_to_write {
+                    version_to_write.to_string()
+                } else {
+                    version.to_string()
+                };
                 crate::helpers::FixedStringNull::<256>::write_be(&version_string.into(), writer)?;
                 match (version.clone(), platform) {
                     $($pattern => {

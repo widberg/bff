@@ -21,6 +21,7 @@ pub fn create(
     out_names: &Option<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
+    version_to_write: &Option<Version>,
 ) -> BffCliResult<()> {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
@@ -122,6 +123,7 @@ pub fn create(
         &mut bigfile_writer,
         *platform_override,
         version_override,
+        version_to_write,
         None,
     )?;
 

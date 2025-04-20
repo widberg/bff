@@ -60,6 +60,8 @@ enum Commands {
         platform_override: Option<Platform>,
         #[arg(short, long)]
         version_override: Option<Version>,
+        #[arg(short, long)]
+        version_to_write: Option<Version>,
     },
     #[clap(alias = "xr")]
     ExtractResource {
@@ -233,12 +235,14 @@ fn main() -> BffCliResult<()> {
             out_names,
             platform_override,
             version_override,
+            version_to_write,
         } => create::create(
             directory,
             bigfile,
             out_names,
             platform_override,
             version_override,
+            version_to_write,
         ),
         Commands::ExtractResource {
             resource,
