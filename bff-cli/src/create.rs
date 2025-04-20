@@ -8,6 +8,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
 use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
@@ -19,6 +20,8 @@ pub fn create(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
 ) -> BffCliResult<()> {
+    let progress_bar = ProgressBar::new_spinner();
+    progress_bar.set_message("Reading manifest");
     let manifest_path = directory.join("manifest.json");
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
     let manifest = serde_json::from_reader(manifest_reader)?;
@@ -31,8 +34,12 @@ pub fn create(
     let resources_path = directory.join("resources");
     std::fs::create_dir_all(&resources_path)?;
 
+    progress_bar.set_style(ProgressStyle::default_bar());
+    progress_bar.set_length(std::fs::read_dir(&resources_path)?.count() as u64);
+
     for file in std::fs::read_dir(resources_path)? {
         let path = file?.path();
+        progress_bar.inc(1);
         if path.is_file() {
             let mut file_reader = BufReader::new(File::open(&path)?);
             let resource = bigfile.read_bff_resource(&mut file_reader)?;
@@ -96,6 +103,9 @@ pub fn create(
         }
     }
 
+    progress_bar.set_style(ProgressStyle::default_spinner());
+    progress_bar.set_message("Writing BigFile");
+
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
     bigfile.write(
         &mut bigfile_writer,
@@ -104,9 +114,13 @@ pub fn create(
         None,
     )?;
 
+    progress_bar.set_message("Writing names");
+
     if let Some(out_names) = out_names {
         write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
     }
+
+    progress_bar.finish_and_clear();
 
     Ok(())
 }

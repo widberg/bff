@@ -11,6 +11,7 @@ use bff::class::Class;
 use bff::names::Name;
 use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
 use clap::ValueEnum;
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
 
@@ -168,21 +169,29 @@ pub fn extract(
     version_override: &Option<Version>,
     export_strategy: &ExportStrategy,
 ) -> BffCliResult<()> {
+    let progress_bar = ProgressBar::new_spinner();
+    progress_bar.set_message("Reading names");
     read_bigfile_names(bigfile_path)?;
     read_in_names(in_names)?;
 
+    progress_bar.set_message("Reading BigFile");
     let bigfile = read_bigfile(bigfile_path, platform_override, version_override)?;
 
+    progress_bar.set_message("Writing manifest");
     std::fs::create_dir(directory)?;
 
     let manifest_path = directory.join("manifest.json");
     let manifest_writer = BufWriter::new(File::create(manifest_path)?);
     serde_json::to_writer_pretty(manifest_writer, &bigfile.manifest)?;
 
+    progress_bar.set_style(ProgressStyle::default_bar());
+    progress_bar.set_length(bigfile.objects.len() as u64);
+
     let resources_path = directory.join("resources");
     std::fs::create_dir(&resources_path)?;
 
     for resource in bigfile.objects.values() {
+        progress_bar.inc(1);
         if matches!(*export_strategy, ExportStrategy::Rich)
             && export_bff_resource(&resources_path, &bigfile, resource).is_ok()
         {
@@ -190,6 +199,8 @@ pub fn extract(
         }
         dump_bff_resource(&resources_path, &bigfile, resource)?;
     }
+
+    progress_bar.finish_and_clear();
 
     Ok(())
 }
