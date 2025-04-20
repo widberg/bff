@@ -16,44 +16,44 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 
 ### BigFile
 
-| Year | Game                                                                                        | Format     | Status |
-|------|---------------------------------------------------------------------------------------------|------------|--------|
-| 2002 | Jimmy Neutron: Boy Genius - BigSky                                                          | Kalisto    | ✔      |
-|      | SpongeBob SquarePants: Revenge of the Flying Dutchman - BigSky                              | Kalisto    | ✔      |
-|      | Spirits & Spells (Castleween) (Mahou no Pumpkin) - Wanadoo                                  | Kalisto    | ✔      |
-| 2003 | Super Farm - Asobo                                                                          | Asobo1     | ✔      |
-| 2004 | Sitting Ducks - Asobo                                                                       | Asobo1     | ✔      |
-|      | The Mummy: The Animated Series - Asobo                                                      | Asobo1     | ✔      |
-| 2005 | CT Special Forces: Fire for Effect (Nemesis Strike) - Asobo                                 | Asobo2     | ✔      |
-|      | Ratatouille (Prototype) - Asobo                                                             | Asobo2     | ✔      |
-| 2006 | Garfield: A Tail of Two Kitties (Garfield 2) - Asobo                                        | Asobo2     | ✔      |
-|      | Championsheep Rally - Black Sheep                                                           | BlackSheep | ✔      |
-| 2007 | Ratatouille - Asobo                                                                         | Asobo3     | ✔      |
-|      | The Ugly Duckling and Me - Black Sheep                                                      | BlackSheep | ✔      |
-|      | En Taxi avec Oui-Oui - Black Sheep                                                          | BlackSheep | ✔      |
-| 2008 | WALL-E - Asobo                                                                              | Asobo3     | ✔      |
-|      | The Magic Roundabout - Black Sheep                                                          | BlackSheep | ✔      |
-|      | Shaun White Snowboarding/Shaun White Snowboarding: Road Trip (Prototype) - Ubisoft Montreal | Ubisoft1   | ✔      |
-|      | Shaun White Snowboarding/Shaun White Snowboarding: Road Trip - Ubisoft Montreal             | Ubisoft2   | ✔      |
-|      | Warning: Code De La Route - Black Sheep                                                     | BlackSheep | ✔      |
-| 2009 | FUEL - Asobo                                                                                | Asobo3     | ✔      |
-|      | Up - Asobo                                                                                  | Asobo3     | ✔      |
-|      | Shaun White Snowboarding: World Stage - Ubisoft Montreal                                    | Ubisoft3   | ✔      |
-| 2010 | Toy Story 3 - Asobo                                                                         | Asobo3     | ✔      |
-|      | Racket Sports/Racquet Sports/Racket Sports Party - Asobo                                    | Asobo3     | ✔      |
-|      | Happy Neuron Academy - Black Sheep                                                          | BlackSheep | ✔      |
-| 2012 | Kinect Rush: A Disney-Pixar Adventure - Asobo                                               | Asobo4     | ✔      |
-| 2013 | Super Farm (Re-release) - Asobo                                                             | Asobo4     | ✔      |
-| 2014 | Monopoly Plus/Monopoly Deal - Asobo                                                         | Asobo4     | ✔      |
-| 2015 | The Mighty Quest for Epic Loot - Ubisoft Montreal                                           | Ubisoft4   | ✔      |
-| 2016 | Young Conker - Asobo                                                                        | Asobo4     | ✔      |
-|      | Fragments - Asobo                                                                           | Asobo4     | ✔      |
-| 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         | Asobo5     | ✔      |
-|      | Monopoly Plus/Monopoly Deal/Monopoly for Nintendo Switch (Re-release) - Asobo               | Asobo4     | ✔      |
-| 2019 | A Plague Tale: Innocence - Asobo                                                            | Asobo6     | ⚠️     |
-| 2020 | Microsoft Flight Simulator - Asobo                                                          | Asobo7     | ⚠️     |
-| 2022 | A Plague Tale: Requiem - Asobo                                                              | Asobo8     | ⚠️     |
-| 2024 | Microsoft Flight Simulator 2024 - Asobo                                                     | ??????     | ❌     |
+| Year | Game                                                                                        | Status |
+|------|---------------------------------------------------------------------------------------------|--------|
+| 2002 | Jimmy Neutron: Boy Genius - BigSky                                                          | ✔      |
+|      | SpongeBob SquarePants: Revenge of the Flying Dutchman - BigSky                              | ✔      |
+|      | Spirits & Spells (Castleween) (Mahou no Pumpkin) - Wanadoo                                  | ✔      |
+| 2003 | Super Farm - Asobo                                                                          | ✔      |
+| 2004 | Sitting Ducks - Asobo                                                                       | ✔      |
+|      | The Mummy: The Animated Series - Asobo                                                      | ✔      |
+| 2005 | CT Special Forces: Fire for Effect (Nemesis Strike) - Asobo                                 | ✔      |
+|      | Ratatouille (Prototype) - Asobo                                                             | ✔      |
+| 2006 | Garfield: A Tail of Two Kitties (Garfield 2) - Asobo                                        | ✔      |
+|      | Championsheep Rally - Black Sheep                                                           | ✔      |
+| 2007 | Ratatouille - Asobo                                                                         | ✔      |
+|      | The Ugly Duckling and Me - Black Sheep                                                      | ✔      |
+|      | En Taxi avec Oui-Oui - Black Sheep                                                          | ✔      |
+| 2008 | WALL-E - Asobo                                                                              | ✔      |
+|      | The Magic Roundabout - Black Sheep                                                          | ✔      |
+|      | Shaun White Snowboarding/Shaun White Snowboarding: Road Trip (Prototype) - Ubisoft Montreal | ✔      |
+|      | Shaun White Snowboarding/Shaun White Snowboarding: Road Trip - Ubisoft Montreal             | ✔      |
+|      | Warning: Code De La Route - Black Sheep                                                     | ✔      |
+| 2009 | FUEL - Asobo                                                                                | ✔      |
+|      | Up - Asobo                                                                                  | ✔      |
+|      | Shaun White Snowboarding: World Stage - Ubisoft Montreal                                    | ✔      |
+| 2010 | Toy Story 3 - Asobo                                                                         | ✔      |
+|      | Racket Sports/Racquet Sports/Racket Sports Party - Asobo                                    | ✔      |
+|      | Happy Neuron Academy - Black Sheep                                                          | ✔      |
+| 2012 | Kinect Rush: A Disney-Pixar Adventure - Asobo                                               | ✔      |
+| 2013 | Super Farm (Re-release) - Asobo                                                             | ✔      |
+| 2014 | Monopoly Plus/Monopoly Deal - Asobo                                                         | ✔      |
+| 2015 | The Mighty Quest for Epic Loot - Ubisoft Montreal                                           | ✔      |
+| 2016 | Young Conker - Asobo                                                                        | ✔      |
+|      | Fragments - Asobo                                                                           | ✔      |
+| 2017 | Rush: A Disney-Pixar Adventure (Re-release) - Asobo                                         | ✔      |
+|      | Monopoly Plus/Monopoly Deal/Monopoly for Nintendo Switch (Re-release) - Asobo               | ✔      |
+| 2019 | A Plague Tale: Innocence - Asobo                                                            | ⚠️      |
+| 2020 | Microsoft Flight Simulator - Asobo                                                          | ⚠️      |
+| 2022 | A Plague Tale: Requiem - Asobo                                                              | ⚠️      |
+| 2024 | Microsoft Flight Simulator 2024 - Asobo                                                     | ❌      |
 
 ### TSC
 
