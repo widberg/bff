@@ -2,6 +2,8 @@ name: Build wasm
 
 on: [push, pull_request]
 
+permissions: {}
+
 jobs:
   build:
     name: Build for wasm
@@ -9,17 +11,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@fcf085fcb4b4b8f63f96906cd713eb52181b5ea4
         with:
           toolchain: 1.85.0
           targets: wasm32-unknown-unknown
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.7.0
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
 
       - name: Download wasi-sdk
-        uses: suisei-cn/actions-download-file@v1.3.0
+        uses: suisei-cn/actions-download-file@818d6b7dc8fe73f2f924b6241f2b1134ca1377d9
         with:
           url: "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz"
 
@@ -35,7 +39,7 @@ jobs:
         working-directory: ${{ github.workspace }}/bff-gui/
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: ${{ github.workspace }}/bff-gui/dist/
 
@@ -54,4 +58,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5

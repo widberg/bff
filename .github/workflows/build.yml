@@ -2,6 +2,8 @@ name: Build
 
 on: [push, pull_request]
 
+permissions: {}
+
 jobs:
   build:
     name: Build for ${{ matrix.name }}
@@ -19,13 +21,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@fcf085fcb4b4b8f63f96906cd713eb52181b5ea4
         with:
           toolchain: 1.85.0
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.7.0
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
 
       - name: Install dependencies (linux)
         run: sudo apt-get -y install libgtk-3-dev libasound2-dev
@@ -37,7 +41,7 @@ jobs:
           CARGO_PROFILE_RELEASE_LTO: "true"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: bff-${{ matrix.name }}-${{ github.sha }}
           path: |

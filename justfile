@@ -80,14 +80,12 @@ install:
 install-dev-deps:
     rustup install nightly
     rustup update nightly
-    cargo install cargo-sort
-    cargo install flamegraph
-    cargo install cargo-deny
-    {{ if os() == 'windows' { 'cargo install blondie' } else { '' } }}
+    cargo install --locked cargo-sort flamegraph cargo-deny zizmor
+    {{ if os() == 'windows' { 'cargo install --locked blondie' } else { '' } }}
 
 install-dev-deps-wasm:
     rustup target add wasm32-unknown-unknown
-    cargo install trunk
+    cargo install --locked trunk
 
 # flamegraph (https://github.com/flamegraph-rs/flamegraph)
 [unix]
@@ -102,9 +100,12 @@ flamegraph CMD *OPTIONS:
     $ENV:DTRACE = "blondie_dtrace"
     cargo flamegraph --release --bin {{ CMD }} -- {{ OPTIONS }}
 
-check: fmt clippy test
+zizmor:
+    zizmor --persona auditor --collect all .github/workflows/build.yml .github/workflows/build-wasm.yml
 
-flint: fmt clippy deny
+flint: fmt clippy deny zizmor
+
+check: flint test
 
 clean:
     cargo clean
