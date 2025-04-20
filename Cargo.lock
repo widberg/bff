@@ -697,6 +697,7 @@ dependencies = [
  "derive_more",
  "indicatif",
  "pathdiff",
+ "rayon",
  "serde_json",
  "shadow-rs",
 ]

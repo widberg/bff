@@ -12,8 +12,9 @@ use bff::names::Name;
 use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
+use rayon::iter::{ParallelBridge, ParallelIterator};
 
-use crate::error::BffCliResult;
+use crate::error::{BffCliError, BffCliResult};
 
 #[derive(ValueEnum, Clone, Copy, Debug)]
 pub enum ExportStrategy {
@@ -190,15 +191,20 @@ pub fn extract(
     let resources_path = directory.join("resources");
     std::fs::create_dir(&resources_path)?;
 
-    for resource in bigfile.objects.values() {
-        progress_bar.inc(1);
-        if matches!(*export_strategy, ExportStrategy::Rich)
-            && export_bff_resource(&resources_path, &bigfile, resource).is_ok()
-        {
-            continue;
-        }
-        dump_bff_resource(&resources_path, &bigfile, resource)?;
-    }
+    bigfile
+        .objects
+        .values()
+        .par_bridge()
+        .try_for_each(|resource| {
+            progress_bar.inc(1);
+            if !matches!(*export_strategy, ExportStrategy::Rich)
+                || export_bff_resource(&resources_path, &bigfile, resource).is_err()
+            {
+                dump_bff_resource(&resources_path, &bigfile, resource)?;
+            }
+
+            Ok::<(), BffCliError>(())
+        })?;
 
     progress_bar.finish_and_clear();
 
