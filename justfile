@@ -105,3 +105,7 @@ flamegraph CMD *OPTIONS:
 check: fmt clippy test
 
 flint: fmt clippy deny
+
+clean:
+    cargo clean
+    cargo +nightly clean gc
