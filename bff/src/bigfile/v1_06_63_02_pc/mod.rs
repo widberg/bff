@@ -4,9 +4,9 @@ pub mod object;
 pub mod pool;
 
 use std::cmp::max;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, hash_map};
 use std::default::Default;
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use block::Block;
@@ -312,6 +312,8 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             let mut pool_sector_padding_size = 0u32;
             let mut pool_object_decompression_buffer_capacity = 0;
 
+            let mut pool_compression_cache = HashMap::new();
+
             for i in pool.object_entry_indices.iter() {
                 let entry = pool.object_entries.get(*i as usize).unwrap();
                 let name = entry.name;
@@ -319,20 +321,27 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 let begin_resource = writer.stream_position()?;
                 match (&resource.data, resource.compress) {
                     (SplitData { body, .. }, true) => {
-                        let begin_header = writer.stream_position()?;
-                        writer.seek(SeekFrom::Current(24))?;
-                        let begin_body = writer.stream_position()?;
-                        lzrs_compress_data_with_header_writer_internal(body, writer, endian, ())?;
-                        let end_body = writer.stream_position()?;
-                        writer.seek(SeekFrom::Start(begin_header))?;
-                        let compressed_body_size = (end_body - begin_body) as u32;
+                        let compressed_data = match pool_compression_cache.entry(name) {
+                            hash_map::Entry::Occupied(e) => e.into_mut(),
+                            hash_map::Entry::Vacant(e) => {
+                                let mut compressed_data_writer = Cursor::new(Vec::new());
+                                lzrs_compress_data_with_header_writer_internal(
+                                    body,
+                                    &mut compressed_data_writer,
+                                    endian,
+                                    (),
+                                )?;
+                                e.insert(compressed_data_writer.into_inner())
+                            }
+                        };
+                        let compressed_body_size = compressed_data.len() as u32;
                         compressed_body_size.write_options(writer, endian, ())?;
                         0u32.write_options(writer, endian, ())?;
                         (body.len() as u32).write_options(writer, endian, ())?;
                         compressed_body_size.write_options(writer, endian, ())?;
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
-                        writer.seek(SeekFrom::Start(end_body))?;
+                        writer.write_all(compressed_data)?;
                         pool_object_decompression_buffer_capacity = max(
                             (calculated_padded(body.len(), 2048)) / 2048,
                             pool_object_decompression_buffer_capacity,
