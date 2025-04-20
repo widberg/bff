@@ -22,6 +22,7 @@ pub fn create(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
     version_to_write: &Option<Version>,
+    tag: &Option<String>,
 ) -> BffCliResult<()> {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
@@ -124,7 +125,7 @@ pub fn create(
         *platform_override,
         version_override,
         version_to_write,
-        None,
+        tag.as_deref(),
     )?;
 
     progress_bar.set_message("Writing names");
