@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
@@ -41,23 +40,21 @@ pub fn create(
     progress_bar.set_style(ProgressStyle::default_bar());
     progress_bar.set_length(std::fs::read_dir(&resources_path)?.count() as u64);
 
-    let resources_mutex = Mutex::new(&mut bigfile);
-
-    std::fs::read_dir(resources_path)?
+    bigfile.resources = std::fs::read_dir(resources_path)?
         .par_bridge()
-        .try_for_each_with(&resources_mutex, |bigfile, file| {
+        .try_fold(HashMap::new, |mut resources, file| {
             let path = file?.path();
             progress_bar.inc(1);
             if path.is_file() {
                 let mut file_reader = BufReader::new(File::open(&path)?);
                 let resource = Resource::read_bff_resource(&mut file_reader)?;
-                let bigfile = &mut bigfile.lock().unwrap();
-                if bigfile.resources.contains_key(&resource.name) {
+                if resources.contains_key(&resource.name) {
                     return Err(crate::error::BffCliError::DuplicateResource {
                         name: resource.name,
                     });
                 }
-                bigfile.resources.insert(resource.name, resource);
+                resources.insert(resource.name, resource);
+                Ok(resources)
             } else if path.is_dir() {
                 let directory = path;
                 let resource_serialized_path = directory.join("resource.json");
@@ -104,16 +101,28 @@ pub fn create(
                 let resource: Resource =
                     (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
 
-                let bigfile = &mut bigfile.lock().unwrap();
-                if bigfile.resources.contains_key(&resource.name) {
+                if resources.contains_key(&resource.name) {
                     return Err(crate::error::BffCliError::DuplicateResource {
                         name: resource.name,
                     });
                 }
-                bigfile.resources.insert(resource.name, resource);
+                resources.insert(resource.name, resource);
+                Ok(resources)
+            } else {
+                Ok(resources)
             }
-
-            Ok(())
+        })
+        .try_reduce(HashMap::new, |resources_out, resources_in| {
+            resources_in.into_iter().try_fold(
+                resources_out,
+                |mut resources_out, (name, resource)| {
+                    if resources_out.contains_key(&name) {
+                        return Err(crate::error::BffCliError::DuplicateResource { name });
+                    }
+                    resources_out.insert(name, resource);
+                    Ok(resources_out)
+                },
+            )
         })?;
 
     progress_bar.set_style(ProgressStyle::default_spinner());
