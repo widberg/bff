@@ -67,7 +67,7 @@ impl<const S: u32> From<Resource<S>> for crate::bigfile::resource::Resource {
             class_name: resource.class_name,
             name: resource.name,
             link_name: None,
-            data: Data(resource.data),
+            data: Data(resource.data.into()),
         }
     }
 }

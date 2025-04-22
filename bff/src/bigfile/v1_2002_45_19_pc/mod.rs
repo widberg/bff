@@ -48,8 +48,8 @@ pub fn blocks_parser(
                     name: object.name,
                     link_name: None,
                     data: SplitData {
-                        link_header: object.link_header,
-                        body: object.body,
+                        link_header: object.link_header.into(),
+                        body: object.body.into(),
                     },
                 },
             );

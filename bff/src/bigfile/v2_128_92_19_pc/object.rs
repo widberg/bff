@@ -96,8 +96,8 @@ impl From<Object> for Resource {
             name: value.name,
             link_name: Some(value.link_name),
             data: SplitData {
-                link_header: value.link_header,
-                body: value.body,
+                link_header: value.link_header.into(),
+                body: value.body.into(),
             },
         }
     }

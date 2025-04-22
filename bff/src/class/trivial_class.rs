@@ -25,7 +25,7 @@ pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub body: BodyType,
 }
 
-fn is_eof(cursor: &mut std::io::Cursor<&&std::vec::Vec<u8>>) -> bool {
+fn is_eof(cursor: &mut std::io::Cursor<&&Box<[u8]>>) -> bool {
     cursor.fill_buf().map(|buf| buf.is_empty()).unwrap_or(true)
 }
 
@@ -126,8 +126,8 @@ where
             name: class.name,
             link_name: class.link_name,
             data: SplitData {
-                link_header: link_header_cursor.into_inner(),
-                body: body_cursor.into_inner(),
+                link_header: link_header_cursor.into_inner().into(),
+                body: body_cursor.into_inner().into(),
             },
         })
     }

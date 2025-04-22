@@ -62,7 +62,7 @@ impl From<Object> for Resource {
             class_name: value.class_name,
             name: value.name,
             link_name: None,
-            data: Data(value.data),
+            data: Data(value.data.into()),
         }
     }
 }

@@ -11,8 +11,8 @@ use crate::names::Name;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {
-    Data(Vec<u8>),
-    SplitData { link_header: Vec<u8>, body: Vec<u8> },
+    Data(Box<[u8]>),
+    SplitData { link_header: Box<[u8]>, body: Box<[u8]> },
 }
 
 #[derive(Debug, Eq, PartialEq)]

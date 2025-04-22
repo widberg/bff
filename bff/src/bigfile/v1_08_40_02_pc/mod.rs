@@ -149,7 +149,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                         data.write_options(writer, endian, ())?;
                     }
                     (SplitData { link_header, body }, true) => {
-                        let data = [link_header.as_slice(), body.as_slice()].concat();
+                        let data = [link_header as &[_], body].concat();
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(16))?;
                         let begin_data = writer.stream_position()?;

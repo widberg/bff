@@ -97,7 +97,7 @@ fn pool_parser(
         compressed.insert(name, pool_object.object.compress);
         match &mut object.data {
             SplitData { body, .. } => {
-                *body = pool_object.object.body;
+                *body = pool_object.object.body.into();
             }
             _ => unreachable!(),
         }
