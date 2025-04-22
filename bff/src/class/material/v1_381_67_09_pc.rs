@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{RGB, RGBA, ResourceObjectLinkHeader, Vec2f};
+use crate::helpers::{RGB, RGBA, ResourceLinkHeader, Vec2f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -32,7 +32,7 @@ struct MaterialRdrFlags {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceObjectLinkHeader))]
+#[br(import(_link_header: &ResourceLinkHeader))]
 pub struct MaterialBodyV1_381_67_09PC {
     diffuse: RGBA,
     emission: RGB,
@@ -66,8 +66,7 @@ pub struct MaterialBodyV1_381_67_09PC {
     unused_bitmap_name1: Name,
 }
 
-pub type MaterialV1_381_67_09PC =
-    TrivialClass<ResourceObjectLinkHeader, MaterialBodyV1_381_67_09PC>;
+pub type MaterialV1_381_67_09PC = TrivialClass<ResourceLinkHeader, MaterialBodyV1_381_67_09PC>;
 
 impl Export for MaterialV1_381_67_09PC {}
 impl Import for MaterialV1_381_67_09PC {}

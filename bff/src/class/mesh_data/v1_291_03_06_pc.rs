@@ -7,7 +7,7 @@ use crate::helpers::RGBA;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ObjectDatas {
+struct ResourceDatas {
     unknown_float: f32,
     color: RGBA,
 }
@@ -15,7 +15,7 @@ struct ObjectDatas {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct MeshDataBodyV1_291_03_06PC {
-    object_datas: ObjectDatas,
+    resource_datas: ResourceDatas,
 }
 
 pub type MeshDataV1_291_03_06PC = TrivialClass<(), MeshDataBodyV1_291_03_06PC>;

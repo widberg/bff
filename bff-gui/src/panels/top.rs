@@ -192,7 +192,7 @@ impl Gui {
                                 .bigfile
                                 .as_ref()
                                 .unwrap()
-                                .objects
+                                .resources
                                 .get(&self.resource_name.unwrap())
                                 .unwrap();
                             #[cfg(not(target_arch = "wasm32"))]
@@ -238,7 +238,7 @@ impl Gui {
                         {
                             ui.close_menu();
                             if let Some(directory) = rfd::FileDialog::new().pick_folder() {
-                                for resource in self.bigfile.as_ref().unwrap().objects.values() {
+                                for resource in self.bigfile.as_ref().unwrap().resources.values() {
                                     let name = resource.name;
                                     let class_name = resource.class_name;
                                     let path = directory.join(

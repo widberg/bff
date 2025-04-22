@@ -155,29 +155,29 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
                     if p.path.get_ident().is_none() {
                         let first = p.path.segments.first().unwrap();
                         if first.ident == "DynArray" {
-                            return quote! { #field_ident: object.#field_ident.inner.into_iter().map(|x| x.into()).collect::<Vec<_>>().into() };
+                            return quote! { #field_ident: resource.#field_ident.inner.into_iter().map(|x| x.into()).collect::<Vec<_>>().into() };
                         } else if first.ident == "Vec" {
                             let item_type = match first.arguments {
                                 PathArguments::AngleBracketed(ref args) => args.args.first().unwrap(),
                                 _ => panic!("Invalid type"),
                             };
                             if PRIMITIVES.contains(&item_type.to_token_stream().to_string().as_str()) {
-                                return quote! { #field_ident: object.#field_ident };
+                                return quote! { #field_ident: resource.#field_ident };
                             } else {
-                                return quote! { #field_ident: object.#field_ident.into_iter().map(|x| x.into()).collect::<Vec<_>>() };
+                                return quote! { #field_ident: resource.#field_ident.into_iter().map(|x| x.into()).collect::<Vec<_>>() };
                             }
                         }
                     }
                 }
-                quote! { #field_ident: object.#field_ident.into() }
+                quote! { #field_ident: resource.#field_ident.into() }
             } else {
-                quote! { #field_ident: object.#field_ident }
+                quote! { #field_ident: resource.#field_ident }
             }
         })
         .collect::<Vec<_>>();
     quote! {
         impl From<#name> for super::generic::#generic_name {
-            fn from(object: #name) -> Self {
+            fn from(resource: #name) -> Self {
                 super::generic::#generic_name {
                     #(#generic_intos),*
                 }

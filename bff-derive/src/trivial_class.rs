@@ -121,14 +121,13 @@ fn impl_from_generic_to_trivial(input: &TrivialClassMacroInput) -> proc_macro2::
             generic: super::generic::#generic_class,
             substitute: #class,
         ) -> crate::BffResult<#class> {
-            let object = #class {
+            Ok(#class {
                 class_name: generic.class_name,
                 name: generic.name,
                 link_name: generic.link_name,
                 link_header: #link_header,
                 body: #body,
-            };
-            Ok(object)
+            })
         }
     }}
 }

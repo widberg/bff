@@ -28,7 +28,7 @@ pub fn names(
 
         if let Some(wordlist) = wordlist {
             let mut names_db = bff::names::names().lock().unwrap();
-            for name in bigfile.objects.keys() {
+            for name in bigfile.resources.keys() {
                 if names_db.get(name).is_none() {
                     let string = match wordlist {
                         Wordlist::Empty => "".to_owned(),
@@ -41,7 +41,7 @@ pub fn names(
         }
 
         if let Some(out_names) = out_names {
-            write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
+            write_names(out_names, &Some(bigfile.resources.keys().collect()))?;
         }
     } else if let Some(out_names) = out_names {
         write_names(out_names, &None)?;

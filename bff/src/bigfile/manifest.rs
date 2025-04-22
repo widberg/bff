@@ -5,26 +5,26 @@ use crate::bigfile::versions::{Version, VersionXple};
 use crate::names::Name;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ManifestPoolObjectEntry {
+pub struct ManifestPoolResourceEntry {
     pub name: Name,
     pub reference_record_index: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPoolReferenceRecord {
-    pub object_entries_starting_index: u32,
-    pub object_entries_count: u16,
+    pub resource_entries_starting_index: u32,
+    pub resource_entries_count: u16,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestPool {
-    pub object_entry_indices: Vec<u32>,
-    pub object_entries: Vec<ManifestPoolObjectEntry>,
+    pub resource_entry_indices: Vec<u32>,
+    pub resource_entries: Vec<ManifestPoolResourceEntry>,
     pub reference_records: Vec<ManifestPoolReferenceRecord>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ManifestObject {
+pub struct ManifestResource {
     pub name: Name,
     // TODO: Instead of a bool this should be an enum for compression type
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,8 +38,8 @@ pub struct ManifestBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checksum: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub compressed: Option<bool>,
-    pub objects: Vec<ManifestObject>,
+    pub compress: Option<bool>,
+    pub resources: Vec<ManifestResource>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]

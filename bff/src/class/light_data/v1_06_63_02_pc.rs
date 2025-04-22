@@ -7,7 +7,7 @@ use crate::helpers::{RGB, RGBA, Vec3f};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ObjectDatas {
+struct ResourceDatas {
     unknown: f32,
     color: RGBA,
 }
@@ -15,7 +15,7 @@ struct ObjectDatas {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct LightDataBodyV1_06_63_02PC {
-    object_datas: ObjectDatas,
+    resource_datas: ResourceDatas,
     direction: Vec3f,
     color: RGB,
     padding: [u8; 12],

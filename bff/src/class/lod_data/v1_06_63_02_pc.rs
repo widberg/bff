@@ -8,7 +8,7 @@ use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ObjectDatas {
+struct ResourceDatas {
     flags: u32,
     color: RGBA,
 }
@@ -39,7 +39,7 @@ struct ActorData {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct LodDataBodyV1_06_63_02PC {
-    obj_datas: ObjectDatas,
+    obj_datas: ResourceDatas,
     mesh_data_or_skelcrc32s: DynArray<Name>,
     final_skel_name: Name,
     #[serde(skip_serializing_if = "Option::is_none")]

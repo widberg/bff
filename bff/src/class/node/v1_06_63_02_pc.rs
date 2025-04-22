@@ -13,7 +13,7 @@ pub struct NodeBodyV1_06_63_02PC {
     head_child_name: Name,
     prev_node_name: Name,
     next_node_name: Name,
-    object_name: Name,
+    resource_name: Name,
     user_define_name: Name,
     bitmap_name: Name,
     unk_name: Name,

@@ -9,11 +9,11 @@ use crate::names::Name;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
-    pub object_count: u32,
+    pub resource_count: u32,
     pub padded_size: u32,
     pub data_size: u32,
     pub working_buffer_offset: u32,
-    pub first_object_name: Name,
+    pub first_resource_name: Name,
     #[br(map = |checksum: i32| (checksum != 0).then_some(checksum))]
     #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
     pub checksum: Option<i32>,
@@ -70,7 +70,7 @@ pub struct Header {
     #[br(temp)]
     #[bw(calc = pool_manifest_unused.unwrap_or(0))]
     _pool_manifest_unused1: u32,
-    pub pool_object_decompression_buffer_capacity: u32,
+    pub pool_resource_decompression_buffer_capacity: u32,
     pub block_sector_padding_size: u32,
     pub pool_sector_padding_size: u32,
     pub file_size: u32,

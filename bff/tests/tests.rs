@@ -26,9 +26,9 @@ mod tests {
         let _ = BigFile::read_platform(&mut reader, platform).unwrap();
     }
 
-    #[datatest::data("../data/roundtrip_objects.yaml")]
+    #[datatest::data("../data/roundtrip_resources.yaml")]
     #[test]
-    fn roundtrip_objects(bigfile_path_str: String) {
+    fn roundtrip_resources(bigfile_path_str: String) {
         let bigfile_path = PathBuf::from(bigfile_path_str);
         let platform = match bigfile_path.extension() {
             Some(extension) => extension.try_into().unwrap_or(Platform::PC),
@@ -38,16 +38,16 @@ mod tests {
         let mut reader = BufReader::new(f);
         let bigfile = BigFile::read_platform(&mut reader, platform).unwrap();
 
-        for object in bigfile.objects.values() {
-            let class: Class = object
+        for resource in bigfile.resources.values() {
+            let class: Class = resource
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
 
-            let new_object: Resource = (&class)
+            let new_resource: Resource = (&class)
                 .try_into_version_platform(bigfile.manifest.version.clone(), platform)
                 .unwrap();
 
-            assert_eq!(new_object, *object);
+            assert_eq!(new_resource, *resource);
         }
     }
 }

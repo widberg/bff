@@ -8,7 +8,7 @@ use crate::bigfile::versions::VersionOneple;
 
 #[derive(Serialize, Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
-    pub object_count: u32,
+    pub resource_count: u32,
     pub padded_size: u64,
     pub data_size: u64,
     pub working_buffer_offset: u64,

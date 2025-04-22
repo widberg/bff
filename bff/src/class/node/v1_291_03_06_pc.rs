@@ -14,7 +14,7 @@ pub struct NodeBodyV1_291_03_06PC {
     head_child_name: Name,
     prev_node_name: Name,
     next_node_name: Name,
-    object_node_name: Name,
+    resource_node_name: Name,
     user_define_name: Name,
     light_data_name: Name,
     bitmap_name: Name,

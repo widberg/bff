@@ -117,10 +117,10 @@ impl From<BigFileV2_0PC> for BigFile {
         let mut resources = HashMap::new();
 
         for block in bigfile.blocks.into_iter() {
-            let mut objects = Vec::with_capacity(block.resources.len());
+            let mut block_resources = Vec::with_capacity(block.resources.len());
 
             for resource in block.resources {
-                objects.push(crate::bigfile::manifest::ManifestObject {
+                block_resources.push(crate::bigfile::manifest::ManifestResource {
                     name: resource.name,
                     compress: None,
                 });
@@ -130,8 +130,8 @@ impl From<BigFileV2_0PC> for BigFile {
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
                 checksum: None,
-                compressed: Some(block.compressed),
-                objects,
+                compress: Some(block.compressed),
+                resources: block_resources,
             });
         }
 
@@ -146,7 +146,7 @@ impl From<BigFileV2_0PC> for BigFile {
                 blocks,
                 pool: None,
             },
-            objects: resources,
+            resources,
         }
     }
 }
@@ -179,8 +179,8 @@ impl BigFileIo for BigFileV2_0PC {
         for block in bigfile.manifest.blocks.iter() {
             let mut block_writer = Cursor::new(Vec::new());
 
-            for resource in block.objects.iter() {
-                let resource = bigfile.objects.get(&resource.name).unwrap();
+            for resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&resource.name).unwrap();
                 Resource::dump_resource(resource, &mut block_writer, endian)?;
             }
 
@@ -189,8 +189,8 @@ impl BigFileIo for BigFileV2_0PC {
             decompressed_block_size = max(decompressed_block_size, block_data.len() as u32);
 
             blocks.push((
-                block.objects.len() as u32,
-                block.compressed.unwrap_or(false),
+                block.resources.len() as u32,
+                block.compress.unwrap_or(false),
                 block_data,
             ));
         }

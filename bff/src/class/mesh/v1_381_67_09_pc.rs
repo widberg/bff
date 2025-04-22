@@ -11,10 +11,10 @@ use crate::helpers::{
     DynBox,
     DynSphere,
     NumeratorFloat,
-    ObjectLinkHeaderV1_381_67_09PC,
     PascalString,
     RangeBeginSize,
     RangeFirstLast,
+    ResourceLinkHeaderV1_381_67_09PC,
     Vec2f,
     Vec3f,
     Vec3i16,
@@ -34,7 +34,7 @@ struct FadeDistances {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct LinkHeader {
-    object_link_header: ObjectLinkHeaderV1_381_67_09PC,
+    resource_link_header: ResourceLinkHeaderV1_381_67_09PC,
     names: DynArray<Name>,
     fade: FadeDistances,
     dyn_spheres: DynArray<DynSphere>,

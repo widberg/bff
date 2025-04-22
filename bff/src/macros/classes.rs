@@ -39,16 +39,16 @@ macro_rules! classes {
         impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for Class {
             type Error = crate::error::Error;
 
-            fn try_from_version_platform(object: &crate::bigfile::resource::Resource, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Class> {
+            fn try_from_version_platform(resource: &crate::bigfile::resource::Resource, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Class> {
                 use crate::traits::NamedClass;
-                match object.class_name {
+                match resource.class_name {
                     $(crate::names::Name::Asobo32($class::NAME) | crate::names::Name::Asobo32($class::NAME_LEGACY)
                     | crate::names::Name::AsoboAlternate32($class::NAME) | crate::names::Name::AsoboAlternate32($class::NAME_LEGACY)
                     | crate::names::Name::Kalisto32($class::NAME) | crate::names::Name::Kalisto32($class::NAME_LEGACY)
                     | crate::names::Name::BlackSheep32($class::NAME) | crate::names::Name::BlackSheep32($class::NAME_LEGACY)
                     | crate::names::Name::Asobo64($class::NAME) | crate::names::Name::Asobo64($class::NAME_LEGACY)
-                        => Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(object, version, platform)?.into()),)*
-                    _ => Err(crate::error::UnimplementedClassError::new(object.name, object.class_name, version, platform).into()),
+                        => Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$class>>::try_into_version_platform(resource, version, platform)?.into()),)*
+                    _ => Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into()),
                 }
             }
         }

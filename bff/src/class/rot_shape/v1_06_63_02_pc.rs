@@ -41,7 +41,7 @@ struct Morpher {
 
 #[derive(BinRead, Debug, Serialize)]
 struct LinkInfo {
-    object_link_header: ObjectV1_06_63_02PC,
+    resource_link_header: ResourceV1_06_63_02PC,
     vertices: DynArray<Vec3f>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,

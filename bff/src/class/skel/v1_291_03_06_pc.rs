@@ -8,7 +8,7 @@ use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ObjectDatas {
+struct ResourceDatas {
     flag: u32,
     b_sphere_local: Sphere,
 }
@@ -63,7 +63,7 @@ struct BoxColBone {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct SkelBodyV1_291_03_06PC {
-    object_datas: ObjectDatas,
+    resource_datas: ResourceDatas,
     bone_nodes: DynArray<BoneNode>,
     material_names: DynArray<Name>,
     mesh_data_names: DynArray<Name>,

@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::ResourceObjectLinkHeader;
+use crate::helpers::ResourceLinkHeader;
 use crate::traits::{Export, Import};
 
 #[bitsize(32)]
@@ -53,13 +53,13 @@ struct Internal {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceObjectLinkHeader))]
+#[br(import(_link_header: &ResourceLinkHeader))]
 pub struct BinaryBodyV1_381_67_09PC {
     data_size: u32,
     data: Internal,
 }
 
-pub type BinaryV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, BinaryBodyV1_381_67_09PC>;
+pub type BinaryV1_381_67_09PC = TrivialClass<ResourceLinkHeader, BinaryBodyV1_381_67_09PC>;
 
 impl Export for BinaryV1_381_67_09PC {}
 impl Import for BinaryV1_381_67_09PC {}

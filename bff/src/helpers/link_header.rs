@@ -8,13 +8,13 @@ use crate::names::Name;
 use crate::traits::TryFromGenericSubstitute;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ResourceObjectLinkHeader {
+pub struct ResourceLinkHeader {
     #[referenced_names(skip)]
     link_name: Name,
 }
 
 // this is just silly. i'm sure there's a better way
-impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeader {
+impl TryFromGenericSubstitute<Self, Self> for ResourceLinkHeader {
     type Error = crate::error::Error;
     fn try_from_generic_substitute(generic: Self, _: Self) -> Result<Self, Self::Error> {
         Ok(generic)
@@ -23,20 +23,20 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeader {
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
-pub struct ObjectDatasFlagsV1_381_67_09PC {
-    fl_objectdatas_hide: u1,
-    fl_objectdatas_code_control: u1,
-    fl_objectdatas_cloned: u1,
-    fl_objectdatas_skinned: u1,
-    fl_objectdatas_morphed: u1,
-    fl_objectdatas_vreflect: u1,
-    fl_objectdatas_hide_shadow: u1,
-    fl_objectdatas_static_shadow: u1,
-    fl_objectdatas_vp0_hide: u1,
-    fl_objectdatas_vp1_hide: u1,
-    fl_objectdatas_vp2_hide: u1,
-    fl_objectdatas_vp3_hide: u1,
-    fl_objectdatas_last: u1,
+pub struct ResourceDatasFlagsV1_381_67_09PC {
+    hide: u1,
+    code_control: u1,
+    cloned: u1,
+    skinned: u1,
+    morphed: u1,
+    vreflect: u1,
+    hide_shadow: u1,
+    static_shadow: u1,
+    vp0_hide: u1,
+    vp1_hide: u1,
+    vp2_hide: u1,
+    vp3_hide: u1,
+    last: u1,
     padding: u19,
 }
 
@@ -44,30 +44,30 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
 #[derive(
     BinRead, FromBits, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames,
 )]
-pub struct ObjectFlagsV1_381_67_09PC {
-    fl_object_init: u1,
-    fl_object_max_bsphere: u1,
-    fl_object_skinned: u1,
-    fl_object_morphed: u1,
-    fl_object_orientedbbox: u1,
-    fl_object_no_seaddisplay: u1,
-    fl_object_no_seadcollide: u1,
-    fl_object_no_display: u1,
-    fl_object_transparent: u1,
-    fl_object_optimized_vertex: u1,
-    fl_object_linear_mapping: u1,
-    fl_object_skinned_with_one_bone: u1,
-    fl_object_light_baked: u1,
-    fl_object_light_baked_with_material: u1,
-    fl_object_shadow_receiver: u1,
-    fl_object_no_tesselate: u1,
-    fl_object_last: u1,
+pub struct ResourceFlagsV1_381_67_09PC {
+    init: u1,
+    max_bsphere: u1,
+    skinned: u1,
+    morphed: u1,
+    orientedbbox: u1,
+    no_seaddisplay: u1,
+    no_seadcollide: u1,
+    no_display: u1,
+    transparent: u1,
+    optimized_vertex: u1,
+    linear_mapping: u1,
+    skinned_with_one_bone: u1,
+    light_baked: u1,
+    light_baked_with_material: u1,
+    shadow_receiver: u1,
+    no_tesselate: u1,
+    last: u1,
     padding: u15,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u16)]
-pub enum ObjectType {
+pub enum ResourceType {
     Points = 0,
     Surface = 1,
     Spline = 2,
@@ -97,19 +97,19 @@ pub enum ObjectType {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ObjectLinkHeaderV1_381_67_09PC {
+pub struct ResourceLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
     data_name: Name,
     rot: Quat,
     transform: Mat4f,
     radius: f32,
-    flags: ObjectFlagsV1_381_67_09PC,
-    r#type: ObjectType,
+    flags: ResourceFlagsV1_381_67_09PC,
+    r#type: ResourceType,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ObjectLinkHeaderV1_06_63_02PC {
+pub struct ResourceLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
     names: DynArray<Name>,
@@ -118,10 +118,10 @@ pub struct ObjectLinkHeaderV1_06_63_02PC {
     transform: Mat4f,
     radius: f32,
     pub flags: u32,
-    r#type: ObjectType,
+    r#type: ResourceType,
 }
 
-pub struct ObjectLinkHeaderGeneric {
+pub struct ResourceLinkHeaderGeneric {
     pub link_name: Name,
     pub names: DynArray<Name>,
     pub data_name: Name,
@@ -129,11 +129,11 @@ pub struct ObjectLinkHeaderGeneric {
     pub transform: Mat4f,
     pub radius: f32,
     pub flags: u32,
-    pub r#type: ObjectType,
+    pub r#type: ResourceType,
 }
 
-impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
-    fn from(header: ObjectLinkHeaderV1_381_67_09PC) -> Self {
+impl From<ResourceLinkHeaderV1_381_67_09PC> for ResourceLinkHeaderGeneric {
+    fn from(header: ResourceLinkHeaderV1_381_67_09PC) -> Self {
         Self {
             link_name: header.link_name,
             names: vec![].into(),
@@ -147,8 +147,8 @@ impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
     }
 }
 
-impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
-    fn from(header: ObjectLinkHeaderV1_06_63_02PC) -> Self {
+impl From<ResourceLinkHeaderV1_06_63_02PC> for ResourceLinkHeaderGeneric {
+    fn from(header: ResourceLinkHeaderV1_06_63_02PC) -> Self {
         Self {
             link_name: header.link_name,
             names: header.names,
@@ -162,22 +162,22 @@ impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
     }
 }
 
-impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
-    fn from(header: ObjectLinkHeaderGeneric) -> Self {
+impl From<ResourceLinkHeaderGeneric> for ResourceLinkHeaderV1_381_67_09PC {
+    fn from(header: ResourceLinkHeaderGeneric) -> Self {
         Self {
             link_name: header.link_name,
             data_name: header.data_name,
             rot: header.rot,
             transform: header.transform,
             radius: header.radius,
-            flags: ObjectFlagsV1_381_67_09PC::from(header.flags),
+            flags: ResourceFlagsV1_381_67_09PC::from(header.flags),
             r#type: header.r#type,
         }
     }
 }
 
-impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
-    fn from(header: ObjectLinkHeaderGeneric) -> Self {
+impl From<ResourceLinkHeaderGeneric> for ResourceLinkHeaderV1_06_63_02PC {
+    fn from(header: ResourceLinkHeaderGeneric) -> Self {
         Self {
             link_name: header.link_name,
             names: header.names,
@@ -191,22 +191,24 @@ impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
     }
 }
 
-impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_06_63_02PC {
+impl TryFromGenericSubstitute<ResourceLinkHeaderGeneric, Self> for ResourceLinkHeaderV1_06_63_02PC {
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
-        generic: ObjectLinkHeaderGeneric,
+        generic: ResourceLinkHeaderGeneric,
         _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())
     }
 }
 
-impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_381_67_09PC {
+impl TryFromGenericSubstitute<ResourceLinkHeaderGeneric, Self>
+    for ResourceLinkHeaderV1_381_67_09PC
+{
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
-        generic: ObjectLinkHeaderGeneric,
+        generic: ResourceLinkHeaderGeneric,
         _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())

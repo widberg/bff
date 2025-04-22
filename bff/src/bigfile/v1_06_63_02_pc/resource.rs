@@ -1,12 +1,12 @@
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
+use derive_more::{Deref, DerefMut};
 use serde::Serialize;
 
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::SplitData;
-use crate::lz::lz4_decompress_body_parser;
-use crate::names::{Name, NameAsobo64};
+use crate::lz::lzrs_decompress_body_parser;
+use crate::names::Name;
 
 #[parser(reader, endian)]
 pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Vec<u8>> {
@@ -19,63 +19,47 @@ pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Ve
             },
         )
     } else {
-        lz4_decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
+        lzrs_decompress_body_parser(reader, endian, (decompressed_size, compressed_size))
     }
 }
 
-#[derive(Serialize, Debug, Eq, PartialEq, BinRead, BinWrite)]
-#[brw(repr = u32)]
-enum CompressionType {
-    None = 0,
-    LZ4 = 2,
-}
-
 #[binread]
-#[derive(Serialize, Debug, Eq, PartialEq)]
-pub struct Object {
-    pub class_name: Name,
-    pub name: Name,
-    pub link_name: Name,
+#[derive(Serialize, Debug, Default, Eq, PartialEq)]
+pub struct Resource {
     #[br(temp)]
-    _size: u32,
+    _data_size: u32,
     #[br(temp)]
     link_header_size: u32,
     #[br(temp)]
-    decompressed_body_size: u32,
-    _compression_type: CompressionType,
+    decompressed_size: u32,
     #[br(temp)]
-    compressed_body_size: u32,
-    _zero: u32,
-    #[br(calc = compressed_body_size != 0)]
+    compressed_size: u32,
+    #[br(calc = compressed_size != 0)]
     pub compress: bool,
+    pub class_name: Name,
+    pub name: Name,
     #[br(count = link_header_size)]
     #[serde(skip_serializing)]
     pub link_header: Vec<u8>,
-    #[br(parse_with = body_parser, args(decompressed_body_size, compressed_body_size))]
+    #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
     #[serde(skip_serializing)]
     pub body: Vec<u8>,
 }
 
-impl Object {
+impl Resource {
     pub fn dump_resource<W: Write + Seek>(
-        resource: &Resource,
+        resource: &crate::bigfile::resource::Resource,
         writer: &mut W,
         endian: Endian,
     ) -> BinResult<()> {
         match &resource.data {
             SplitData { link_header, body } => {
-                resource.class_name.write_options(writer, endian, ())?;
-                resource.name.write_options(writer, endian, ())?;
-                resource
-                    .link_name
-                    .unwrap_or(NameAsobo64::default().into())
-                    .write_options(writer, endian, ())?;
                 (link_header.len() as u32 + body.len() as u32).write_options(writer, endian, ())?;
                 (link_header.len() as u32).write_options(writer, endian, ())?;
                 (body.len() as u32).write_options(writer, endian, ())?;
-                CompressionType::None.write_options(writer, endian, ())?;
                 0u32.write_options(writer, endian, ())?;
-                0u32.write_options(writer, endian, ())?;
+                resource.class_name.write_options(writer, endian, ())?;
+                resource.name.write_options(writer, endian, ())?;
                 writer.write_all(link_header)?;
                 writer.write_all(body)?;
             }
@@ -84,21 +68,31 @@ impl Object {
         Ok(())
     }
 
-    pub fn read_resource<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<Resource> {
+    pub fn read_resource<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+    ) -> BinResult<crate::bigfile::resource::Resource> {
         Ok(Self::read_options(reader, endian, ())?.into())
     }
 }
 
-impl From<Object> for Resource {
-    fn from(value: Object) -> Self {
+impl From<Resource> for crate::bigfile::resource::Resource {
+    fn from(value: Resource) -> Self {
         Self {
             class_name: value.class_name,
             name: value.name,
-            link_name: Some(value.link_name),
+            link_name: None,
             data: SplitData {
                 link_header: value.link_header.into(),
                 body: value.body.into(),
             },
         }
     }
+}
+
+#[derive(BinRead, Serialize, Debug, Deref, DerefMut)]
+pub struct PoolResource {
+    #[brw(align_after(2048))]
+    #[serde(flatten)]
+    pub resource: Resource,
 }

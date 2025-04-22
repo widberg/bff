@@ -1,20 +1,19 @@
 pub mod block;
 pub mod header;
-pub mod object;
+pub mod resource;
 
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult};
 use block::*;
-use header::*;
-use object::*;
+use header::{BlockDescription, Header, Resources};
+use resource::Resource;
 
 use crate::BffResult;
 use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
-use crate::bigfile::resource::Resource;
 use crate::bigfile::versions::Version;
 use crate::names::NameType::Asobo64;
 use crate::names::{Name, NameType};
@@ -25,7 +24,7 @@ pub struct BigFileV2_128_92_19PC;
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
-    objects: &mut HashMap<Name, Resource>,
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
     let mut blocks: Vec<ManifestBlock> = Vec::with_capacity(block_descriptions.len());
 
@@ -33,48 +32,50 @@ pub fn blocks_parser(
         reader.seek(SeekFrom::Start(
             block_description.resources_map_offset as u64 * 2048,
         ))?;
-        let resources = Resources::read_options(reader, endian, ())?;
+        let block_resource_descriptions = Resources::read_options(reader, endian, ())?;
 
-        let mut block_objects = Vec::with_capacity(
-            resources.resources.len()
-                + resources
+        let mut block_resources = Vec::with_capacity(
+            block_resource_descriptions.resources.len()
+                + block_resource_descriptions
                     .data_descriptions
                     .iter()
                     .map(|d| d.resource_count)
                     .sum::<u32>() as usize,
         );
-        for object in resources.resources.into_iter() {
-            reader.seek(SeekFrom::Start(object.offset as u64 * 2048))?;
-            let object = Object::read_options(reader, endian, ())?;
+        for resource in block_resource_descriptions.resources.into_iter() {
+            reader.seek(SeekFrom::Start(resource.offset as u64 * 2048))?;
+            let resource = Resource::read_options(reader, endian, ())?;
 
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
+            block_resources.push(ManifestResource {
+                name: resource.name,
+                compress: Some(resource.compress),
             });
 
-            objects.insert(object.name, object.into());
+            resources.insert(resource.name, resource.into());
         }
 
-        reader.seek(SeekFrom::Start(resources.data_offset as u64 * 2048))?;
+        reader.seek(SeekFrom::Start(
+            block_resource_descriptions.data_offset as u64 * 2048,
+        ))?;
 
-        for data_description in resources.data_descriptions {
+        for data_description in block_resource_descriptions.data_descriptions {
             let data = Data::read_options(reader, endian, (data_description.resource_count,))?;
 
-            for object in data.objects.into_iter() {
-                block_objects.push(ManifestObject {
-                    name: object.name,
-                    compress: Some(object.compress),
+            for resource in data.resources.into_iter() {
+                block_resources.push(ManifestResource {
+                    name: resource.name,
+                    compress: Some(resource.compress),
                 });
 
-                objects.insert(object.name, object.into());
+                resources.insert(resource.name, resource.into());
             }
         }
 
         blocks.push(ManifestBlock {
-            offset: Some(resources.working_buffer_offset as u64),
+            offset: Some(block_resource_descriptions.working_buffer_offset as u64),
             checksum: None,
-            compressed: None,
-            objects: block_objects,
+            compress: None,
+            resources: block_resources,
         });
     }
 
@@ -90,12 +91,12 @@ impl BigFileIo for BigFileV2_128_92_19PC {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
-        let mut objects = HashMap::new();
+        let mut resources = HashMap::new();
 
         let blocks = blocks_parser(
             reader,
             endian,
-            (header.block_descriptions.inner, &mut objects),
+            (header.block_descriptions.inner, &mut resources),
         )?;
 
         Ok(BigFile {
@@ -109,7 +110,7 @@ impl BigFileIo for BigFileV2_128_92_19PC {
                 blocks,
                 pool: None,
             },
-            objects,
+            resources,
         })
     }
 
@@ -123,5 +124,5 @@ impl BigFileIo for BigFileV2_128_92_19PC {
 
     const NAME_TYPE: NameType = Asobo64;
 
-    type ResourceType = Object;
+    type ResourceType = Resource;
 }

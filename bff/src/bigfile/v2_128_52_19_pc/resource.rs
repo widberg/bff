@@ -3,7 +3,6 @@ use std::io::{Read, Seek, Write};
 use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
 use serde::Serialize;
 
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::lz::{lz4_decompress_body_parser, zlib_decompress_body_parser};
 use crate::names::{Name, NameAsobo64};
@@ -45,7 +44,7 @@ enum CompressionType {
 
 #[binread]
 #[derive(Serialize, Debug, Eq, PartialEq)]
-pub struct Object {
+pub struct Resource {
     pub class_name: Name,
     pub name: Name,
     pub link_name: Name,
@@ -69,9 +68,9 @@ pub struct Object {
     pub body: Vec<u8>,
 }
 
-impl Object {
+impl Resource {
     pub fn dump_resource<W: Write + Seek>(
-        resource: &Resource,
+        resource: &crate::bigfile::resource::Resource,
         writer: &mut W,
         endian: Endian,
     ) -> BinResult<()> {
@@ -97,13 +96,16 @@ impl Object {
         Ok(())
     }
 
-    pub fn read_resource<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<Resource> {
+    pub fn read_resource<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+    ) -> BinResult<crate::bigfile::resource::Resource> {
         Ok(Self::read_options(reader, endian, ())?.into())
     }
 }
 
-impl From<Object> for Resource {
-    fn from(value: Object) -> Self {
+impl From<Resource> for crate::bigfile::resource::Resource {
+    fn from(value: Resource) -> Self {
         Self {
             class_name: value.class_name,
             name: value.name,

@@ -13,9 +13,8 @@ use crate::BffResult;
 use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::SplitData;
-use crate::bigfile::v1_06_63_02_pc::object::Object;
+use crate::bigfile::v1_06_63_02_pc::resource::Resource;
 use crate::bigfile::versions::{Version, VersionXple};
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
@@ -28,28 +27,28 @@ pub struct BigFileV1_2002_45_19PC;
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
-    objects: &mut HashMap<Name, Resource>,
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
     let mut blocks: Vec<ManifestBlock> = Vec::with_capacity(block_descriptions.len());
 
     for block_description in block_descriptions {
         let block = Block::read_options(reader, endian, (&block_description,))?;
-        let mut block_objects = Vec::with_capacity(block.objects.len());
-        for object in block.objects.into_iter() {
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
+        let mut block_resources = Vec::with_capacity(block.resources.len());
+        for resource in block.resources.into_iter() {
+            block_resources.push(ManifestResource {
+                name: resource.name,
+                compress: Some(resource.compress),
             });
 
-            objects.insert(
-                object.name,
-                Resource {
-                    class_name: object.class_name,
-                    name: object.name,
+            resources.insert(
+                resource.name,
+                crate::bigfile::resource::Resource {
+                    class_name: resource.class_name,
+                    name: resource.name,
                     link_name: None,
                     data: SplitData {
-                        link_header: object.link_header.into(),
-                        body: object.body.into(),
+                        link_header: resource.link_header.into(),
+                        body: resource.body.into(),
                     },
                 },
             );
@@ -58,8 +57,8 @@ pub fn blocks_parser(
         blocks.push(ManifestBlock {
             offset: Some(block_description.working_buffer_offset),
             checksum: None,
-            compressed: None,
-            objects: block_objects,
+            compress: None,
+            resources: block_resources,
         });
     }
 
@@ -75,9 +74,9 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
-        let mut objects = HashMap::new();
+        let mut resources = HashMap::new();
 
-        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
 
         let pos = reader.stream_position().unwrap();
         let len = reader.seek(SeekFrom::End(0)).unwrap();
@@ -94,7 +93,7 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
                 blocks,
                 pool: None,
             },
-            objects,
+            resources,
         })
     }
 
@@ -119,10 +118,10 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
 
             let mut calculated_working_buffer_offset = 0usize;
 
-            for object in block.objects.iter() {
-                let resource = bigfile.objects.get(&object.name).unwrap();
+            for block_resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&block_resource.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, object.compress.unwrap_or_default()) {
+                match (&resource.data, block_resource.compress.unwrap_or_default()) {
                     (SplitData { link_header, body }, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
@@ -200,7 +199,7 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
             }
 
             block_descriptions.push(BlockDescription {
-                object_count: block.objects.len() as u32,
+                resource_count: block.resources.len() as u32,
                 padded_size,
                 data_size,
                 working_buffer_offset,
@@ -212,7 +211,7 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
 
         let total_resource_count = block_descriptions
             .iter()
-            .map(|x| x.object_count)
+            .map(|x| x.resource_count)
             .sum::<u32>();
 
         let header = Header {
@@ -247,5 +246,5 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
 
     const NAME_TYPE: NameType = Asobo32;
 
-    type ResourceType = Object;
+    type ResourceType = Resource;
 }

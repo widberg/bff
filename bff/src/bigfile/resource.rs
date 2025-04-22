@@ -12,7 +12,10 @@ use crate::names::Name;
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {
     Data(Box<[u8]>),
-    SplitData { link_header: Box<[u8]>, body: Box<[u8]> },
+    SplitData {
+        link_header: Box<[u8]>,
+        body: Box<[u8]>,
+    },
 }
 
 #[derive(Debug, Eq, PartialEq)]

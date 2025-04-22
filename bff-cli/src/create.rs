@@ -32,7 +32,7 @@ pub fn create(
 
     let mut bigfile = BigFile {
         manifest,
-        objects: Default::default(),
+        resources: Default::default(),
     };
 
     let resources_path = directory.join("resources");
@@ -41,23 +41,23 @@ pub fn create(
     progress_bar.set_style(ProgressStyle::default_bar());
     progress_bar.set_length(std::fs::read_dir(&resources_path)?.count() as u64);
 
-    let objects_mutex = Mutex::new(&mut bigfile);
+    let resources_mutex = Mutex::new(&mut bigfile);
 
     std::fs::read_dir(resources_path)?
         .par_bridge()
-        .try_for_each_with(&objects_mutex, |bigfile, file| {
+        .try_for_each_with(&resources_mutex, |bigfile, file| {
             let path = file?.path();
             progress_bar.inc(1);
             if path.is_file() {
                 let mut file_reader = BufReader::new(File::open(&path)?);
                 let resource = Resource::read_bff_resource(&mut file_reader)?;
                 let bigfile = &mut bigfile.lock().unwrap();
-                if bigfile.objects.contains_key(&resource.name) {
+                if bigfile.resources.contains_key(&resource.name) {
                     return Err(crate::error::BffCliError::DuplicateResource {
                         name: resource.name,
                     });
                 }
-                bigfile.objects.insert(resource.name, resource);
+                bigfile.resources.insert(resource.name, resource);
             } else if path.is_dir() {
                 let directory = path;
                 let resource_serialized_path = directory.join("resource.json");
@@ -105,12 +105,12 @@ pub fn create(
                     (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
 
                 let bigfile = &mut bigfile.lock().unwrap();
-                if bigfile.objects.contains_key(&resource.name) {
+                if bigfile.resources.contains_key(&resource.name) {
                     return Err(crate::error::BffCliError::DuplicateResource {
                         name: resource.name,
                     });
                 }
-                bigfile.objects.insert(resource.name, resource);
+                bigfile.resources.insert(resource.name, resource);
             }
 
             Ok(())
@@ -131,7 +131,7 @@ pub fn create(
     progress_bar.set_message("Writing names");
 
     if let Some(out_names) = out_names {
-        write_names(out_names, &Some(bigfile.objects.keys().collect()))?;
+        write_names(out_names, &Some(bigfile.resources.keys().collect()))?;
     }
 
     progress_bar.finish_and_clear();

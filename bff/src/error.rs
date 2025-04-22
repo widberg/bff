@@ -8,14 +8,14 @@ use crate::names::Name;
 
 #[derive(Debug, Constructor, Display, Error)]
 #[display(
-    "unimplemented class {} (version: {}, platform: {}) for object {}",
+    "unimplemented class {} (version: {}, platform: {}) for resource {}",
     class_name,
     version,
     platform,
-    object_name
+    resource_name
 )]
 pub struct UnimplementedClassError {
-    pub object_name: Name,
+    pub resource_name: Name,
     pub class_name: Name,
     pub version: Version,
     pub platform: Platform,

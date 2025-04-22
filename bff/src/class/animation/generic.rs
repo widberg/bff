@@ -10,7 +10,7 @@ use crate::helpers::{
     KeyframerMessage,
     KeyframerRot,
     KeyframerVec3fComp,
-    ResourceObjectLinkHeader,
+    ResourceLinkHeader,
 };
 use crate::names::Name;
 
@@ -109,4 +109,4 @@ pub struct AnimationBodyGeneric {
     pub animation_morph_modifiers: DynArray<AnimationMorphModifier>,
 }
 
-pub type AnimationGeneric = TrivialClass<Option<ResourceObjectLinkHeader>, AnimationBodyGeneric>;
+pub type AnimationGeneric = TrivialClass<Option<ResourceLinkHeader>, AnimationBodyGeneric>;

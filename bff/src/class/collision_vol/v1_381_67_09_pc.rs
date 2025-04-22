@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, Mat4f, ObjectLinkHeaderV1_381_67_09PC};
+use crate::helpers::{DynArray, Mat4f, ResourceLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -14,7 +14,7 @@ struct CollisionVolInfo {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct CollisionVolBodyV1_381_67_09PC {
     collision_vol_info: DynArray<CollisionVolInfo>,
     in_message_id: Name,
@@ -28,7 +28,7 @@ pub struct CollisionVolBodyV1_381_67_09PC {
 }
 
 pub type CollisionVolV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, CollisionVolBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, CollisionVolBodyV1_381_67_09PC>;
 
 impl Export for CollisionVolV1_381_67_09PC {}
 impl Import for CollisionVolV1_381_67_09PC {}

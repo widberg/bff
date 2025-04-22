@@ -11,7 +11,7 @@ use crate::helpers::{
     KeyframerRot,
     KeyframerVec3f,
     KeyframerVec3fComp,
-    ResourceObjectLinkHeader,
+    ResourceLinkHeader,
 };
 use crate::names::Name;
 use crate::traits::{Export, Import};
@@ -67,7 +67,7 @@ struct Unknown9 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceObjectLinkHeader))]
+#[br(import(_link_header: &ResourceLinkHeader))]
 pub struct RtcBodyV1_381_67_09PC {
     duration: f32,
     unknown1s: DynArray<RtcAnimationNode>,
@@ -81,7 +81,7 @@ pub struct RtcBodyV1_381_67_09PC {
     unknown30: KeyframerMessage,
 }
 
-pub type RtcV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, RtcBodyV1_381_67_09PC>;
+pub type RtcV1_381_67_09PC = TrivialClass<ResourceLinkHeader, RtcBodyV1_381_67_09PC>;
 
 impl Export for RtcV1_381_67_09PC {}
 impl Import for RtcV1_381_67_09PC {}

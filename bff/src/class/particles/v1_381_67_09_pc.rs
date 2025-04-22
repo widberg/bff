@@ -11,7 +11,7 @@ use crate::helpers::{
     KeyframerVec3fLinear,
     KeyframerVec4fLinear,
     Mat4f,
-    ObjectLinkHeaderV1_381_67_09PC,
+    ResourceLinkHeaderV1_381_67_09PC,
     Vec3f,
 };
 use crate::names::Name;
@@ -68,7 +68,7 @@ struct ParticlesEmitter {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct ParticlesBodyV1_381_67_09PC {
     particles_emitters: DynArray<ParticlesEmitter>,
     mats: DynArray<Mat4f>,
@@ -77,7 +77,7 @@ pub struct ParticlesBodyV1_381_67_09PC {
 }
 
 pub type ParticlesV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, ParticlesBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, ParticlesBodyV1_381_67_09PC>;
 
 impl Export for ParticlesV1_381_67_09PC {}
 impl Import for ParticlesV1_381_67_09PC {}

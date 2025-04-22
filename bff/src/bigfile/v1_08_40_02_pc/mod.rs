@@ -1,6 +1,6 @@
 pub mod block;
 pub mod header;
-pub mod object;
+pub mod resource;
 
 use std::cmp::max;
 use std::collections::HashMap;
@@ -9,12 +9,11 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use binrw::{BinRead, BinResult, BinWrite};
 use block::Block;
 use header::*;
-use object::Object;
+use resource::Resource;
 
 use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::versions::{Version, VersionXple};
@@ -28,27 +27,27 @@ use crate::{BffResult, Endian};
 #[binrw::parser(reader, endian)]
 fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
-    objects: &mut HashMap<Name, Resource>,
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
     let mut blocks: Vec<ManifestBlock> = Vec::with_capacity(block_descriptions.len());
 
     for block_description in block_descriptions {
         let block = Block::read_options(reader, endian, (&block_description,))?;
-        let mut block_objects = Vec::with_capacity(block.objects.len());
-        for object in block.objects.into_iter() {
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
+        let mut block_resources = Vec::with_capacity(block.resources.len());
+        for resource in block.resources.into_iter() {
+            block_resources.push(ManifestResource {
+                name: resource.name,
+                compress: Some(resource.compress),
             });
 
-            objects.insert(object.name, object.into());
+            resources.insert(resource.name, resource.into());
         }
 
         blocks.push(ManifestBlock {
             offset: Some(block_description.working_buffer_offset as u64),
             checksum: block_description.checksum,
-            compressed: None,
-            objects: block_objects,
+            compress: None,
+            resources: block_resources,
         });
     }
 
@@ -66,9 +65,9 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
-        let mut objects = HashMap::new();
+        let mut resources = HashMap::new();
 
-        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
 
         let pos = reader.stream_position().unwrap();
         let len = reader.seek(SeekFrom::End(0)).unwrap();
@@ -85,7 +84,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
                 blocks,
                 pool: None,
             },
-            objects,
+            resources,
         })
     }
 
@@ -112,10 +111,10 @@ impl BigFileIo for BigFileV1_08_40_02PC {
 
             let mut calculated_working_buffer_offset = 0usize;
 
-            for object in block.objects.iter() {
-                let resource = bigfile.objects.get(&object.name).unwrap();
+            for block_resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&block_resource.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, object.compress.unwrap_or_default()) {
+                match (&resource.data, block_resource.compress.unwrap_or_default()) {
                     (Data(data), true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(16))?;
@@ -214,11 +213,11 @@ impl BigFileIo for BigFileV1_08_40_02PC {
             }
 
             block_descriptions.push(BlockDescription {
-                object_count: block.objects.len() as u32,
+                resource_count: block.resources.len() as u32,
                 padded_size,
                 data_size,
                 working_buffer_offset,
-                first_object_name: block.objects.first().map(|r| r.name).unwrap_or_default(),
+                first_resource_name: block.resources.first().map(|r| r.name).unwrap_or_default(),
                 // TODO: Calculate checksum using Asobo Alternate on the unpadded block while writing
                 checksum: block.checksum,
             });
@@ -246,5 +245,5 @@ impl BigFileIo for BigFileV1_08_40_02PC {
 
     const NAME_TYPE: NameType = Asobo32;
 
-    type ResourceType = Object;
+    type ResourceType = Resource;
 }

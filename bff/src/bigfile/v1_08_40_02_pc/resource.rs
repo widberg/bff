@@ -3,14 +3,13 @@ use std::io::{Read, Seek, Write};
 use binrw::{BinRead, BinResult, BinWrite, Endian, binread};
 use serde::Serialize;
 
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
-use crate::bigfile::v1_06_63_02_pc::object::body_parser;
+use crate::bigfile::v1_06_63_02_pc::resource::body_parser;
 use crate::names::Name;
 
 #[binread]
 #[derive(Serialize, Debug, Default, Eq, PartialEq)]
-pub struct Object {
+pub struct Resource {
     #[br(temp)]
     decompressed_size: u32,
     #[br(temp)]
@@ -24,9 +23,9 @@ pub struct Object {
     pub data: Vec<u8>,
 }
 
-impl Object {
+impl Resource {
     pub fn dump_resource<W: Write + Seek>(
-        resource: &Resource,
+        resource: &crate::bigfile::resource::Resource,
         writer: &mut W,
         endian: Endian,
     ) -> BinResult<()> {
@@ -51,13 +50,16 @@ impl Object {
         Ok(())
     }
 
-    pub fn read_resource<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<Resource> {
+    pub fn read_resource<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+    ) -> BinResult<crate::bigfile::resource::Resource> {
         Ok(Self::read_options(reader, endian, ())?.into())
     }
 }
 
-impl From<Object> for Resource {
-    fn from(value: Object) -> Self {
+impl From<Resource> for crate::bigfile::resource::Resource {
+    fn from(value: Resource) -> Self {
         Self {
             class_name: value.class_name,
             name: value.name,

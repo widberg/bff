@@ -51,7 +51,7 @@ macro_rules! bff_class {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
-                _object: &crate::bigfile::resource::Resource,
+                _resource: &crate::bigfile::resource::Resource,
                 _version: crate::bigfile::versions::Version,
                 _platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<$class> {
@@ -123,7 +123,7 @@ macro_rules! bff_class {
 
             #[allow(unused_imports)]
             fn try_from_version_platform(
-                object: &crate::bigfile::resource::Resource,
+                resource: &crate::bigfile::resource::Resource,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<$class> {
@@ -131,12 +131,12 @@ macro_rules! bff_class {
                 use crate::bigfile::platforms::Platform::*;
                 match (version.clone(), platform) {
                     $($pattern => {
-                        let shadow_class: $variant = <&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$variant>>::try_into_version_platform(object, version, platform)?;
+                        let shadow_class: $variant = <&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$variant>>::try_into_version_platform(resource, version, platform)?;
                         Ok(std::boxed::Box::new(shadow_class).into())
                     })*
                     _ => Err(
                         // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
-                        crate::error::UnimplementedClassError::new(object.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
+                        crate::error::UnimplementedClassError::new(resource.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
                     ),
                 }
             }
@@ -155,8 +155,7 @@ macro_rules! bff_class {
                 use crate::bigfile::platforms::Platform::*;
                 match class {
                     $($class::$variant(class) => {
-                        let object: crate::bigfile::resource::Resource = <&$variant as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)?;
-                        Ok(object)
+                        <&$variant as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)
                     })*
                 }
             }

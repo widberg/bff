@@ -2,12 +2,12 @@ use bff_derive::{GenericClass, ReferencedNames, trivial_class};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
+use crate::helpers::{Quat, RGBA, ResourceLinkHeaderV1_381_67_09PC, Vec3f};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct LightBodyV1_381_67_09PC {
     rotation: Quat,
     direction: Vec3f,
@@ -17,7 +17,7 @@ pub struct LightBodyV1_381_67_09PC {
 }
 
 trivial_class!(
-    LightV1_381_67_09PC(ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC),
+    LightV1_381_67_09PC(ResourceLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC),
     LightGeneric
 );
 

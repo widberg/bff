@@ -15,7 +15,7 @@ pub fn lzrs_decompress_body_parser(
     let read_decompressed_size = reader.read_le::<u32>()?;
     let read_compressed_size = reader.read_le::<u32>()?;
 
-    // Ensure the values from the object header match the values
+    // Ensure the values from the resource header match the values
     // in the compressed data.
     // compressed_size includes the 8 bytes taken up by the duplicate
     // size fields.

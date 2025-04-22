@@ -28,7 +28,7 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
             let dependency_classes: HashMap<Name, Class> = skin
                 .dependencies()
                 .iter()
-                .filter_map(|n| bigfile.objects.get(n))
+                .filter_map(|n| bigfile.resources.get(n))
                 .map(|r| {
                     (
                         r.name,

@@ -127,10 +127,10 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
         let mut resources = HashMap::new();
 
         for block in bigfile.blocks.into_iter() {
-            let mut objects = Vec::with_capacity(block.resources.len());
+            let mut block_resources = Vec::with_capacity(block.resources.len());
 
             for resource in block.resources {
-                objects.push(crate::bigfile::manifest::ManifestObject {
+                block_resources.push(crate::bigfile::manifest::ManifestResource {
                     name: resource.name,
                     compress: None,
                 });
@@ -140,8 +140,8 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
                 checksum: None,
-                compressed: Some(block.compressed),
-                objects,
+                compress: Some(block.compressed),
+                resources: block_resources,
             });
         }
 
@@ -156,7 +156,7 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
                 blocks,
                 pool: None,
             },
-            objects: resources,
+            resources,
         }
     }
 }
@@ -189,8 +189,8 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         for block in bigfile.manifest.blocks.iter() {
             let mut block_writer = Cursor::new(Vec::new());
 
-            for resource in block.objects.iter() {
-                let resource = bigfile.objects.get(&resource.name).unwrap();
+            for resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&resource.name).unwrap();
                 Resource::<12>::dump_resource(resource, &mut block_writer, endian)?;
             }
 
@@ -199,9 +199,9 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
             decompressed_block_size = max(decompressed_block_size, block_data.len() as u32);
 
             blocks.push((
-                block.objects.len() as u32,
+                block.resources.len() as u32,
                 block.checksum.unwrap_or(0),
-                block.compressed.unwrap_or(false),
+                block.compress.unwrap_or(false),
                 block_data,
             ));
         }

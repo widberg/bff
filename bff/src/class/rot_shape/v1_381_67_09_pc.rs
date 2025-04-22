@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ObjectLinkHeaderV1_381_67_09PC, Vec2f, Vec3f};
+use crate::helpers::{DynArray, ResourceLinkHeaderV1_381_67_09PC, Vec2f, Vec3f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -15,7 +15,7 @@ enum BillboardMode {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct RotShapeBodyV1_381_67_09PC {
     origins: DynArray<Vec3f>,
     zero: f32,
@@ -28,7 +28,7 @@ pub struct RotShapeBodyV1_381_67_09PC {
 }
 
 pub type RotShapeV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, RotShapeBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, RotShapeBodyV1_381_67_09PC>;
 
 impl Export for RotShapeV1_381_67_09PC {}
 impl Import for RotShapeV1_381_67_09PC {}

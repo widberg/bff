@@ -9,9 +9,9 @@ use crate::traits::{Export, Import};
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
 struct SeadEntry {
-    next_object_of_entry: u32,
-    prev_object_of_entry: u32,
-    next_entry_of_object: u32,
+    next_resource_of_entry: u32,
+    prev_resource_of_entry: u32,
+    next_entry_of_resource: u32,
     grid_id: u32,
     node_name: Name,
 }

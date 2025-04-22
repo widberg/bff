@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ObjectLinkHeaderV1_381_67_09PC, Vec3f, Vec4f};
+use crate::helpers::{DynArray, ResourceLinkHeaderV1_381_67_09PC, Vec3f, Vec4f};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
@@ -22,7 +22,7 @@ struct SplineSegment {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct SplineGraphBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,
     spline_segments: DynArray<SplineSegment>,
@@ -34,7 +34,7 @@ pub struct SplineGraphBodyV1_381_67_09PC {
 }
 
 pub type SplineGraphV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SplineGraphBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, SplineGraphBodyV1_381_67_09PC>;
 
 impl Export for SplineGraphV1_381_67_09PC {}
 impl Import for SplineGraphV1_381_67_09PC {}

@@ -11,7 +11,7 @@ use crate::helpers::{
     KeyframerVec2fLinear,
     KeyframerVec3fLinear,
     KeyframerVec4fLinear,
-    ResourceObjectLinkHeader,
+    ResourceLinkHeader,
 };
 use crate::names::Name;
 use crate::traits::{Export, Import};
@@ -30,7 +30,7 @@ struct MaterialAnimFlags {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceObjectLinkHeader))]
+#[br(import(_link_header: &ResourceLinkHeader))]
 pub struct MaterialAnimBodyV1_381_67_09PC {
     bitmap_name_keyframer: KeyframerHdl,
     scroll_keyframer: KeyframerVec2fLinear,
@@ -42,14 +42,14 @@ pub struct MaterialAnimBodyV1_381_67_09PC {
     vec4f_keyframer0: KeyframerVec4fLinear,
     params_keyframer: KeyframerVec4fLinear,
     render_flag_keyframer: KeyframerFlag,
-    object_flag_keyframer: KeyframerFlag,
+    resource_flag_keyframer: KeyframerFlag,
     base_material_name: Name,
     duration: f32,
     flags: MaterialAnimFlags,
 }
 
 pub type MaterialAnimV1_381_67_09PC =
-    TrivialClass<ResourceObjectLinkHeader, MaterialAnimBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeader, MaterialAnimBodyV1_381_67_09PC>;
 
 impl Export for MaterialAnimV1_381_67_09PC {}
 impl Import for MaterialAnimV1_381_67_09PC {}

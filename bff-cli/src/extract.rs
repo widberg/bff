@@ -186,13 +186,13 @@ pub fn extract(
     serde_json::to_writer_pretty(manifest_writer, &bigfile.manifest)?;
 
     progress_bar.set_style(ProgressStyle::default_bar());
-    progress_bar.set_length(bigfile.objects.len() as u64);
+    progress_bar.set_length(bigfile.resources.len() as u64);
 
     let resources_path = directory.join("resources");
     std::fs::create_dir(&resources_path)?;
 
     bigfile
-        .objects
+        .resources
         .values()
         .par_bridge()
         .try_for_each(|resource| {

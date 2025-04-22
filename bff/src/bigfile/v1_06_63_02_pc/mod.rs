@@ -1,7 +1,7 @@
 pub mod block;
 pub mod header;
-pub mod object;
 pub mod pool;
+pub mod resource;
 
 use std::cmp::max;
 use std::collections::{HashMap, HashSet, hash_map};
@@ -11,19 +11,18 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use block::Block;
 use header::{BlockDescription, Header};
-use object::Object;
 use pool::Pool;
+use resource::Resource;
 
 use crate::BffResult;
 use crate::bigfile::BigFile;
 use crate::bigfile::manifest::*;
 use crate::bigfile::platforms::Platform;
-use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::bigfile::v1_06_63_02_pc::pool::{
-    ObjectDescription,
     PoolHeader,
     ReferenceRecord,
+    ResourceDescription,
     calculate_padded_pool_header_size,
 };
 use crate::bigfile::versions::{Version, VersionXple};
@@ -36,27 +35,27 @@ use crate::traits::BigFileIo;
 #[binrw::parser(reader, endian)]
 pub fn blocks_parser(
     block_descriptions: Vec<BlockDescription>,
-    objects: &mut HashMap<Name, Resource>,
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
 ) -> BinResult<Vec<ManifestBlock>> {
     let mut blocks: Vec<ManifestBlock> = Vec::with_capacity(block_descriptions.len());
 
     for block_description in block_descriptions {
         let block = Block::read_options(reader, endian, (&block_description,))?;
-        let mut block_objects = Vec::with_capacity(block.objects.len());
-        for object in block.objects.into_iter() {
-            block_objects.push(ManifestObject {
-                name: object.name,
-                compress: Some(object.compress),
+        let mut block_resources = Vec::with_capacity(block.resources.len());
+        for resource in block.resources.into_iter() {
+            block_resources.push(ManifestResource {
+                name: resource.name,
+                compress: Some(resource.compress),
             });
 
-            objects.insert(object.name, object.into());
+            resources.insert(resource.name, resource.into());
         }
 
         blocks.push(ManifestBlock {
             offset: Some(block_description.working_buffer_offset as u64),
             checksum: block_description.checksum,
-            compressed: None,
-            objects: block_objects,
+            compress: None,
+            resources: block_resources,
         });
     }
 
@@ -65,16 +64,16 @@ pub fn blocks_parser(
 
 #[binrw::parser(reader, endian)]
 fn pool_parser(
-    objects: &mut HashMap<Name, Resource>,
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
 ) -> BinResult<(ManifestPool, HashMap<Name, bool>)> {
     let pool = Pool::read_options(reader, endian, ())?;
 
-    let object_entry_indices = pool.header.object_descriptions_indices.inner;
-    let object_entries = pool
+    let resource_entry_indices = pool.header.resource_descriptions_indices.inner;
+    let resource_entries = pool
         .header
-        .object_descriptions
+        .resource_descriptions
         .iter()
-        .map(|x| ManifestPoolObjectEntry {
+        .map(|x| ManifestPoolResourceEntry {
             name: x.name,
             reference_record_index: x.reference_records_index,
         })
@@ -84,20 +83,20 @@ fn pool_parser(
         .reference_records
         .iter()
         .map(|x| ManifestPoolReferenceRecord {
-            object_entries_starting_index: x.objects_name_starting_index,
-            object_entries_count: x.objects_name_count,
+            resource_entries_starting_index: x.resources_name_starting_index,
+            resource_entries_count: x.resources_name_count,
         })
         .collect::<Vec<_>>();
 
     let mut compressed = HashMap::new();
 
-    for pool_object in pool.objects.into_iter() {
-        let name = pool_object.object.name;
-        let object = objects.get_mut(&name).unwrap();
-        compressed.insert(name, pool_object.object.compress);
-        match &mut object.data {
+    for pool_resource in pool.resources.into_iter() {
+        let name = pool_resource.resource.name;
+        let resource = resources.get_mut(&name).unwrap();
+        compressed.insert(name, pool_resource.resource.compress);
+        match &mut resource.data {
             SplitData { body, .. } => {
-                *body = pool_object.object.body.into();
+                *body = pool_resource.resource.body.into();
             }
             _ => unreachable!(),
         }
@@ -105,8 +104,8 @@ fn pool_parser(
 
     Ok((
         ManifestPool {
-            object_entry_indices,
-            object_entries,
+            resource_entry_indices,
+            resource_entries,
             reference_records,
         },
         compressed,
@@ -124,17 +123,18 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
-        let mut objects = HashMap::new();
+        let mut resources = HashMap::new();
 
-        let mut blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let mut blocks =
+            blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
 
         let pool = if let Some(pool_offset) = header.pool_offset {
             assert_eq!(pool_offset as u64, reader.stream_position().unwrap());
-            let (pool, compressed) = pool_parser(reader, endian, (&mut objects,))?;
+            let (pool, compressed) = pool_parser(reader, endian, (&mut resources,))?;
             for block in blocks.iter_mut() {
-                for object in block.objects.iter_mut() {
-                    if let Some(compress) = compressed.get(&object.name) {
-                        object.compress = Some(*compress);
+                for resource in block.resources.iter_mut() {
+                    if let Some(compress) = compressed.get(&resource.name) {
+                        resource.compress = Some(*compress);
                     }
                 }
             }
@@ -158,7 +158,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 blocks,
                 pool,
             },
-            objects,
+            resources,
         })
     }
 
@@ -182,7 +182,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             .as_ref()
             .map_or_else(HashSet::new, |pool| {
                 let mut pooled = HashSet::new();
-                for r in pool.object_entries.iter() {
+                for r in pool.resource_entries.iter() {
                     pooled.insert(r.name);
                 }
 
@@ -198,11 +198,11 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
             let mut calculated_working_buffer_offset = 0usize;
 
-            for object in block.objects.iter() {
-                let is_compressed = object.compress.unwrap_or_default();
-                compressed.insert(object.name, is_compressed);
-                let resource = bigfile.objects.get(&object.name).unwrap();
-                let is_pooled = pooled.contains(&object.name);
+            for block_resource in block.resources.iter() {
+                let is_compressed = block_resource.compress.unwrap_or_default();
+                compressed.insert(block_resource.name, is_compressed);
+                let resource = bigfile.resources.get(&block_resource.name).unwrap();
+                let is_pooled = pooled.contains(&block_resource.name);
                 let begin_resource = writer.stream_position()?;
                 match (&resource.data, is_pooled, is_compressed) {
                     (SplitData { link_header, body }, false, true) => {
@@ -292,11 +292,11 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             }
 
             block_descriptions.push(BlockDescription {
-                object_count: block.objects.len() as u32,
+                resource_count: block.resources.len() as u32,
                 padded_size,
                 data_size,
                 working_buffer_offset,
-                first_object_name: block.objects.first().map(|r| r.name).unwrap_or_default(),
+                first_resource_name: block.resources.first().map(|r| r.name).unwrap_or_default(),
                 // TODO: Calculate checksum using Asobo Alternate on the unpadded block while writing
                 checksum: block.checksum,
             });
@@ -305,20 +305,20 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         let (
             pool_offset,
             pool_sector_padding_size,
-            pool_object_decompression_buffer_capacity,
+            pool_resource_decompression_buffer_capacity,
             pool_manifest_padded_size,
         ) = if let Some(pool) = &bigfile.manifest.pool {
             let begin_pool_header = writer.stream_position()?;
 
-            let objects_names_count_sum = pool
+            let resources_names_count_sum = pool
                 .reference_records
                 .iter()
-                .map(|x| x.object_entries_count as u32)
+                .map(|x| x.resource_entries_count as u32)
                 .sum();
 
             let padded_pool_header_size = calculate_padded_pool_header_size(
-                pool.object_entry_indices.len(),
-                pool.object_entries.len(),
+                pool.resource_entry_indices.len(),
+                pool.resource_entries.len(),
                 pool.reference_records.len(),
             );
 
@@ -326,17 +326,17 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
             let end_pool_header = writer.stream_position()?;
 
-            let mut object_padded_sizes = HashMap::new();
+            let mut resource_padded_sizes = HashMap::new();
 
             let mut pool_sector_padding_size = 0u32;
-            let mut pool_object_decompression_buffer_capacity = 0;
+            let mut pool_resource_decompression_buffer_capacity = 0;
 
             let mut pool_compression_cache = HashMap::new();
 
-            for i in pool.object_entry_indices.iter() {
-                let entry = pool.object_entries.get(*i as usize).unwrap();
+            for i in pool.resource_entry_indices.iter() {
+                let entry = pool.resource_entries.get(*i as usize).unwrap();
                 let name = entry.name;
-                let resource = bigfile.objects.get(&name).unwrap();
+                let resource = bigfile.resources.get(&name).unwrap();
                 let begin_resource = writer.stream_position()?;
                 match (
                     &resource.data,
@@ -364,9 +364,9 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
                         writer.write_all(compressed_data)?;
-                        pool_object_decompression_buffer_capacity = max(
+                        pool_resource_decompression_buffer_capacity = max(
                             (calculated_padded(body.len(), 2048)) / 2048,
-                            pool_object_decompression_buffer_capacity,
+                            pool_resource_decompression_buffer_capacity,
                         );
                     }
                     (SplitData { body, .. }, false) => {
@@ -377,9 +377,9 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                         resource.class_name.write_options(writer, endian, ())?;
                         resource.name.write_options(writer, endian, ())?;
                         writer.write_all(body)?;
-                        pool_object_decompression_buffer_capacity = max(
+                        pool_resource_decompression_buffer_capacity = max(
                             (calculated_padded(body.len(), 2048)) / 2048,
-                            pool_object_decompression_buffer_capacity,
+                            pool_resource_decompression_buffer_capacity,
                         );
                     }
                     _ => todo!(),
@@ -389,23 +389,23 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 let padding = write_align_to(writer, 2048, 0xFF)?;
 
                 pool_sector_padding_size += padding as u32;
-                object_padded_sizes.insert(name, (resource_size + padding as u32) / 2048);
+                resource_padded_sizes.insert(name, (resource_size + padding as u32) / 2048);
             }
 
             let pool_data_end = writer.stream_position()?;
             writer.seek(SeekFrom::Start(begin_pool_header))?;
 
-            let object_descriptions = pool
-                .object_entries
+            let resource_descriptions = pool
+                .resource_entries
                 .iter()
-                .map(|x| ObjectDescription {
+                .map(|x| ResourceDescription {
                     name: x.name,
                     reference_count: pool
-                        .object_entry_indices
+                        .resource_entry_indices
                         .iter()
-                        .filter(|y| pool.object_entries.get(**y as usize).unwrap().name == x.name)
+                        .filter(|y| pool.resource_entries.get(**y as usize).unwrap().name == x.name)
                         .count() as u32,
-                    padded_size: *object_padded_sizes.get(&x.name).unwrap(),
+                    padded_size: *resource_padded_sizes.get(&x.name).unwrap(),
                     reference_records_index: x.reference_record_index,
                 })
                 .collect::<Vec<_>>();
@@ -416,39 +416,40 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 .reference_records
                 .iter()
                 .map(|x| {
-                    let objects_name_starting_index = x.object_entries_starting_index;
-                    let objects_name_count = x.object_entries_count;
+                    let resources_name_starting_index = x.resource_entries_starting_index;
+                    let resources_name_count = x.resource_entries_count;
 
-                    let first = objects_name_starting_index as usize;
-                    let last = objects_name_starting_index as usize + objects_name_count as usize;
+                    let first = resources_name_starting_index as usize;
+                    let last =
+                        resources_name_starting_index as usize + resources_name_count as usize;
 
-                    let get_object_padded_size = |x: usize| -> u32 {
-                        let object_entry_index = *pool.object_entry_indices.get(x).unwrap();
-                        let object_entry = pool
-                            .object_entries
-                            .get(object_entry_index as usize)
+                    let get_resource_padded_size = |x: usize| -> u32 {
+                        let resource_entry_index = *pool.resource_entry_indices.get(x).unwrap();
+                        let resource_entry = pool
+                            .resource_entries
+                            .get(resource_entry_index as usize)
                             .unwrap();
-                        *object_padded_sizes.get(&object_entry.name).unwrap()
+                        *resource_padded_sizes.get(&resource_entry.name).unwrap()
                     };
 
                     let start_chunk_index =
-                        start_chunk + (0..first).map(get_object_padded_size).sum::<u32>();
-                    let end_chunk_index =
-                        start_chunk_index + (first..last).map(get_object_padded_size).sum::<u32>();
+                        start_chunk + (0..first).map(get_resource_padded_size).sum::<u32>();
+                    let end_chunk_index = start_chunk_index
+                        + (first..last).map(get_resource_padded_size).sum::<u32>();
 
                     ReferenceRecord {
                         start_chunk_index,
                         end_chunk_index,
-                        objects_name_starting_index,
-                        objects_name_count,
+                        resources_name_starting_index,
+                        resources_name_count,
                     }
                 })
                 .collect::<Vec<_>>();
 
             let pool_header = PoolHeader {
-                objects_names_count_sum,
-                object_descriptions_indices: pool.object_entry_indices.clone().into(),
-                object_descriptions,
+                resources_names_count_sum,
+                resource_descriptions_indices: pool.resource_entry_indices.clone().into(),
+                resource_descriptions,
                 reference_records: reference_records.into(),
             };
             pool_header.write_options(writer, endian, ())?;
@@ -463,7 +464,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             (
                 Some(begin_pool_header as u32),
                 pool_sector_padding_size,
-                pool_object_decompression_buffer_capacity as u32,
+                pool_resource_decompression_buffer_capacity as u32,
                 pool_manifest_padded_size / 2048,
             )
         } else {
@@ -494,7 +495,7 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             pool_manifest_padded_size,
             pool_offset,
             pool_manifest_unused: bigfile.manifest.pool_manifest_unused,
-            pool_object_decompression_buffer_capacity,
+            pool_resource_decompression_buffer_capacity,
             block_sector_padding_size,
             pool_sector_padding_size,
             file_size: end as u32,
@@ -511,5 +512,5 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
     const NAME_TYPE: NameType = Asobo32;
 
-    type ResourceType = Object;
+    type ResourceType = Resource;
 }

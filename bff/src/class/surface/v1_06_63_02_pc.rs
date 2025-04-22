@@ -145,7 +145,7 @@ struct ShouldDrawRelated {
 }
 
 #[derive(BinRead, Debug, Serialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectV1_06_63_02PC))]
+#[br(import(_link_header: &ResourceV1_06_63_02PC))]
 pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
@@ -162,7 +162,7 @@ pub struct SurfaceBodyV1_06_63_02PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_06_63_02PC = TrivialClass<ObjectV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;
+pub type SurfaceV1_06_63_02PC = TrivialClass<ResourceV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;
 
 impl Export for SurfaceV1_06_63_02PC {}
 impl Import for SurfaceV1_06_63_02PC {}

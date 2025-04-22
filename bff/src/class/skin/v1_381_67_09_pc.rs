@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ObjectLinkHeaderV1_381_67_09PC};
+use crate::helpers::{DynArray, ResourceLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -23,7 +23,7 @@ struct SkinSection {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct SkinBodyV1_381_67_09PC {
     mesh_names: DynArray<Name>,
     zeros: [u32; 4],
@@ -33,7 +33,8 @@ pub struct SkinBodyV1_381_67_09PC {
     skin_sections: DynArray<SkinSection>,
 }
 
-pub type SkinV1_381_67_09PC = TrivialClass<ObjectLinkHeaderV1_381_67_09PC, SkinBodyV1_381_67_09PC>;
+pub type SkinV1_381_67_09PC =
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, SkinBodyV1_381_67_09PC>;
 
 impl Export for SkinV1_381_67_09PC {}
 impl Import for SkinV1_381_67_09PC {}

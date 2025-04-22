@@ -13,7 +13,7 @@ pub fn write_class_json(path: &PathBuf, bigfile: &BigFile, resource_name: &Name)
         .write_all(
             serde_json::to_string_pretty::<Class>(
                 &bigfile
-                    .objects
+                    .resources
                     .get(resource_name)
                     .unwrap()
                     .try_into_version_platform(

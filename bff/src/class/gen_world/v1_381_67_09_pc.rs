@@ -8,8 +8,8 @@ use crate::helpers::{
     DynArray,
     FixedStringNull,
     Mat4f,
-    ObjectLinkHeaderV1_381_67_09PC,
     PascalStringNull,
+    ResourceLinkHeaderV1_381_67_09PC,
     Vec2f,
     Vec3f,
 };
@@ -69,7 +69,7 @@ struct Region {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
+#[br(import(_link_header: &ResourceLinkHeaderV1_381_67_09PC))]
 pub struct GenWorldBodyV1_381_67_09PC {
     node_name: Name,
     user_define_name: Name,
@@ -80,7 +80,7 @@ pub struct GenWorldBodyV1_381_67_09PC {
     equals41: u32,
     categories: BffMap<PascalStringNull, Category>,
     ca_flat_surfaces: DynArray<CAFlatSurface>,
-    cancel_object_placement: DynArray<Mat4f>,
+    cancel_auto_mesh_placement: DynArray<Mat4f>,
     unused10s: DynArray<Unused10>,
     region_vertices: DynArray<Vec2f>,
     region_edges: DynArray<RegionEdge>,
@@ -88,7 +88,7 @@ pub struct GenWorldBodyV1_381_67_09PC {
 }
 
 pub type GenWorldV1_381_67_09PC =
-    TrivialClass<ObjectLinkHeaderV1_381_67_09PC, GenWorldBodyV1_381_67_09PC>;
+    TrivialClass<ResourceLinkHeaderV1_381_67_09PC, GenWorldBodyV1_381_67_09PC>;
 
 impl Export for GenWorldV1_381_67_09PC {}
 impl Import for GenWorldV1_381_67_09PC {}

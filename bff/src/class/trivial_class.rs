@@ -25,7 +25,7 @@ pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub body: BodyType,
 }
 
-fn is_eof(cursor: &mut std::io::Cursor<&&Box<[u8]>>) -> bool {
+fn is_eof(cursor: &mut std::io::Cursor<&[u8]>) -> bool {
     cursor.fill_buf().map(|buf| buf.is_empty()).unwrap_or(true)
 }
 
@@ -39,14 +39,14 @@ where
     type Error = Error;
 
     fn try_from_version_platform(
-        object: &Resource,
+        resource: &Resource,
         _version: Version,
         platform: Platform,
     ) -> Result<Self, Self::Error> {
-        match &object.data {
+        match &resource.data {
             SplitData { link_header, body } => {
-                let mut link_header_cursor = Cursor::new(&link_header);
-                let mut body_cursor = Cursor::new(&body);
+                let mut link_header_cursor = Cursor::new(link_header as &[u8]);
+                let mut body_cursor = Cursor::new(body as &[u8]);
                 let link_header = LinkHeaderType::read_options(
                     &mut link_header_cursor,
                     platform.into(),
@@ -61,15 +61,15 @@ where
                     .then_some(())
                     .ok_or(BffError::UnconsumedInput)?;
                 Ok(Self {
-                    class_name: object.class_name,
-                    name: object.name,
-                    link_name: object.link_name,
+                    class_name: resource.class_name,
+                    name: resource.name,
+                    link_name: resource.link_name,
                     link_header,
                     body,
                 })
             }
             Data(data) => {
-                let mut data_cursor = Cursor::new(&data);
+                let mut data_cursor = Cursor::new(data as &[u8]);
                 let link_header = LinkHeaderType::read_options(
                     &mut data_cursor,
                     platform.into(),
@@ -81,9 +81,9 @@ where
                     .then_some(())
                     .ok_or(BffError::UnconsumedInput)?;
                 Ok(Self {
-                    class_name: object.class_name,
-                    name: object.name,
-                    link_name: object.link_name,
+                    class_name: resource.class_name,
+                    name: resource.name,
+                    link_name: resource.link_name,
                     link_header,
                     body,
                 })

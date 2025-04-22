@@ -6,8 +6,8 @@ use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     BffOption,
     DynArray,
-    ObjectDatasFlagsV1_381_67_09PC,
-    ResourceObjectLinkHeader,
+    ResourceDatasFlagsV1_381_67_09PC,
+    ResourceLinkHeader,
     Vec3f,
 };
 use crate::names::Name;
@@ -34,9 +34,9 @@ struct Extended {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceObjectLinkHeader))]
+#[br(import(_link_header: &ResourceLinkHeader))]
 pub struct LodDataBodyV1_381_67_09PC {
-    flags: ObjectDatasFlagsV1_381_67_09PC,
+    flags: ResourceDatasFlagsV1_381_67_09PC,
     mesh_data_names: DynArray<Name>,
     zero: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,7 +44,7 @@ pub struct LodDataBodyV1_381_67_09PC {
     extended: BffOption<Extended>,
 }
 
-pub type LodDataV1_381_67_09PC = TrivialClass<ResourceObjectLinkHeader, LodDataBodyV1_381_67_09PC>;
+pub type LodDataV1_381_67_09PC = TrivialClass<ResourceLinkHeader, LodDataBodyV1_381_67_09PC>;
 
 impl Export for LodDataV1_381_67_09PC {}
 impl Import for LodDataV1_381_67_09PC {}

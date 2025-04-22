@@ -7,7 +7,7 @@ use crate::helpers::{DynArray, RGBA};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ObjectDatas {
+struct ResourceDatas {
     unknown: f32,
     color: RGBA,
 }
@@ -43,7 +43,7 @@ struct MeshVolume {
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &()))]
 pub struct MeshDataBodyV1_06_63_02PC {
-    object_datas: ObjectDatas,
+    resource_datas: ResourceDatas,
     mesh_volume: MeshVolume,
 }
 

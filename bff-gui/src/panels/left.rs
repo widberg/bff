@@ -53,7 +53,7 @@ fn load_artifact(
 ) -> (Option<String>, Option<Artifact>) {
     if artifacts.get(resource).is_none() || infos.get(resource).is_none() {
         match bigfile
-            .objects
+            .resources
             .get(resource)
             .unwrap()
             .try_into_version_platform(version.clone(), platform)
@@ -99,7 +99,7 @@ impl Gui {
                     let mut new_state = state.clone();
                     let mut class_names = new_state.filter.unwrap_or(
                         bigfile
-                            .objects
+                            .resources
                             .values()
                             .map(|res| res.class_name)
                             .collect::<HashSet<_>>()
@@ -171,14 +171,14 @@ impl Gui {
                             ui.label(format!(
                                 "{}/{}",
                                 bigfile
-                                    .objects
+                                    .resources
                                     .values()
                                     .filter(|res| {
                                         *class_names.get(&res.class_name).unwrap_or(&true)
                                     })
                                     .collect::<Vec<_>>()
                                     .len(),
-                                bigfile.objects.len()
+                                bigfile.resources.len()
                             ));
                         });
                     });
@@ -187,7 +187,7 @@ impl Gui {
                     let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list
                     {
                         let mut res: Vec<(Name, Name, usize)> = bigfile
-                            .objects
+                            .resources
                             .values()
                             .filter(|res| {
                                 *new_state
@@ -288,7 +288,7 @@ impl Gui {
                                         let nickname = self.nicknames.get(resource);
                                         let mut tooltip_text = format!(
                                             "Size: {} bytes",
-                                            bigfile.objects.get(resource).unwrap().size()
+                                            bigfile.resources.get(resource).unwrap().size()
                                         );
                                         if nickname.is_some() {
                                             tooltip_text.push_str(
@@ -302,7 +302,7 @@ impl Gui {
                                                     "{}.{}",
                                                     nickname.unwrap_or(&resource.to_string()),
                                                     bigfile
-                                                        .objects
+                                                        .resources
                                                         .get(resource)
                                                         .unwrap()
                                                         .class_name

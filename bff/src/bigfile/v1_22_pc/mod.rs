@@ -144,11 +144,11 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
         let mut resources = HashMap::new();
 
         for block in bigfile.blocks.into_iter() {
-            let mut objects = Vec::with_capacity(block.resources.len());
+            let mut block_resources = Vec::with_capacity(block.resources.len());
 
             // Accessing the inner vector directly feels evil
             for resource in block.resources.inner.into_iter() {
-                objects.push(crate::bigfile::manifest::ManifestObject {
+                block_resources.push(crate::bigfile::manifest::ManifestResource {
                     name: resource.name,
                     compress: None,
                 });
@@ -158,8 +158,8 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
             blocks.push(crate::bigfile::manifest::ManifestBlock {
                 offset: None,
                 checksum: None,
-                compressed: None,
-                objects,
+                compress: None,
+                resources: block_resources,
             });
         }
 
@@ -174,7 +174,7 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool>
                 blocks,
                 pool: None,
             },
-            objects: resources,
+            resources,
         }
     }
 }
@@ -211,10 +211,10 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
         for block in bigfile.manifest.blocks.iter() {
             let block_begin = writer.stream_position()?;
 
-            (block.objects.len() as u32).write_options(writer, endian, ())?;
+            (block.resources.len() as u32).write_options(writer, endian, ())?;
 
-            for resource in block.objects.iter() {
-                let resource = bigfile.objects.get(&resource.name).unwrap();
+            for resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&resource.name).unwrap();
                 Resource::<12>::dump_resource(resource, writer, endian)?;
             }
 

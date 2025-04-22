@@ -14,7 +14,7 @@ use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::bigfile::v1_06_63_02_pc::blocks_parser;
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
-use crate::bigfile::v1_06_63_02_pc::object::Object;
+use crate::bigfile::v1_06_63_02_pc::resource::Resource;
 use crate::bigfile::versions::{Version, VersionXple};
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
@@ -33,9 +33,9 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
         let endian = platform.into();
         let header = Header::read_options(reader, endian, ())?;
 
-        let mut objects = HashMap::new();
+        let mut resources = HashMap::new();
 
-        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
 
         let pos = reader.stream_position().unwrap();
         let len = reader.seek(SeekFrom::End(0)).unwrap();
@@ -52,7 +52,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                 blocks,
                 pool: None,
             },
-            objects,
+            resources,
         })
     }
 
@@ -77,10 +77,10 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
             let mut calculated_working_buffer_offset = 0usize;
 
-            for object in block.objects.iter() {
-                let resource = bigfile.objects.get(&object.name).unwrap();
+            for block_resource in block.resources.iter() {
+                let resource = bigfile.resources.get(&block_resource.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, object.compress.unwrap_or_default()) {
+                match (&resource.data, block_resource.compress.unwrap_or_default()) {
                     (SplitData { link_header, body }, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
@@ -159,11 +159,11 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             }
 
             block_descriptions.push(BlockDescription {
-                object_count: block.objects.len() as u32,
+                resource_count: block.resources.len() as u32,
                 padded_size,
                 data_size,
                 working_buffer_offset,
-                first_object_name: block.objects.first().map(|r| r.name).unwrap_or_default(),
+                first_resource_name: block.resources.first().map(|r| r.name).unwrap_or_default(),
                 // TODO: Calculate checksum using Asobo Alternate on the unpadded block while writing
                 checksum: block.checksum,
             });
@@ -174,7 +174,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
         let total_resource_count = block_descriptions
             .iter()
-            .map(|x| x.object_count)
+            .map(|x| x.resource_count)
             .sum::<u32>();
 
         let header = Header {
@@ -208,5 +208,5 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
     const NAME_TYPE: NameType = Asobo32;
 
-    type ResourceType = Object;
+    type ResourceType = Resource;
 }
