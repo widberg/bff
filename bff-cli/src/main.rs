@@ -60,7 +60,7 @@ enum Commands {
         platform_override: Option<Platform>,
         #[arg(short, long)]
         version_override: Option<Version>,
-        #[arg(short, long)]
+        #[arg(short = 'w', long)]
         version_to_write: Option<Version>,
         #[arg(short, long)]
         tag: Option<String>,
