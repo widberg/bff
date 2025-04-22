@@ -71,7 +71,6 @@ fn impl_from_trivial_to_generic(input: &TrivialClassMacroInput) -> TokenStream {
                     class_name: class.class_name,
                     name: class.name,
                     link_name: class.link_name,
-                    compress: class.compress,
                     link_header: #link_header,
                     body: class.body.into(),
                 }
@@ -126,7 +125,6 @@ fn impl_from_generic_to_trivial(input: &TrivialClassMacroInput) -> proc_macro2::
                 class_name: generic.class_name,
                 name: generic.name,
                 link_name: generic.link_name,
-                compress: generic.compress,
                 link_header: #link_header,
                 body: #body,
             };

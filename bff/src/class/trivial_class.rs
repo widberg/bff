@@ -21,7 +21,6 @@ pub struct TrivialClass<LinkHeaderType, BodyType> {
     pub name: Name,
     #[referenced_names(skip)]
     pub link_name: Option<Name>,
-    pub compress: bool,
     pub link_header: LinkHeaderType,
     pub body: BodyType,
 }
@@ -65,7 +64,6 @@ where
                     class_name: object.class_name,
                     name: object.name,
                     link_name: object.link_name,
-                    compress: object.compress,
                     link_header,
                     body,
                 })
@@ -86,7 +84,6 @@ where
                     class_name: object.class_name,
                     name: object.name,
                     link_name: object.link_name,
-                    compress: object.compress,
                     link_header,
                     body,
                 })
@@ -128,7 +125,6 @@ where
             class_name: class.class_name,
             name: class.name,
             link_name: class.link_name,
-            compress: class.compress,
             data: SplitData {
                 link_header: link_header_cursor.into_inner(),
                 body: body_cursor.into_inner(),

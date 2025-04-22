@@ -64,7 +64,9 @@ pub fn blocks_parser(
 }
 
 #[binrw::parser(reader, endian)]
-fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool> {
+fn pool_parser(
+    objects: &mut HashMap<Name, Resource>,
+) -> BinResult<(ManifestPool, HashMap<Name, bool>)> {
     let pool = Pool::read_options(reader, endian, ())?;
 
     let object_entry_indices = pool.header.object_descriptions_indices.inner;
@@ -87,10 +89,12 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
         })
         .collect::<Vec<_>>();
 
+    let mut compressed = HashMap::new();
+
     for pool_object in pool.objects.into_iter() {
         let name = pool_object.object.name;
         let object = objects.get_mut(&name).unwrap();
-        object.compress = pool_object.object.compress;
+        compressed.insert(name, pool_object.object.compress);
         match &mut object.data {
             SplitData { body, .. } => {
                 *body = pool_object.object.body;
@@ -99,11 +103,14 @@ fn pool_parser(objects: &mut HashMap<Name, Resource>) -> BinResult<ManifestPool>
         }
     }
 
-    Ok(ManifestPool {
-        object_entry_indices,
-        object_entries,
-        reference_records,
-    })
+    Ok((
+        ManifestPool {
+            object_entry_indices,
+            object_entries,
+            reference_records,
+        },
+        compressed,
+    ))
 }
 
 pub struct BigFileV1_06_63_02PC;
@@ -119,11 +126,19 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
         let mut objects = HashMap::new();
 
-        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
+        let mut blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut objects))?;
 
         let pool = if let Some(pool_offset) = header.pool_offset {
             assert_eq!(pool_offset as u64, reader.stream_position().unwrap());
-            Some(pool_parser(reader, endian, (&mut objects,))?)
+            let (pool, compressed) = pool_parser(reader, endian, (&mut objects,))?;
+            for block in blocks.iter_mut() {
+                for object in block.objects.iter_mut() {
+                    if let Some(compress) = compressed.get(&object.name) {
+                        object.compress = Some(*compress);
+                    }
+                }
+            }
+            Some(pool)
         } else {
             None
         };
@@ -176,16 +191,20 @@ impl BigFileIo for BigFileV1_06_63_02PC {
 
         let mut block_descriptions = Vec::with_capacity(bigfile.manifest.blocks.len());
 
+        let mut compressed = HashMap::new();
+
         for (i, block) in bigfile.manifest.blocks.iter().enumerate() {
             let block_begin = writer.stream_position()?;
 
             let mut calculated_working_buffer_offset = 0usize;
 
             for object in block.objects.iter() {
+                let is_compressed = object.compress.unwrap_or_default();
+                compressed.insert(object.name, is_compressed);
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let is_pooled = pooled.contains(&object.name);
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, is_pooled, resource.compress) {
+                match (&resource.data, is_pooled, is_compressed) {
                     (SplitData { link_header, body }, false, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
@@ -319,7 +338,10 @@ impl BigFileIo for BigFileV1_06_63_02PC {
                 let name = entry.name;
                 let resource = bigfile.objects.get(&name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, resource.compress) {
+                match (
+                    &resource.data,
+                    compressed.get(&name).cloned().unwrap_or_default(),
+                ) {
                     (SplitData { body, .. }, true) => {
                         let compressed_data = match pool_compression_cache.entry(name) {
                             hash_map::Entry::Occupied(e) => e.into_mut(),

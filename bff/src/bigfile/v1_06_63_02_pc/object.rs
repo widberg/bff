@@ -80,7 +80,6 @@ impl From<Object> for Resource {
             class_name: value.class_name,
             name: value.name,
             link_name: None,
-            compress: value.compress,
             data: SplitData {
                 link_header: value.link_header,
                 body: value.body,

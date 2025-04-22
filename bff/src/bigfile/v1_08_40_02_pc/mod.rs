@@ -115,7 +115,7 @@ impl BigFileIo for BigFileV1_08_40_02PC {
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, resource.compress) {
+                match (&resource.data, object.compress.unwrap_or_default()) {
                     (Data(data), true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(16))?;

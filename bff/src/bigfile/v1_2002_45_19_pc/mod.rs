@@ -47,7 +47,6 @@ pub fn blocks_parser(
                     class_name: object.class_name,
                     name: object.name,
                     link_name: None,
-                    compress: object.compress,
                     data: SplitData {
                         link_header: object.link_header,
                         body: object.body,
@@ -123,7 +122,7 @@ impl BigFileIo for BigFileV1_2002_45_19PC {
             for object in block.objects.iter() {
                 let resource = bigfile.objects.get(&object.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, resource.compress) {
+                match (&resource.data, object.compress.unwrap_or_default()) {
                     (SplitData { link_header, body }, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
