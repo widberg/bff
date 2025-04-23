@@ -80,7 +80,7 @@ install:
 install-dev-deps:
     rustup install nightly
     rustup update nightly
-    cargo install --locked cargo-sort flamegraph cargo-deny zizmor
+    cargo install --locked cargo-sort flamegraph cargo-deny zizmor cargo-machete
     {{ if os() == 'windows' { 'cargo install --locked blondie' } else { '' } }}
 
 install-dev-deps-wasm:
@@ -103,7 +103,10 @@ flamegraph CMD *OPTIONS:
 zizmor:
     zizmor --persona auditor --collect all .github/workflows/build.yml .github/workflows/build-wasm.yml
 
-flint: fmt clippy deny zizmor
+machete:
+    cargo machete
+
+flint: fmt clippy deny zizmor machete
 
 check: flint test
 
