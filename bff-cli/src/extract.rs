@@ -97,13 +97,24 @@ fn clean_path(path: String) -> String {
         .collect()
 }
 
+fn strip_suffix_if_exists(s: String, suffix: &str) -> String {
+    let mut s = s;
+    if let Some(stripped) = s.strip_suffix(suffix) {
+        s.truncate(stripped.len());
+    }
+    s
+}
+
 fn dump_bff_resource(
     resources_path: &Path,
     bigfile: &BigFile,
     resource: &Resource,
 ) -> BffCliResult<()> {
-    let name = clean_path(format!("{}", resource.name));
-    let class_name = resource.class_name;
+    let class_name = resource.class_name.to_string();
+    let name = clean_path(strip_suffix_if_exists(
+        resource.name.to_string(),
+        &format!(".{}", class_name),
+    ));
     let mut path = resources_path.join(format!("{}.{}", name, class_name));
     let mut i = 0;
     while path.exists() {
@@ -130,8 +141,11 @@ fn export_bff_resource(
     let class: Class = resource.try_into_version_platform(version.clone(), platform)?;
     let bff_class = BffClass { header, class };
 
-    let name = clean_path(format!("{}", resource.name));
-    let class_name = resource.class_name;
+    let class_name = resource.class_name.to_string();
+    let name = clean_path(strip_suffix_if_exists(
+        resource.name.to_string(),
+        &format!(".{}", class_name),
+    ));
     let mut directory = resources_path.join(format!("{}.{}.d", name, class_name));
     let mut i = 0;
     while directory.exists() {

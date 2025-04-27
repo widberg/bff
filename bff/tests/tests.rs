@@ -64,7 +64,9 @@ mod tests {
         let mut reader = Cursor::new(&data);
         let bigfile = BigFile::read_platform(&mut reader, platform, &None).unwrap();
         let mut writer = Cursor::new(Vec::new());
-        bigfile.write(&mut writer, None, &None, &None, None).unwrap();
+        bigfile
+            .write(&mut writer, None, &None, &None, None)
+            .unwrap();
 
         assert_eq!(data, writer.into_inner());
     }
