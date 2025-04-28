@@ -72,6 +72,29 @@ where
     }
 }
 
+pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Name, String)> {
+    match names().lock().unwrap().name_type {
+        NameType::Asobo32 => {
+            NameAsobo32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+        NameType::AsoboAlternate32 => {
+            NameAsoboAlternate32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+        NameType::Kalisto32 => {
+            NameKalisto32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+        NameType::BlackSheep32 => {
+            NameBlackSheep32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+        NameType::Asobo64 => {
+            NameAsobo64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+        NameType::Ubisoft64 => {
+            NameUbisoft64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
+    }
+}
+
 pub type NameAsobo32 = NameVariant<Asobo32>;
 pub type NameAsoboAlternate32 = NameVariant<AsoboAlternate32>;
 pub type NameKalisto32 = NameVariant<Kalisto32>;

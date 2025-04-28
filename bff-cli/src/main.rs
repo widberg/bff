@@ -104,6 +104,8 @@ enum Commands {
         in_names: Vec<PathBuf>,
         #[arg(long)]
         out_names: Option<PathBuf>,
+        #[arg(short, long)]
+        use_reference_graph: bool,
     },
     Crc {
         string: Option<String>,
@@ -284,7 +286,8 @@ fn main() -> BffCliResult<()> {
             wordlist,
             in_names,
             out_names,
-        } => names::names(bigfile, wordlist, in_names, out_names),
+            use_reference_graph,
+        } => names::names(bigfile, wordlist, in_names, out_names, use_reference_graph),
         Commands::Crc {
             string,
             starting,

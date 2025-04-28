@@ -51,7 +51,7 @@ pub struct BigFile {
 
 impl BigFile {
     pub fn reference_graph(&self) -> Graph<Name, ()> {
-        let mut graph = Graph::new();
+        let mut graph = Graph::with_capacity(self.resources.len(), 0);
         let mut node_ids = HashMap::new();
         for (&name, resource) in &self.resources {
             let references =
