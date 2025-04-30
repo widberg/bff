@@ -70,6 +70,12 @@ macro_rules! platforms {
             $($platform,)*
         }
 
+        impl Platform {
+            pub fn size_on_disk(&self) -> u16 {
+                1
+            }
+        }
+
         crate::macros::platforms::extensions_to_platforms!($(($platform,$styles)),*);
 
         impl From<Platform> for binrw::Endian {

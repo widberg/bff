@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, Write};
 
-use binrw::{BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use serde::{Deserialize, Serialize};
 
 use super::platforms::Platform;
@@ -35,9 +35,13 @@ impl Resource {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, BinRead, BinWrite, Serialize, Deserialize)]
+#[binrw]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[brw(little, magic = b"BFF0")] // Increment number when format changes
 pub struct BffResourceHeader {
+    #[br(temp)]
+    #[bw(calc = platform.size_on_disk() + version.size_on_disk())]
+    _size: u16,
     pub platform: Platform,
     #[brw(align_after = 0x4)]
     pub version: Version,

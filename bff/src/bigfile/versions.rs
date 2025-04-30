@@ -1,8 +1,9 @@
-use binrw::{BinRead, BinWrite, NullString};
+use binrw::{BinRead, BinWrite};
 use derive_more::{Display, From};
 use scanf::sscanf;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::helpers::PascalString;
 use crate::names::names;
 
 #[derive(Debug, Display, Clone, Eq, PartialEq, BinRead, BinWrite)]
@@ -54,10 +55,23 @@ pub enum Version {
     },
     #[brw(magic = 5u8)]
     Other(
-        #[br(map = |x: NullString| x.to_string())]
-        #[bw(map = |x| Into::<NullString>::into(x.clone()))]
+        #[br(map = |x: PascalString<u8>| x.to_string())]
+        #[bw(map = |x| Into::<PascalString<u8>>::into(x.clone()))]
         String,
     ),
+}
+
+impl Version {
+    pub fn size_on_disk(&self) -> u16 {
+        1 + match self {
+            Self::Asobo(_, _, _, _) => 4 * 4,
+            Self::AsoboLegacy(_, _) => 4 * 2,
+            Self::Kalisto(_, _) => 4 * 2,
+            Self::BlackSheep(_, _) => 4 * 2,
+            Self::Ubisoft { .. } => 4 * 8,
+            Self::Other(x) => 1 + x.len() as u16,
+        }
+    }
 }
 
 impl From<&str> for Version {

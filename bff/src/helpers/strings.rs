@@ -1,4 +1,6 @@
+use std::fmt::Debug;
 use std::io::Write;
+use std::marker::PhantomData;
 use std::str::from_utf8;
 
 use bff_derive::ReferencedNames;
@@ -113,10 +115,48 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
     Deserialize,
     ReferencedNames,
 )]
+#[display("{}", string)]
 #[serde(transparent)]
-pub struct PascalString(pub String);
+pub struct PascalString<SizeType = u32>
+where
+    SizeType: BinRead + BinWrite,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
+    #[deref]
+    #[deref_mut]
+    pub string: String,
+    _phantom: PhantomData<SizeType>,
+}
 
-impl BinRead for PascalString {
+impl<SizeType> From<String> for PascalString<SizeType>
+where
+    SizeType: BinRead + BinWrite,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
+    fn from(string: String) -> Self {
+        Self {
+            string,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<SizeType> BinRead for PascalString<SizeType>
+where
+    SizeType: BinRead + BinWrite,
+    for<'a> <SizeType as BinRead>::Args<'a>: Default,
+    for<'a> <SizeType as BinWrite>::Args<'a>: Default,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
     type Args<'a> = ();
 
     fn read_options<R: Read + Seek>(
@@ -124,7 +164,9 @@ impl BinRead for PascalString {
         endian: Endian,
         _: Self::Args<'_>,
     ) -> BinResult<Self> {
-        let count: usize = <u32>::read_options(reader, endian, ())? as usize;
+        let count: usize = <SizeType>::read_options(reader, endian, <_>::default())?
+            .try_into()
+            .unwrap();
 
         let ascii_string_position = reader.stream_position()?;
 
@@ -137,7 +179,7 @@ impl BinRead for PascalString {
         )?;
 
         match from_utf8(&value) {
-            Ok(value) => Ok(Self(value.to_owned())),
+            Ok(value) => Ok(value.to_owned().into()),
             Err(e) => Err(Error::Custom {
                 pos: ascii_string_position + e.valid_up_to() as u64,
                 err: Box::new(e),
@@ -146,7 +188,16 @@ impl BinRead for PascalString {
     }
 }
 
-impl BinWrite for PascalString {
+impl<SizeType> BinWrite for PascalString<SizeType>
+where
+    SizeType: BinRead + BinWrite,
+    for<'a> <SizeType as BinRead>::Args<'a>: Default,
+    for<'a> <SizeType as BinWrite>::Args<'a>: Default,
+    SizeType: TryInto<usize>,
+    <SizeType as TryInto<usize>>::Error: Debug,
+    usize: TryInto<SizeType>,
+    <usize as TryInto<SizeType>>::Error: Debug,
+{
     type Args<'a> = ();
 
     fn write_options<W: Write + Seek>(
@@ -156,7 +207,12 @@ impl BinWrite for PascalString {
         _: Self::Args<'_>,
     ) -> BinResult<()> {
         let bytes = self.as_bytes();
-        <u32>::write_options(&(bytes.len() as u32), writer, endian, ())?;
+        <SizeType>::write_options(
+            &(bytes.len().try_into().unwrap()),
+            writer,
+            endian,
+            <_>::default(),
+        )?;
         writer.write_all(bytes)?;
         Ok(())
     }
