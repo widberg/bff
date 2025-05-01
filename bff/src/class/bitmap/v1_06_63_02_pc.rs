@@ -6,7 +6,7 @@ use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use super::generic::{BitmapBodyGeneric, BitmapHeaderGeneric};
+use super::generic::{BitmapBodyGeneric, BitmapGeneric, BitmapHeaderGeneric};
 use crate::BffResult;
 use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
@@ -35,14 +35,14 @@ pub struct BitmapBodyV1_06_63_02PC {
 pub type BitmapV1_06_63_02PC =
     TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, BitmapBodyV1_06_63_02PC>;
 
-impl From<BitmapV1_06_63_02PC> for TrivialClass<Option<BitmapHeaderGeneric>, BitmapBodyGeneric> {
+impl From<BitmapV1_06_63_02PC> for BitmapGeneric {
     fn from(value: BitmapV1_06_63_02PC) -> Self {
-        let link_header = Some(BitmapHeaderGeneric {
+        let link_header = BitmapHeaderGeneric {
             width: value.body.width,
             height: value.body.height,
             precalculated_size: value.body.precalculated_size,
             mipmap_count: value.body.mipmap_count,
-        });
+        };
 
         let body = BitmapBodyGeneric {
             data: value.body.data,

@@ -1,8 +1,10 @@
-use bff_derive::{GenericClass, ReferencedNames, trivial_class};
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-use super::generic::SoundFlags;
+use super::generic::{SoundFlags, SoundGeneric};
+use crate::class::trivial_class::TrivialClass;
+use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
 #[derive(
@@ -26,10 +28,9 @@ pub struct SoundBodyV1_291_03_06PC {
     data: Vec<i16>,
 }
 
-trivial_class!(
-    SoundV1_291_03_06PC(SoundHeader, SoundBodyV1_291_03_06PC),
-    SoundGeneric
-);
+pub type SoundV1_291_03_06PC = TrivialClass<SoundHeader, SoundBodyV1_291_03_06PC>;
+
+trivial_class_generic!(SoundV1_291_03_06PC, SoundGeneric);
 
 impl Export for SoundV1_291_03_06PC {}
 impl Import for SoundV1_291_03_06PC {}

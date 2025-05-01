@@ -2,14 +2,17 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io::Cursor;
 
-use bff_derive::{GenericClass, ReferencedNames, trivial_class};
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite, binrw};
 use ddsfile::{D3DFormat, Dds, NewD3dParams};
 use serde::{Deserialize, Serialize};
 
+use super::generic::BitmapGeneric;
 use crate::BffResult;
+use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
+use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::names::Name;
 use crate::traits::{Artifact, Export, Import};
 
@@ -89,10 +92,9 @@ pub struct BitmapBodyV1_381_67_09PC {
     data: Vec<u8>,
 }
 
-trivial_class!(
-    BitmapV1_381_67_09PC(LinkHeader, BitmapBodyV1_381_67_09PC),
-    BitmapGeneric
-);
+pub type BitmapV1_381_67_09PC = TrivialClass<LinkHeader, BitmapBodyV1_381_67_09PC>;
+
+trivial_class_generic!(BitmapV1_381_67_09PC, BitmapGeneric);
 
 impl TryFrom<BmFormat> for D3DFormat {
     type Error = Error;

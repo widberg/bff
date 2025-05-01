@@ -1,13 +1,16 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 
-use bff_derive::{GenericClass, ReferencedNames, trivial_class};
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
+use super::generic::UserDefineGeneric;
 use crate::BffResult;
+use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
 use crate::helpers::{PascalString, ResourceObjectLinkHeaderV1_381_67_09PC};
+use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Artifact, Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
@@ -18,13 +21,10 @@ pub struct UserDefineBodyV1_291_03_06PC {
     pub data: PascalString,
 }
 
-trivial_class!(
-    UserDefineV1_291_03_06PC(
-        ResourceObjectLinkHeaderV1_381_67_09PC,
-        UserDefineBodyV1_291_03_06PC
-    ),
-    UserDefineGeneric
-);
+pub type UserDefineV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_381_67_09PC, UserDefineBodyV1_291_03_06PC>;
+
+trivial_class_generic!(UserDefineV1_291_03_06PC, UserDefineGeneric);
 
 impl Export for UserDefineV1_291_03_06PC {
     fn export(&self) -> BffResult<HashMap<OsString, Artifact>> {

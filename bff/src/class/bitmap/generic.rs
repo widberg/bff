@@ -11,4 +11,4 @@ pub struct BitmapBodyGeneric {
     pub data: Vec<u8>,
 }
 
-pub type BitmapGeneric = TrivialClass<Option<BitmapHeaderGeneric>, BitmapBodyGeneric>;
+pub type BitmapGeneric = TrivialClass<BitmapHeaderGeneric, BitmapBodyGeneric>;

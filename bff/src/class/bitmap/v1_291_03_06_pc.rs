@@ -1,8 +1,11 @@
-use bff_derive::{GenericClass, ReferencedNames, trivial_class};
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite, binread};
 use serde::{Deserialize, Serialize};
 
+use super::generic::BitmapGeneric;
+use crate::class::trivial_class::TrivialClass;
+use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
 #[derive(
@@ -34,10 +37,9 @@ pub struct BitmapBodyV1_291_03_06PC {
     data: Vec<u8>,
 }
 
-trivial_class!(
-    BitmapV1_291_03_06PC(BitmapHeader, BitmapBodyV1_291_03_06PC),
-    BitmapGeneric
-);
+pub type BitmapV1_291_03_06PC = TrivialClass<BitmapHeader, BitmapBodyV1_291_03_06PC>;
+
+trivial_class_generic!(BitmapV1_291_03_06PC, BitmapGeneric);
 
 impl Export for BitmapV1_291_03_06PC {}
 impl Import for BitmapV1_291_03_06PC {}

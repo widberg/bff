@@ -9,4 +9,4 @@ pub struct LightBodyGeneric {
     pub position: Vec3f,
 }
 
-pub type LightGeneric = TrivialClass<Option<ObjectLinkHeaderGeneric>, LightBodyGeneric>;
+pub type LightGeneric = TrivialClass<ObjectLinkHeaderGeneric, LightBodyGeneric>;

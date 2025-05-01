@@ -1,8 +1,9 @@
-use bff_derive::{GenericClass, ReferencedNames, trivial_class};
+use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use super::generic::{
+    AnimationGeneric,
     AnimationMaterial,
     AnimationMaterialModifier,
     AnimationMesh,
@@ -12,7 +13,9 @@ use super::generic::{
     AnimationNode,
     AnimationNodeModifier,
 };
+use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC};
+use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
@@ -40,14 +43,10 @@ pub struct AnimationBodyV1_291_03_06PC {
     animation_morph_modifiers: DynArray<AnimationMorphModifier>,
 }
 
-trivial_class!(
-    AnimationV1_291_03_06PC(
-        ResourceObjectLinkHeaderV1_06_63_02PC,
-        AnimationBodyV1_291_03_06PC
-    ),
-    AnimationGeneric,
-    false
-);
+pub type AnimationV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, AnimationBodyV1_291_03_06PC>;
+
+trivial_class_generic!(AnimationV1_291_03_06PC, AnimationGeneric);
 
 impl Export for AnimationV1_291_03_06PC {}
 impl Import for AnimationV1_291_03_06PC {}

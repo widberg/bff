@@ -23,4 +23,4 @@ pub struct SoundBodyGeneric {
     pub data: Vec<i16>,
 }
 
-pub type SoundGeneric = TrivialClass<Option<SoundHeaderGeneric>, SoundBodyGeneric>;
+pub type SoundGeneric = TrivialClass<SoundHeaderGeneric, SoundBodyGeneric>;

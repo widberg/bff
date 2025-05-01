@@ -109,5 +109,4 @@ pub struct AnimationBodyGeneric {
     pub animation_morph_modifiers: DynArray<AnimationMorphModifier>,
 }
 
-pub type AnimationGeneric =
-    TrivialClass<Option<ResourceObjectLinkHeaderGeneric>, AnimationBodyGeneric>;
+pub type AnimationGeneric = TrivialClass<ResourceObjectLinkHeaderGeneric, AnimationBodyGeneric>;
