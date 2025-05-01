@@ -29,7 +29,7 @@ pub struct BitmapHeader {
 pub struct BitmapBodyV1_291_03_06PC {
     header: BitmapHeader,
     #[br(parse_with = until_eof)]
-    #[serde(skip_serializing)]
+    #[serde(skip)]
     #[generic]
     data: Vec<u8>,
 }

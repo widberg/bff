@@ -27,7 +27,7 @@ pub struct BitmapBodyV1_06_63_02PC {
     four: u8,
     flag: u16,
     #[br(parse_with = until_eof)]
-    #[serde(skip_serializing)]
+    #[serde(skip)]
     #[generic]
     data: Vec<u8>,
 }

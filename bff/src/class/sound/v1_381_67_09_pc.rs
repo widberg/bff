@@ -25,7 +25,6 @@ pub struct LinkHeader {
 #[br(import(link_header: &LinkHeader))]
 pub struct SoundBodyV1_381_67_09PC {
     #[br(count = link_header.data_size / 2)]
-    #[serde(skip_serializing)]
     #[generic]
     data: Vec<i16>,
 }
