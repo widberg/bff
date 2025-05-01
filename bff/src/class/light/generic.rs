@@ -1,5 +1,5 @@
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{Quat, RGBA, ResourceLinkHeaderGeneric, Vec3f};
+use crate::helpers::{ObjectLinkHeaderGeneric, Quat, RGBA, Vec3f};
 
 pub struct LightBodyGeneric {
     pub rotation: Quat,
@@ -9,4 +9,4 @@ pub struct LightBodyGeneric {
     pub position: Vec3f,
 }
 
-pub type LightGeneric = TrivialClass<Option<ResourceLinkHeaderGeneric>, LightBodyGeneric>;
+pub type LightGeneric = TrivialClass<Option<ObjectLinkHeaderGeneric>, LightBodyGeneric>;

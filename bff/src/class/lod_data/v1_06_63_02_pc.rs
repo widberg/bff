@@ -3,12 +3,12 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{BffOption, DynArray, RGBA};
+use crate::helpers::{BffOption, DynArray, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ResourceDatas {
+struct ObjectDatas {
     flags: u32,
     color: RGBA,
 }
@@ -37,9 +37,9 @@ struct ActorData {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodDataBodyV1_06_63_02PC {
-    obj_datas: ResourceDatas,
+    object_datas: ObjectDatas,
     mesh_data_or_skelcrc32s: DynArray<Name>,
     final_skel_name: Name,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +47,8 @@ pub struct LodDataBodyV1_06_63_02PC {
     actor_data: BffOption<ActorData>,
 }
 
-pub type LodDataV1_06_63_02PC = TrivialClass<(), LodDataBodyV1_06_63_02PC>;
+pub type LodDataV1_06_63_02PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, LodDataBodyV1_06_63_02PC>;
 
 impl Export for LodDataV1_06_63_02PC {}
 impl Import for LodDataV1_06_63_02PC {}

@@ -8,8 +8,8 @@ use crate::helpers::{
     BffOption,
     DynArray,
     Mat4f,
+    ObjectLinkHeaderV1_06_63_02PC,
     RGB,
-    ResourceLinkHeaderV1_06_63_02PC,
     Sphere,
     Vec2f,
     Vec3f,
@@ -146,7 +146,7 @@ struct SeadIndex {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct SurfaceBodyV1_291_03_06PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
@@ -164,7 +164,7 @@ pub struct SurfaceBodyV1_291_03_06PC {
 }
 
 pub type SurfaceV1_291_03_06PC =
-    TrivialClass<ResourceLinkHeaderV1_06_63_02PC, SurfaceBodyV1_291_03_06PC>;
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, SurfaceBodyV1_291_03_06PC>;
 
 impl Export for SurfaceV1_291_03_06PC {}
 impl Import for SurfaceV1_291_03_06PC {}

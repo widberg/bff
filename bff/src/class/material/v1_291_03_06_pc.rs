@@ -3,12 +3,12 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{Mat3f, RGB, RGBA};
+use crate::helpers::{Mat3f, RGB, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct MaterialBodyV1_291_03_06PC {
     pub diffuse: RGBA,
     pub emission: RGB,
@@ -29,7 +29,8 @@ pub struct MaterialBodyV1_291_03_06PC {
     pub textures: Vec<Name>,
 }
 
-pub type MaterialV1_291_03_06PC = TrivialClass<(), MaterialBodyV1_291_03_06PC>;
+pub type MaterialV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, MaterialBodyV1_291_03_06PC>;
 
 impl Export for MaterialV1_291_03_06PC {}
 impl Import for MaterialV1_291_03_06PC {}

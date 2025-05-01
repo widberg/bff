@@ -115,5 +115,6 @@ impl_referenced_names!(
     i128,
     String,
     usize,
-    isize
+    isize,
+    char
 );

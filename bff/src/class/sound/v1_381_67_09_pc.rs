@@ -12,19 +12,20 @@ use crate::traits::{Export, Import};
 #[generic(name(SoundHeaderGeneric))]
 pub struct LinkHeader {
     #[referenced_names(skip)]
-    link_name: Name,
+    pub link_name: Name,
     #[generic]
-    sample_rate: u32,
+    pub sample_rate: u32,
     #[generic]
-    data_size: u32,
+    pub data_size: u32,
     #[generic(no_convert)]
-    flags: SoundFlags,
+    pub flags: SoundFlags,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(link_header: &LinkHeader))]
 pub struct SoundBodyV1_381_67_09PC {
     #[br(count = link_header.data_size / 2)]
+    #[serde(skip_serializing)]
     #[generic]
     data: Vec<i16>,
 }

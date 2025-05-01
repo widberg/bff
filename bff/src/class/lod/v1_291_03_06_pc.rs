@@ -9,7 +9,7 @@ use crate::helpers::{
     DynArray,
     DynBox,
     DynSphere,
-    ResourceLinkHeaderV1_06_63_02PC,
+    ObjectLinkHeaderV1_06_63_02PC,
     Vec3f,
 };
 use crate::names::Name;
@@ -34,7 +34,7 @@ struct ClassRes {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_291_03_06PC {
     b_sphere_col_node: Name,
     #[br(if(b_sphere_col_node != Name::default()))]
@@ -54,7 +54,7 @@ pub struct LodBodyV1_291_03_06PC {
     user_define_name: Name,
 }
 
-pub type LodV1_291_03_06PC = TrivialClass<ResourceLinkHeaderV1_06_63_02PC, LodBodyV1_291_03_06PC>;
+pub type LodV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_291_03_06PC>;
 
 impl Export for LodV1_291_03_06PC {}
 impl Import for LodV1_291_03_06PC {}

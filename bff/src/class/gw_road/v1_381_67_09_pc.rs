@@ -7,7 +7,7 @@ use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ResourceLinkHeader, Vec2f};
+use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_381_67_09PC, Vec2f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -110,7 +110,7 @@ struct Unused5 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,
     gen_road_min: Vec2f,
@@ -125,7 +125,8 @@ pub struct GwRoadBodyV1_381_67_09PC {
     gen_world_name: Name,
 }
 
-pub type GwRoadV1_381_67_09PC = TrivialClass<ResourceLinkHeader, GwRoadBodyV1_381_67_09PC>;
+pub type GwRoadV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_381_67_09PC, GwRoadBodyV1_381_67_09PC>;
 
 impl Export for GwRoadV1_381_67_09PC {}
 impl Import for GwRoadV1_381_67_09PC {}

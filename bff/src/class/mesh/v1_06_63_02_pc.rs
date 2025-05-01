@@ -9,7 +9,7 @@ use crate::helpers::{
     DynArray,
     DynBox,
     DynSphere,
-    ResourceLinkHeaderV1_06_63_02PC,
+    ObjectLinkHeaderV1_06_63_02PC,
     Vec2f,
     Vec3,
     Vec3f,
@@ -121,7 +121,7 @@ struct IndexBuffer {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_06_63_02PC {
     points: Points,
     uv_count: u32,
@@ -153,7 +153,7 @@ pub struct MeshBodyV1_06_63_02PC {
     vertex_groups: DynArray<VertexGroup>,
 }
 
-pub type MeshV1_06_63_02PC = TrivialClass<ResourceLinkHeaderV1_06_63_02PC, MeshBodyV1_06_63_02PC>;
+pub type MeshV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, MeshBodyV1_06_63_02PC>;
 
 impl Export for MeshV1_06_63_02PC {}
 impl Import for MeshV1_06_63_02PC {}

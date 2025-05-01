@@ -12,12 +12,12 @@ use super::generic::{
     AnimationNode,
     AnimationNodeModifier,
 };
-use crate::helpers::DynArray;
+use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
 #[generic(complete)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct AnimationBodyV1_291_03_06PC {
     duration: f32,
     blending: f32,
@@ -41,7 +41,10 @@ pub struct AnimationBodyV1_291_03_06PC {
 }
 
 trivial_class!(
-    AnimationV1_291_03_06PC((), AnimationBodyV1_291_03_06PC),
+    AnimationV1_291_03_06PC(
+        ResourceObjectLinkHeaderV1_06_63_02PC,
+        AnimationBodyV1_291_03_06PC
+    ),
     AnimationGeneric,
     false
 );

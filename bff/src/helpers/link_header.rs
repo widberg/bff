@@ -8,13 +8,13 @@ use crate::names::Name;
 use crate::traits::TryFromGenericSubstitute;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ResourceLinkHeader {
+pub struct ResourceObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
 }
 
 // this is just silly. i'm sure there's a better way
-impl TryFromGenericSubstitute<Self, Self> for ResourceLinkHeader {
+impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_381_67_09PC {
     type Error = crate::error::Error;
     fn try_from_generic_substitute(generic: Self, _: Self) -> Result<Self, Self::Error> {
         Ok(generic)
@@ -23,7 +23,7 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceLinkHeader {
 
 #[bitsize(32)]
 #[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
-pub struct ResourceDatasFlagsV1_381_67_09PC {
+pub struct ObjectDatasFlagsV1_381_67_09PC {
     hide: u1,
     code_control: u1,
     cloned: u1,
@@ -44,7 +44,7 @@ pub struct ResourceDatasFlagsV1_381_67_09PC {
 #[derive(
     BinRead, FromBits, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames,
 )]
-pub struct ResourceFlagsV1_381_67_09PC {
+pub struct ObjectFlagsV1_381_67_09PC {
     init: u1,
     max_bsphere: u1,
     skinned: u1,
@@ -67,7 +67,7 @@ pub struct ResourceFlagsV1_381_67_09PC {
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 #[brw(repr = u16)]
-pub enum ResourceType {
+pub enum ObjectType {
     Points = 0,
     Surface = 1,
     Spline = 2,
@@ -97,19 +97,34 @@ pub enum ResourceType {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ResourceLinkHeaderV1_381_67_09PC {
+pub struct ObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
     data_name: Name,
     rot: Quat,
     transform: Mat4f,
     radius: f32,
-    flags: ResourceFlagsV1_381_67_09PC,
-    r#type: ResourceType,
+    flags: ObjectFlagsV1_381_67_09PC,
+    r#type: ObjectType,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct ResourceLinkHeaderV1_06_63_02PC {
+pub struct ResourceObjectLinkHeaderV1_06_63_02PC {
+    #[referenced_names(skip)]
+    link_name: Name,
+    names: DynArray<Name>,
+}
+
+// this is just silly. i'm sure there's a better way
+impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_06_63_02PC {
+    type Error = crate::error::Error;
+    fn try_from_generic_substitute(generic: Self, _: Self) -> Result<Self, Self::Error> {
+        Ok(generic)
+    }
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+pub struct ObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
     names: DynArray<Name>,
@@ -118,10 +133,76 @@ pub struct ResourceLinkHeaderV1_06_63_02PC {
     transform: Mat4f,
     radius: f32,
     pub flags: u32,
-    r#type: ResourceType,
+    r#type: ObjectType,
 }
 
-pub struct ResourceLinkHeaderGeneric {
+pub struct ResourceObjectLinkHeaderGeneric {
+    pub link_name: Name,
+    pub names: DynArray<Name>,
+}
+
+impl From<ResourceObjectLinkHeaderV1_381_67_09PC> for ResourceObjectLinkHeaderGeneric {
+    fn from(header: ResourceObjectLinkHeaderV1_381_67_09PC) -> Self {
+        Self {
+            link_name: header.link_name,
+            names: vec![].into(),
+        }
+    }
+}
+
+impl From<ResourceObjectLinkHeaderV1_06_63_02PC> for ResourceObjectLinkHeaderGeneric {
+    fn from(header: ResourceObjectLinkHeaderV1_06_63_02PC) -> Self {
+        Self {
+            link_name: header.link_name,
+            names: header.names,
+        }
+    }
+}
+
+impl From<ResourceObjectLinkHeaderGeneric> for ResourceObjectLinkHeaderV1_381_67_09PC {
+    fn from(header: ResourceObjectLinkHeaderGeneric) -> Self {
+        Self {
+            link_name: header.link_name,
+        }
+    }
+}
+
+impl From<ResourceObjectLinkHeaderGeneric> for ResourceObjectLinkHeaderV1_06_63_02PC {
+    fn from(header: ResourceObjectLinkHeaderGeneric) -> Self {
+        Self {
+            link_name: header.link_name,
+            names: header.names,
+        }
+    }
+}
+
+impl TryFromGenericSubstitute<ResourceObjectLinkHeaderGeneric, Self>
+    for ResourceObjectLinkHeaderV1_06_63_02PC
+{
+    type Error = crate::error::Error;
+
+    fn try_from_generic_substitute(
+        generic: ResourceObjectLinkHeaderGeneric,
+        _: Self,
+    ) -> Result<Self, Self::Error> {
+        Ok(generic.into())
+    }
+}
+
+impl TryFromGenericSubstitute<ResourceObjectLinkHeaderGeneric, Self>
+    for ResourceObjectLinkHeaderV1_381_67_09PC
+{
+    type Error = crate::error::Error;
+
+    fn try_from_generic_substitute(
+        generic: ResourceObjectLinkHeaderGeneric,
+        _: Self,
+    ) -> Result<Self, Self::Error> {
+        Ok(generic.into())
+    }
+}
+
+pub struct ObjectLinkHeaderGeneric {
     pub link_name: Name,
     pub names: DynArray<Name>,
     pub data_name: Name,
@@ -129,11 +210,11 @@ pub struct ResourceLinkHeaderGeneric {
     pub transform: Mat4f,
     pub radius: f32,
     pub flags: u32,
-    pub r#type: ResourceType,
+    pub r#type: ObjectType,
 }
 
-impl From<ResourceLinkHeaderV1_381_67_09PC> for ResourceLinkHeaderGeneric {
-    fn from(header: ResourceLinkHeaderV1_381_67_09PC) -> Self {
+impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
+    fn from(header: ObjectLinkHeaderV1_381_67_09PC) -> Self {
         Self {
             link_name: header.link_name,
             names: vec![].into(),
@@ -147,8 +228,8 @@ impl From<ResourceLinkHeaderV1_381_67_09PC> for ResourceLinkHeaderGeneric {
     }
 }
 
-impl From<ResourceLinkHeaderV1_06_63_02PC> for ResourceLinkHeaderGeneric {
-    fn from(header: ResourceLinkHeaderV1_06_63_02PC) -> Self {
+impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
+    fn from(header: ObjectLinkHeaderV1_06_63_02PC) -> Self {
         Self {
             link_name: header.link_name,
             names: header.names,
@@ -162,22 +243,22 @@ impl From<ResourceLinkHeaderV1_06_63_02PC> for ResourceLinkHeaderGeneric {
     }
 }
 
-impl From<ResourceLinkHeaderGeneric> for ResourceLinkHeaderV1_381_67_09PC {
-    fn from(header: ResourceLinkHeaderGeneric) -> Self {
+impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
+    fn from(header: ObjectLinkHeaderGeneric) -> Self {
         Self {
             link_name: header.link_name,
             data_name: header.data_name,
             rot: header.rot,
             transform: header.transform,
             radius: header.radius,
-            flags: ResourceFlagsV1_381_67_09PC::from(header.flags),
+            flags: ObjectFlagsV1_381_67_09PC::from(header.flags),
             r#type: header.r#type,
         }
     }
 }
 
-impl From<ResourceLinkHeaderGeneric> for ResourceLinkHeaderV1_06_63_02PC {
-    fn from(header: ResourceLinkHeaderGeneric) -> Self {
+impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
+    fn from(header: ObjectLinkHeaderGeneric) -> Self {
         Self {
             link_name: header.link_name,
             names: header.names,
@@ -191,24 +272,22 @@ impl From<ResourceLinkHeaderGeneric> for ResourceLinkHeaderV1_06_63_02PC {
     }
 }
 
-impl TryFromGenericSubstitute<ResourceLinkHeaderGeneric, Self> for ResourceLinkHeaderV1_06_63_02PC {
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_06_63_02PC {
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
-        generic: ResourceLinkHeaderGeneric,
+        generic: ObjectLinkHeaderGeneric,
         _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())
     }
 }
 
-impl TryFromGenericSubstitute<ResourceLinkHeaderGeneric, Self>
-    for ResourceLinkHeaderV1_381_67_09PC
-{
+impl TryFromGenericSubstitute<ObjectLinkHeaderGeneric, Self> for ObjectLinkHeaderV1_381_67_09PC {
     type Error = crate::error::Error;
 
     fn try_from_generic_substitute(
-        generic: ResourceLinkHeaderGeneric,
+        generic: ObjectLinkHeaderGeneric,
         _: Self,
     ) -> Result<Self, Self::Error> {
         Ok(generic.into())

@@ -6,9 +6,9 @@ use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     DynArray,
     Mat4f,
+    ObjectDatasFlagsV1_381_67_09PC,
     Quat,
-    ResourceDatasFlagsV1_381_67_09PC,
-    ResourceLinkHeader,
+    ResourceObjectLinkHeaderV1_381_67_09PC,
     Sphere,
     Vec3,
     Vec3f,
@@ -59,9 +59,9 @@ struct BoxColBone {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct SkelBodyV1_381_67_09PC {
-    flags: ResourceDatasFlagsV1_381_67_09PC,
+    flags: ObjectDatasFlagsV1_381_67_09PC,
     bounding_sphere_center: Sphere,
     bones: DynArray<Bone>,
     material_names: DynArray<Name>,
@@ -73,7 +73,8 @@ pub struct SkelBodyV1_381_67_09PC {
     box_col_bones: DynArray<BoxColBone>,
 }
 
-pub type SkelV1_381_67_09PC = TrivialClass<ResourceLinkHeader, SkelBodyV1_381_67_09PC>;
+pub type SkelV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_381_67_09PC, SkelBodyV1_381_67_09PC>;
 
 impl Export for SkelV1_381_67_09PC {}
 impl Import for SkelV1_381_67_09PC {}

@@ -8,6 +8,7 @@ use crate::traits::{Export, Import};
 #[derive(
     BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass, Clone,
 )]
+#[generic(name(BitmapHeaderGeneric))]
 pub struct BitmapHeader {
     #[generic]
     width: u32,
@@ -24,7 +25,7 @@ pub struct BitmapHeader {
 
 #[binread]
 #[derive(Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &BitmapHeader))]
 pub struct BitmapBodyV1_291_03_06PC {
     header: BitmapHeader,
     #[br(parse_with = until_eof)]
@@ -34,7 +35,7 @@ pub struct BitmapBodyV1_291_03_06PC {
 }
 
 trivial_class!(
-    BitmapV1_291_03_06PC((), BitmapBodyV1_291_03_06PC),
+    BitmapV1_291_03_06PC(BitmapHeader, BitmapBodyV1_291_03_06PC),
     BitmapGeneric
 );
 

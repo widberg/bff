@@ -9,7 +9,7 @@ use crate::helpers::{
     DynArray,
     DynBox,
     DynSphere,
-    ResourceLinkHeaderV1_06_63_02PC,
+    ObjectLinkHeaderV1_06_63_02PC,
     Vec2f,
     Vec3,
     Vec3f,
@@ -164,7 +164,7 @@ pub struct MeshBuffers {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,
     texcoords: DynArray<Vec2f>,
@@ -190,7 +190,7 @@ pub struct MeshBodyV1_291_03_06PC {
     unknown8s: DynArray<Unknown8>,
 }
 
-pub type MeshV1_291_03_06PC = TrivialClass<ResourceLinkHeaderV1_06_63_02PC, MeshBodyV1_291_03_06PC>;
+pub type MeshV1_291_03_06PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, MeshBodyV1_291_03_06PC>;
 
 impl Export for MeshV1_291_03_06PC {}
 impl Import for MeshV1_291_03_06PC {}

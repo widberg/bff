@@ -8,6 +8,7 @@ use crate::traits::{Export, Import};
 #[derive(
     Debug, Clone, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass,
 )]
+#[generic(name(SoundHeaderGeneric))]
 pub struct SoundHeader {
     #[generic]
     sample_rate: u32,
@@ -18,17 +19,16 @@ pub struct SoundHeader {
 }
 
 #[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
-#[br(import(_link_header: &()))]
+#[br(import(link_header: &SoundHeader))]
 pub struct SoundBodyV1_291_03_06PC {
-    header: SoundHeader,
-    #[br(count = header.data_size / 2)]
+    #[br(count = link_header.data_size / 2)]
     #[serde(skip_serializing)]
     #[generic]
     data: Vec<i16>,
 }
 
 trivial_class!(
-    SoundV1_291_03_06PC((), SoundBodyV1_291_03_06PC),
+    SoundV1_291_03_06PC(SoundHeader, SoundBodyV1_291_03_06PC),
     SoundGeneric
 );
 

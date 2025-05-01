@@ -3,11 +3,11 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, RGBA};
+use crate::helpers::{DynArray, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ResourceDatas {
+struct ObjectDatas {
     unknown: f32,
     color: RGBA,
 }
@@ -41,13 +41,14 @@ struct MeshVolume {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshDataBodyV1_06_63_02PC {
-    resource_datas: ResourceDatas,
+    object_datas: ObjectDatas,
     mesh_volume: MeshVolume,
 }
 
-pub type MeshDataV1_06_63_02PC = TrivialClass<(), MeshDataBodyV1_06_63_02PC>;
+pub type MeshDataV1_06_63_02PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, MeshDataBodyV1_06_63_02PC>;
 
 impl Export for MeshDataV1_06_63_02PC {}
 impl Import for MeshDataV1_06_63_02PC {}

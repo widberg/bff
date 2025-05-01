@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, ResourceLinkHeaderV1_06_63_02PC, Vec2f, Vec3f};
+use crate::helpers::{DynArray, ObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -25,7 +25,7 @@ struct Points {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(_link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct RotShapeBodyV1_291_03_06PC {
     points: Points,
     material_indices: DynArray<u32>,
@@ -37,7 +37,7 @@ pub struct RotShapeBodyV1_291_03_06PC {
 }
 
 pub type RotShapeV1_291_03_06PC =
-    TrivialClass<ResourceLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;
+    TrivialClass<ObjectLinkHeaderV1_06_63_02PC, RotShapeBodyV1_291_03_06PC>;
 
 impl Export for RotShapeV1_291_03_06PC {}
 impl Import for RotShapeV1_291_03_06PC {}

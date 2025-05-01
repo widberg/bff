@@ -1,56 +1,55 @@
-use binrw::BinRead;
-use serde::Serialize;
+use bff_derive::ReferencedNames;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::DynArray;
-use crate::helpers::{Mat, Sphere, Vec2f, Vec3f};
-use crate::name::Name;
+use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec3f};
+use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize)]
-struct LinkInfo {
-    resource_link_header: ResourceV1_06_63_02PC,
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+pub struct LinkInfo {
+    resource_link_header: ResourceObjectLinkHeaderV1_06_63_02PC,
     vertices: DynArray<Vec3f>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 #[br(import(_link_header: &LinkInfo))]
 pub struct RotShapeBodyV1_06_63_02PC {
-    points: Points,
     material_indices: DynArray<u32>,
     local_vertices: DynArray<Vec3f>,
     local_uvs: DynArray<Vec2f>,

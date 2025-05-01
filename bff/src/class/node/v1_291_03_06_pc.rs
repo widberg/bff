@@ -3,12 +3,20 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{Mat4f, Quat, RGBA, Rect, Sphere, Vec3f};
+use crate::helpers::{
+    Mat4f,
+    Quat,
+    RGBA,
+    Rect,
+    ResourceObjectLinkHeaderV1_06_63_02PC,
+    Sphere,
+    Vec3f,
+};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct NodeBodyV1_291_03_06PC {
     parent_name: Name,
     head_child_name: Name,
@@ -45,7 +53,8 @@ pub struct NodeBodyV1_291_03_06PC {
     unknown6: u16,
 }
 
-pub type NodeV1_291_03_06PC = TrivialClass<(), NodeBodyV1_291_03_06PC>;
+pub type NodeV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, NodeBodyV1_291_03_06PC>;
 
 impl Export for NodeV1_291_03_06PC {}
 impl Import for NodeV1_291_03_06PC {}

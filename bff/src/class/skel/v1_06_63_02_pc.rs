@@ -3,12 +3,21 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, DynBox, DynSphere, Mat4f, Quat, Sphere, Vec3f};
+use crate::helpers::{
+    DynArray,
+    DynBox,
+    DynSphere,
+    Mat4f,
+    Quat,
+    ResourceObjectLinkHeaderV1_06_63_02PC,
+    Sphere,
+    Vec3f,
+};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-struct ResourceDatas {
+struct ObjectDatas {
     flag: u32,
     b_sphere_local: Sphere,
 }
@@ -61,9 +70,9 @@ struct BoxColBone {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct SkelBodyV1_06_63_02PC {
-    resource_datas: ResourceDatas,
+    object_datas: ObjectDatas,
     maybe_rotation: Quat,
     bone_nodes: DynArray<BoneNode>,
     material_names: DynArray<Name>,
@@ -75,7 +84,8 @@ pub struct SkelBodyV1_06_63_02PC {
     box_col_bones: DynArray<BoxColBone>,
 }
 
-pub type SkelV1_06_63_02PC = TrivialClass<(), SkelBodyV1_06_63_02PC>;
+pub type SkelV1_06_63_02PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, SkelBodyV1_06_63_02PC>;
 
 impl Export for SkelV1_06_63_02PC {}
 impl Import for SkelV1_06_63_02PC {}

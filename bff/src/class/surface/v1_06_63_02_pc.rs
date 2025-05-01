@@ -1,54 +1,62 @@
+use bff_derive::ReferencedNames;
 use bilge::prelude::*;
-use binrw::BinRead;
-use serde::Serialize;
+use binrw::{BinRead, BinWrite};
+use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::BffOption;
-use crate::helpers::DynArray;
-use crate::helpers::{Mat4f, Sphere, Vec2f, Vec3f, Vec4f, RGB};
-use crate::name::Name;
+use crate::helpers::{
+    BffOption,
+    DynArray,
+    RGB,
+    ResourceObjectLinkHeaderV1_06_63_02PC,
+    Sphere,
+    Vec2f,
+    Vec3f,
+    Vec4f,
+};
+use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct PointsRelated0 {
     vec3: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct PointsRelated1 {
     vec4: Vec4f,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct Points {
     points_relateds0: DynArray<PointsRelated0>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct PatchCol {
     sphere: Sphere,
     flag: u32,
@@ -57,7 +65,7 @@ struct PatchCol {
     cdcdcdcd: [u32; 2],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct EdgeCol {
     sphere: Sphere,
     flag: u32,
@@ -66,7 +74,7 @@ struct EdgeCol {
     unk_placeholder_ptr3: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct ClingLineRelated {
     sphere: Sphere,
     flag: u32,
@@ -75,12 +83,12 @@ struct ClingLineRelated {
     unk_float: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct CullCone {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct Patch {
     flag: u16,
     should_draw_related_start_index: u16,
@@ -88,7 +96,7 @@ struct Patch {
     material_anim_index: u32,
     sphere: Sphere,
     cull_cone: CullCone,
-    b_box: Box,
+    b_box: crate::helpers::Box,
     unknown_indices: [u16; 4],
     color_indices: [u16; 4],
     normal_indices: [u16; 4],
@@ -98,19 +106,19 @@ struct Patch {
     material_anim_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct SeadVoxel {
     element_entry: u16,
     element_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patch_indices: DynArray<u16>,
@@ -137,15 +145,15 @@ struct SeadIndex {
 }
 
 #[bitsize(16)]
-#[derive(BinRead, DebugBits, SerializeBits, DeserializeBits, ReferencedNames)]
+#[derive(BinRead, BinWrite, DebugBits, SerializeBits, DeserializeBits, ReferencedNames)]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
     other: u8,
 }
 
-#[derive(BinRead, Debug, Serialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceV1_06_63_02PC))]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,
     edge_cols: DynArray<EdgeCol>,
@@ -162,7 +170,8 @@ pub struct SurfaceBodyV1_06_63_02PC {
     sead_index: BffOption<SeadIndex>,
 }
 
-pub type SurfaceV1_06_63_02PC = TrivialClass<ResourceV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;
+pub type SurfaceV1_06_63_02PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, SurfaceBodyV1_06_63_02PC>;
 
 impl Export for SurfaceV1_06_63_02PC {}
 impl Import for SurfaceV1_06_63_02PC {}

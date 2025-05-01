@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, DynBox, DynSphere, ResourceLinkHeaderV1_06_63_02PC, Vec3f};
+use crate::helpers::{DynArray, DynBox, DynSphere, ObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -27,7 +27,7 @@ struct CylindreCol {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(link_header: &ResourceLinkHeaderV1_06_63_02PC))]
+#[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodBodyV1_06_63_02PC {
     b_sphere_col_node: Name,
     #[br(if(b_sphere_col_node != Name::default()))]
@@ -44,7 +44,7 @@ pub struct LodBodyV1_06_63_02PC {
     user_define_name: Name,
 }
 
-pub type LodV1_06_63_02PC = TrivialClass<ResourceLinkHeaderV1_06_63_02PC, LodBodyV1_06_63_02PC>;
+pub type LodV1_06_63_02PC = TrivialClass<ObjectLinkHeaderV1_06_63_02PC, LodBodyV1_06_63_02PC>;
 
 impl Export for LodV1_06_63_02PC {}
 impl Import for LodV1_06_63_02PC {}

@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{BffOption, DynArray, Vec3f};
+use crate::helpers::{BffOption, DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -21,7 +21,7 @@ struct Extended {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct LodDataBodyV1_291_03_06PC {
     flags: u32,
     mesh_data_names: DynArray<Name>,
@@ -31,7 +31,8 @@ pub struct LodDataBodyV1_291_03_06PC {
     extended: BffOption<Extended>,
 }
 
-pub type LodDataV1_291_03_06PC = TrivialClass<(), LodDataBodyV1_291_03_06PC>;
+pub type LodDataV1_291_03_06PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, LodDataBodyV1_291_03_06PC>;
 
 impl Export for LodDataV1_291_03_06PC {}
 impl Import for LodDataV1_291_03_06PC {}

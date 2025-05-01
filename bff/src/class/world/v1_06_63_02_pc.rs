@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, Vec2f};
+use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec2f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -51,7 +51,7 @@ struct SubWorldData {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &()))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct WorldBodyV1_06_63_02PC {
     linked_names: DynArray<Name>,
     root_node_name: Name,
@@ -69,7 +69,8 @@ pub struct WorldBodyV1_06_63_02PC {
     crc32_unk6: Name,
 }
 
-pub type WorldV1_06_63_02PC = TrivialClass<(), WorldBodyV1_06_63_02PC>;
+pub type WorldV1_06_63_02PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, WorldBodyV1_06_63_02PC>;
 
 impl Export for WorldV1_06_63_02PC {}
 impl Import for WorldV1_06_63_02PC {}

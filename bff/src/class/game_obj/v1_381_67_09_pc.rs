@@ -3,7 +3,7 @@ use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
-use crate::helpers::{DynArray, PascalStringNull, ResourceLinkHeader};
+use crate::helpers::{DynArray, PascalStringNull, ResourceObjectLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
@@ -15,12 +15,13 @@ struct Prefab {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-#[br(import(_link_header: &ResourceLinkHeader))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct GameObjBodyV1_381_67_09PC {
     prefabs: DynArray<Prefab>,
 }
 
-pub type GameObjV1_381_67_09PC = TrivialClass<ResourceLinkHeader, GameObjBodyV1_381_67_09PC>;
+pub type GameObjV1_381_67_09PC =
+    TrivialClass<ResourceObjectLinkHeaderV1_381_67_09PC, GameObjBodyV1_381_67_09PC>;
 
 impl Export for GameObjV1_381_67_09PC {}
 impl Import for GameObjV1_381_67_09PC {}
