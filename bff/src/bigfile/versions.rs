@@ -68,7 +68,7 @@ impl Version {
             Self::AsoboLegacy(_, _) => 2 * 2,
             Self::Kalisto(_, _) => 2 * 2,
             Self::BlackSheep(_, _) => 2 * 2,
-            Self::Ubisoft { .. } => 2 * 4 + 1 * 4,
+            Self::Ubisoft { .. } => 2 * 4 + 4,
             Self::Other(x) => 1 + x.len() as u16,
         }
     }
@@ -78,14 +78,14 @@ impl From<&str> for Version {
     fn from(value: &str) -> Self {
         #![allow(clippy::just_underscores_and_digits)]
         let (mut _0, mut _1, mut _2, mut _3, mut _4, mut _5, mut _6, mut _7): (
-            u32,
-            u32,
-            u32,
-            u32,
-            u32,
-            u32,
-            u32,
-            u32,
+            u16,
+            u16,
+            u16,
+            u16,
+            u8,
+            u8,
+            u8,
+            u8,
         ) = Default::default();
 
         if sscanf!(
