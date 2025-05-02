@@ -16,22 +16,22 @@ pub enum Version {
         _2,
         _3
     )]
-    Asobo(u32, u32, u32, u32),
+    Asobo(u16, u16, u16, u16),
     #[brw(magic = 1u8)]
     #[display("v{}.{:02} - Asobo Studio - Internal Cross Technology", _0, _1)]
-    AsoboLegacy(u32, u32),
+    AsoboLegacy(u16, u16),
     #[brw(magic = 2u8)]
     #[display(
         "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
         _0,
         _1
     )]
-    Kalisto(u32, u32),
+    Kalisto(u16, u16),
     #[brw(magic = 3u8)]
     // The space is intentional :(
     // This format is used in Shaun White Snowboarding: World Stage by Ubisoft as well
     #[display("Bigfile Data v{}.{} ", _0, _1)]
-    BlackSheep(u32, u32),
+    BlackSheep(u16, u16),
     #[brw(magic = 4u8)]
     // Used in The Mighty Quest for Epic Loot by Ubisoft
     #[display(
@@ -46,12 +46,12 @@ pub enum Version {
         cvshader
     )]
     Ubisoft {
-        opal_version: (u32, u32),
-        data_version: (u32, u32),
-        cvt: u32,
-        cvanim: u32,
-        cvmesh: u32,
-        cvshader: u32,
+        opal_version: (u16, u16),
+        data_version: (u16, u16),
+        cvt: u8,
+        cvanim: u8,
+        cvmesh: u8,
+        cvshader: u8,
     },
     #[brw(magic = 5u8)]
     Other(
@@ -64,11 +64,11 @@ pub enum Version {
 impl Version {
     pub fn size_on_disk(&self) -> u16 {
         1 + match self {
-            Self::Asobo(_, _, _, _) => 4 * 4,
-            Self::AsoboLegacy(_, _) => 4 * 2,
-            Self::Kalisto(_, _) => 4 * 2,
-            Self::BlackSheep(_, _) => 4 * 2,
-            Self::Ubisoft { .. } => 4 * 8,
+            Self::Asobo(_, _, _, _) => 2 * 4,
+            Self::AsoboLegacy(_, _) => 2 * 2,
+            Self::Kalisto(_, _) => 2 * 2,
+            Self::BlackSheep(_, _) => 2 * 2,
+            Self::Ubisoft { .. } => 2 * 4 + 1 * 4,
             Self::Other(x) => 1 + x.len() as u16,
         }
     }

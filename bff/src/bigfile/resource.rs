@@ -43,7 +43,7 @@ pub struct BffResourceHeader {
     #[bw(calc = platform.size_on_disk() + version.size_on_disk())]
     _size: u16,
     pub platform: Platform,
-    #[brw(align_after = 0x4)]
+    #[brw(align_after = 0x10)]
     pub version: Version,
 }
 
