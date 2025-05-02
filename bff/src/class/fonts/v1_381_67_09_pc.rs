@@ -13,40 +13,23 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-// TODO: What the fuck was going on here
 #[binrw::writer(writer, endian)]
 fn write_character(c: &char) -> BinResult<()> {
     let mut buf = [0u8; 4];
-    let utf8 = c.encode_utf8(&mut buf);
-    let bytes = utf8.as_bytes();
-
-    match bytes.len() {
-        1 => bytes[0] as u32,
-        2 => ((bytes[0] as u32) << 8) | bytes[1] as u32,
-        3 => ((bytes[0] as u32) << 16) | ((bytes[1] as u32) << 8) | bytes[2] as u32,
-        4 => {
-            ((bytes[0] as u32) << 24)
-                | ((bytes[1] as u32) << 16)
-                | ((bytes[2] as u32) << 8)
-                | bytes[3] as u32
-        }
-        _ => unreachable!(),
-    }
-    .write_options(writer, endian, ())
+    let bytes = c.encode_utf8(&mut buf).as_bytes();
+    let val = bytes.iter().fold(0u32, |acc, &b| (acc << 8) | b as u32);
+    val.write_options(writer, endian, ())
 }
 
 #[binrw::parser(reader, endian)]
 fn parse_character() -> BinResult<char> {
-    let x = <u32>::read_options(reader, endian, ())?;
-    let bytes = x.to_be_bytes();
-    let utf8_bytes: Vec<u8> = bytes.iter().skip_while(|&&b| b == 0).cloned().collect();
-
+    let bytes = <u32>::read_options(reader, endian, ())?.to_be_bytes();
+    let utf8_bytes = match bytes.iter().position(|&b| b != 0) {
+        Some(pos) => &bytes[pos..],
+        None => &[0],
+    };
     // TODO: Handle errors
-    Ok(std::str::from_utf8(&utf8_bytes)
-        .unwrap()
-        .chars()
-        .next()
-        .unwrap())
+    Ok(std::str::from_utf8(utf8_bytes).unwrap().chars().next().unwrap())
 }
 
 #[derive(
