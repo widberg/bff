@@ -92,6 +92,14 @@ These formats are low priority since they can all be played using the instructio
 
 The [ImZouna](https://github.com/widberg/ImZouna) and [zouna-templates-docs](https://github.com/SabeMP/zouna-templates-docs) repositories have binary patterns for Zouna data structures.
 
+## Showcase
+
+These cool projects use bff. Join the [Zouna Underground Discord](https://discord.gg/CQgMNbYeUR) or open an issue to let me know if you made something cool and I'll add it here.
+
+### `ratatouille_converter.py`
+
+Ahmed Khaled's [`ratatouille_converter.py`](https://gist.github.com/widberg/2abbbca02b532104bd32cc27743fa9f6#file-ratatouille_converter-py) script converts BMFONT FNT XML files to bff Fonts_Z JSON files.
+
 ## Getting Started
 
 ### Prerequisites
