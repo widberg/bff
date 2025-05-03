@@ -6,8 +6,6 @@ impl Gui {
     pub fn resource_info_panel(&mut self, ctx: &egui::Context) {
         egui::SidePanel::right("right")
             .resizable(true)
-            // .max_width(800.0)
-            // .width_range(100.0..=ui.available_width())
             .show(ctx, |ui: &mut egui::Ui| {
                 if let Some(name) = self.resource_name {
                     if let Some(info) = self.infos.get(&name) {
@@ -39,7 +37,6 @@ fn selectable_text(ui: &mut egui::Ui, mut text: &str) -> egui::Response {
             .font(egui::TextStyle::Monospace)
             .desired_width(f32::INFINITY)
             .desired_rows(60)
-            // .min_size(egui::vec2(1000.0, 1000.0)),
             .layouter(&mut layouter),
     )
 }

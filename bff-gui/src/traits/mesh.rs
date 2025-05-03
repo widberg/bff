@@ -18,7 +18,6 @@ impl GenerateMesh for bff::class::mesh::v1_291_03_06_pc::MeshV1_291_03_06PC {
             .vertex_groups
             .iter()
             .map(|group| {
-                // println!("{}", mesh.body.mesh_buffer.vertex_buffers.len());
                 type VertexInfo = ([f32; 3], [f32; 2], [u8; 3], [u8; 4]);
                 let (positions, uvs, normals, tangents): (
                     Vec<Vec3>,

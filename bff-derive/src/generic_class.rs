@@ -49,7 +49,6 @@ struct SpecificClass<'a> {
     generic_name: Ident,
     data: &'a DataStruct,
     is_complete: bool,
-    // is_link_header: LitBool,
 }
 
 fn simple_parse(input: &DeriveInput) -> SpecificClass {

@@ -75,7 +75,6 @@ impl Gui {
     pub fn menubar_panel(
         &mut self,
         ctx: &egui::Context,
-        // ui: &mut egui::Ui,
         #[allow(unused_variables)] frame: &mut eframe::Frame,
         id_source: egui::Id,
     ) -> bool {
@@ -264,7 +263,7 @@ impl Gui {
                 #[cfg(not(target_arch = "wasm32"))]
                 ui.menu_button("Nicknames", |ui| {
                     if ui
-                        .add_enabled(false, egui::Button::new("Import...")) // bigfile.is_some()
+                        .add_enabled(false, egui::Button::new("Import...")) // TODO: Check if bigfile.is_some()
                         .clicked()
                     {
                         ui.close_menu();

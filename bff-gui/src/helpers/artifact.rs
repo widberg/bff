@@ -24,7 +24,6 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
         }
         Class::Mesh(bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh)) => Some(mesh.export()),
         Class::Skin(bff::class::skin::Skin::SkinV1_291_03_06PC(skin)) => {
-            // let dependency_names = ;
             let dependency_classes: HashMap<Name, Class> = skin
                 .dependencies()
                 .iter()

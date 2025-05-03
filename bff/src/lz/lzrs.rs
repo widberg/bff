@@ -104,7 +104,6 @@ pub fn lzrs_decompress_data_parser(
 
 #[binrw::writer(writer, endian)]
 pub fn lzrs_compress_data_with_header_writer_internal(data: &[u8]) -> BinResult<()> {
-    // println!("{:?}", data);
     let starting_position = writer.stream_position()?;
     let decompressed_size = data.len() as u32;
     writer.write_le::<u32>(&decompressed_size)?;

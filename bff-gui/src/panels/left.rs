@@ -76,14 +76,12 @@ impl Gui {
     pub fn resource_list_panel(
         &mut self,
         ctx: &egui::Context,
-        // ui: &mut egui::Ui,
         id_source: egui::Id,
     ) -> ResourceListResponse {
         let mut response = ResourceListResponse::default();
         let mut changed_list = false;
         egui::SidePanel::left("left")
             .resizable(true)
-            // .width_range(10.0..=ctx. * 0.9)
             .show(ctx, |ui: &mut egui::Ui| {
                 if let Some(bigfile) = &self.bigfile {
                     let version = &bigfile.manifest.version;
@@ -234,7 +232,6 @@ impl Gui {
                                 egui::Layout::top_down_justified(egui::Align::LEFT),
                                 |ui| {
                                     ui.set_min_width(10.0);
-                                    // ui.allocate_space(ui.available_size());
                                     if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                                         if let Some(cur) = self.resource_name {
                                             let mut res_iter = resources.iter().cycle();
@@ -297,7 +294,6 @@ impl Gui {
                                         }
                                         let btn = ui
                                             .add(
-                                                // egui::vec2(ui.available_width(), row_height),
                                                 egui::Button::new(format!(
                                                     "{}.{}",
                                                     nickname.unwrap_or(&resource.to_string()),
@@ -308,10 +304,6 @@ impl Gui {
                                                         .class_name
                                                 ))
                                                 .rounding(0.0)
-                                                // .min_size(egui::vec2(
-                                                //     ui.available_width(),
-                                                //     row_height,
-                                                // ))
                                                 .truncate()
                                                 .selected(
                                                     self.resource_name

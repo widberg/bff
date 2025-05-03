@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use crate::Gui;
 use crate::artifact::Artifact;
-// use crate::helpers::image::get_image_widget;
 use crate::views::image::image_view;
 use crate::views::mesh::mesh_view;
 use crate::views::sound::sound_view;

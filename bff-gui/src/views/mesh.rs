@@ -8,17 +8,6 @@ pub fn mesh_view(ui: &mut egui::Ui, model: Arc<CpuModel>) {
         let (rect, response) =
             ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
 
-        // let ang =
-        //     match ui.memory(|mem| mem.data.get_temp::<Arc<Mutex<f32>>>(self.id_source)) {
-        //         Some(val) => *val.lock().unwrap(),
-        //         None => self.angle,
-        //     };
-        // self.angle = ang + response.drag_delta().x * 0.01;
-        // ui.memory_mut(|mem| {
-        //     mem.data
-        //         .insert_temp(self.id_source, Arc::new(Mutex::new(self.angle)))
-        // });
-
         let angle = if response.dragged_by(egui::PointerButton::Primary) {
             response.drag_delta() * 0.05
         } else {
@@ -168,9 +157,6 @@ impl ThreeDApp {
         context: &three_d::core::Context,
     ) -> Model<PhysicalMaterial> {
         Model::<PhysicalMaterial>::new(context, cpu_model).unwrap()
-        // model.iter_mut().for_each(|m| {
-        //     m.material = NormalMaterial::new(context, &three_d_asset::PbrMaterial::default());
-        // });
     }
 
     pub fn set_model(&mut self, cpu_model: &CpuModel, gl: Arc<eframe::glow::Context>) {
@@ -187,7 +173,6 @@ impl ThreeDApp {
 
         self.camera
             .rotate_around_with_fixed_up(Vector3::zero(), angle.x, angle.y);
-        // self.camera.zoom_towards(point, delta, minimum_distance, maximum_distance)
 
         frame_input
             .screen
@@ -196,24 +181,12 @@ impl ThreeDApp {
                 frame_input.scissor_box,
                 &self.camera,
                 &self.model,
-                &[
-                    // &AmbientLight::new(
-                    //     &self.context,
-                    //     0.5,
-                    //     Srgba {
-                    //         r: 255,
-                    //         g: 255,
-                    //         b: 255,
-                    //         a: 255,
-                    //     },
-                    // ),
-                    &DirectionalLight::new(
-                        &self.context,
-                        10.0,
-                        Srgba::WHITE,
-                        vec3(0.0, -1.0, -1.0),
-                    ),
-                ],
+                &[&DirectionalLight::new(
+                    &self.context,
+                    10.0,
+                    Srgba::WHITE,
+                    vec3(0.0, -1.0, -1.0),
+                )],
             );
 
         frame_input.screen.into_framebuffer()

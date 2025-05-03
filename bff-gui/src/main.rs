@@ -313,9 +313,6 @@ impl eframe::App for Gui {
             ctx.set_cursor_icon(egui::CursorIcon::Progress);
         }
 
-        // egui::CentralPanel::default()
-        //     .frame(egui::Frame::none().inner_margin(egui::Margin::same(0.0)))
-        // .show(ctx, |ui| {
         let menubar_response = self.menubar_panel(ctx, frame, "menubar".into());
         if menubar_response {
             self.bigfile_loading = true;
@@ -393,7 +390,6 @@ impl eframe::App for Gui {
             }
             GuiWindow::None => (),
         }
-        // });
 
         #[cfg(not(target_arch = "wasm32"))]
         {
