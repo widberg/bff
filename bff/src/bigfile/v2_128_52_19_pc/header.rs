@@ -1,13 +1,12 @@
 use std::io::SeekFrom;
 
 use binrw::*;
-use serde::Serialize;
 
 use crate::bigfile::versions::VersionOneple;
 use crate::helpers::DynArray;
 use crate::names::Name;
 
-#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct DataDescription {
     pub resource_count: u32,
     pub padded_size: u64,
@@ -19,47 +18,51 @@ impl DataDescription {
     const SIZE: u64 = 28;
 }
 
-#[derive(Serialize, Debug, BinRead)]
+#[derive(Debug, BinRead)]
 pub struct Resource {
     pub name: Name,
-    pub class_name: Name,
+    pub _class_name: Name,
     pub offset: u32,
-    pub compressed_size: u32,
-    pub unk1: u32,
-    pub decompressed_size: u32,
-    pub unk2: u16,
-    pub unk3: u16,
+    pub _compressed_size: u32,
+    pub _unk1: u32,
+    pub _decompressed_size: u32,
+    pub _unk2: u16,
+    pub _unk3: u16,
 }
 
-#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct Unknown {
     pub data: [u8; 16],
 }
 
-#[derive(Serialize, Debug, BinRead)]
+#[binread]
+#[derive(Debug)]
 pub struct Resources {
+    #[br(temp)]
     pub data_count: u32,
     pub data_offset: u32,
     pub working_buffer_offset: u32,
-    pub unk1: u32,
-    pub unk2: u64,
-    pub padded_size: u64,
-    pub padding_size: u64,
+    pub _unk1: u32,
+    pub _unk2: u64,
+    pub _padded_size: u64,
+    pub _padding_size: u64,
     #[br(count = data_count, pad_after = DataDescription::SIZE * 52 - DataDescription::SIZE * data_count as u64)]
     pub data_descriptions: Vec<DataDescription>,
     // Use a Vec here instead of DynArray because Resource doesn't impl BinWrite and binrw isn't smart with trait bounds
+    #[br(temp)]
     pub resource_count: u32,
     #[br(count = resource_count)]
     pub resources: Vec<Resource>,
-    pub unk3: u64,
-    pub unknown: DynArray<Unknown>,
-    pub unk4: DynArray<u32>,
+    pub _unk3: u64,
+    pub _unknown: DynArray<Unknown>,
+    pub _unk4: DynArray<u32>,
+    #[br(temp)]
     pub resource_count2: u32,
     #[br(count = resource_count2, align_after = 16)]
     pub resources2: Vec<Resource>,
 }
 
-#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
     pub unk1: u64,
     pub unk2: u64,
@@ -68,7 +71,7 @@ pub struct BlockDescription {
     pub data_resources_map_offset: u32,
 }
 
-#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[derive(Debug, BinRead, BinWrite)]
 #[brw(repr = u8)]
 pub enum BigFileType {
     Rtc = 0,
@@ -100,7 +103,7 @@ impl From<crate::bigfile::manifest::BigFileType> for BigFileType {
 }
 
 #[binrw]
-#[derive(Serialize, Debug)]
+#[derive(Debug)]
 pub struct Header {
     pub bigfile_type: BigFileType,
     pub version_oneple: VersionOneple,

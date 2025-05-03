@@ -1,13 +1,12 @@
 use std::io::SeekFrom;
 
 use binrw::*;
-use serde::Serialize;
 
 use crate::bigfile::v1_06_63_02_pc::header::{BigFileType, BlockDescription};
 use crate::bigfile::versions::VersionOneple;
 
 #[binrw]
-#[derive(Serialize, Debug)]
+#[derive(Debug)]
 pub struct Header {
     pub version_oneple: VersionOneple,
     pub bigfile_type: BigFileType,
@@ -17,7 +16,6 @@ pub struct Header {
     pub block_working_buffer_capacity_even: u32,
     pub block_working_buffer_capacity_odd: u32,
     pub total_padded_block_size: u32,
-    #[serde(skip)]
     #[br(count = block_count)]
     pub block_descriptions: Vec<BlockDescription>,
     #[br(ignore)]

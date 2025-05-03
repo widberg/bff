@@ -2,7 +2,6 @@ use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
 use derive_more::{Deref, DerefMut};
-use serde::Serialize;
 
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::lz::lzrs_decompress_body_parser;
@@ -24,7 +23,7 @@ pub fn body_parser(decompressed_size: u32, compressed_size: u32) -> BinResult<Ve
 }
 
 #[binread]
-#[derive(Serialize, Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Resource {
     #[br(temp)]
     _data_size: u32,
@@ -39,10 +38,8 @@ pub struct Resource {
     pub class_name: Name,
     pub name: Name,
     #[br(count = link_header_size)]
-    #[serde(skip_serializing)]
     pub link_header: Vec<u8>,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
-    #[serde(skip_serializing)]
     pub body: Vec<u8>,
 }
 
@@ -90,9 +87,8 @@ impl From<Resource> for crate::bigfile::resource::Resource {
     }
 }
 
-#[derive(BinRead, Serialize, Debug, Deref, DerefMut)]
+#[derive(BinRead, Debug, Deref, DerefMut)]
 pub struct PoolResource {
     #[brw(align_after(2048))]
-    #[serde(flatten)]
     pub resource: Resource,
 }

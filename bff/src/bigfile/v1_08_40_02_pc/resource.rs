@@ -1,14 +1,13 @@
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, binread};
-use serde::Serialize;
 
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::resource::body_parser;
 use crate::names::Name;
 
 #[binread]
-#[derive(Serialize, Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Resource {
     #[br(temp)]
     decompressed_size: u32,
@@ -19,7 +18,6 @@ pub struct Resource {
     pub class_name: Name,
     pub name: Name,
     #[br(parse_with = body_parser, args(decompressed_size, compressed_size))]
-    #[serde(skip_serializing)]
     pub data: Vec<u8>,
 }
 

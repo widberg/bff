@@ -1,38 +1,33 @@
 use std::default::Default;
 
 use binrw::{BinRead, BinWrite, binrw};
-use serde::Serialize;
 
 use super::resource::PoolResource;
 use crate::helpers::{DynArray, calculated_padded};
 use crate::names::Name;
 
 #[binrw]
-#[derive(Serialize, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct ReferenceRecord {
     pub start_chunk_index: u32,
     pub end_chunk_index: u32,
     pub resources_name_starting_index: u32,
-    #[serde(skip)]
     #[br(temp)]
     #[bw(calc = 0)]
     _placeholder_bigfile_index: u16,
     pub resources_name_count: u16,
-    #[serde(skip)]
     #[br(temp)]
     #[bw(calc = 0xFFFFFFFF)]
     _placeholder_times_referenced: u32,
-    #[serde(skip)]
     #[br(temp)]
     #[bw(calc = 0xFFFFFFFF)]
     _placeholder_current_references_shared: u32,
-    #[serde(skip)]
     #[br(temp)]
     #[bw(calc = 0xFFFFFFFF)]
     _placeholder_current_references_weak: u32,
 }
 
-#[derive(BinRead, Serialize, Debug, BinWrite)]
+#[derive(BinRead, Debug, BinWrite)]
 pub struct ResourceDescription {
     pub name: Name,
     pub reference_count: u32,
@@ -102,7 +97,7 @@ fn zip_resource_description_soa(
 }
 
 #[binrw]
-#[derive(Serialize, Debug)]
+#[derive(Debug)]
 pub struct PoolHeader {
     #[serde(skip)]
     #[br(temp)]
@@ -112,7 +107,6 @@ pub struct PoolHeader {
     #[br(temp)]
     #[bw(calc = 0x800)]
     _equals2048: u32,
-    #[serde(skip)]
     pub resources_names_count_sum: u32,
     pub resource_descriptions_indices: DynArray<u32>,
     #[br(map = zip_resource_description_soa)]
@@ -148,7 +142,7 @@ pub fn calculate_padded_pool_header_size(
     calculated_padded(size, 2048)
 }
 
-#[derive(BinRead, Serialize, Debug)]
+#[derive(BinRead, Debug)]
 pub struct Pool {
     pub header: PoolHeader,
     #[br(count = header.resource_descriptions_indices.len())]

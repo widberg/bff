@@ -29,7 +29,11 @@ fn parse_character() -> BinResult<char> {
         None => &[0],
     };
     // TODO: Handle errors
-    Ok(std::str::from_utf8(utf8_bytes).unwrap().chars().next().unwrap())
+    Ok(std::str::from_utf8(utf8_bytes)
+        .unwrap()
+        .chars()
+        .next()
+        .unwrap())
 }
 
 #[derive(

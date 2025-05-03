@@ -1,13 +1,12 @@
 use std::io::SeekFrom;
 
 use binrw::*;
-use serde::Serialize;
 
 use crate::bigfile::versions::VersionTriple;
 use crate::helpers::FixedStringNull;
 use crate::names::Name;
 
-#[derive(Serialize, Debug, BinRead, BinWrite)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct BlockDescription {
     pub resource_count: u32,
     pub padded_size: u32,
@@ -19,7 +18,7 @@ pub struct BlockDescription {
     pub checksum: Option<i32>,
 }
 
-#[derive(Serialize, Debug, BinRead, BinWrite, Copy, Clone)]
+#[derive(Debug, BinRead, BinWrite, Copy, Clone)]
 #[brw(repr = u32)]
 pub enum BigFileType {
     Rtc = 0,
@@ -45,7 +44,7 @@ impl From<crate::bigfile::manifest::BigFileType> for BigFileType {
 }
 
 #[binrw]
-#[derive(Serialize, Debug)]
+#[derive(Debug)]
 pub struct Header {
     pub bigfile_type: BigFileType,
     #[br(temp)]
@@ -55,7 +54,6 @@ pub struct Header {
     pub block_working_buffer_capacity_odd: u32,
     pub padded_size: u32,
     pub version_triple: VersionTriple,
-    #[serde(skip)]
     #[br(count = block_count)]
     pub block_descriptions: Vec<BlockDescription>,
     #[br(ignore)]
