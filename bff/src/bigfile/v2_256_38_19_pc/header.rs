@@ -1,6 +1,6 @@
 use std::io::SeekFrom;
 
-use binrw::*;
+use binrw::{BinRead, BinWrite, binread};
 
 use crate::bigfile::v1_06_63_02_pc::header::BigFileType;
 use crate::bigfile::versions::VersionOneple;
@@ -63,8 +63,7 @@ pub struct BlockDescription {
     pub data_resources_map_offset: u32,
 }
 
-#[binrw]
-#[derive(Debug)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct Header {
     pub version_oneple: VersionOneple,
     pub bigfile_type: BigFileType,

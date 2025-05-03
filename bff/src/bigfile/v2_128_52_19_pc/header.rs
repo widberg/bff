@@ -1,6 +1,6 @@
 use std::io::SeekFrom;
 
-use binrw::*;
+use binrw::{BinRead, BinWrite, binread};
 
 use crate::bigfile::versions::VersionOneple;
 use crate::helpers::DynArray;
@@ -102,8 +102,7 @@ impl From<crate::bigfile::manifest::BigFileType> for BigFileType {
     }
 }
 
-#[binrw]
-#[derive(Debug)]
+#[derive(Debug, BinRead, BinWrite)]
 pub struct Header {
     pub bigfile_type: BigFileType,
     pub version_oneple: VersionOneple,

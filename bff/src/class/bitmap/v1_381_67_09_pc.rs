@@ -4,7 +4,7 @@ use std::io::Cursor;
 
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
-use binrw::{BinRead, BinWrite, binrw};
+use binrw::{BinRead, BinWrite};
 use ddsfile::{D3DFormat, Dds, NewD3dParams};
 use serde::{Deserialize, Serialize};
 
@@ -82,8 +82,7 @@ pub struct LinkHeader {
     transparency: BmTransp,
 }
 
-#[binrw]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames, GenericClass)]
+#[derive(Debug, BinRead, BinWrite, Serialize, Deserialize, ReferencedNames, GenericClass)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]
