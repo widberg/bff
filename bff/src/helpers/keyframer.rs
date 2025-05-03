@@ -14,6 +14,7 @@ use super::{
     Vec4f,
     Vec4i16,
     calculate_padding,
+    copy_repeat,
 };
 use crate::Endian;
 use crate::names::Name;
@@ -67,10 +68,10 @@ where
 
         let end = writer.stream_position()?;
 
-        vec![0xffu8; calculate_padding((end - begin) as usize, 4)].write_options(
+        copy_repeat(
             writer,
-            endian,
-            <_>::default(),
+            0xFF,
+            calculate_padding((end - begin) as usize, 4) as u64,
         )?;
         Ok(())
     }
@@ -119,10 +120,10 @@ where
 
         let end = writer.stream_position()?;
 
-        vec![0xffu8; calculate_padding((end - begin) as usize, 4)].write_options(
+        copy_repeat(
             writer,
-            endian,
-            <_>::default(),
+            0xFF,
+            calculate_padding((end - begin) as usize, 4) as u64,
         )?;
         Ok(())
     }

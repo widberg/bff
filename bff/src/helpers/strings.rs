@@ -10,6 +10,8 @@ use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullStrin
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use serde::{Deserialize, Serialize};
 
+use super::copy_repeat;
+
 #[derive(
     Clone,
     PartialEq,
@@ -96,7 +98,7 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
             });
         }
         writer.write_all(bytes)?;
-        writer.write_all(&vec![0; S - bytes.len()])?;
+        copy_repeat(writer, 0, (S - bytes.len()) as u64)?;
         Ok(())
     }
 }

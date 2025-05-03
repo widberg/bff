@@ -10,7 +10,7 @@ use crate::bigfile::manifest::Manifest;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
-use crate::helpers::{DynArray, write_align_to};
+use crate::helpers::{DynArray, copy_repeat, write_align_to};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
@@ -97,7 +97,7 @@ impl BinWrite for Block {
         let begin = writer.stream_position()?;
         self.resources.write_options(writer, endian, ())?;
         let end = writer.stream_position()?;
-        vec![0u8; block_size as usize - (end - begin) as usize].write_be(writer)?;
+        copy_repeat(writer, 0, block_size as u64 - (end - begin))?;
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 
 use binrw::BinResult;
 
@@ -11,16 +11,15 @@ mod option;
 mod strings;
 
 pub fn calculate_padding(position: usize, alignment: usize) -> usize {
-    let remainder = position % alignment;
-    if remainder != 0 {
-        alignment - remainder
-    } else {
-        0
-    }
+    position.next_multiple_of(alignment) - position
 }
 
 pub fn calculated_padded(position: usize, alignment: usize) -> usize {
-    position + calculate_padding(position, alignment) // TODO: Use div_ceil
+    position.next_multiple_of(alignment)
+}
+
+pub fn copy_repeat<W: Write>(writer: &mut W, value: u8, length: u64) -> io::Result<u64> {
+    std::io::copy(&mut std::io::repeat(value).take(length), writer)
 }
 
 pub fn write_align_to<W: Write + Seek>(
@@ -28,9 +27,8 @@ pub fn write_align_to<W: Write + Seek>(
     alignment: usize,
     value: u8,
 ) -> BinResult<usize> {
-    let padding = calculate_padding(writer.stream_position()? as usize, alignment);
-    writer.write_all(&vec![value; padding])?; // TODO: Use repeat
-    Ok(padding)
+    let padding = calculate_padding(writer.stream_position()? as usize, alignment) as u64;
+    Ok(copy_repeat(writer, value, padding)? as usize)
 }
 
 pub fn read_align_to<R: Read + Seek>(reader: &mut R, alignment: usize) -> BinResult<()> {

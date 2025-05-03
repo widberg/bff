@@ -17,7 +17,7 @@ use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::header::BlockDescription;
 use crate::bigfile::versions::{Version, VersionXple};
-use crate::helpers::{calculated_padded, write_align_to};
+use crate::helpers::{calculated_padded, copy_repeat, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
 use crate::names::NameType::Asobo32;
 use crate::names::{Name, NameType};
@@ -96,10 +96,8 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         let endian: Endian = bigfile.manifest.platform.into();
 
         let begin = writer.stream_position()?;
-        let zero_pad = vec![0x00; 2048 - 256 - 228];
-        writer.write_all(&zero_pad)?;
-        let ff_pad = vec![0xFF; 228];
-        writer.write_all(&ff_pad)?;
+        copy_repeat(writer, 0, 2048 - 256 - 228)?;
+        copy_repeat(writer, 0xFF, 228)?;
 
         let mut block_working_buffer_capacity_even = 0u32;
         let mut block_working_buffer_capacity_odd = 0u32;

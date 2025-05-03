@@ -6,6 +6,7 @@ use binrw::{BinRead, BinResult, BinWrite, Endian, NullString, args};
 use itertools::Itertools;
 
 use crate::BffResult;
+use crate::helpers::copy_repeat;
 use crate::lz::{lzo_compress, lzo_decompress};
 
 #[derive(Debug, Default)]
@@ -164,10 +165,7 @@ impl BinWrite for Cps {
 
         let pos = writer.stream_position()?;
         // Zero fill the space for the script definitions
-        std::io::copy(
-            &mut std::io::repeat(0).take(0x10 * script_count as u64),
-            writer,
-        )?;
+        copy_repeat(writer, 0, 0x10 * script_count as u64)?;
         writer.seek(SeekFrom::Start(pos))?;
 
         for (path, script) in self.tscs.iter() {
