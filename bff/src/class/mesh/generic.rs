@@ -3,7 +3,7 @@ use bilge::prelude::*;
 use binrw::{BinRead, BinWrite, args};
 use serde::{Deserialize, Serialize};
 
-use crate::helpers::{DynArray, RangeBeginSize, RangeFirstLast, Vec2f, Vec3f};
+use crate::helpers::{DynArray, RangeBeginSize, Vec2f, Vec3f};
 use crate::names::Name;
 
 type VertexVectorComponent = u8;
@@ -11,11 +11,24 @@ type VertexVector3u8 = [VertexVectorComponent; 3];
 type VertexBlendIndex = f32;
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[br(import(is_leaf: bool))]
+pub enum CollisionFacesRange {
+    #[br(pre_assert(is_leaf))]
+    Range(RangeBeginSize),
+    #[br(pre_assert(!is_leaf))]
+    Pointer(u32),
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
 pub struct CollisionAABB {
     min: Vec3f,
-    collision_aabb_range: RangeFirstLast,
+    #[br(map = |x: (u16, u16)| (x != (0, 0)).then(|| (x.0 - 1, x.1 - 1)))]
+    #[bw(map = |x: &Option<(u16, u16)>| x.map(|x| (x.0 + 1, x.1 + 1)).unwrap_or((0, 0)))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    collision_aabb_children: Option<(u16, u16)>,
     max: Vec3f,
-    collision_faces_range: RangeBeginSize,
+    #[br(args(collision_aabb_children.is_none()))]
+    collision_faces_range: CollisionFacesRange,
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
