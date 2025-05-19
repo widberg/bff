@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
-use std::ops::{Add, Div, Mul, Range, RangeInclusive, Sub};
+use std::ops::{Div, Mul, Range, RangeInclusive, Sub};
 
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite, binrw};
 use derive_more::{Deref, DerefMut};
-use num_traits::{Float, NumCast, PrimInt, Signed, Unsigned, cast};
+use num_traits::{CheckedAdd, Float, NumCast, PrimInt, Signed, Unsigned, cast};
 use serde::{Deserialize, Serialize};
 
 use crate::names::Name;
@@ -95,7 +95,7 @@ where
 #[serde(rename = "range")]
 pub struct RangeBeginSize<T = u16>
 where
-    T: Copy + Add<Output = T> + Sub<Output = T>,
+    T: Copy + CheckedAdd<Output = T> + Sub<Output = T>,
     for<'a> <T as BinRead>::Args<'a>: Default,
     for<'a> T: BinRead + BinWrite<Args<'a> = ()>,
 {
@@ -105,7 +105,7 @@ where
     #[br(temp)]
     #[bw(calc = inner.end - inner.start)]
     size: T,
-    #[br(calc = first..first + size)]
+    #[br(try_calc = first.checked_add(&size).map(|last| first..last).ok_or("Addition overflow in RangeBeginSize"))]
     #[bw(ignore)]
     inner: Range<T>,
 }
@@ -117,7 +117,7 @@ pub struct Sphere {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct Box {
+pub struct BffBox {
     pub matrix: Mat3x4f,
     pub vec: Vec3f,
     pub scale: f32,

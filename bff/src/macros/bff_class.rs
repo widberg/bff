@@ -51,11 +51,14 @@ macro_rules! bff_class {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
-                _resource: &crate::bigfile::resource::Resource,
-                _version: crate::bigfile::versions::Version,
-                _platform: crate::bigfile::platforms::Platform,
+                resource: &crate::bigfile::resource::Resource,
+                version: crate::bigfile::versions::Version,
+                platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<$class> {
-                todo!()
+                Err(
+                        // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
+                        crate::error::UnimplementedClassError::new(resource.name, <Self as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME.into(), version, platform).into(),
+                    )
             }
         }
 

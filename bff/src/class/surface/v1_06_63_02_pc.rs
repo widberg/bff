@@ -96,7 +96,7 @@ struct Patch {
     material_anim_index: u32,
     sphere: Sphere,
     cull_cone: CullCone,
-    b_box: crate::helpers::Box,
+    b_box: crate::helpers::BffBox,
     unknown_indices: [u16; 4],
     color_indices: [u16; 4],
     normal_indices: [u16; 4],
