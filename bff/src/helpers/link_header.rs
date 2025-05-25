@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
+use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
@@ -113,6 +114,8 @@ pub struct ResourceObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
     names: DynArray<Name>,
+    #[br(parse_with = until_eof)]
+    links: Vec<u8>,
 }
 
 // this is just silly. i'm sure there's a better way
@@ -139,6 +142,7 @@ pub struct ObjectLinkHeaderV1_06_63_02PC {
 pub struct ResourceObjectLinkHeaderGeneric {
     pub link_name: Name,
     pub names: DynArray<Name>,
+    pub links: Vec<u8>,
 }
 
 impl From<ResourceObjectLinkHeaderV1_381_67_09PC> for ResourceObjectLinkHeaderGeneric {
@@ -146,6 +150,7 @@ impl From<ResourceObjectLinkHeaderV1_381_67_09PC> for ResourceObjectLinkHeaderGe
         Self {
             link_name: header.link_name,
             names: vec![].into(),
+            links: vec![],
         }
     }
 }
@@ -155,6 +160,7 @@ impl From<ResourceObjectLinkHeaderV1_06_63_02PC> for ResourceObjectLinkHeaderGen
         Self {
             link_name: header.link_name,
             names: header.names,
+            links: header.links,
         }
     }
 }
@@ -172,6 +178,7 @@ impl From<ResourceObjectLinkHeaderGeneric> for ResourceObjectLinkHeaderV1_06_63_
         Self {
             link_name: header.link_name,
             names: header.names,
+            links: header.links,
         }
     }
 }
