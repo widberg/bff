@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -13,7 +14,7 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Extended {
     pad: [u8; 24],
     flags1: u32,
@@ -33,7 +34,7 @@ struct Extended {
     zero11: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct LodDataBodyV1_381_67_09PC {
     flags: ObjectDatasFlagsV1_381_67_09PC,

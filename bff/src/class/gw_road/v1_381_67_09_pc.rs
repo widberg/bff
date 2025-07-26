@@ -4,6 +4,7 @@ use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian};
 use derive_more::{Deref, DerefMut};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -12,7 +13,7 @@ use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[bitsize(7)]
-#[derive(TryFromBits, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(TryFromBits, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 enum SubType {
     ShortCutForest = 0,
     ShortCutField = 1,
@@ -36,13 +37,15 @@ enum SubType {
 }
 
 #[bitsize(8)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 struct RoadType {
     sub_type: SubType,
     short_cut: bool,
 }
 
-#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames, JsonSchema)]
 #[serde(transparent)]
 struct EncodedPoint(Vec2f);
 
@@ -89,13 +92,13 @@ impl BinWrite for EncodedPoint {
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Road {
     r#type: RoadType,
     points: DynArray<EncodedPoint, u16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unused5 {
     unused0: u32,
     unused1: u32,
@@ -109,7 +112,7 @@ struct Unused5 {
     unused8s: Vec<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,

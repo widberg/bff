@@ -74,6 +74,26 @@ macro_rules! bff_class {
             }
         }
 
+        impl schemars::JsonSchema for $class {
+            fn inline_schema() -> bool {
+                true
+            }
+
+            fn schema_name() -> std::borrow::Cow<'static, str> {
+                stringify!($class).into()
+            }
+
+            fn schema_id() -> std::borrow::Cow<'static, str> {
+                format!("{}::{}", module_path!(), stringify!($class)).into()
+            }
+
+            fn json_schema(_schema_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                schemars::json_schema!({
+                    "type": "object"
+                })
+            }
+        }
+
         pastey::paste! {
             #[allow(non_snake_case)]
             #[derive(Default, Clone, Copy, Debug)]
@@ -98,7 +118,7 @@ macro_rules! bff_class {
         }
     };
     ($class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, derive_more::From, derive_more::IsVariant, bff_derive::ReferencedNames)]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, derive_more::From, derive_more::IsVariant, bff_derive::ReferencedNames, schemars::JsonSchema)]
         pub enum $class {
             $($variant(std::boxed::Box<$variant>)),*
         }

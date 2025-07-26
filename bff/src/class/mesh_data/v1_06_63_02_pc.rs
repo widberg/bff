@@ -1,38 +1,39 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct ObjectDatas {
     unknown: f32,
     color: RGBA,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct UnkStruct1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct UnkStruct2 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct UnkStruct3 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct UnkStruct4 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct MeshVolume {
     unk_struct1s: DynArray<UnkStruct1>,
     unk_struct2s: DynArray<UnkStruct2>,
@@ -40,7 +41,7 @@ struct MeshVolume {
     unk_struct4s: DynArray<UnkStruct4>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshDataBodyV1_06_63_02PC {
     object_datas: ObjectDatas,

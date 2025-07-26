@@ -1,5 +1,6 @@
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::generic::LightGeneric;
@@ -8,7 +9,9 @@ use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
 use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+)]
 #[generic(complete)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct LightBodyV1_381_67_09PC {

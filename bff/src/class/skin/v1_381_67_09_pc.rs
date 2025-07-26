@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,7 +8,7 @@ use crate::helpers::{DynArray, ObjectLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(bone_name_count: u32))]
 struct SkinSubsection {
     animation_node_names: [Name; 4],
@@ -15,14 +16,14 @@ struct SkinSubsection {
     bone_names: Vec<Name>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(bone_name_count: u32))]
 struct SkinSection {
     #[br(args(bone_name_count))]
     skin_subsections: DynArray<SkinSubsection>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct SkinBodyV1_381_67_09PC {
     mesh_names: DynArray<Name>,

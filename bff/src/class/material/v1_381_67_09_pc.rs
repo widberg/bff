@@ -1,6 +1,7 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -9,7 +10,9 @@ use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 struct MaterialEnabledBitmaps {
     diffuse: u1,
     unused0: u1,
@@ -24,14 +27,16 @@ struct MaterialEnabledBitmaps {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 struct MaterialRdrFlags {
     padding0: u5,
     transparency: u1,
     padding1: u26,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct MaterialBodyV1_381_67_09PC {
     diffuse: RGBA,

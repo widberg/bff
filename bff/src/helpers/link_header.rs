@@ -2,13 +2,14 @@ use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{DynArray, Mat4f, Quat};
+use super::{BffBox, DynArray, Sphere};
 use crate::names::Name;
 use crate::traits::TryFromGenericSubstitute;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct ResourceObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
@@ -23,7 +24,9 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_381_67_
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 pub struct ObjectDatasFlagsV1_381_67_09PC {
     hide: u1,
     code_control: u1,
@@ -43,7 +46,14 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
 
 #[bitsize(32)]
 #[derive(
-    BinRead, FromBits, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames,
+    BinRead,
+    FromBits,
+    DebugBits,
+    SerializeBits,
+    BinWrite,
+    DeserializeBits,
+    ReferencedNames,
+    JsonSchema,
 )]
 pub struct ObjectFlagsV1_381_67_09PC {
     init: u1,
@@ -66,7 +76,7 @@ pub struct ObjectFlagsV1_381_67_09PC {
     padding: u15,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[brw(repr = u16)]
 pub enum ObjectType {
     Points = 0,
@@ -97,19 +107,19 @@ pub enum ObjectType {
     WorldRef = 26,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct ObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
     data_name: Name,
-    rot: Quat,
-    transform: Mat4f,
-    radius: f32,
+    b_sphere: Sphere,
+    b_box: BffBox,
+    fade_out_dist: f32,
     flags: ObjectFlagsV1_381_67_09PC,
     r#type: ObjectType,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct ResourceObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
@@ -126,15 +136,15 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_06_63_0
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct ObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
     names: DynArray<Name>,
     data_name: Name,
-    rot: Quat,
-    transform: Mat4f,
-    radius: f32,
+    b_sphere: Sphere,
+    b_box: BffBox,
+    fade_out_dist: f32,
     pub flags: u32,
     r#type: ObjectType,
 }
@@ -213,9 +223,9 @@ pub struct ObjectLinkHeaderGeneric {
     pub link_name: Name,
     pub names: DynArray<Name>,
     pub data_name: Name,
-    pub rot: Quat,
-    pub transform: Mat4f,
-    pub radius: f32,
+    pub b_sphere: Sphere,
+    pub b_box: BffBox,
+    pub fade_out_dist: f32,
     pub flags: u32,
     pub r#type: ObjectType,
 }
@@ -226,9 +236,9 @@ impl From<ObjectLinkHeaderV1_381_67_09PC> for ObjectLinkHeaderGeneric {
             link_name: header.link_name,
             names: vec![].into(),
             data_name: header.data_name,
-            rot: header.rot,
-            transform: header.transform,
-            radius: header.radius,
+            b_sphere: header.b_sphere,
+            b_box: header.b_box,
+            fade_out_dist: header.fade_out_dist,
             flags: header.flags.value,
             r#type: header.r#type,
         }
@@ -241,9 +251,9 @@ impl From<ObjectLinkHeaderV1_06_63_02PC> for ObjectLinkHeaderGeneric {
             link_name: header.link_name,
             names: header.names,
             data_name: header.data_name,
-            rot: header.rot,
-            transform: header.transform,
-            radius: header.radius,
+            b_sphere: header.b_sphere,
+            b_box: header.b_box,
+            fade_out_dist: header.fade_out_dist,
             flags: header.flags,
             r#type: header.r#type,
         }
@@ -255,9 +265,9 @@ impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_381_67_09PC {
         Self {
             link_name: header.link_name,
             data_name: header.data_name,
-            rot: header.rot,
-            transform: header.transform,
-            radius: header.radius,
+            b_sphere: header.b_sphere,
+            b_box: header.b_box,
+            fade_out_dist: header.fade_out_dist,
             flags: ObjectFlagsV1_381_67_09PC::from(header.flags),
             r#type: header.r#type,
         }
@@ -270,9 +280,9 @@ impl From<ObjectLinkHeaderGeneric> for ObjectLinkHeaderV1_06_63_02PC {
             link_name: header.link_name,
             names: header.names,
             data_name: header.data_name,
-            rot: header.rot,
-            transform: header.transform,
-            radius: header.radius,
+            b_sphere: header.b_sphere,
+            b_box: header.b_box,
+            fade_out_dist: header.fade_out_dist,
             flags: header.flags,
             r#type: header.r#type,
         }

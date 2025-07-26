@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,39 +8,39 @@ use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec2f, Vec
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct LinkInfo {
     resource_link_header: ResourceObjectLinkHeaderV1_06_63_02PC,
     vertices: DynArray<Vec3f>,
@@ -47,7 +48,7 @@ pub struct LinkInfo {
     morpher: Morpher,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 #[br(import(_link_header: &LinkInfo))]
 pub struct RotShapeBodyV1_06_63_02PC {
     material_indices: DynArray<u32>,

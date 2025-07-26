@@ -1,11 +1,14 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 
 use crate::class::trivial_class::TrivialClass;
 
 #[bitsize(16)]
-#[derive(DebugBits, Clone, BinRead, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    DebugBits, Clone, BinRead, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 pub struct SoundFlags {
     pub paused: u1,
     pub looping: u1,

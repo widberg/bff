@@ -1,5 +1,6 @@
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::generic::{
@@ -18,7 +19,9 @@ use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_381_67_09PC};
 use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+)]
 #[generic(complete)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct AnimationBodyV1_381_67_09PC {

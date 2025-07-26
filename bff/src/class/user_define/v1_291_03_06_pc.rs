@@ -3,18 +3,21 @@ use std::ffi::OsString;
 
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::generic::UserDefineGeneric;
 use crate::BffResult;
 use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
-use crate::helpers::{PascalString, ResourceObjectLinkHeaderV1_381_67_09PC};
+use crate::helpers::{PascalString, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
-#[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+)]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct UserDefineBodyV1_291_03_06PC {
     #[serde(skip)]
     #[generic]
@@ -22,7 +25,7 @@ pub struct UserDefineBodyV1_291_03_06PC {
 }
 
 pub type UserDefineV1_291_03_06PC =
-    TrivialClass<ResourceObjectLinkHeaderV1_381_67_09PC, UserDefineBodyV1_291_03_06PC>;
+    TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, UserDefineBodyV1_291_03_06PC>;
 
 trivial_class_generic!(UserDefineV1_291_03_06PC, UserDefineGeneric);
 

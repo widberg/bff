@@ -193,7 +193,7 @@ pub fn extract(
     let bigfile = read_bigfile(bigfile_path, platform_override, version_override)?;
 
     progress_bar.set_message("Writing manifest");
-    std::fs::create_dir(directory)?;
+    std::fs::create_dir_all(directory)?;
 
     let manifest_path = directory.join("manifest.json");
     let manifest_writer = BufWriter::new(File::create(manifest_path)?);

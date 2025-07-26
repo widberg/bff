@@ -1,5 +1,6 @@
 mod wordlist;
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
@@ -14,6 +15,7 @@ use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use num_traits::AsPrimitive;
 use once_cell::sync::Lazy;
+use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Deserializer, Serialize};
 use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
@@ -244,7 +246,7 @@ pub enum NameType {
     Ubisoft64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 enum SerdeName<'a, T> {
     Name(T),
@@ -394,6 +396,26 @@ impl<'de> Deserialize<'de> for Name {
                 }
             }
         }
+    }
+}
+
+impl JsonSchema for Name {
+    fn inline_schema() -> bool {
+        true
+    }
+
+    fn schema_name() -> Cow<'static, str> {
+        "Name".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        concat!(module_path!(), "::Name").into()
+    }
+
+    fn json_schema(_schema_generator: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "type": ["string", "integer"]
+        })
     }
 }
 

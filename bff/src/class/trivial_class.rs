@@ -2,6 +2,7 @@ use std::io::{BufRead, Cursor};
 
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::BffError;
@@ -13,7 +14,7 @@ use crate::error::Error;
 use crate::names::Name;
 use crate::traits::TryFromVersionPlatform;
 
-#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {
     #[referenced_names(skip)]
     pub class_name: Name,

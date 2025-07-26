@@ -6,6 +6,7 @@ use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
 use ddsfile::{D3DFormat, Dds, NewD3dParams};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::generic::BitmapGeneric;
@@ -16,7 +17,9 @@ use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::names::Name;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, Copy, Clone)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+)]
 #[brw(repr = u16)]
 enum BitmapClass {
     Single = 0,
@@ -24,7 +27,16 @@ enum BitmapClass {
 }
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, Copy, Clone, Default,
+    BinRead,
+    Debug,
+    Serialize,
+    BinWrite,
+    Deserialize,
+    ReferencedNames,
+    Copy,
+    Clone,
+    Default,
+    JsonSchema,
 )]
 #[brw(repr = u8)]
 enum BmFormat {
@@ -35,14 +47,18 @@ enum BmFormat {
     BmDxt5 = 16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, Copy, Clone)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+)]
 #[brw(repr = u8)]
 enum BitmapClass2 {
     Cubemap2 = 0,
     Single2 = 3,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, Copy, Clone)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+)]
 #[brw(repr = u8)]
 enum BmTransp {
     NoTransp = 0,
@@ -51,7 +67,9 @@ enum BmTransp {
     Cubemap = 255,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames, GenericClass)]
+#[derive(
+    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+)]
 #[generic(name(BitmapHeaderGeneric))]
 pub struct LinkHeader {
     #[referenced_names(skip)]
@@ -82,7 +100,9 @@ pub struct LinkHeader {
     transparency: BmTransp,
 }
 
-#[derive(Debug, BinRead, BinWrite, Serialize, Deserialize, ReferencedNames, GenericClass)]
+#[derive(
+    Debug, BinRead, BinWrite, Serialize, Deserialize, ReferencedNames, GenericClass, JsonSchema,
+)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]

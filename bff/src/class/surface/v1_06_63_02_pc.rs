@@ -1,6 +1,7 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -17,46 +18,46 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PointsRelated0 {
     vec3: Vec3f,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PointsRelated1 {
     vec4: Vec4f,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct MorphTargetDesc {
     name: u32,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct Points {
     points_relateds0: DynArray<PointsRelated0>,
     points_relateds1: DynArray<PointsRelated1>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PatchCol {
     sphere: Sphere,
     flag: u32,
@@ -65,7 +66,7 @@ struct PatchCol {
     cdcdcdcd: [u32; 2],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct EdgeCol {
     sphere: Sphere,
     flag: u32,
@@ -74,7 +75,7 @@ struct EdgeCol {
     unk_placeholder_ptr3: u32,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct ClingLineRelated {
     sphere: Sphere,
     flag: u32,
@@ -83,12 +84,12 @@ struct ClingLineRelated {
     unk_float: f32,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct CullCone {
     data: [u8; 32],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct Patch {
     flag: u16,
     should_draw_related_start_index: u16,
@@ -106,19 +107,19 @@ struct Patch {
     material_anim_name: Name,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct SeadVoxel {
     element_entry: u16,
     element_count: u16,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patch_indices: DynArray<u16>,
@@ -145,14 +146,16 @@ struct SeadIndex {
 }
 
 #[bitsize(16)]
-#[derive(BinRead, BinWrite, DebugBits, SerializeBits, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, BinWrite, DebugBits, SerializeBits, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,
     shift_amount_for_bit: u5,
     other: u8,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct SurfaceBodyV1_06_63_02PC {
     points: Points,

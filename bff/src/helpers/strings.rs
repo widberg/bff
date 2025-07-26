@@ -8,6 +8,7 @@ use binrw::io::{Read, Seek};
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
 use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString, args};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::copy_repeat;
@@ -27,6 +28,7 @@ use super::copy_repeat;
     Hash,
     Deserialize,
     ReferencedNames,
+    JsonSchema,
 )]
 #[serde(transparent)]
 pub struct FixedStringNull<const S: usize>(pub String);
@@ -116,6 +118,7 @@ impl<const S: usize> BinWrite for FixedStringNull<S> {
     Serialize,
     Deserialize,
     ReferencedNames,
+    JsonSchema,
 )]
 #[display("{}", string)]
 #[serde(transparent)]
@@ -234,6 +237,7 @@ where
     Hash,
     Deserialize,
     ReferencedNames,
+    JsonSchema,
 )]
 #[serde(transparent)]
 pub struct PascalStringNull(pub String);
@@ -302,6 +306,7 @@ impl BinWrite for PascalStringNull {
     Hash,
     Deserialize,
     ReferencedNames,
+    JsonSchema,
 )]
 #[serde(transparent)]
 pub struct StringUntilNull(pub String);

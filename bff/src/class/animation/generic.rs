@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -14,7 +15,7 @@ use crate::helpers::{
 };
 use crate::names::Name;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationNode {
     pub unknown: u16,
     pub keyframer_rot: KeyframerRot,
@@ -24,7 +25,7 @@ pub struct AnimationNode {
     pub keyframer_message: KeyframerMessage,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationNodeModifier {
     pub bone_name: Name,
     pub bone_id: u16,
@@ -41,7 +42,7 @@ pub struct AnimationNodeModifier {
     pub message_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMaterial {
     pub keyframer_float_comp0: KeyframerFloatComp,
     pub keyframer_float_comp1: KeyframerFloatComp,
@@ -50,7 +51,7 @@ pub struct AnimationMaterial {
     pub keyframer_float_comp2: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMaterialModifier {
     pub material_link_name: Name,
     pub material_id: u16,
@@ -67,12 +68,12 @@ pub struct AnimationMaterialModifier {
     pub keyframer_float_comp2_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMesh {
     pub keyframer_float_comp: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMeshModifier {
     pub mesh_link_name: Name,
     pub mesh_id: u16,
@@ -81,12 +82,12 @@ pub struct AnimationMeshModifier {
     pub keyframer_float_comp_frame_count: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMorph {
     pub keyframer_float_comp: KeyframerFloatComp,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct AnimationMorphModifier {
     pub mesh_link_name: Name,
     pub mesh_id: u16,
