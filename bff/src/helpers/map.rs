@@ -6,9 +6,10 @@ use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use derive_more::Deref;
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deref, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deref, Deserialize, JsonSchema, ReferencedNames)]
 #[serde(transparent)]
 pub struct BffMap<KeyType: Eq + Hash, ValueType, SizeType = u32> {
     #[deref]

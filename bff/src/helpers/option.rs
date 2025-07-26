@@ -5,10 +5,11 @@ use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite, binrw};
 use derive_more::Deref;
 use num_traits::{One, Zero};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[binrw]
-#[derive(Serialize, Deref, Debug, Deserialize, ReferencedNames)]
+#[derive(Serialize, Deref, Debug, Deserialize, ReferencedNames, JsonSchema)]
 pub struct BffOption<
     InnerType: BinRead + BinWrite,
     ConditionType: BinRead + BinWrite + One + Zero + Eq = u8,

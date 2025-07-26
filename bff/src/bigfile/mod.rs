@@ -16,6 +16,7 @@ pub mod versions;
 use std::collections::HashMap;
 
 use petgraph::Graph;
+use schemars::JsonSchema;
 use serde::Serialize;
 
 use crate::bigfile::manifest::Manifest;
@@ -41,7 +42,7 @@ use crate::traits::{ReferencedNames, TryIntoVersionPlatform};
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, JsonSchema, Debug)]
 pub struct BigFile {
     #[serde(flatten)]
     pub manifest: Manifest,

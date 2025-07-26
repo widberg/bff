@@ -1,11 +1,11 @@
 macro_rules! classes {
     ($($class:ident),* $(,)?) => {
-        #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames)]
+        #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames, schemars::JsonSchema)]
         pub enum Class {
             $($class($class),)*
         }
 
-        #[derive(serde::Serialize, Debug, serde::Deserialize)]
+        #[derive(serde::Serialize, Debug, serde::Deserialize, schemars::JsonSchema)]
         pub enum ClassType {
             $($class,)*
         }

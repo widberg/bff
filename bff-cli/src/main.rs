@@ -15,6 +15,7 @@ mod crc;
 mod create;
 mod create_resource;
 mod csc;
+mod dump_json_schema;
 mod error;
 mod extract;
 mod extract_resource;
@@ -205,6 +206,8 @@ enum Commands {
     },
     #[clap(alias = "tyb")]
     TryYourBest { path: PathBuf },
+    #[clap(alias = "djs")]
+    DumpJsonSchema { path: PathBuf },
 }
 
 #[derive(Parser)]
@@ -340,5 +343,6 @@ fn main() -> BffCliResult<()> {
             lin,
         } => fat_lin::create_fat_lin(directory, fat, lin),
         Commands::TryYourBest { path } => try_your_best::try_your_best(path),
+        Commands::DumpJsonSchema { path } => dump_json_schema::dump_json_schema(path),
     }
 }

@@ -1,6 +1,7 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite, args};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::helpers::{DynArray, RangeBeginSize, Vec2f, Vec3f};
@@ -10,7 +11,7 @@ type VertexVectorComponent = u8;
 type VertexVector3u8 = [VertexVectorComponent; 3];
 type VertexBlendIndex = f32;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(is_leaf: bool))]
 pub enum CollisionFacesRange {
     #[br(pre_assert(is_leaf))]
@@ -19,8 +20,8 @@ pub enum CollisionFacesRange {
     Pointer(u32),
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
-pub struct CollisionAABB {
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+pub struct AABBNode {
     min: Vec3f,
     #[br(map = |x: (u16, u16)| (x != (0, 0)).then(|| (x.0 - 1, x.1 - 1)))]
     #[bw(map = |x: &Option<(u16, u16)>| x.map(|x| (x.0 + 1, x.1 + 1)).unwrap_or((0, 0)))]
@@ -31,14 +32,14 @@ pub struct CollisionAABB {
     collision_faces_range: CollisionFacesRange,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct Strip {
     strip_vertices_indices: DynArray<u16>,
     material_name: Name,
     tri_order: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct LayoutPosition {
     pub position: Vec3f,
 }
@@ -47,7 +48,7 @@ impl LayoutPosition {
     pub const SIZE: usize = 12;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct LayoutPositionUV {
     pub position: Vec3f,
     pub unknown: f32,
@@ -58,7 +59,7 @@ impl LayoutPositionUV {
     pub const SIZE: usize = 24;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct LayoutNoBlend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -73,7 +74,7 @@ impl LayoutNoBlend {
     pub const SIZE: usize = 36;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct Layout1Blend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -90,7 +91,7 @@ impl Layout1Blend {
     pub const SIZE: usize = 48;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct Layout4Blend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -106,7 +107,7 @@ impl Layout4Blend {
     pub const SIZE: usize = 60;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(count: usize, layout: usize))]
 pub enum Vertices {
     #[br(pre_assert(layout == LayoutPosition::SIZE))]
@@ -164,7 +165,9 @@ impl Vertices {
 }
 
 #[bitsize(32)]
-#[derive(BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames)]
+#[derive(
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+)]
 pub struct VertexGroupFlags {
     padding: u2,
     visible: u1,

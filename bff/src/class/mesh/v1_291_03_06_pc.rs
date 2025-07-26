@@ -1,11 +1,12 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite, binrw};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_big_array::BigArray;
 
-use super::generic::{CollisionAABB, Strip, VertexGroupFlags, Vertices};
+use super::generic::{AABBNode, Strip, VertexGroupFlags, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
+    Cylindre,
     DynArray,
     DynBox,
     DynSphere,
@@ -18,73 +19,69 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct PointsRelated2 {
     data: [u8; 4],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown1 {
     unknown1: [u8; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown2 {
     unknown2: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown5 {
     unknown8_count: u32,
     #[br(count = unknown8_count * 8)]
     unknown8: Vec<u8>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown6 {
     unknowns: [u32; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown7 {
-    // Big array helper for serde.
-    // The purpose of this crate is to make (de-)serializing arrays of sizes > 32 easy.
-    // This solution is needed until serde adopts const generics support.
-    // https://github.com/serde-rs/serde/issues/1937
-    #[serde(with = "BigArray")]
-    data: [u8; 44],
+    data1: [u8; 32],
+    data2: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown8 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Points {
     points_related0: DynArray<PointsRelated0>,
     points_related1: DynArray<PointsRelated1>,
     points_related2: DynArray<PointsRelated2>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct CylindreCol {
-    #[serde(with = "BigArray")]
-    data: [u8; 40],
+    cylindre: Cylindre,
+    flag: u32,
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct AABBColTri {
     first_vertex_id: i16,
     second_vertex_id: i16,
@@ -93,7 +90,7 @@ struct AABBColTri {
 }
 
 #[binrw]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct VertexBuffer {
     #[br(temp)]
     #[bw(calc = vertices.len() as u32)]
@@ -107,7 +104,7 @@ pub struct VertexBuffer {
 }
 
 #[binrw]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct IndexBuffer {
     #[br(temp)]
     #[bw(calc = tris.len() as u32 * 3)]
@@ -117,7 +114,7 @@ pub struct IndexBuffer {
     pub tris: Vec<Vec3i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct VertexGroup {
     zeroes: Vec3<u32>,
     flags: VertexGroupFlags,
@@ -132,29 +129,29 @@ pub struct VertexGroup {
     unused: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct MorpherTargetDesc {
     name: Name,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morpher_descs: DynArray<MorpherTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct MeshBuffers {
     pub vertex_buffers: DynArray<VertexBuffer>,
     pub index_buffers: DynArray<IndexBuffer>,
@@ -163,7 +160,7 @@ pub struct MeshBuffers {
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,
@@ -183,7 +180,7 @@ pub struct MeshBodyV1_291_03_06PC {
     box_cols: DynArray<DynBox>,
     cylindre_cols: DynArray<CylindreCol>,
     collision_aabb_tris: DynArray<AABBColTri>,
-    collision_aabbs: DynArray<CollisionAABB>,
+    collision_aabbs: DynArray<AABBNode>,
     vertices: DynArray<Vec3i16>,
     unknown6s: DynArray<Unknown6>,
     pub mesh_buffers: MeshBuffers,

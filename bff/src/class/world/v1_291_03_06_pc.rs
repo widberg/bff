@@ -1,5 +1,6 @@
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
@@ -7,7 +8,7 @@ use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec2f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 struct SeadEntry {
     next_resource_of_entry: u32,
     prev_resource_of_entry: u32,
@@ -16,7 +17,7 @@ struct SeadEntry {
     node_name: Name,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 struct SeadHandle {
     p_min: Vec2f,
     p_max: Vec2f,
@@ -28,19 +29,19 @@ struct SeadHandle {
     sead_entries: DynArray<SeadEntry>,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 struct Unknown0 {
     data: [u8; 8],
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 struct SubWorldRange {
     data: [u8; 24],
     unknown0s: DynArray<Unknown0>,
     unknown1: u32,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 struct SubWorldData {
     data: [u8; 24],
     sub_world_range: SubWorldRange,
@@ -50,7 +51,7 @@ struct SubWorldData {
     unknown3s: DynArray<u32>,
 }
 
-#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(Debug, BinRead, Serialize, BinWrite, Deserialize, ReferencedNames, JsonSchema)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct WorldBodyV1_291_03_06PC {
     root_node_name: Name,

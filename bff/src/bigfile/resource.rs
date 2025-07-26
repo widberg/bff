@@ -1,6 +1,7 @@
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinWrite, binrw};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::platforms::Platform;
@@ -36,7 +37,7 @@ impl Resource {
 }
 
 #[binrw]
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[brw(little, magic = b"BFF0")] // Increment number when format changes
 pub struct BffResourceHeader {
     #[br(temp)]
@@ -58,7 +59,7 @@ impl BffResourceHeader {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BffClass {
     pub header: BffResourceHeader,
     pub class: Class,

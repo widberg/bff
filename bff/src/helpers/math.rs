@@ -5,6 +5,7 @@ use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite, binrw};
 use derive_more::{Deref, DerefMut};
 use num_traits::{CheckedAdd, Float, NumCast, PrimInt, Signed, Unsigned, cast};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::names::Name;
@@ -30,7 +31,9 @@ pub type Mat4f = Mat<4>;
 pub type Mat3x4f = Mat<3, 4>;
 
 // A fixed precision float with a variable numerator and constant denominator.
-#[derive(BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(
+    BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema,
+)]
 #[serde(transparent)]
 pub struct NumeratorFloat<
     T: NumCast + BinRead + BinWrite,
@@ -49,7 +52,9 @@ where
     for<'a> T: BinWrite<Args<'a> = ()>;
 
 // A fixed precision normal float between -1 and 1. (x / x.max_value()) * 2 + -1.
-#[derive(BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(
+    BinRead, BinWrite, Deref, DerefMut, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema,
+)]
 #[serde(transparent)]
 pub struct SignedNormalFloat<
     T: NumCast + Div<F, Output = F> + Unsigned + PrimInt + BinRead + BinWrite,
@@ -70,7 +75,7 @@ where
 // We intentionally use the names first and last instead of begin and end to avoid confusion with
 // C++ iterators.
 #[binrw]
-#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames, JsonSchema)]
 #[serde(rename = "range_inclusive")]
 pub struct RangeFirstLast<T = u16>
 where
@@ -91,7 +96,7 @@ where
 
 // Range whose first element is first and contains size elements. [first, first + size).
 #[binrw]
-#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deref, DerefMut, Deserialize, ReferencedNames, JsonSchema)]
 #[serde(rename = "range")]
 pub struct RangeBeginSize<T = u16>
 where
@@ -110,34 +115,48 @@ where
     inner: Range<T>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct Sphere {
     pub center: Vec3f,
     pub radius: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct BffBox {
     pub matrix: Mat3x4f,
     pub vec: Vec3f,
     pub scale: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+pub struct Segment {
+    pub origin: Vec3f,
+    pub length: f32,
+    pub direction: Vec3f,
+    pub pad: f32,
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+pub struct Cylindre {
+    pub seg: Segment,
+    pub radius: f32,
+}
+
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct DynSphere {
     pub sphere: Sphere,
     pub flags: u32,
     pub name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct DynBox {
     pub matrix: Mat4f,
     pub flags: u32,
     pub name: Name,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct Rect<T: BinRead + BinWrite + 'static = i32>
 where
     for<'a> <T as BinRead>::Args<'a>: Default + Clone,

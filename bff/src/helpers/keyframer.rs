@@ -2,6 +2,7 @@ use std::io::Seek;
 
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite, binread};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -22,7 +23,7 @@ use crate::names::Name;
 type Key = f32;
 
 #[binread]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 #[br(stream = s)]
 pub struct KeyTgtTpl<T>
 where
@@ -78,7 +79,7 @@ where
 }
 
 #[binread]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 #[br(stream = s)]
 pub struct KeyLinearTpl<T>
 where
@@ -129,7 +130,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 #[brw(repr = u16)]
 pub enum KeyframerInterpolationType {
     Smooth = 1,
@@ -140,7 +141,7 @@ pub enum KeyframerInterpolationType {
     Unknown17 = 17, // unknown1 in Rtc's RtcAnimationNode uses this
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct KeyframerTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -151,7 +152,7 @@ where
     keyframes: DynArray<TKey>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames)]
+#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 pub struct KeyframerNoFlagsTpl<TKey>
 where
     for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
@@ -161,7 +162,7 @@ where
     keyframes: DynArray<TKey>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, ReferencedNames)]
+#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 pub struct Message {
     message_class: u32,
     reciever_name: Name,
