@@ -11,7 +11,7 @@ rust-version.workspace = true
 bff = { path = "../bff" }
 clap = { version = "4.2.4", features = ["derive"] }
 derive_more = { version = "2.0.1", features = ["full"] }
-indicatif = "0.17.11"
+indicatif = "0.18.0"
 pathdiff = "0.2.1"
 rayon = "1.10.0"
 schemars = "1.0.4"

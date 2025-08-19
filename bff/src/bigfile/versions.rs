@@ -79,7 +79,7 @@ impl Version {
 
 impl From<&str> for Version {
     fn from(value: &str) -> Self {
-        #![allow(clippy::just_underscores_and_digits)]
+        #![allow(clippy::just_underscores_and_digits, clippy::used_underscore_binding)]
         let (mut _0, mut _1, mut _2, mut _3, mut _4, mut _5, mut _6, mut _7): (
             u16,
             u16,
@@ -94,36 +94,31 @@ impl From<&str> for Version {
         if sscanf!(
             value,
             "v{}.{}.{}.{} - Asobo Studio - Internal Cross Technology",
-            _0, _1, _2, _3,
+            &mut _0, &mut _1, &mut _2, &mut _3,
         )
         .is_ok()
         {
-            #[allow(clippy::used_underscore_binding)]
             Self::Asobo(_0, _1, _2, _3)
         } else if sscanf!(
             value,
             "v{}.{} - Asobo Studio - Internal Cross Technology",
-            _0, _1
+            &mut _0, &mut _1
         )
         .is_ok()
         {
-            #[allow(clippy::used_underscore_binding)]
             Self::AsoboLegacy(_0, _1)
         } else if sscanf!(
             value,
             "TotemTech Data v{}.{} (c) 1999-2002 Kalisto Entertainment - All right reserved",
-            _0, _1
+            &mut _0, &mut _1
         )
         .is_ok()
         {
-            #[allow(clippy::used_underscore_binding)]
             Self::Kalisto(_0, _1)
-        } else if sscanf!(value, "Bigfile Data v{}.{} ", _0, _1).is_ok() {
-            #[allow(clippy::used_underscore_binding)]
+        } else if sscanf!(value, "Bigfile Data v{}.{} ", &mut _0, &mut _1).is_ok() {
             Self::BlackSheep(_0, _1)
         } else if sscanf!(value, "Opal {}.{} BigFile | Data Version v{}.{} | CVT {} | CVANIM {} | CVMESH {} | CVSHADER {} |",
-            _0, _1, _2, _3, _4, _5, _6, _7).is_ok() {
-            #[allow(clippy::used_underscore_binding)]
+            &mut _0, &mut _1, &mut _2, &mut _3, &mut _4, &mut _5, &mut _6, &mut _7).is_ok() {
             Self::Ubisoft {
                 opal_version: (_0, _1),
                 data_version: (_2, _3),
