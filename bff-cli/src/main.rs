@@ -118,7 +118,7 @@ enum Commands {
         )]
         starting: i64,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = CrcAlgorithm::Asobo)]
+        #[arg(short, long)]
         algorithm: CrcAlgorithm,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = CrcMode::Lines)]
@@ -134,7 +134,7 @@ enum Commands {
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
+        #[arg(short, long)]
         algorithm: LzAlgorithm,
     },
     Lz {
@@ -144,7 +144,7 @@ enum Commands {
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = LzAlgorithm::Lzrs)]
+        #[arg(short, long)]
         algorithm: LzAlgorithm,
     },
     Csc {
@@ -163,7 +163,7 @@ enum Commands {
         psc: PathBuf,
         directory: PathBuf,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = PscAlgorithm::Lz4)]
+        #[arg(short, long)]
         algorithm: PscAlgorithm,
     },
     #[clap(alias = "cpsc")]
@@ -171,7 +171,7 @@ enum Commands {
         directory: PathBuf,
         psc: PathBuf,
         #[clap(value_enum)]
-        #[arg(short, long, default_value_t = PscAlgorithm::Lz4)]
+        #[arg(short, long)]
         algorithm: PscAlgorithm,
     },
     #[clap(alias = "xcps")]
