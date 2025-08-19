@@ -51,7 +51,7 @@ struct SpecificClass<'a> {
     is_complete: bool,
 }
 
-fn simple_parse(input: &DeriveInput) -> SpecificClass {
+fn simple_parse(input: &DeriveInput) -> SpecificClass<'_> {
     let attrs = &input.attrs;
     let name = &input.ident;
     let mut custom_name: Option<Ident> = None;

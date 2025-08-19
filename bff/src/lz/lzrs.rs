@@ -191,17 +191,17 @@ impl Match {
             node.as_mut().unwrap().prev = self.prev;
             if !node.as_mut().unwrap().prev.is_null() {
                 node.as_mut().unwrap().prev.as_mut().unwrap().next = node;
-            };
+            }
             node.as_mut().unwrap().next = self;
             node.as_mut().unwrap().next.as_mut().unwrap().prev = node;
         }
     }
 
-    fn next(&self) -> Option<&mut Self> {
+    fn next(&mut self) -> Option<&mut Self> {
         unsafe { self.next.as_mut() }
     }
 
-    fn prev(&self) -> Option<&mut Self> {
+    fn prev(&mut self) -> Option<&mut Self> {
         unsafe { self.prev.as_mut() }
     }
 }
@@ -214,7 +214,7 @@ impl Packet {
         mut uncompressed_buffer_ptr: u64,
         mut window_index: u32,
         uncompressed_buffer: &[u8],
-        g_window_buffer: &[Match],
+        g_window_buffer: &mut [Match],
     ) -> bool {
         let mut remaining_length: u32 = (1 << self.match_length) + 2;
         let v20: u32 = 0x10000 >> self.match_length;
@@ -351,7 +351,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                     uncompressed_buffer_ptr,
                     window_index,
                     &uncompressed_buffer,
-                    &g_window_buffer,
+                    &mut g_window_buffer,
                 ) {
                     return Some(i);
                 }

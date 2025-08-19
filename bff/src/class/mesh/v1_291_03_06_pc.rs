@@ -35,16 +35,6 @@ struct PointsRelated2 {
 }
 
 #[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
-struct Unknown1 {
-    unknown1: [u8; 8],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
-struct Unknown2 {
-    unknown2: [u8; 12],
-}
-
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
 struct Unknown5 {
     unknown8_count: u32,
     #[br(count = unknown8_count * 8)]

@@ -15,7 +15,7 @@ fmt:
     just --fmt --unstable
 
 clippy:
-    cargo clippy
+    cargo +nightly clippy --tests
 
 deny:
     cargo deny check

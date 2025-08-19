@@ -39,7 +39,7 @@ fn decode_cps_script() -> BinResult<String> {
                 match param {
                     Param::String(s) => script.push_str(format!(r#""{}""#, s).as_str()),
                     Param::Float(f) => script.push_str(f.to_string().as_str()),
-                };
+                }
             }
         }
         script.push('\n');
@@ -204,6 +204,7 @@ const CPS_VERSION: &[u8; 8] = b"OPAL_1.0";
 const CPS_FIRST_CHAR: u8 = b'O';
 const CPS_SEED_STEP: u8 = 37;
 
+#[allow(clippy::unbuffered_bytes)]
 #[binrw::parser(reader)]
 fn cps_crypt() -> BinResult<Vec<u8>> {
     let mut data = Vec::new();

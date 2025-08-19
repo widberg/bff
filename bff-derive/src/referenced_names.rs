@@ -81,93 +81,86 @@ pub fn derive_referenced_names(mut input: DeriveInput) -> TokenStream {
             }
         },
         Data::Enum(data) => {
-            let variants =
-                data.variants
-                    .iter()
-                    .map(|variant| {
-                        let variant_name = &variant.ident;
-                        does_not_have_skip_attr(&variant.attrs)
-                            .then(|| match &variant.fields {
-                                Fields::Named(named) => {
-                                    let (names, fields): (Vec<_>, Vec<_>) =
-                                        named
-                                            .named
-                                            .iter()
-                                            .map(|field| {
-                                                does_not_have_skip_attr(&field.attrs)
-                                            .then(|| {
-                                                let name = field.ident.as_ref().unwrap();
-                                                (name, quote! {
+            let variants = data
+                .variants
+                .iter()
+                .map(|variant| {
+                    let variant_name = &variant.ident;
+                    if does_not_have_skip_attr(&variant.attrs) {
+                        match &variant.fields {
+                            Fields::Named(named) => {
+                                let (names, fields): (Vec<_>, Vec<_>) = named
+                                    .named
+                                    .iter()
+                                    .map(|field| {
+                                        let name = field.ident.as_ref().unwrap();
+                                        if does_not_have_skip_attr(&field.attrs) {
+                                            (
+                                                name,
+                                                quote! {
                                                     #name.extend_referenced_names(names);
-                                                })
-                                            })
-                                            .unwrap_or_else(|| {
-                                                let name = field.ident.as_ref().unwrap();
-                                                (name, quote! {})
-                                            })
-                                            })
-                                            .unzip();
-
-                                    quote! {
-                                        #name::#variant_name { #(#names,)* } => {
-                                            #(#fields)*
+                                                },
+                                            )
+                                        } else {
+                                            (name, quote! {})
                                         }
+                                    })
+                                    .unzip();
+
+                                quote! {
+                                    #name::#variant_name { #(#names,)* } => {
+                                        #(#fields)*
                                     }
                                 }
-                                Fields::Unnamed(unnamed) => {
-                                    let (fields, names): (Vec<_>, Vec<_>) = unnamed
-                                        .unnamed
-                                        .iter()
-                                        .enumerate()
-                                        .map(|(i, field)| {
-                                            does_not_have_skip_attr(&field.attrs)
-                                                .then(|| {
-                                                    let ident = Ident::new(
-                                                        format!("field_{}", i).as_str(),
-                                                        variant.span(),
-                                                    );
-                                                    (
-                                                        quote! {
-                                                            #ident.extend_referenced_names(names);
-                                                        },
-                                                        ident,
-                                                    )
-                                                })
-                                                .unwrap_or_else(|| {
-                                                    let ident = Ident::new(
-                                                        format!("field_{}", i).as_str(),
-                                                        variant.span(),
-                                                    );
-                                                    (quote! {}, ident)
-                                                })
-                                        })
-                                        .unzip();
-
-                                    quote! {
-                                        #name::#variant_name(#(#names,)*) => {
-                                            #(#fields)*
+                            }
+                            Fields::Unnamed(unnamed) => {
+                                let (fields, names): (Vec<_>, Vec<_>) = unnamed
+                                    .unnamed
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(i, field)| {
+                                        let ident = Ident::new(
+                                            format!("field_{}", i).as_str(),
+                                            variant.span(),
+                                        );
+                                        if does_not_have_skip_attr(&field.attrs) {
+                                            (
+                                                quote! {
+                                                    #ident.extend_referenced_names(names);
+                                                },
+                                                ident,
+                                            )
+                                        } else {
+                                            (quote! {}, ident)
                                         }
+                                    })
+                                    .unzip();
+
+                                quote! {
+                                    #name::#variant_name(#(#names,)*) => {
+                                        #(#fields)*
                                     }
                                 }
-                                Fields::Unit => {
-                                    quote! { #name::#variant_name => {} }
-                                }
-                            })
-                            .unwrap_or_else(|| {
+                            }
+                            Fields::Unit => {
                                 quote! { #name::#variant_name => {} }
-                            })
-                    })
-                    .collect::<Vec<_>>();
-
-            (!variants.is_empty())
-                .then(|| {
-                    quote! {
-                        match self {
-                            #(#variants)*
+                            }
                         }
+                    } else {
+                        quote! { #name::#variant_name => {} }
                     }
                 })
-                .unwrap_or_default()
+                .collect::<Vec<_>>();
+
+            if !variants.is_empty() {
+                quote! {
+                    match self {
+                        #(#variants)*
+                    }
+                }
+            } else {
+                Default::default()
+            }
         }
         Data::Union(_) => {
             unimplemented!()

@@ -74,6 +74,6 @@ pub struct Header {
     pub file_size: u32,
     #[brw(align_after = 2048)]
     #[br(try, map = |incredi_builder_string: FixedStringNull<128>| Some(incredi_builder_string.into()))]
-    #[bw(map = |incredi_builder_string: &Option<String>| incredi_builder_string.as_ref().map(|s| FixedStringNull::<128>::from(s.to_string())).unwrap_or(FixedStringNull::<128>::from(String::new())))]
+    #[bw(map = |incredi_builder_string: &Option<String>| incredi_builder_string.as_ref().map(|s| FixedStringNull::<128>::from(s.clone())).unwrap_or(FixedStringNull::<128>::from(String::new())))]
     pub incredi_builder_string: Option<String>,
 }

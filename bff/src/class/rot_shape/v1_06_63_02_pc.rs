@@ -9,11 +9,6 @@ use crate::names::Name;
 use crate::traits::{Export, Import};
 
 #[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
-struct PointsRelated0 {
-    data: [u8; 12],
-}
-
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
 struct PointsRelated1 {
     data: [u8; 16],
 }

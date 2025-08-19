@@ -678,7 +678,6 @@ dependencies = [
  "itertools 0.14.0",
  "lz4",
  "num-traits",
- "once_cell",
  "pastey",
  "petgraph",
  "scanf",

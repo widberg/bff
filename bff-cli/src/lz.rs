@@ -64,7 +64,7 @@ fn lz_internal<R: Read, W: Write>(
         LzAlgorithm::Arcode => arcode_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Zlib => zlib_compress_data_with_header_writer(&buf, &mut writer, endian)?,
         LzAlgorithm::Gzip => gzip_compress_data_with_header_writer(&buf, &mut writer, endian)?,
-    };
+    }
 
     compressed.write_all(&writer.into_inner())?;
     Ok(())

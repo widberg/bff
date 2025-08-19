@@ -2,6 +2,7 @@ use std::io::{Read, Write};
 
 use crate::BffResult;
 
+#[allow(clippy::unbuffered_bytes)]
 pub fn csc_copy<R: Read, W: Write>(reader: R, writer: &mut W, key: u8) -> BffResult<()> {
     for byte in reader.bytes() {
         let byte = byte?;

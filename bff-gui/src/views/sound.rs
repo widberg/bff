@@ -64,7 +64,7 @@ pub fn sound_view(
         let points: Vec<egui::Pos2> = data
             .iter()
             .enumerate()
-            .filter(|(i, _)| (i % 10 == 0))
+            .filter(|(i, _)| i % 10 == 0)
             .map(|(i, v)| {
                 let t = i as f32 / data.len() as f32;
                 to_screen * egui::pos2(t, *v as f32 / i16::MAX as f32)

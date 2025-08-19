@@ -7,14 +7,13 @@ use std::fmt::{Debug, Display, Formatter, Write as _};
 use std::hash::Hash;
 use std::io::{BufRead, Read, Seek, Write};
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use const_power_of_two::PowerOfTwoUsize;
 use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use num_traits::AsPrimitive;
-use once_cell::sync::Lazy;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Deserializer, Serialize};
 use string_interner::backend::BucketBackend;
@@ -491,30 +490,14 @@ impl Names {
 
     pub fn get(&self, name: &Name) -> Option<&str> {
         match name {
-            Name::Asobo32(n) => self
-                .asobo32_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
-            Name::AsoboAlternate32(n) => self
-                .asobo_alternate32_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
-            Name::Kalisto32(n) => self
-                .kalisto32_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
-            Name::BlackSheep32(n) => self
-                .blacksheep32_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
-            Name::Asobo64(n) => self
-                .asobo64_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
-            Name::Ubisoft64(n) => self
-                .ubisoft64_names
-                .get(n)
-                .and_then(|x| self.strings.resolve(*x)),
+            Name::Asobo32(n) => self.strings.resolve(*self.asobo32_names.get(n)?),
+            Name::AsoboAlternate32(n) => {
+                self.strings.resolve(*self.asobo_alternate32_names.get(n)?)
+            }
+            Name::Kalisto32(n) => self.strings.resolve(*self.kalisto32_names.get(n)?),
+            Name::BlackSheep32(n) => self.strings.resolve(*self.blacksheep32_names.get(n)?),
+            Name::Asobo64(n) => self.strings.resolve(*self.asobo64_names.get(n)?),
+            Name::Ubisoft64(n) => self.strings.resolve(*self.ubisoft64_names.get(n)?),
         }
     }
 }
@@ -546,7 +529,7 @@ impl Default for Names {
 // and deserialize functions. Doing that with derive is a bit tricky though.
 // https://docs.rs/serde_state/latest/serde_state/ outdated.
 // Until this is done bff is not thread safe.
-static NAMES: Lazy<Mutex<Names>> = Lazy::new(|| Mutex::new(Names::default()));
+static NAMES: LazyLock<Mutex<Names>> = LazyLock::new(|| Mutex::new(Names::default()));
 
 pub fn names() -> &'static Mutex<Names> {
     &NAMES
