@@ -71,6 +71,12 @@ These formats from Black Sheep Studios games also use the csc cypher and therefo
 | cgf    | ✔      |
 | cst    | ✔      |
 
+This format is from The Mighty Quest for Epic Loot. Again, it's not actually a TSC file, but it is an encrypted and compressed archive format used for storing JSON configuration files, so I'll include it here.
+
+| Format          | Status |
+|-----------------|--------|
+| settings.bin    | ❌     |
+
 ### Audio
 
 These formats are low priority since they can all be played using the instructions on the [FMTK Wiki Asobo Audio Formats page](https://github.com/widberg/fmtk/wiki/Asobo-Audio-Formats). The implementation of these formats is being tracked in [issue #27](https://github.com/widberg/bff/issues/27).
@@ -90,7 +96,7 @@ These formats are low priority since they can all be played using the instructio
 
 ## Patterns
 
-The [ImZouna](https://github.com/widberg/ImZouna) and [zouna-templates-docs](https://github.com/SabeMP/zouna-templates-docs) repositories have binary patterns for Zouna data structures.
+The [ImZouna](https://github.com/widberg/ImZouna) and [zouna-templates-docs](https://github.com/SabeMP/zouna-templates-docs) repositories have binary patterns for Zouna data structures. Even formats that are not supported by bff have patterns in these repositories.
 
 ## Showcase
 
