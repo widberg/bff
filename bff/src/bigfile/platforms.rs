@@ -25,6 +25,7 @@ platforms! {
         GameCube([D("DGC", "NGC")], Big),
         Wii([D("DRV", "NRV"), BF("BFWii", "BFNameWii"), DB("DBR", "NBR")], Big),
         Switch([D("DNX", "NNX")], Little),
+        XboxSeries([D("DXS", "NXS")], Little),
     ]
 }
 
