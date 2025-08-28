@@ -14,7 +14,7 @@ platforms! {
         UWP([D("DUA", "NUA")], Little),
         Maci386([D("DMC", "NMC")], Little),
         MacPPC([D("DBM", "NBM")], Big),
-        PS2([D("DPS", "NPS"), BF("BFPS2", "BFNamePS2")], Little),
+        PS2([D("DPS", "NPS"), BF("BFPS2", "BFNamePS2"), DB("DBS", "NBS")], Little),
         PS3([D("DP3", "NP3")], Big),
         PS4([D("DP4", "NP4")], Little),
         PS5([D("DP5", "NP5")], Little),
