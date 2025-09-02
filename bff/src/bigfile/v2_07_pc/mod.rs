@@ -181,6 +181,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
         // Remember starting position for writing header
         let begin = writer.stream_position()?;
+        writer.seek(SeekFrom::Current(0x700))?;
 
         let mut decompressed_block_size = 0;
 
@@ -218,6 +219,8 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
             block_data.resize(decompressed_block_size as usize, 0);
 
             if compressed {
+                // FIXME: Compressed data isn't a 1-to-1 match but round trips correctly?
+                // Some size is probably off somewhere. Or the version of minilzo is wrong.
                 compression_type = CompressionType::Lzo;
                 lzo_compress(&block_data, writer)?;
             } else {
@@ -266,5 +269,6 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
     const NAME_TYPE: NameType = BlackSheep32;
 
+    // FIXME: I'm not convinced this is correct, see the other v2_X BF
     type ResourceType = Resource;
 }

@@ -16,6 +16,8 @@ use crate::names::NameType;
 use crate::names::NameType::Ubisoft64;
 use crate::traits::BigFileIo;
 
+// FIXME: This should be 20 for compressed and 12 for uncompressed
+// Realistically it needs to be a new type that remembers if it's compressed
 type Resource = Resource12<20>;
 
 #[derive(Debug)]
@@ -68,6 +70,8 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
             });
             read_align_to(reader, 2048)?;
         } else {
+            // FIXME: This will miss the last 8 bytes of each resource
+            // See FIXME near top of this file
             blocks.push(Block {
                 compressed: false,
                 resources: Vec::<Resource>::read_options(
@@ -171,6 +175,7 @@ impl BigFileIo for BigFileV2_0PC {
 
         // Remember starting position for writing header
         let begin = writer.stream_position()?;
+        writer.seek(SeekFrom::Current(0x700))?;
 
         let mut decompressed_block_size = 0;
 
@@ -202,7 +207,7 @@ impl BigFileIo for BigFileV2_0PC {
         for (resource_count, compressed, mut block_data) in blocks {
             let block_begin = writer.stream_position()?;
 
-            Block::PLACEHOLDER_CHECKSUM.write_options(writer, endian, ())?;
+            Block::PLACEHOLDER_CHECKSUM.write_be(writer)?;
 
             resource_count.write_options(writer, endian, ())?;
 
@@ -214,6 +219,8 @@ impl BigFileIo for BigFileV2_0PC {
             } else {
                 writer.write_all(&block_data)?;
             }
+
+            // FIXME: Padding isn't right
 
             let block_end = writer.stream_position()?;
 

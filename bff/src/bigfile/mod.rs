@@ -75,6 +75,8 @@ impl BigFile {
     }
 }
 
+// FIXME: All this type stuff is nonsense. Just have modules and re-check the bf
+// version/platform there instead of using generics and binrw derive everywhere.
 bigfiles! {
     (Kalisto(1, 75 | 73) | BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
     (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,
