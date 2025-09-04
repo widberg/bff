@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::ptr::null_mut;
 
-use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe};
+use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe, lzo_uint};
 
 use crate::BffResult;
 
@@ -30,9 +30,10 @@ pub fn lzo_compress<W: Write>(data: &[u8], writer: &mut W) -> BffResult<()> {
 
 pub fn lzo_decompress(compressed: &[u8], decompressed_buffer_size: usize) -> BffResult<Vec<u8>> {
     let mut decompressed = Vec::with_capacity(decompressed_buffer_size);
-    let mut decompressed_len = 0;
 
     unsafe {
+        let mut decompressed_len = decompressed_buffer_size as lzo_uint;
+
         let result = lzo1x_decompress_safe(
             compressed.as_ptr(),
             compressed.len().try_into().unwrap(),
