@@ -44,7 +44,7 @@ pub struct BffResourceHeader {
     #[bw(calc = self.data_padded_size_on_disk())]
     _size: u16,
     pub platform: Platform,
-    #[brw(align_after = 0x10)]
+    #[brw(align_after = 16)]
     pub version: Version,
 }
 
@@ -53,7 +53,7 @@ impl BffResourceHeader {
         let non_data_size = 4 + 2;
         let total_unpadded_size =
             non_data_size + self.platform.size_on_disk() + self.version.size_on_disk();
-        let padding_size = total_unpadded_size % 0x10;
+        let padding_size = (16 - (total_unpadded_size % 16)) % 16;
         let total_padded_size = total_unpadded_size + padding_size;
         total_padded_size - non_data_size
     }
