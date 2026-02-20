@@ -8,7 +8,7 @@ use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
 use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
 use bff::bigfile::versions::Version;
 use bff::class::Class;
-use bff::names::Name;
+use bff::names::{Name, NameContext};
 use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -24,7 +24,7 @@ pub enum ExportStrategy {
     Rich,
 }
 
-pub fn read_bigfile_names(bigfile_path: &Path) -> BffCliResult<()> {
+pub fn read_bigfile_names(bigfile_path: &Path, name_context: &NameContext) -> BffCliResult<()> {
     if let Some(extension) = bigfile_path.extension() {
         let name_extension =
             try_platform_style_to_name_extension(extension.try_into()?, extension.try_into()?)?;
@@ -32,30 +32,31 @@ pub fn read_bigfile_names(bigfile_path: &Path) -> BffCliResult<()> {
 
         if let Ok(f) = File::open(in_name) {
             let mut reader = BufReader::new(f);
-            bff::names::names().lock().unwrap().read(&mut reader)?;
+            name_context.read(&mut reader)?;
         }
     }
 
     Ok(())
 }
 
-pub fn read_in_names(in_names: &Vec<PathBuf>) -> BffCliResult<()> {
+pub fn read_in_names(in_names: &Vec<PathBuf>, name_context: &NameContext) -> BffCliResult<()> {
     for in_name in in_names {
         let f = File::open(in_name)?;
         let mut reader = BufReader::new(f);
-        bff::names::names().lock().unwrap().read(&mut reader)?;
+        name_context.read(&mut reader)?;
     }
 
     Ok(())
 }
 
-pub fn write_names(out_names: &Path, names: &Option<Vec<&Name>>) -> BffCliResult<()> {
+pub fn write_names(
+    out_names: &Path,
+    names: &Option<Vec<&Name>>,
+    name_context: &NameContext,
+) -> BffCliResult<()> {
     let f = File::create(out_names)?;
     let mut writer = BufWriter::new(f);
-    bff::names::names()
-        .lock()
-        .unwrap()
-        .write(&mut writer, names)?;
+    name_context.write(&mut writer, names)?;
 
     Ok(())
 }
@@ -64,6 +65,7 @@ pub fn read_bigfile(
     bigfile_path: &Path,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
+    name_context: &NameContext,
 ) -> BffCliResult<BigFile> {
     let platform = platform_override.unwrap_or_else(|| {
         bigfile_path
@@ -77,6 +79,7 @@ pub fn read_bigfile(
         &mut reader,
         platform,
         version_override,
+        name_context,
     )?)
 }
 
@@ -109,10 +112,11 @@ fn dump_bff_resource(
     resources_path: &Path,
     bigfile: &BigFile,
     resource: &Resource,
+    name_context: &NameContext,
 ) -> BffCliResult<()> {
-    let class_name = resource.class_name.to_string();
+    let class_name = name_context.scope(|| resource.class_name.to_string());
     let name = clean_path(strip_suffix_if_exists(
-        resource.name.to_string(),
+        name_context.scope(|| resource.name.to_string()),
         &format!(".{}", class_name),
     ));
     let mut path = resources_path.join(format!("{}.{}", name, class_name));
@@ -122,7 +126,7 @@ fn dump_bff_resource(
         i += 1;
     }
     let mut writer = BufWriter::new(File::create(path)?);
-    bigfile.dump_bff_resource(resource, &mut writer)?;
+    bigfile.dump_bff_resource(resource, &mut writer, name_context)?;
     Ok(())
 }
 
@@ -130,6 +134,7 @@ fn export_bff_resource(
     resources_path: &Path,
     bigfile: &BigFile,
     resource: &Resource,
+    name_context: &NameContext,
 ) -> BffCliResult<()> {
     let platform = bigfile.manifest.platform;
     let version = bigfile.manifest.version.clone();
@@ -141,9 +146,9 @@ fn export_bff_resource(
     let class: Class = resource.try_into_version_platform(version.clone(), platform)?;
     let bff_class = BffClass { header, class };
 
-    let class_name = resource.class_name.to_string();
+    let class_name = name_context.scope(|| resource.class_name.to_string());
     let name = clean_path(strip_suffix_if_exists(
-        resource.name.to_string(),
+        name_context.scope(|| resource.name.to_string()),
         &format!(".{}", class_name),
     ));
     let mut directory = resources_path.join(format!("{}.{}.d", name, class_name));
@@ -157,7 +162,7 @@ fn export_bff_resource(
 
     let resource_serialized_path = directory.join("resource.json");
     let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
-    serde_json::to_writer_pretty(resource_serialized_writer, &bff_class)?;
+    bff::names::json::to_writer_pretty(resource_serialized_writer, &bff_class, name_context)?;
 
     if let Ok(artifacts) = bff_class.class.export() {
         for (name, artifact) in artifacts {
@@ -183,21 +188,22 @@ pub fn extract(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
     export_strategy: &ExportStrategy,
+    name_context: &NameContext,
 ) -> BffCliResult<()> {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
-    read_bigfile_names(bigfile_path)?;
-    read_in_names(in_names)?;
+    read_bigfile_names(bigfile_path, name_context)?;
+    read_in_names(in_names, name_context)?;
 
     progress_bar.set_message("Reading BigFile");
-    let bigfile = read_bigfile(bigfile_path, platform_override, version_override)?;
+    let bigfile = read_bigfile(bigfile_path, platform_override, version_override, name_context)?;
 
     progress_bar.set_message("Writing manifest");
     std::fs::create_dir_all(directory)?;
 
     let manifest_path = directory.join("manifest.json");
     let manifest_writer = BufWriter::new(File::create(manifest_path)?);
-    serde_json::to_writer_pretty(manifest_writer, &bigfile.manifest)?;
+    bff::names::json::to_writer_pretty(manifest_writer, &bigfile.manifest, name_context)?;
 
     progress_bar.set_style(ProgressStyle::default_bar());
     progress_bar.set_length(bigfile.resources.len() as u64);
@@ -212,9 +218,9 @@ pub fn extract(
         .try_for_each(|resource| {
             progress_bar.inc(1);
             if !matches!(*export_strategy, ExportStrategy::Rich)
-                || export_bff_resource(&resources_path, &bigfile, resource).is_err()
+                || export_bff_resource(&resources_path, &bigfile, resource, name_context).is_err()
             {
-                dump_bff_resource(&resources_path, &bigfile, resource)?;
+                dump_bff_resource(&resources_path, &bigfile, resource, name_context)?;
             }
 
             Ok::<(), BffCliError>(())

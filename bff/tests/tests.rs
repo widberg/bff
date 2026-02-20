@@ -11,6 +11,7 @@ mod tests {
     use bff::bigfile::platforms::Platform;
     use bff::bigfile::resource::Resource;
     use bff::class::Class;
+    use bff::names::NameContext;
     use bff::traits::TryIntoVersionPlatform;
     use binrw::io::BufReader;
 
@@ -24,7 +25,8 @@ mod tests {
         };
         let f = File::open(bigfile_path).unwrap();
         let mut reader = BufReader::new(f);
-        let _ = BigFile::read_platform(&mut reader, platform, &None).unwrap();
+        let name_context = NameContext::default();
+        let _ = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
     }
 
     #[datatest::data("../data/roundtrip_resources.yaml")]
@@ -37,7 +39,8 @@ mod tests {
         };
         let f = File::open(bigfile_path).unwrap();
         let mut reader = BufReader::new(f);
-        let bigfile = BigFile::read_platform(&mut reader, platform, &None).unwrap();
+        let name_context = NameContext::default();
+        let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
 
         for resource in bigfile.resources.values() {
             let class: Class = resource
@@ -62,10 +65,11 @@ mod tests {
         };
         let data = fs::read(bigfile_path).unwrap();
         let mut reader = Cursor::new(&data);
-        let bigfile = BigFile::read_platform(&mut reader, platform, &None).unwrap();
+        let name_context = NameContext::default();
+        let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
         let mut writer = Cursor::new(Vec::new());
         bigfile
-            .write(&mut writer, None, &None, &None, None)
+            .write(&mut writer, None, &None, &None, None, &name_context)
             .unwrap();
 
         assert_eq!(data, writer.into_inner());

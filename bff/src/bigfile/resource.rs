@@ -8,7 +8,7 @@ use super::platforms::Platform;
 use super::versions::Version;
 use crate::BffResult;
 use crate::class::Class;
-use crate::names::Name;
+use crate::names::{Name, NameContext};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {
@@ -71,16 +71,25 @@ pub struct BffResource {
 }
 
 impl BffResource {
-    pub fn read<R: Read + Seek>(reader: &mut R) -> BffResult<Self> {
+    pub fn read<R: Read + Seek>(reader: &mut R, name_context: &NameContext) -> BffResult<Self> {
         let header = BffResourceHeader::read(reader)?;
-        let resource = Resource::read_resource(reader, header.platform, &header.version)?;
+        let resource = Resource::read_resource(
+            reader,
+            header.platform,
+            &header.version,
+            name_context,
+        )?;
         Ok(Self { header, resource })
     }
 
-    pub fn write<W: Write + Seek>(&self, writer: &mut W) -> BffResult<()> {
+    pub fn write<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        name_context: &NameContext,
+    ) -> BffResult<()> {
         self.header.write(writer)?;
         self.resource
-            .dump_resource(writer, self.header.platform, &self.header.version)?;
+            .dump_resource(writer, self.header.platform, &self.header.version, name_context)?;
         Ok(())
     }
 }

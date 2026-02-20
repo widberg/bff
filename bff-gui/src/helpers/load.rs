@@ -1,11 +1,18 @@
 use std::path::PathBuf;
 use std::sync::mpsc::Sender;
+use std::sync::Arc;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
+use bff::names::NameContext;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn load_bf(ctx: egui::Context, path: PathBuf, tx: Sender<Option<(BigFile, PathBuf)>>) {
+pub fn load_bf(
+    ctx: egui::Context,
+    path: PathBuf,
+    tx: Sender<Option<(BigFile, PathBuf)>>,
+    name_context: Arc<NameContext>,
+) {
     use std::fs::File;
     tokio::spawn(async move {
         let platform = path
@@ -14,7 +21,7 @@ pub fn load_bf(ctx: egui::Context, path: PathBuf, tx: Sender<Option<(BigFile, Pa
             .unwrap_or(Platform::PC);
         let f = File::open(&path).unwrap();
         let mut reader = bff::BufReader::new(f);
-        match BigFile::read_platform(&mut reader, platform, &None) {
+        match BigFile::read_platform(&mut reader, platform, &None, name_context.as_ref()) {
             Ok(bf) => {
                 let _ = tx.send(Some((bf, path)));
             }
@@ -33,6 +40,7 @@ pub fn load_bf(
     file_name: String,
     data: Vec<u8>,
     tx: Sender<Option<(BigFile, PathBuf)>>,
+    name_context: Arc<NameContext>,
 ) {
     use std::ffi::OsStr;
 
@@ -41,7 +49,7 @@ pub fn load_bf(
         .and_then(|e| OsStr::new(e.1).try_into().ok())
         .unwrap_or(Platform::PC);
     let mut reader = bff::BufReader::new(std::io::Cursor::new(data));
-    match BigFile::read_platform(&mut reader, platform, &None) {
+    match BigFile::read_platform(&mut reader, platform, &None, name_context.as_ref()) {
         Ok(bf) => {
             let _ = tx.send(Some((bf, PathBuf::from(file_name))));
         }

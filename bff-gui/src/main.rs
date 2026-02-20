@@ -3,10 +3,11 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
+use std::sync::Arc;
 
 use artifact::Artifact;
 use bff::bigfile::BigFile;
-use bff::names::Name;
+use bff::names::{Name, NameContext};
 #[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,8 +44,6 @@ struct Args {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> BffGuiResult<()> {
-    use std::sync::Arc;
-
     let cli = Args::parse();
     let file = cli.file.clone();
 
@@ -245,6 +244,7 @@ enum GuiWindow {
 
 struct Gui {
     open_window: GuiWindow,
+    name_context: Arc<NameContext>,
     tx: Sender<Option<(BigFile, PathBuf)>>,
     rx: Receiver<Option<(BigFile, PathBuf)>>,
     bigfile: Option<BigFile>,
@@ -263,10 +263,16 @@ impl Gui {
         #[cfg(not(target_arch = "wasm32"))] file: Option<PathBuf>,
     ) -> Self {
         let (tx, rx) = std::sync::mpsc::channel();
+        let name_context = Arc::new(NameContext::default());
         #[cfg(not(target_arch = "wasm32"))]
         let bf_loading = match file {
             Some(path) => {
-                load_bf(cc.egui_ctx.clone(), path.clone(), tx.clone());
+                load_bf(
+                    cc.egui_ctx.clone(),
+                    path.clone(),
+                    tx.clone(),
+                    Arc::clone(&name_context),
+                );
                 true
             }
             None => false,
@@ -276,6 +282,7 @@ impl Gui {
 
         Self {
             open_window: GuiWindow::default(),
+            name_context,
             tx,
             rx,
             bigfile: None,
@@ -292,6 +299,8 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        let name_context = Arc::clone(&self.name_context);
+        name_context.scope(|| {
         if let Ok(res) = self.rx.try_recv() {
             if let Some((bf, path)) = res {
                 #[cfg(not(target_arch = "wasm32"))]
@@ -398,10 +407,16 @@ impl eframe::App for Gui {
             ctx.input(|i| {
                 if !i.raw.dropped_files.is_empty() {
                     let path = i.raw.dropped_files.first().unwrap().path.as_ref().unwrap();
-                    load_bf(ctx.clone(), path.clone(), self.tx.clone());
+                    load_bf(
+                        ctx.clone(),
+                        path.clone(),
+                        self.tx.clone(),
+                        Arc::clone(&self.name_context),
+                    );
                 }
             });
         }
+        });
     }
 }
 

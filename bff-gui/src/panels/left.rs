@@ -5,7 +5,7 @@ use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
 use bff::class::Class;
-use bff::names::Name;
+use bff::names::{Name, NameContext};
 use bff::traits::TryIntoVersionPlatform;
 
 use crate::Gui;
@@ -50,6 +50,7 @@ fn load_artifact(
     resource: &Name,
     version: &Version,
     platform: Platform,
+    name_context: &NameContext,
 ) -> (Option<String>, Option<Artifact>) {
     if artifacts.get(resource).is_none() || infos.get(resource).is_none() {
         match bigfile
@@ -60,7 +61,7 @@ fn load_artifact(
         {
             Ok(class) => {
                 return (
-                    Some(serde_json::to_string_pretty::<Class>(&class).unwrap()),
+                    Some(bff::names::json::to_string_pretty::<Class>(&class, name_context).unwrap()),
                     create_artifact(bigfile, class),
                 );
             }
@@ -248,6 +249,7 @@ impl Gui {
                                                     &res,
                                                     version,
                                                     platform,
+                                                    self.name_context.as_ref(),
                                                 );
                                             }
                                         }
@@ -273,6 +275,7 @@ impl Gui {
                                                     &res,
                                                     version,
                                                     platform,
+                                                    self.name_context.as_ref(),
                                                 );
                                             }
                                         }
@@ -337,6 +340,7 @@ impl Gui {
                                                     resource,
                                                     version,
                                                     platform,
+                                                    self.name_context.as_ref(),
                                                 );
                                         }
                                     }

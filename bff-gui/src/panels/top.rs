@@ -1,6 +1,4 @@
 #[cfg(not(target_arch = "wasm32"))]
-use std::collections::HashMap;
-#[cfg(not(target_arch = "wasm32"))]
 use std::fs::File;
 #[cfg(not(target_arch = "wasm32"))]
 use std::io::Write;
@@ -9,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 #[cfg(not(target_arch = "wasm32"))]
-use bff::names::Name;
+use bff::names::{Name, NameContext};
 
 use crate::Gui;
 #[cfg(not(target_arch = "wasm32"))]
@@ -19,14 +17,10 @@ use crate::helpers::class::write_class_json;
 use crate::helpers::load::load_bf;
 
 #[cfg(not(target_arch = "wasm32"))]
-fn load_names(in_name: &PathBuf) {
+fn load_names(name_context: &NameContext, in_name: &PathBuf) {
     if let Ok(f) = File::open(in_name) {
         let mut reader = bff::BufReader::new(f);
-        bff::names::names()
-            .lock()
-            .unwrap()
-            .read(&mut reader)
-            .unwrap();
+        name_context.read(&mut reader).unwrap();
     }
 }
 
@@ -45,9 +39,14 @@ impl Gui {
                 let mut extension = path.extension().unwrap().to_str().unwrap().to_owned();
                 extension.replace_range(..1, "N");
                 let in_name = path.with_extension(extension);
-                load_names(&in_name);
+                load_names(self.name_context.as_ref(), &in_name);
             }
-            load_bf(ui.ctx().clone(), path, self.tx.clone());
+            load_bf(
+                ui.ctx().clone(),
+                path,
+                self.tx.clone(),
+                Arc::clone(&self.name_context),
+            );
             return true;
         }
         false
@@ -56,6 +55,7 @@ impl Gui {
     fn create_file_dialog(&mut self, ui: &mut egui::Ui, _names: bool) -> bool {
         let ctx = ui.ctx().clone();
         let tx = self.tx.clone();
+        let name_context = Arc::clone(&self.name_context);
         let future = async {
             let dialog = bff::bigfile::platforms::extensions()
                 .iter()
@@ -67,7 +67,7 @@ impl Gui {
                 .pick_file()
                 .await
                 .unwrap();
-            load_bf(ctx, dialog.file_name(), dialog.read().await, tx);
+            load_bf(ctx, dialog.file_name(), dialog.read().await, tx, name_context);
         };
         async_std::task::block_on(future);
         true
@@ -126,7 +126,9 @@ impl Gui {
                                 );
                             if let Some(paths) = dialog.pick_files() {
                                 ui.close_menu();
-                                paths.iter().for_each(load_names);
+                                for path in paths {
+                                    load_names(self.name_context.as_ref(), &path);
+                                }
                             }
                         }
                         if ui.button("Quit").clicked() {
@@ -153,6 +155,7 @@ impl Gui {
                                     &path,
                                     self.bigfile.as_ref().unwrap(),
                                     self.resource_name.as_ref().unwrap_or(&Name::default()),
+                                    self.name_context.as_ref(),
                                 )
                             }
                         }
@@ -204,7 +207,7 @@ impl Gui {
                                     self.bigfile
                                         .as_ref()
                                         .unwrap()
-                                        .dump_resource(resource, &mut w)
+                                        .dump_resource(resource, &mut w, self.name_context.as_ref())
                                         .unwrap();
                                 }
                             }
@@ -216,7 +219,7 @@ impl Gui {
                                 self.bigfile
                                     .as_ref()
                                     .unwrap()
-                                    .dump_resource(resource, &mut w)
+                                    .dump_resource(resource, &mut w, self.name_context.as_ref())
                                     .unwrap();
                                 rfd::AsyncFileDialog::new()
                                     .add_filter("raw", &[resource.class_name.to_string()])
@@ -252,7 +255,11 @@ impl Gui {
                                     self.bigfile
                                         .as_ref()
                                         .unwrap()
-                                        .dump_resource(resource, &mut writer)
+                                        .dump_resource(
+                                            resource,
+                                            &mut writer,
+                                            self.name_context.as_ref(),
+                                        )
                                         .unwrap();
                                 }
                             }
@@ -272,11 +279,9 @@ impl Gui {
                             .pick_file()
                         {
                             let buf = std::io::BufReader::new(File::open(path).unwrap());
-                            self.nicknames = serde_json::de::from_reader::<
-                                std::io::BufReader<File>,
-                                HashMap<Name, String>,
-                            >(buf)
-                            .unwrap();
+                            self.nicknames =
+                                bff::names::json::from_reader(buf, self.name_context.as_ref())
+                                    .unwrap();
                         }
                     }
 
@@ -302,13 +307,14 @@ impl Gui {
                             ))
                             .save_file()
                         {
+                            let nicknames_json = bff::names::json::to_string_pretty(
+                                &self.nicknames,
+                                self.name_context.as_ref(),
+                            )
+                            .unwrap();
                             File::create(path)
                                 .unwrap()
-                                .write_all(
-                                    serde_json::to_string_pretty(&self.nicknames)
-                                        .unwrap()
-                                        .as_bytes(),
-                                )
+                                .write_all(nicknames_json.as_bytes())
                                 .unwrap();
                         }
                     }

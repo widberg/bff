@@ -4,14 +4,19 @@ use std::path::PathBuf;
 
 use bff::bigfile::BigFile;
 use bff::class::Class;
-use bff::names::Name;
+use bff::names::{Name, NameContext};
 use bff::traits::TryIntoVersionPlatform;
 
-pub fn write_class_json(path: &PathBuf, bigfile: &BigFile, resource_name: &Name) {
+pub fn write_class_json(
+    path: &PathBuf,
+    bigfile: &BigFile,
+    resource_name: &Name,
+    name_context: &NameContext,
+) {
     File::create(path)
         .unwrap()
         .write_all(
-            serde_json::to_string_pretty::<Class>(
+            bff::names::json::to_string_pretty::<Class>(
                 &bigfile
                     .resources
                     .get(resource_name)
@@ -21,6 +26,7 @@ pub fn write_class_json(path: &PathBuf, bigfile: &BigFile, resource_name: &Name)
                         bigfile.manifest.platform,
                     )
                     .unwrap(),
+                name_context,
             )
             .unwrap()
             .as_bytes(),

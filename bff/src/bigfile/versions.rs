@@ -6,9 +6,10 @@ use scanf::sscanf;
 use schemars::schema::Schema;
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_context::context_scope;
 
 use crate::helpers::PascalString;
-use crate::names::names;
+use crate::names::NameContext;
 
 #[derive(Debug, Display, Clone, Eq, PartialEq, BinRead, BinWrite)]
 pub enum Version {
@@ -136,6 +137,13 @@ impl From<&str> for Version {
 
 impl Serialize for Version {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        if let Ok(name_type) = self.try_into() {
+            context_scope(|cx| {
+                if let Ok(name_context) = cx.get::<NameContext>() {
+                    name_context.set_name_type(name_type);
+                }
+            });
+        }
         serializer.serialize_str(&self.to_string())
     }
 }
@@ -144,7 +152,13 @@ impl<'de> Deserialize<'de> for Version {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let string = String::deserialize(deserializer)?;
         let version: Self = string.as_str().into();
-        names().lock().unwrap().name_type = (&version).try_into().unwrap(); // FIXME: name_type should not exist
+        if let Ok(name_type) = (&version).try_into() {
+            context_scope(|cx| {
+                if let Ok(name_context) = cx.get::<NameContext>() {
+                    name_context.set_name_type(name_type);
+                }
+            });
+        }
         Ok(version)
     }
 }

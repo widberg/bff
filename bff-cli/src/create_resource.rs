@@ -7,6 +7,7 @@ use bff::BufReader;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
+use bff::names::NameContext;
 use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
 
 use crate::error::BffCliResult;
@@ -18,10 +19,12 @@ pub fn create_resource(
     out_names: &Option<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
+    name_context: &NameContext,
 ) -> BffCliResult<()> {
     let resource_serialized_path = directory.join("resource.json");
     let resource_serialized_reader = BufReader::new(File::open(&resource_serialized_path)?);
-    let mut bff_class: BffClass = serde_json::from_reader(resource_serialized_reader)?;
+    let mut bff_class: BffClass =
+        bff::names::json::from_reader(resource_serialized_reader, name_context)?;
 
     let mut artifacts = HashMap::new();
 
@@ -63,10 +66,16 @@ pub fn create_resource(
         (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
 
     let mut resource_writer = BufWriter::new(File::create(resource_path)?);
-    Resource::dump_bff_resource(&resource, &mut resource_writer, platform, version)?;
+    Resource::dump_bff_resource(
+        &resource,
+        &mut resource_writer,
+        platform,
+        version,
+        name_context,
+    )?;
 
     if let Some(out_names) = out_names {
-        write_names(out_names, &None)?;
+        write_names(out_names, &None, name_context)?;
     }
 
     Ok(())
