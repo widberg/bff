@@ -1,8 +1,6 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite, args};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::helpers::{DynArray, RangeBeginSize, Vec2f, Vec3f};
 use crate::names::Name;
@@ -11,7 +9,7 @@ type VertexVectorComponent = u8;
 type VertexVector3u8 = [VertexVectorComponent; 3];
 type VertexBlendIndex = f32;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(is_leaf: bool))]
 pub enum CollisionFacesRange {
     #[br(pre_assert(is_leaf))]
@@ -20,7 +18,7 @@ pub enum CollisionFacesRange {
     Pointer(u32),
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct AABBNode {
     min: Vec3f,
     #[br(map = |x: (u16, u16)| (x != (0, 0)).then(|| (x.0 - 1, x.1 - 1)))]
@@ -32,14 +30,14 @@ pub struct AABBNode {
     collision_faces_range: CollisionFacesRange,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Strip {
     strip_vertices_indices: DynArray<u16>,
     material_name: Name,
     tri_order: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct LayoutPosition {
     pub position: Vec3f,
 }
@@ -48,7 +46,7 @@ impl LayoutPosition {
     pub const SIZE: usize = 12;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct LayoutPositionUV {
     pub position: Vec3f,
     pub unknown: f32,
@@ -59,7 +57,7 @@ impl LayoutPositionUV {
     pub const SIZE: usize = 24;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct LayoutNoBlend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -74,7 +72,7 @@ impl LayoutNoBlend {
     pub const SIZE: usize = 36;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Layout1Blend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -91,7 +89,7 @@ impl Layout1Blend {
     pub const SIZE: usize = 48;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Layout4Blend {
     pub position: Vec3f,
     pub tangent: VertexVector3u8,
@@ -107,7 +105,7 @@ impl Layout4Blend {
     pub const SIZE: usize = 60;
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(count: usize, layout: usize))]
 pub enum Vertices {
     #[br(pre_assert(layout == LayoutPosition::SIZE))]

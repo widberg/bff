@@ -115,20 +115,20 @@ where
     inner: Range<T>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Sphere {
     pub center: Vec3f,
     pub radius: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct BffBox {
     pub matrix: Mat3x4f,
     pub vec: Vec3f,
     pub scale: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Segment {
     pub origin: Vec3f,
     pub length: f32,
@@ -136,20 +136,20 @@ pub struct Segment {
     pub pad: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Cylindre {
     pub seg: Segment,
     pub radius: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct DynSphere {
     pub sphere: Sphere,
     pub flags: u32,
     pub name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct DynBox {
     pub matrix: Mat4f,
     pub flags: u32,

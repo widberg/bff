@@ -1,5 +1,5 @@
 use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite, binrw};
+use binrw::binrw;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -19,59 +19,59 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct PointsRelated0 {
     data: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct PointsRelated1 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct PointsRelated2 {
     data: [u8; 4],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unknown5 {
     unknown8_count: u32,
     #[br(count = unknown8_count * 8)]
     unknown8: Vec<u8>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unknown6 {
     unknowns: [u32; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unknown7 {
     data1: [u8; 32],
     data2: [u8; 12],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unknown8 {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Points {
     points_related0: DynArray<PointsRelated0>,
     points_related1: DynArray<PointsRelated1>,
     points_related2: DynArray<PointsRelated2>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct CylindreCol {
     cylindre: Cylindre,
     flag: u32,
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct AABBColTri {
     first_vertex_id: i16,
     second_vertex_id: i16,
@@ -104,7 +104,7 @@ pub struct IndexBuffer {
     pub tris: Vec<Vec3i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct VertexGroup {
     zeroes: Vec3<u32>,
     flags: VertexGroupFlags,
@@ -119,29 +119,29 @@ pub struct VertexGroup {
     unused: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorpherTargetDesc {
     name: Name,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morpher_descs: DynArray<MorpherTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct MeshBuffers {
     pub vertex_buffers: DynArray<VertexBuffer>,
     pub index_buffers: DynArray<IndexBuffer>,
@@ -150,7 +150,7 @@ pub struct MeshBuffers {
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_291_03_06PC {
     points: Points,

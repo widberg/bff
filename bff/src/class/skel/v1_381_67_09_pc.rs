@@ -1,7 +1,3 @@
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
@@ -17,7 +13,7 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Bone {
     user_define_name: Name,
     transform_rotation_inverse0: Quat,
@@ -47,19 +43,19 @@ struct Bone {
     bone_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SphereColBone {
     sphere: Sphere,
     names: [Name; 3],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct BoxColBone {
     mat: Mat4f,
     names: [Name; 3],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct SkelBodyV1_381_67_09PC {
     flags: ObjectDatasFlagsV1_381_67_09PC,

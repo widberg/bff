@@ -1,7 +1,4 @@
-use bff_derive::{GenericClass, ReferencedNames};
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use bff_derive::GenericClass;
 
 use super::generic::{
     AnimationGeneric,
@@ -20,7 +17,7 @@ use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+    ..BffStruct, GenericClass,
 )]
 #[generic(complete)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]

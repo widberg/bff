@@ -1,8 +1,6 @@
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
@@ -18,17 +16,17 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused2 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused3 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Patch {
     flag: u16,
     index_in_unk_short_da: u16,
@@ -42,7 +40,7 @@ struct Patch {
     material_anim_name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Edge {
     p: [u16; 2],
     t: [u16; 2],
@@ -58,17 +56,17 @@ struct ShouldDrawBitfield {
     other: u8,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused12 {
     data: [u8; 32],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SeadVoxel {
     patches_indices_range: RangeBeginSize,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unknown15 {
     data1: [u32; 32],
     data2: [u32; 16],
@@ -77,7 +75,7 @@ struct Unknown15 {
     unknown0s: [u32; 2],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SeadIndex {
     sead_voxels: DynArray<SeadVoxel>,
     patches_indices: DynArray<u16>,
@@ -85,7 +83,7 @@ struct SeadIndex {
     patch_count: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct SurfaceBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,

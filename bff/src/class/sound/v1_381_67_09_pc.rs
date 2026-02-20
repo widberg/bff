@@ -33,7 +33,7 @@ pub struct LinkHeader {
 }
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+    ..BffStruct, GenericClass,
 )]
 #[br(import(link_header: &LinkHeader))]
 pub struct SoundBodyV1_381_67_09PC {

@@ -1,5 +1,5 @@
 use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite, binrw};
+use binrw::binrw;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -19,56 +19,56 @@ use crate::helpers::{
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct TBVtx {
     unk_vec_1: Vec2f,
     unk_vec_2: Vec2f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorpherRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorphTargetDescRelated {
     data: [u8; 16],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorphTargetDesc {
     name: Name,
     morph_target_desc_relateds: DynArray<MorphTargetDescRelated>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Morpher {
     morpher_relateds: DynArray<MorpherRelated>,
     morph_target_descs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SphereCol {
     col_sph: Sphere,
     flag: u32,
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct BoxCol {
     col_box: BffBox,
     flag: u32,
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct CylindreCol {
     col_cylindre: Cylindre,
     flag: u32,
     name: Name,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct FaceCol {
     first_vertex_id: i16,
     second_vertex_id: i16,
@@ -76,13 +76,13 @@ struct FaceCol {
     material_index: i16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct AABBCol {
     collision_faces: DynArray<FaceCol>,
     collision_aabb_nodes: DynArray<AABBNode>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct PrimitiveInfo {
     placeholder_pointers: Vec3<u32>,
     prim_type: u16,
@@ -97,25 +97,25 @@ struct PrimitiveInfo {
     unused1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Points {
     positions: DynArray<Vec3f>,
     tb_vtxs: DynArray<TBVtx>,
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused00 {
     unused0: u32,
     unused1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused4 {
     unused0s: DynArray<Unused00>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MeshBuffers {
     vertex_buffers: DynArray<VertexBufferExt>,
     index_buffers: DynArray<IndexBufferExt>,
@@ -146,7 +146,7 @@ struct IndexBufferExt {
     tris: Vec<Vec3i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(link_header: &ObjectLinkHeaderV1_06_63_02PC))]
 pub struct MeshBodyV1_06_63_02PC {
     points: Points,

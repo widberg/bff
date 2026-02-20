@@ -55,7 +55,7 @@ struct CharacterID(
     char,
 );
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Character {
     material_index: u32,
     descent: f32,
@@ -63,7 +63,7 @@ struct Character {
     bottom_right_corner: Vec2f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct FontsBodyV1_381_67_09PC {
     characters: BffMap<CharacterID, Character>,
@@ -77,7 +77,7 @@ impl Export for FontsV1_381_67_09PC {}
 impl Import for FontsV1_381_67_09PC {}
 
 // TODO: Shouldn't need to duplicate this just because the link header type is different
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct FontsBodyV1_06_63_02PC {
     characters: BffMap<CharacterID, Character>,

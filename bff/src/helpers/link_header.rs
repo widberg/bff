@@ -2,14 +2,12 @@ use bff_derive::ReferencedNames;
 use bilge::prelude::*;
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use super::{BffBox, DynArray, Sphere};
 use crate::names::Name;
 use crate::traits::TryFromGenericSubstitute;
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct ResourceObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
@@ -76,7 +74,7 @@ pub struct ObjectFlagsV1_381_67_09PC {
     padding: u15,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[brw(repr = u16)]
 pub enum ObjectType {
     Points = 0,
@@ -107,7 +105,7 @@ pub enum ObjectType {
     WorldRef = 26,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct ObjectLinkHeaderV1_381_67_09PC {
     #[referenced_names(skip)]
     link_name: Name,
@@ -119,7 +117,7 @@ pub struct ObjectLinkHeaderV1_381_67_09PC {
     r#type: ObjectType,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct ResourceObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,
@@ -136,7 +134,7 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_06_63_0
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct ObjectLinkHeaderV1_06_63_02PC {
     #[referenced_names(skip)]
     link_name: Name,

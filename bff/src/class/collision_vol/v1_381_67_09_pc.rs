@@ -1,20 +1,16 @@
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, Mat4f, ObjectLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct CollisionVolInfo {
     local_transform: Mat4f,
     local_transform_inverse: Mat4f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct CollisionVolBodyV1_381_67_09PC {
     collision_vol_info: DynArray<CollisionVolInfo>,

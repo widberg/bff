@@ -1,20 +1,16 @@
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, Mat4f, ObjectLinkHeaderV1_381_67_09PC, PascalStringNull, Vec3f};
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct UUIDPair {
     uuid0: u32,
     uuid1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct WorldRefBodyV1_381_67_09PC {
     node_name0: Name,

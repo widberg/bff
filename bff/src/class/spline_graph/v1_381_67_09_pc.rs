@@ -1,19 +1,15 @@
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ObjectLinkHeaderV1_381_67_09PC, Vec3f, Vec4f};
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SplineSegmentSubdivision {
     p: [Vec3f; 2],
     length: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct SplineSegment {
     p: [u16; 2],
     t: [u16; 2],
@@ -22,7 +18,7 @@ struct SplineSegment {
     spline_segment_subdivisions: [SplineSegmentSubdivision; 8],
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct SplineGraphBodyV1_381_67_09PC {
     points: DynArray<Vec3f>,

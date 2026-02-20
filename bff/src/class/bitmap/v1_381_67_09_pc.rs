@@ -18,7 +18,7 @@ use crate::names::Name;
 use crate::traits::{Artifact, Export, Import};
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+    ..BffStruct, Copy, Clone,
 )]
 #[brw(repr = u16)]
 enum BitmapClass {
@@ -48,7 +48,7 @@ enum BmFormat {
 }
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+    ..BffStruct, Copy, Clone,
 )]
 #[brw(repr = u8)]
 enum BitmapClass2 {
@@ -57,7 +57,7 @@ enum BitmapClass2 {
 }
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, Copy, Clone,
+    ..BffStruct, Copy, Clone,
 )]
 #[brw(repr = u8)]
 enum BmTransp {
@@ -68,7 +68,7 @@ enum BmTransp {
 }
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+    ..BffStruct, GenericClass,
 )]
 #[generic(name(BitmapHeaderGeneric))]
 pub struct LinkHeader {

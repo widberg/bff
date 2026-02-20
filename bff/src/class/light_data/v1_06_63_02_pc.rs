@@ -1,19 +1,15 @@
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{RGB, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::traits::{Export, Import};
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct ObjectDatas {
     unknown: f32,
     color: RGBA,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct LightDataBodyV1_06_63_02PC {
     object_datas: ObjectDatas,

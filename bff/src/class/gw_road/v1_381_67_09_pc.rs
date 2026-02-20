@@ -92,13 +92,13 @@ impl BinWrite for EncodedPoint {
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Road {
     r#type: RoadType,
     points: DynArray<EncodedPoint, u16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused5 {
     unused0: u32,
     unused1: u32,
@@ -112,7 +112,7 @@ struct Unused5 {
     unused8s: Vec<u32>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_381_67_09PC))]
 pub struct GwRoadBodyV1_381_67_09PC {
     road_count: u32,

@@ -26,14 +26,14 @@ use crate::traits::{Export, Import};
 type DisplacementVectorComponent = NumeratorFloat<i16, 1024>;
 type ShortVecWeird = [NumeratorFloat<i16, 1024>; 3];
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct FadeDistances {
     x: f32,
     y: f32,
     fade_close: f32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct LinkHeader {
     resource_link_header: ObjectLinkHeaderV1_381_67_09PC,
     names: DynArray<Name>,
@@ -42,7 +42,7 @@ pub struct LinkHeader {
     dyn_boxes: DynArray<DynBox>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused0 {
     unknown0: u32,
     unknown1: u32,
@@ -50,25 +50,25 @@ struct Unused0 {
     unknown3: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused00 {
     unused0: u32,
     unused1: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused4 {
     unused0s: DynArray<Unused00>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct CollisionFace {
     short_vec_weirds_indices: [u16; 3],
     surface_type: u16,
 }
 
 // same as Unknown6 in wall-e
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused8 {
     unuseds: [u32; 8],
 }
@@ -115,13 +115,13 @@ struct IndexBufferExt {
     tris: Vec<Vec3i16>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Quad {
     vertices: [Vec3f; 4],
     normal: Vec3f,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Unused1 {
     unused0: u32,
     unused1: u32,
@@ -132,7 +132,7 @@ struct Unused1 {
     unused6: u32,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct VertexGroup {
     vertex_buffer_index: u32,
     index_buffer_index: u32,
@@ -149,7 +149,7 @@ struct VertexGroup {
     unused1s: DynArray<Unused1>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct AABBMorphTrigger {
     min: Vec3f,
     aabb_morph_triggers_range: RangeFirstLast,
@@ -157,13 +157,13 @@ struct AABBMorphTrigger {
     map_index_range: RangeBeginSize,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct DisplacementVector {
     displacement: [DisplacementVectorComponent; 3],
     displacement_vectors_self_index: u16,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MorphTargetDesc {
     name: PascalString,
     base_vertex_buffer_id: u32,
@@ -172,7 +172,7 @@ struct MorphTargetDesc {
     displacement_vectors: DynArray<DisplacementVector>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct Morpher {
     aabb_morph_triggers: DynArray<AABBMorphTrigger>,
     map: BffMap<u16, u16>,
@@ -180,7 +180,7 @@ struct Morpher {
     morphs: DynArray<MorphTargetDesc>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 struct MeshBuffers {
     vertex_buffers: DynArray<VertexBufferExt>,
     index_buffers: DynArray<IndexBufferExt>,
@@ -189,7 +189,7 @@ struct MeshBuffers {
     morpher: Morpher,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct MeshBodyV1_381_67_09PC {
     strip_vertices: DynArray<Vec3f>,

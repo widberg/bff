@@ -1,10 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 
-use bff_derive::{GenericClass, ReferencedNames};
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use bff_derive::GenericClass;
 
 use super::generic::UserDefineGeneric;
 use crate::BffResult;
@@ -15,7 +12,7 @@ use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Artifact, Export, Import};
 
 #[derive(
-    BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames, GenericClass,
+    ..BffStruct, GenericClass,
 )]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct UserDefineBodyV1_291_03_06PC {

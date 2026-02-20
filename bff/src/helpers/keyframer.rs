@@ -130,7 +130,7 @@ where
     }
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 #[brw(repr = u16)]
 pub enum KeyframerInterpolationType {
     Smooth = 1,
@@ -162,7 +162,7 @@ where
     keyframes: DynArray<TKey>,
 }
 
-#[derive(BinRead, Debug, Serialize, BinWrite, Deserialize, JsonSchema, ReferencedNames)]
+#[derive(..BffStruct)]
 pub struct Message {
     message_class: u32,
     reciever_name: Name,

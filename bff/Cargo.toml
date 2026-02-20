@@ -12,9 +12,10 @@ absperf-minilzo-sys = "2.10.0"
 arcode = "0.2.4"
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = ["serde", "schemars"], branch = "schemars" }
-binrw = "0.15.0"
+binrw = { path = "../../binrw/binrw", version = "0.16.0-pre" }
 const_power_of_two = "1.0.0"
 ddsfile = "0.5.2"
+derive_aliases = "0.4"
 derive_more = { version = "2.0.1", features = ["full"] }
 encoding_rs = "0.8.33"
 flate2 = "1.1.1"

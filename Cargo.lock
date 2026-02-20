@@ -641,6 +641,7 @@ dependencies = [
  "const_power_of_two",
  "datatest",
  "ddsfile",
+ "derive_aliases",
  "derive_more",
  "encoding_rs",
  "flate2",
@@ -749,9 +750,7 @@ dependencies = [
 
 [[package]]
 name = "binrw"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81419ff39e6ed10a92a7f125290859776ced35d9a08a665ae40b23e7ca702f30"
+version = "0.16.0-pre"
 dependencies = [
  "array-init",
  "binrw_derive",
@@ -760,9 +759,7 @@ dependencies = [
 
 [[package]]
 name = "binrw_derive"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "376404e55ec40d0d6f8b4b7df3f87b87954bd987f0cf9a7207ea3b6ea5c9add4"
+version = "0.16.0-pre"
 dependencies = [
  "either",
  "owo-colors",
@@ -1387,6 +1384,21 @@ checksum = "9c9e6a11ca8224451684bc0d7d5a7adbf8f2fd6887261a1cfc3c0432f9d4068e"
 dependencies = [
  "powerfmt",
 ]
+
+[[package]]
+name = "derive_aliases"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a42564b20fdeb062b38ad78d567d0479b2b318ff679b20895d9a1de3b6896002"
+dependencies = [
+ "derive_aliases_proc_macro",
+]
+
+[[package]]
+name = "derive_aliases_proc_macro"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e81edf3b0f0a7d68f2113aee7cedffa73d1fadea46fc85e468786a7f7aac998c"
 
 [[package]]
 name = "derive_more"
