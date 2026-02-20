@@ -50,7 +50,7 @@ struct Edge {
 
 #[bitsize(16)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct ShouldDrawBitfield {
     index_in_draw_info_array: u3,

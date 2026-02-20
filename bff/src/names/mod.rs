@@ -14,7 +14,8 @@ use const_power_of_two::PowerOfTwoUsize;
 use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use num_traits::AsPrimitive;
-use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
+use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
+use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize};
 use string_interner::backend::BucketBackend;
 use string_interner::{DefaultSymbol, StringInterner};
@@ -399,11 +400,11 @@ impl<'de> Deserialize<'de> for Name {
 }
 
 impl JsonSchema for Name {
-    fn inline_schema() -> bool {
+    fn is_referenceable() -> bool {
         true
     }
 
-    fn schema_name() -> Cow<'static, str> {
+    fn schema_name() -> std::string::String {
         "Name".into()
     }
 
@@ -412,8 +413,12 @@ impl JsonSchema for Name {
     }
 
     fn json_schema(_schema_generator: &mut SchemaGenerator) -> Schema {
-        json_schema!({
-            "type": ["string", "integer"]
+        Schema::Object(SchemaObject {
+            instance_type: Some(SingleOrVec::Vec(vec![
+                InstanceType::String,
+                InstanceType::Integer,
+            ])),
+            ..Default::default()
         })
     }
 }

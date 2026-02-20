@@ -147,7 +147,7 @@ struct SeadIndex {
 
 #[bitsize(16)]
 #[derive(
-    BinRead, BinWrite, DebugBits, SerializeBits, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, BinWrite, DebugBits, SerializeBits, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct ShouldDrawRelated {
     index_in_draw_info_array: u3,

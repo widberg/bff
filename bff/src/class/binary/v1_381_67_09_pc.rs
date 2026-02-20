@@ -10,7 +10,7 @@ use crate::traits::{Export, Import};
 
 #[bitsize(32)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct LookupDescription {
     horizon: u12,
@@ -19,7 +19,7 @@ struct LookupDescription {
 
 #[bitsize(8)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct AltitudePack {
     odd: u4,

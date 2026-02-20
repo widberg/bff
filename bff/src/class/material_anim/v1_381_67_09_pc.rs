@@ -19,7 +19,7 @@ use crate::traits::{Export, Import};
 
 #[bitsize(8)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct MaterialAnimFlags {
     fl_mat_play: u1,

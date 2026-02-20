@@ -38,7 +38,7 @@ enum SubType {
 
 #[bitsize(8)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct RoadType {
     sub_type: SubType,

@@ -25,7 +25,7 @@ impl TryFromGenericSubstitute<Self, Self> for ResourceObjectLinkHeaderV1_381_67_
 
 #[bitsize(32)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 pub struct ObjectDatasFlagsV1_381_67_09PC {
     hide: u1,
@@ -53,7 +53,7 @@ pub struct ObjectDatasFlagsV1_381_67_09PC {
     BinWrite,
     DeserializeBits,
     ReferencedNames,
-    JsonSchema,
+    JsonSchemaBits,
 )]
 pub struct ObjectFlagsV1_381_67_09PC {
     init: u1,

@@ -3,7 +3,8 @@ use std::borrow::Cow;
 use binrw::{BinRead, BinWrite};
 use derive_more::{Display, From};
 use scanf::sscanf;
-use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
+use schemars::schema::Schema;
+use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::helpers::PascalString;
@@ -149,11 +150,11 @@ impl<'de> Deserialize<'de> for Version {
 }
 
 impl JsonSchema for Version {
-    fn inline_schema() -> bool {
+    fn is_referenceable() -> bool {
         true
     }
 
-    fn schema_name() -> Cow<'static, str> {
+    fn schema_name() -> std::string::String {
         "Version".into()
     }
 
@@ -161,10 +162,8 @@ impl JsonSchema for Version {
         concat!(module_path!(), "::Version").into()
     }
 
-    fn json_schema(_schema_generator: &mut SchemaGenerator) -> Schema {
-        json_schema!({
-            "type": "string"
-        })
+    fn json_schema(schema_generator: &mut SchemaGenerator) -> Schema {
+        String::json_schema(schema_generator)
     }
 }
 

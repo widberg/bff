@@ -20,7 +20,7 @@ use crate::traits::{Export, Import};
 
 #[bitsize(32)]
 #[derive(
-    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchema,
+    BinRead, DebugBits, SerializeBits, BinWrite, DeserializeBits, ReferencedNames, JsonSchemaBits,
 )]
 struct ParticlesEmitterFlags {
     fl_particles_loop: u1,

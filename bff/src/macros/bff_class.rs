@@ -74,22 +74,23 @@ macro_rules! bff_class {
             }
         }
 
-        impl schemars::JsonSchema for $class {
-            fn inline_schema() -> bool {
+        impl ::schemars::JsonSchema for $class {
+            fn is_referenceable() -> bool {
                 true
             }
 
-            fn schema_name() -> std::borrow::Cow<'static, str> {
+            fn schema_name() -> ::std::string::String {
                 stringify!($class).into()
             }
 
-            fn schema_id() -> std::borrow::Cow<'static, str> {
-                format!("{}::{}", module_path!(), stringify!($class)).into()
+            fn schema_id() -> ::std::borrow::Cow<'static, str> {
+                concat!(module_path!(), "::", stringify!($class)).into()
             }
 
-            fn json_schema(_schema_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                schemars::json_schema!({
-                    "type": "object"
+            fn json_schema(_schema_generator: &mut ::schemars::SchemaGenerator) -> ::schemars::schema::Schema {
+                ::schemars::schema::Schema::Object(::schemars::schema::SchemaObject {
+                    instance_type: ::core::option::Option::Some(::schemars::schema::InstanceType::Object.into()),
+                    ..::core::default::Default::default()
                 })
             }
         }
