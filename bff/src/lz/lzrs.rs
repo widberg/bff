@@ -162,8 +162,8 @@ impl Packet {
 #[derive(Clone)]
 struct Match {
     pos: u64,
-    prev: *mut Match,
-    next: *mut Match,
+    prev: *mut Self,
+    next: *mut Self,
 }
 
 impl Default for Match {

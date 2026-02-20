@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::ptr::null_mut;
 
-use absperf_minilzo_sys::{lzo1x_1_compress, lzo1x_decompress_safe, lzo_uint};
+use absperf_minilzo_sys::{lzo_uint, lzo1x_1_compress, lzo1x_decompress_safe};
 
 use crate::BffResult;
 

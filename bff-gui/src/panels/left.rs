@@ -182,35 +182,35 @@ impl Gui {
                     });
                     new_state.filter = Some(class_names);
 
-                    let resources: Arc<Vec<Name>> = if new_state.resources.is_none() || changed_list
-                    {
-                        let mut res: Vec<(Name, Name, usize)> = bigfile
-                            .resources
-                            .values()
-                            .filter(|res| {
-                                *new_state
-                                    .filter
-                                    .as_ref()
-                                    .unwrap_or(&HashMap::default())
-                                    .get(&res.class_name)
-                                    .unwrap_or(&true)
-                            })
-                            .map(|r| (r.name, r.class_name, r.size()))
-                            .collect();
-                        match new_state.sort.sort_type {
-                            SortType::Name => res.sort_by_cached_key(|k| k.0.to_string()),
-                            SortType::Ext => res.sort_by_cached_key(|k| k.1.to_string()),
-                            SortType::Size => res.sort_by_cached_key(|k| k.2),
+                    let resources: Arc<Vec<Name>> = match (&new_state.resources, changed_list) {
+                        (None, _) | (_, true) => {
+                            let mut res: Vec<(Name, Name, usize)> = bigfile
+                                .resources
+                                .values()
+                                .filter(|res| {
+                                    *new_state
+                                        .filter
+                                        .as_ref()
+                                        .unwrap_or(&HashMap::default())
+                                        .get(&res.class_name)
+                                        .unwrap_or(&true)
+                                })
+                                .map(|r| (r.name, r.class_name, r.size()))
+                                .collect();
+                            match new_state.sort.sort_type {
+                                SortType::Name => res.sort_by_cached_key(|k| k.0.to_string()),
+                                SortType::Ext => res.sort_by_cached_key(|k| k.1.to_string()),
+                                SortType::Size => res.sort_by_cached_key(|k| k.2),
+                            }
+                            if new_state.sort.reverse {
+                                res.reverse();
+                            }
+                            let only_names: Arc<Vec<Name>> =
+                                Arc::new(res.into_iter().map(|(name, _, _)| name).collect());
+                            new_state.resources = Some(Arc::clone(&only_names));
+                            Arc::clone(&only_names)
                         }
-                        if new_state.sort.reverse {
-                            res.reverse();
-                        }
-                        let only_names: Arc<Vec<Name>> =
-                            Arc::new(res.into_iter().map(|(name, _, _)| name).collect());
-                        new_state.resources = Some(Arc::clone(&only_names));
-                        Arc::clone(&only_names)
-                    } else {
-                        Arc::clone(new_state.resources.as_ref().unwrap())
+                        (Some(resources), _) => Arc::clone(resources),
                     };
                     if new_state != *state {
                         ui.memory_mut(|mem| {
