@@ -1,133 +1,32 @@
-use std::io::Seek;
+use binrw::{BinRead, BinWrite};
 
-use bff_derive::ReferencedNames;
-use binrw::{BinRead, BinWrite, binread};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-use super::{
-    DynArray,
-    NumeratorFloat,
-    Vec,
-    Vec2f,
-    Vec2i16,
-    Vec3f,
-    Vec4f,
-    Vec4i16,
-    calculate_padding,
-    copy_repeat,
-};
-use crate::Endian;
+use super::{DynArray, NumeratorFloat, Vec, Vec2f, Vec2i16, Vec3f, Vec4f, Vec4i16};
 use crate::names::Name;
 
 type Key = f32;
 
-#[binread]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
-#[br(stream = s)]
-pub struct KeyTgtTpl<T>
-where
-    for<'a> T: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
-    time: Key,
-    #[br(temp, try_calc = s.stream_position())]
-    begin: u64,
+#[derive(..BffStruct)]
+pub struct KeyTgtTplValue<T> {
     value: T,
     tangent_in: T,
     tangent_out: T,
-    #[br(temp, try_calc = s.stream_position())]
-    end: u64,
-    #[br(temp, pad_after = calculate_padding((end - begin) as usize, 4))]
-    _padding: (),
 }
 
-impl<T> BinWrite for KeyTgtTpl<T>
-where
-    for<'a> T: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        self.time.write_options(writer, endian, <_>::default())?;
-
-        let begin = writer.stream_position()?;
-
-        self.value.write_options(writer, endian, <_>::default())?;
-        self.tangent_in
-            .write_options(writer, endian, <_>::default())?;
-        self.tangent_out
-            .write_options(writer, endian, <_>::default())?;
-
-        let end = writer.stream_position()?;
-
-        copy_repeat(
-            writer,
-            0xFF,
-            calculate_padding((end - begin) as usize, 4) as u64,
-        )?;
-        Ok(())
-    }
-}
-
-#[binread]
-#[derive(Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
-#[br(stream = s)]
-pub struct KeyLinearTpl<T>
-where
-    for<'a> T: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
+#[derive(..BffStruct)]
+pub struct KeyTgtTpl<T> {
     time: Key,
-    #[br(temp, try_calc = s.stream_position())]
-    begin: u64,
-    value: T,
-    #[br(temp, try_calc = s.stream_position())]
-    end: u64,
-    #[br(temp, pad_after = calculate_padding((end - begin) as usize, 4))]
-    _padding: (),
+    #[brw(align_size_to = 4)]
+    #[bw(fill_value = 0xFF)]
+    #[serde(flatten)]
+    value: KeyTgtTplValue<T>,
 }
 
-// TODO: This is a hack to get around the fact that BinWrite doesn't support try_calc + ignore so
-// we can't get the stream position while deriving BinWrite.
-impl<T> BinWrite for KeyLinearTpl<T>
-where
-    for<'a> T: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <T as BinRead>::Args<'a>: Default,
-    for<'a> <T as BinWrite>::Args<'a>: Default,
-{
-    type Args<'a> = ();
-
-    fn write_options<W: std::io::Write + Seek>(
-        &self,
-        writer: &mut W,
-        endian: Endian,
-        _args: Self::Args<'_>,
-    ) -> binrw::BinResult<()> {
-        self.time.write_options(writer, endian, <_>::default())?;
-
-        let begin = writer.stream_position()?;
-
-        self.value.write_options(writer, endian, <_>::default())?;
-
-        let end = writer.stream_position()?;
-
-        copy_repeat(
-            writer,
-            0xFF,
-            calculate_padding((end - begin) as usize, 4) as u64,
-        )?;
-        Ok(())
-    }
+#[derive(..BffStruct)]
+pub struct KeyLinearTpl<T> {
+    time: Key,
+    #[brw(align_size_to = 4)]
+    #[bw(fill_value = 0xFF)]
+    value: T,
 }
 
 #[derive(..BffStruct)]
@@ -141,24 +40,18 @@ pub enum KeyframerInterpolationType {
     Unknown17 = 17, // unknown1 in Rtc's RtcAnimationNode uses this
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
-pub struct KeyframerTpl<TKey>
-where
-    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> TKey: BinWrite<Args<'a> = ()>,
-{
+#[derive(..BffStruct)]
+#[br(bound(for<'a> TKey: BinRead<Args<'a>: Clone + Default> + 'a))]
+#[bw(bound(for<'a> TKey: BinWrite<Args<'a>: Clone + Default> + 'a))]
+pub struct KeyframerTpl<TKey> {
     interpolation_type: KeyframerInterpolationType,
     keyframes: DynArray<TKey>,
 }
 
-#[derive(BinRead, BinWrite, Debug, Serialize, Deserialize, ReferencedNames, JsonSchema)]
-pub struct KeyframerNoFlagsTpl<TKey>
-where
-    for<'a> TKey: BinRead + BinWrite + Serialize + 'a,
-    for<'a> <TKey as BinRead>::Args<'a>: Clone + Default,
-    for<'a> TKey: BinWrite<Args<'a> = ()>,
-{
+#[derive(..BffStruct)]
+#[br(bound(for<'a> TKey: BinRead<Args<'a>: Clone + Default> + 'a))]
+#[bw(bound(for<'a> TKey: BinWrite<Args<'a>: Clone + Default> + 'a))]
+pub struct KeyframerNoFlagsTpl<TKey> {
     keyframes: DynArray<TKey>,
 }
 

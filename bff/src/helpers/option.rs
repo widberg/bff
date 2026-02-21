@@ -10,15 +10,15 @@ use serde::{Deserialize, Serialize};
 
 #[binrw]
 #[derive(Serialize, Deref, Debug, Deserialize, ReferencedNames, JsonSchema)]
-pub struct BffOption<
-    InnerType: BinRead + BinWrite,
-    ConditionType: BinRead + BinWrite + One + Zero + Eq = u8,
-> where
-    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <ConditionType as BinRead>::Args<'a>: Default,
-    for<'a> InnerType: BinWrite<Args<'a> = ()>,
-    for<'a> ConditionType: BinWrite<Args<'a> = ()>,
-{
+#[br(bound(
+    for<'a> InnerType: BinRead<Args<'a>: Default>,
+    for<'a> ConditionType: BinRead<Args<'a>: Default> + One + Zero + Eq,
+))]
+#[bw(bound(
+    for<'a> InnerType: BinWrite<Args<'a>: Clone + Default>,
+    for<'a> ConditionType: BinWrite<Args<'a>: Clone + Default> + One + Zero + Eq,
+))]
+pub struct BffOption<InnerType, ConditionType = u8> {
     #[br(temp)]
     #[bw(calc = if inner.is_some() { ConditionType::one() } else { ConditionType::zero() })]
     condition: ConditionType,
@@ -30,14 +30,7 @@ pub struct BffOption<
     _phantom: PhantomData<ConditionType>,
 }
 
-impl<InnerType: BinRead + BinWrite, ConditionType: BinRead + BinWrite + One + Zero + Eq> Default
-    for BffOption<InnerType, ConditionType>
-where
-    for<'a> <InnerType as BinRead>::Args<'a>: Clone + Default,
-    for<'a> <ConditionType as BinRead>::Args<'a>: Default,
-    for<'a> InnerType: BinWrite<Args<'a> = ()>,
-    for<'a> ConditionType: BinWrite<Args<'a> = ()>,
-{
+impl<InnerType, ConditionType> Default for BffOption<InnerType, ConditionType> {
     fn default() -> Self {
         Self {
             inner: Default::default(),
