@@ -1,4 +1,3 @@
-
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     ObjectDatasFlagsV1_381_67_09PC,

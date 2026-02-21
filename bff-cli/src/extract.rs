@@ -196,7 +196,12 @@ pub fn extract(
     read_in_names(in_names, name_context)?;
 
     progress_bar.set_message("Reading BigFile");
-    let bigfile = read_bigfile(bigfile_path, platform_override, version_override, name_context)?;
+    let bigfile = read_bigfile(
+        bigfile_path,
+        platform_override,
+        version_override,
+        name_context,
+    )?;
 
     progress_bar.set_message("Writing manifest");
     std::fs::create_dir_all(directory)?;

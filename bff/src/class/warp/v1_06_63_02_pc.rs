@@ -1,4 +1,3 @@
-
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{DynArray, ResourceObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::names::Name;

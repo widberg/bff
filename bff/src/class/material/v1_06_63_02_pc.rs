@@ -1,4 +1,3 @@
-
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     Mat3x4f,

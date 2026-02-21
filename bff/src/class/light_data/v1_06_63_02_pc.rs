@@ -1,4 +1,3 @@
-
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{RGB, RGBA, ResourceObjectLinkHeaderV1_06_63_02PC, Vec3f};
 use crate::traits::{Export, Import};

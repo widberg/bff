@@ -1,12 +1,7 @@
 use std::collections::VecDeque;
 use std::path::PathBuf;
 
-use bff::names::{
-    NameContext,
-    WORDLIST_ANIMALS,
-    WORDLIST_BIP39,
-    get_forced_hash_string,
-};
+use bff::names::{NameContext, WORDLIST_ANIMALS, WORDLIST_BIP39, get_forced_hash_string};
 use bff::petgraph;
 use bff::petgraph::visit::{VisitMap, Visitable};
 use clap::ValueEnum;
@@ -89,8 +84,8 @@ pub fn names(
                             "".to_owned()
                         };
                         let name_string = if let Some(parent) = parent {
-                            let parent_name =
-                                name_context.scope(|| graph.node_weight(parent).unwrap().to_string());
+                            let parent_name = name_context
+                                .scope(|| graph.node_weight(parent).unwrap().to_string());
                             let parent_string = if let Some((_, s)) =
                                 name_context.parse_forced_hash_name(&parent_name)
                             {
@@ -125,7 +120,11 @@ pub fn names(
         }
 
         if let Some(out_names) = out_names {
-            write_names(out_names, &Some(bigfile.resources.keys().collect()), name_context)?;
+            write_names(
+                out_names,
+                &Some(bigfile.resources.keys().collect()),
+                name_context,
+            )?;
         }
     } else if let Some(out_names) = out_names {
         write_names(out_names, &None, name_context)?;

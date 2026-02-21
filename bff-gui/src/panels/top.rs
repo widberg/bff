@@ -67,7 +67,13 @@ impl Gui {
                 .pick_file()
                 .await
                 .unwrap();
-            load_bf(ctx, dialog.file_name(), dialog.read().await, tx, name_context);
+            load_bf(
+                ctx,
+                dialog.file_name(),
+                dialog.read().await,
+                tx,
+                name_context,
+            );
         };
         async_std::task::block_on(future);
         true

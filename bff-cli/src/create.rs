@@ -144,7 +144,11 @@ pub fn create(
     progress_bar.set_message("Writing names");
 
     if let Some(out_names) = out_names {
-        write_names(out_names, &Some(bigfile.resources.keys().collect()), name_context)?;
+        write_names(
+            out_names,
+            &Some(bigfile.resources.keys().collect()),
+            name_context,
+        )?;
     }
 
     progress_bar.finish_and_clear();

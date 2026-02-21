@@ -61,7 +61,9 @@ fn load_artifact(
         {
             Ok(class) => {
                 return (
-                    Some(bff::names::json::to_string_pretty::<Class>(&class, name_context).unwrap()),
+                    Some(
+                        bff::names::json::to_string_pretty::<Class>(&class, name_context).unwrap(),
+                    ),
                     create_artifact(bigfile, class),
                 );
             }

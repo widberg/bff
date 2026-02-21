@@ -78,15 +78,21 @@ fn parse_forced_hash_name_for_type<S: AsRef<str>>(
     string: S,
 ) -> Option<(Name, String)> {
     match name_type {
-        NameType::Asobo32 => NameAsobo32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s)),
+        NameType::Asobo32 => {
+            NameAsobo32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
         NameType::AsoboAlternate32 => {
             NameAsoboAlternate32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
         }
-        NameType::Kalisto32 => NameKalisto32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s)),
+        NameType::Kalisto32 => {
+            NameKalisto32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
         NameType::BlackSheep32 => {
             NameBlackSheep32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
         }
-        NameType::Asobo64 => NameAsobo64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s)),
+        NameType::Asobo64 => {
+            NameAsobo64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
+        }
         NameType::Ubisoft64 => {
             NameUbisoft64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
         }
@@ -237,12 +243,16 @@ impl BinRead for Name {
             NameType::AsoboAlternate32 => {
                 NameAsoboAlternate32::read_options(reader, endian, ()).map(Name::AsoboAlternate32)
             }
-            NameType::Kalisto32 => NameKalisto32::read_options(reader, endian, ()).map(Name::Kalisto32),
+            NameType::Kalisto32 => {
+                NameKalisto32::read_options(reader, endian, ()).map(Name::Kalisto32)
+            }
             NameType::BlackSheep32 => {
                 NameBlackSheep32::read_options(reader, endian, ()).map(Name::BlackSheep32)
             }
             NameType::Asobo64 => NameAsobo64::read_options(reader, endian, ()).map(Name::Asobo64),
-            NameType::Ubisoft64 => NameUbisoft64::read_options(reader, endian, ()).map(Name::Ubisoft64),
+            NameType::Ubisoft64 => {
+                NameUbisoft64::read_options(reader, endian, ()).map(Name::Ubisoft64)
+            }
         }
     }
 }
@@ -258,15 +268,21 @@ impl BinWrite for Name {
     ) -> BinResult<()> {
         let name_type = current_name_type();
         match self {
-            Self::Asobo32(name) if name_type == NameType::Asobo32 => name.write_options(writer, endian, ()),
+            Self::Asobo32(name) if name_type == NameType::Asobo32 => {
+                name.write_options(writer, endian, ())
+            }
             Self::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
                 name.write_options(writer, endian, ())
             }
-            Self::Kalisto32(name) if name_type == NameType::Kalisto32 => name.write_options(writer, endian, ()),
+            Self::Kalisto32(name) if name_type == NameType::Kalisto32 => {
+                name.write_options(writer, endian, ())
+            }
             Self::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
                 name.write_options(writer, endian, ())
             }
-            Self::Asobo64(name) if name_type == NameType::Asobo64 => name.write_options(writer, endian, ()),
+            Self::Asobo64(name) if name_type == NameType::Asobo64 => {
+                name.write_options(writer, endian, ())
+            }
             Self::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
                 name.write_options(writer, endian, ())
             }
@@ -356,7 +372,9 @@ fn serialize_name_value<S: serde::Serializer>(
         Name::Kalisto32(name) if matches_name_type(expected_name_type, NameType::Kalisto32) => {
             name.0.serialize(serializer)
         }
-        Name::BlackSheep32(name) if matches_name_type(expected_name_type, NameType::BlackSheep32) => {
+        Name::BlackSheep32(name)
+            if matches_name_type(expected_name_type, NameType::BlackSheep32) =>
+        {
             name.0.serialize(serializer)
         }
         Name::Asobo64(name) if matches_name_type(expected_name_type, NameType::Asobo64) => {
@@ -518,7 +536,10 @@ impl JsonSchema for Name {
 
     fn json_schema(_schema_generator: &mut SchemaGenerator) -> Schema {
         Schema::Object(SchemaObject {
-            instance_type: Some(SingleOrVec::Vec(vec![InstanceType::String, InstanceType::Integer])),
+            instance_type: Some(SingleOrVec::Vec(vec![
+                InstanceType::String,
+                InstanceType::Integer,
+            ])),
             ..Default::default()
         })
     }
@@ -613,7 +634,9 @@ impl Names {
     fn get(&self, name: &Name) -> Option<&str> {
         match name {
             Name::Asobo32(n) => self.strings.resolve(*self.asobo32_names.get(n)?),
-            Name::AsoboAlternate32(n) => self.strings.resolve(*self.asobo_alternate32_names.get(n)?),
+            Name::AsoboAlternate32(n) => {
+                self.strings.resolve(*self.asobo_alternate32_names.get(n)?)
+            }
             Name::Kalisto32(n) => self.strings.resolve(*self.kalisto32_names.get(n)?),
             Name::BlackSheep32(n) => self.strings.resolve(*self.blacksheep32_names.get(n)?),
             Name::Asobo64(n) => self.strings.resolve(*self.asobo64_names.get(n)?),
@@ -659,7 +682,12 @@ impl Names {
                             continue;
                         }
                     }
-                    writeln!(out, r#"{} \"{}\""#, NameAsoboAlternate32::hash_string(string), string)?;
+                    writeln!(
+                        out,
+                        r#"{} \"{}\""#,
+                        NameAsoboAlternate32::hash_string(string),
+                        string
+                    )?;
                 }
                 NameType::Kalisto32 => {
                     let name = NameKalisto32::hash_string(string);
@@ -668,7 +696,12 @@ impl Names {
                             continue;
                         }
                     }
-                    writeln!(out, r#"{} \"{}\""#, NameKalisto32::hash_string(string), string)?;
+                    writeln!(
+                        out,
+                        r#"{} \"{}\""#,
+                        NameKalisto32::hash_string(string),
+                        string
+                    )?;
                 }
                 NameType::BlackSheep32 => {
                     let name = NameBlackSheep32::hash_string(string);
@@ -677,7 +710,12 @@ impl Names {
                             continue;
                         }
                     }
-                    writeln!(out, r#"{} \"{}\""#, NameBlackSheep32::hash_string(string), string)?;
+                    writeln!(
+                        out,
+                        r#"{} \"{}\""#,
+                        NameBlackSheep32::hash_string(string),
+                        string
+                    )?;
                 }
                 NameType::Asobo64 => {
                     let name = NameAsobo64::hash_string(string);
@@ -686,7 +724,12 @@ impl Names {
                             continue;
                         }
                     }
-                    writeln!(out, r#"{} \"{}\""#, NameAsobo64::hash_string(string), string)?;
+                    writeln!(
+                        out,
+                        r#"{} \"{}\""#,
+                        NameAsobo64::hash_string(string),
+                        string
+                    )?;
                 }
                 NameType::Ubisoft64 => {
                     let name = NameUbisoft64::hash_string(string);
@@ -695,7 +738,12 @@ impl Names {
                             continue;
                         }
                     }
-                    writeln!(out, r#"{} \"{}\""#, NameUbisoft64::hash_string(string), string)?;
+                    writeln!(
+                        out,
+                        r#"{} \"{}\""#,
+                        NameUbisoft64::hash_string(string),
+                        string
+                    )?;
                 }
             }
         }
