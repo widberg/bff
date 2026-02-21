@@ -128,5 +128,5 @@ cargo build --release
 ### Test
 
 ```sh
-RUST_TEST_THREADS=1 cargo +nightly test --release -j 1
+cargo +nightly test --release
 ```

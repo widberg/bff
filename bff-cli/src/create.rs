@@ -15,6 +15,7 @@ use rayon::iter::{ParallelBridge, ParallelIterator};
 use crate::error::BffCliResult;
 use crate::extract::write_names;
 
+#[allow(clippy::too_many_arguments)]
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,

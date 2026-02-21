@@ -31,7 +31,7 @@ use crate::traits::NameHashFunction;
 const FORCED_NAME_STRING_CHAR: char = '$';
 
 thread_local! {
-    static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = RefCell::new(Vec::new());
+    static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = const { RefCell::new(Vec::new()) };
 }
 
 struct NameContextScopeGuard;
@@ -350,7 +350,7 @@ where
 }
 
 fn matches_name_type(expected: Option<NameType>, actual: NameType) -> bool {
-    expected.map_or(true, |expected| expected == actual)
+    expected.is_none_or(|expected| expected == actual)
 }
 
 fn serialize_name_value<S: serde::Serializer>(
