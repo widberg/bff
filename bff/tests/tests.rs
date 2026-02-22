@@ -2,7 +2,12 @@
 #![test_runner(datatest::runner)]
 
 #[cfg(test)]
-mod tests {
+mod tests {    
+    use mimalloc::MiMalloc;
+
+    #[global_allocator]
+    static GLOBAL: MiMalloc = MiMalloc;
+
     use std::fs::{self, File};
     use std::io::Cursor;
     use std::path::PathBuf;

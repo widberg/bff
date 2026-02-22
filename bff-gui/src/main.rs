@@ -23,6 +23,13 @@ pub mod traits;
 mod views;
 
 #[cfg(not(target_arch = "wasm32"))]
+use mimalloc::MiMalloc;
+
+#[cfg(not(target_arch = "wasm32"))]
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
+#[cfg(not(target_arch = "wasm32"))]
 const TITLE: &str = "BFF Studio";
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);

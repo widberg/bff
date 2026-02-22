@@ -27,11 +27,15 @@ mod psc;
 mod stdio_or_path;
 mod try_your_best;
 
+use mimalloc::MiMalloc;
 use shadow_rs::shadow;
 
 use crate::names::Wordlist;
 use crate::psc::PscAlgorithm;
 use crate::stdio_or_path::StdioOrPath;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 shadow!(build);
 
