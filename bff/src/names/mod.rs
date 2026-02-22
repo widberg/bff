@@ -169,6 +169,11 @@ pub enum Name {
     Ubisoft64(NameUbisoft64),
 }
 
+pub struct NameWithContext<'a> {
+    name: &'a Name,
+    name_context: &'a NameContext,
+}
+
 fn get_wordlist_encoded_string<T, const N: usize>(x: T, wordlist: [&str; N]) -> String
 where
     T: AsPrimitive<usize>,
@@ -193,6 +198,21 @@ pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
 }
 
 impl Name {
+    pub fn with_context<'a>(&'a self, name_context: &'a NameContext) -> NameWithContext<'a> {
+        NameWithContext { name: self, name_context }
+    }
+
+    fn fmt_without_context(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Asobo32(name) => write!(f, "{}", name.0),
+            Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
+            Self::Kalisto32(name) => write!(f, "{}", name.0),
+            Self::BlackSheep32(name) => write!(f, "{}", name.0),
+            Self::Asobo64(name) => write!(f, "{}", name.0),
+            Self::Ubisoft64(name) => write!(f, "{}", name.0),
+        }
+    }
+
     pub fn is_default(&self) -> bool {
         match *self {
             Self::Asobo32(name) => name == NameAsobo32::default(),
@@ -547,43 +567,33 @@ impl JsonSchema for Name {
 
 impl Display for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        with_name_context(|name_context| {
-            if let Some(name_context) = name_context {
-                if let Some(name) = name_context.resolve(self) {
-                    return write!(f, "{}", name);
-                }
-            }
-
-            match self {
-                Self::Asobo32(name) => write!(f, "{}", name.0),
-                Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
-                Self::Kalisto32(name) => write!(f, "{}", name.0),
-                Self::BlackSheep32(name) => write!(f, "{}", name.0),
-                Self::Asobo64(name) => write!(f, "{}", name.0),
-                Self::Ubisoft64(name) => write!(f, "{}", name.0),
-            }
-        })
+        self.fmt_without_context(f)
     }
 }
 
 impl Debug for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        with_name_context(|name_context| {
-            if let Some(name_context) = name_context {
-                if let Some(name) = name_context.resolve(self) {
-                    return write!(f, r#"\"{}\""#, name);
-                }
-            }
+        self.fmt_without_context(f)
+    }
+}
 
-            match self {
-                Self::Asobo32(name) => write!(f, "{}", name.0),
-                Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
-                Self::Kalisto32(name) => write!(f, "{}", name.0),
-                Self::BlackSheep32(name) => write!(f, "{}", name.0),
-                Self::Asobo64(name) => write!(f, "{}", name.0),
-                Self::Ubisoft64(name) => write!(f, "{}", name.0),
-            }
-        })
+impl Display for NameWithContext<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(name) = self.name_context.resolve(self.name) {
+            return write!(f, "{}", name);
+        }
+
+        self.name.fmt_without_context(f)
+    }
+}
+
+impl Debug for NameWithContext<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(name) = self.name_context.resolve(self.name) {
+            return write!(f, r#"\"{}\""#, name);
+        }
+
+        self.name.fmt_without_context(f)
     }
 }
 

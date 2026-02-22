@@ -206,7 +206,15 @@ impl Gui {
                             #[cfg(not(target_arch = "wasm32"))]
                             {
                                 if let Some(path) = rfd::FileDialog::new()
-                                    .add_filter("raw", &[resource.class_name.to_string()])
+                                    .add_filter(
+                                        "raw",
+                                        &[
+                                            resource
+                                                .class_name
+                                                .with_context(self.name_context.as_ref())
+                                                .to_string(),
+                                        ],
+                                    )
                                     .save_file()
                                 {
                                     let mut w = File::create(path).unwrap();
@@ -228,7 +236,15 @@ impl Gui {
                                     .dump_resource(resource, &mut w, self.name_context.as_ref())
                                     .unwrap();
                                 rfd::AsyncFileDialog::new()
-                                    .add_filter("raw", &[resource.class_name.to_string()])
+                                    .add_filter(
+                                        "raw",
+                                        &[
+                                            resource
+                                                .class_name
+                                                .with_context(self.name_context.as_ref())
+                                                .to_string(),
+                                        ],
+                                    )
                                     .save_file()
                                     .await
                                     .unwrap()
@@ -250,7 +266,11 @@ impl Gui {
                                     let name = resource.name;
                                     let class_name = resource.class_name;
                                     let path = directory.join(
-                                        format!("{}.{}", name, class_name)
+                                        format!(
+                                            "{}.{}",
+                                            name.with_context(self.name_context.as_ref()),
+                                            class_name.with_context(self.name_context.as_ref())
+                                        )
                                             .replace(':', "_")
                                             .replace('>', "-"),
                                         // works fine but i don't really like this solution

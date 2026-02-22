@@ -114,9 +114,9 @@ fn dump_bff_resource(
     resource: &Resource,
     name_context: &NameContext,
 ) -> BffCliResult<()> {
-    let class_name = name_context.scope(|| resource.class_name.to_string());
+    let class_name = resource.class_name.with_context(name_context).to_string();
     let name = clean_path(strip_suffix_if_exists(
-        name_context.scope(|| resource.name.to_string()),
+        resource.name.with_context(name_context).to_string(),
         &format!(".{}", class_name),
     ));
     let mut path = resources_path.join(format!("{}.{}", name, class_name));
@@ -146,9 +146,9 @@ fn export_bff_resource(
     let class: Class = resource.try_into_version_platform(version.clone(), platform)?;
     let bff_class = BffClass { header, class };
 
-    let class_name = name_context.scope(|| resource.class_name.to_string());
+    let class_name = resource.class_name.with_context(name_context).to_string();
     let name = clean_path(strip_suffix_if_exists(
-        name_context.scope(|| resource.name.to_string()),
+        resource.name.with_context(name_context).to_string(),
         &format!(".{}", class_name),
     ));
     let mut directory = resources_path.join(format!("{}.{}.d", name, class_name));

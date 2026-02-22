@@ -79,13 +79,16 @@ pub fn names(
                             Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
                         let class = if let Some(resource) = bigfile.resources.get(name) {
-                            name_context.scope(|| format!(".{}", resource.class_name))
+                            format!(".{}", resource.class_name.with_context(name_context))
                         } else {
                             "".to_owned()
                         };
                         let name_string = if let Some(parent) = parent {
-                            let parent_name = name_context
-                                .scope(|| graph.node_weight(parent).unwrap().to_string());
+                            let parent_name = graph
+                                .node_weight(parent)
+                                .unwrap()
+                                .with_context(name_context)
+                                .to_string();
                             let parent_string = if let Some((_, s)) =
                                 name_context.parse_forced_hash_name(&parent_name)
                             {
@@ -103,7 +106,7 @@ pub fn names(
             } else {
                 for resource in bigfile.resources.values() {
                     let name = &resource.name;
-                    let class = name_context.scope(|| resource.class_name.to_string());
+                    let class = resource.class_name.with_context(name_context).to_string();
                     if !name_context.contains(name) {
                         let string = match wordlist {
                             Wordlist::Empty => "".to_owned(),

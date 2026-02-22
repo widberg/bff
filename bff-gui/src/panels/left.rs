@@ -110,7 +110,9 @@ impl Gui {
                     );
                     let sorted_filter = new_state.filter_order.get_or_insert_with(|| {
                         let mut filters: Vec<Name> = class_names.keys().cloned().collect();
-                        filters.sort_by_cached_key(|k| k.to_string());
+                        filters.sort_by_cached_key(|k| {
+                            k.with_context(self.name_context.as_ref()).to_string()
+                        });
                         filters
                     });
                     ui.horizontal(|ui| {
@@ -163,7 +165,14 @@ impl Gui {
                                     }
                                     sorted_filter.iter().for_each(|name| {
                                         let checked = class_names.get_mut(name).unwrap();
-                                        if ui.checkbox(checked, name.to_string()).clicked() {
+                                        if ui
+                                            .checkbox(
+                                                checked,
+                                                name.with_context(self.name_context.as_ref())
+                                                    .to_string(),
+                                            )
+                                            .clicked()
+                                        {
                                             changed_list = true;
                                         }
                                     });
@@ -201,8 +210,12 @@ impl Gui {
                                 .map(|r| (r.name, r.class_name, r.size()))
                                 .collect();
                             match new_state.sort.sort_type {
-                                SortType::Name => res.sort_by_cached_key(|k| k.0.to_string()),
-                                SortType::Ext => res.sort_by_cached_key(|k| k.1.to_string()),
+                                SortType::Name => res.sort_by_cached_key(|k| {
+                                    k.0.with_context(self.name_context.as_ref()).to_string()
+                                }),
+                                SortType::Ext => res.sort_by_cached_key(|k| {
+                                    k.1.with_context(self.name_context.as_ref()).to_string()
+                                }),
                                 SortType::Size => res.sort_by_cached_key(|k| k.2),
                             }
                             if new_state.sort.reverse {
@@ -294,19 +307,32 @@ impl Gui {
                                         );
                                         if nickname.is_some() {
                                             tooltip_text.push_str(
-                                                format!("\nOriginal name: {}", resource).as_str(),
+                                                format!(
+                                                    "\nOriginal name: {}",
+                                                    resource.with_context(self.name_context.as_ref())
+                                                )
+                                                .as_str(),
                                             );
                                         }
+                                        let resource_name = nickname.map_or_else(
+                                            || {
+                                                resource
+                                                    .with_context(self.name_context.as_ref())
+                                                    .to_string()
+                                            },
+                                            Clone::clone,
+                                        );
                                         let btn = ui
                                             .add(
                                                 egui::Button::new(format!(
                                                     "{}.{}",
-                                                    nickname.unwrap_or(&resource.to_string()),
+                                                    resource_name,
                                                     bigfile
                                                         .resources
                                                         .get(resource)
                                                         .unwrap()
                                                         .class_name
+                                                        .with_context(self.name_context.as_ref())
                                                 ))
                                                 .rounding(0.0)
                                                 .truncate()
