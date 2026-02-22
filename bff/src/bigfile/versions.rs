@@ -9,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_context::context_scope;
 
 use crate::helpers::PascalString;
-use crate::names::NameContext;
+use crate::names::{DeserializeNamesContext, SerializeNamesContext};
 
 #[derive(Debug, Display, Clone, Eq, PartialEq, BinRead, BinWrite)]
 pub enum Version {
@@ -139,8 +139,8 @@ impl Serialize for Version {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         if let Ok(name_type) = self.try_into() {
             context_scope(|cx| {
-                if let Ok(name_context) = cx.get::<NameContext>() {
-                    name_context.set_name_type(name_type);
+                if let Ok(names_context) = cx.get::<SerializeNamesContext>() {
+                    names_context.set_name_type(name_type);
                 }
             });
         }
@@ -154,8 +154,8 @@ impl<'de> Deserialize<'de> for Version {
         let version: Self = string.as_str().into();
         if let Ok(name_type) = (&version).try_into() {
             context_scope(|cx| {
-                if let Ok(name_context) = cx.get::<NameContext>() {
-                    name_context.set_name_type(name_type);
+                if let Ok(names_context) = cx.get::<DeserializeNamesContext>() {
+                    names_context.set_name_type(name_type);
                 }
             });
         }

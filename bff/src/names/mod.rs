@@ -1,7 +1,7 @@
 mod wordlist;
 
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
@@ -422,17 +422,124 @@ impl Default for Name {
 
 impl Serialize for Name {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        with_name_context(|name_context| {
-            if let Some(name_context) = name_context {
-                if let Some(name) = name_context.resolve(self) {
+        context_scope(|cx| {
+            if let Ok(names_context) = cx.get::<SerializeNamesContext>() {
+                if let Some(name) = names_context.resolve(self) {
                     return name.serialize(serializer);
                 }
 
-                return serialize_name_value(self, serializer, Some(name_context.name_type()));
+                return serialize_name_value(self, serializer, Some(names_context.name_type()));
             }
 
-            serialize_name_value(self, serializer, None)
+            with_name_context(|name_context| {
+                if let Some(name_context) = name_context {
+                    if let Some(name) = name_context.resolve(self) {
+                        return name.serialize(serializer);
+                    }
+
+                    return serialize_name_value(self, serializer, Some(name_context.name_type()));
+                }
+
+                serialize_name_value(self, serializer, None)
+            })
         })
+    }
+}
+
+fn deserialize_name_with_type<'de, D, F>(
+    deserializer: D,
+    name_type: NameType,
+    mut add_name: F,
+) -> Result<Name, D::Error>
+where
+    D: Deserializer<'de>,
+    F: FnMut(&str),
+{
+    match name_type {
+        NameType::Asobo32 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameAsobo32::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameAsobo32::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameAsobo32::hash_string(string.as_str()).into())
+                }
+            }
+        }
+        NameType::AsoboAlternate32 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameAsoboAlternate32::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameAsoboAlternate32::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameAsoboAlternate32::hash_string(string.as_str()).into())
+                }
+            }
+        }
+        NameType::Kalisto32 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameKalisto32::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameKalisto32::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameKalisto32::hash_string(string.as_str()).into())
+                }
+            }
+        }
+        NameType::BlackSheep32 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameBlackSheep32::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameBlackSheep32::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameBlackSheep32::hash_string(string.as_str()).into())
+                }
+            }
+        }
+        NameType::Asobo64 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameAsobo64::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameAsobo64::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameAsobo64::hash_string(string.as_str()).into())
+                }
+            }
+        }
+        NameType::Ubisoft64 => {
+            let serde_name = SerdeName::deserialize(deserializer)?;
+            match serde_name {
+                SerdeName::Name(name) => Ok(NameUbisoft64::new(name).into()),
+                SerdeName::Str(string) => {
+                    add_name(string);
+                    Ok(NameUbisoft64::hash_string(string).into())
+                }
+                SerdeName::String(string) => {
+                    add_name(string.as_str());
+                    Ok(NameUbisoft64::hash_string(string.as_str()).into())
+                }
+            }
+        }
     }
 }
 
@@ -441,102 +548,25 @@ impl<'de> Deserialize<'de> for Name {
     where
         D: Deserializer<'de>,
     {
-        with_name_context(|name_context| {
-            let name_type = name_context
-                .map(NameContext::name_type)
-                .unwrap_or(NameType::Asobo32);
-            let add_name = |string: &str| {
-                if let Some(name_context) = name_context {
-                    name_context.insert(string);
-                }
-            };
-
-            match name_type {
-                NameType::Asobo32 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameAsobo32::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameAsobo32::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameAsobo32::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
-                NameType::AsoboAlternate32 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameAsoboAlternate32::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameAsoboAlternate32::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameAsoboAlternate32::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
-                NameType::Kalisto32 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameKalisto32::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameKalisto32::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameKalisto32::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
-                NameType::BlackSheep32 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameBlackSheep32::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameBlackSheep32::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameBlackSheep32::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
-                NameType::Asobo64 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameAsobo64::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameAsobo64::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameAsobo64::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
-                NameType::Ubisoft64 => {
-                    let serde_name = SerdeName::deserialize(deserializer)?;
-                    match serde_name {
-                        SerdeName::Name(name) => Ok(NameUbisoft64::new(name).into()),
-                        SerdeName::Str(string) => {
-                            add_name(string);
-                            Ok(NameUbisoft64::hash_string(string).into())
-                        }
-                        SerdeName::String(string) => {
-                            add_name(string.as_str());
-                            Ok(NameUbisoft64::hash_string(string.as_str()).into())
-                        }
-                    }
-                }
+        context_scope(|cx| {
+            if let Ok(names_context) = cx.get::<DeserializeNamesContext>() {
+                return deserialize_name_with_type(
+                    deserializer,
+                    names_context.name_type(),
+                    |string| names_context.insert(string),
+                );
             }
+
+            with_name_context(|name_context| {
+                let name_type = name_context
+                    .map(NameContext::name_type)
+                    .unwrap_or(NameType::Asobo32);
+                deserialize_name_with_type(deserializer, name_type, |string| {
+                    if let Some(name_context) = name_context {
+                        name_context.insert(string);
+                    }
+                })
+            })
         })
     }
 }
@@ -769,6 +799,63 @@ impl Names {
     }
 }
 
+pub(crate) struct SerializeNamesContext {
+    names: Names,
+    name_type: Cell<NameType>,
+}
+
+impl SerializeNamesContext {
+    fn new(names: Names) -> Self {
+        Self {
+            name_type: Cell::new(names.name_type()),
+            names,
+        }
+    }
+
+    fn into_names(mut self) -> Names {
+        self.names.set_name_type(self.name_type.get());
+        self.names
+    }
+
+    fn name_type(&self) -> NameType {
+        self.name_type.get()
+    }
+
+    pub(crate) fn set_name_type(&self, name_type: NameType) {
+        self.name_type.set(name_type);
+    }
+
+    fn resolve(&self, name: &Name) -> Option<&str> {
+        self.names.get(name)
+    }
+}
+
+pub(crate) struct DeserializeNamesContext {
+    names: RefCell<Names>,
+}
+
+impl DeserializeNamesContext {
+    fn new(names: Names) -> Self {
+        Self { names: RefCell::new(names) }
+    }
+
+    fn into_names(self) -> Names {
+        self.names.into_inner()
+    }
+
+    fn name_type(&self) -> NameType {
+        self.names.borrow().name_type()
+    }
+
+    pub(crate) fn set_name_type(&self, name_type: NameType) {
+        self.names.borrow_mut().set_name_type(name_type);
+    }
+
+    pub(crate) fn insert(&self, string: &str) {
+        self.names.borrow_mut().insert(string);
+    }
+}
+
 impl Default for Names {
     fn default() -> Self {
         let mut names = Self {
@@ -854,15 +941,19 @@ pub mod json {
     use serde::de::DeserializeOwned;
     use serde_context::{deserialize_with_context, serialize_with_context};
 
-    use super::NameContext;
+    use super::{DeserializeNamesContext, NameContext, SerializeNamesContext};
 
     pub fn from_reader<R, T>(reader: R, name_context: &NameContext) -> serde_json::Result<T>
     where
         R: Read,
         T: DeserializeOwned,
     {
+        let mut names_guard = name_context.names.lock().unwrap();
+        let names_context = DeserializeNamesContext::new(std::mem::take(&mut *names_guard));
         let mut deserializer = serde_json::Deserializer::from_reader(reader);
-        deserialize_with_context(&mut deserializer, name_context)
+        let result = deserialize_with_context(&mut deserializer, &names_context);
+        *names_guard = names_context.into_names();
+        result
     }
 
     pub fn to_writer_pretty<W, T>(
@@ -874,16 +965,24 @@ pub mod json {
         W: Write,
         T: Serialize + ?Sized,
     {
+        let mut names_guard = name_context.names.lock().unwrap();
+        let names_context = SerializeNamesContext::new(std::mem::take(&mut *names_guard));
         let mut serializer = serde_json::Serializer::pretty(writer);
-        serialize_with_context(value, &mut serializer, name_context)
+        let result = serialize_with_context(value, &mut serializer, &names_context);
+        *names_guard = names_context.into_names();
+        result
     }
 
     pub fn to_string_pretty<T>(value: &T, name_context: &NameContext) -> serde_json::Result<String>
     where
         T: Serialize + ?Sized,
     {
+        let mut names_guard = name_context.names.lock().unwrap();
+        let names_context = SerializeNamesContext::new(std::mem::take(&mut *names_guard));
         let mut serializer = serde_json::Serializer::pretty(Vec::new());
-        serialize_with_context(value, &mut serializer, name_context)?;
+        let serialize_result = serialize_with_context(value, &mut serializer, &names_context);
+        *names_guard = names_context.into_names();
+        serialize_result?;
         let bytes = serializer.into_inner();
         String::from_utf8(bytes).map_err(|error| {
             serde_json::Error::io(Error::new(
