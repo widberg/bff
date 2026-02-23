@@ -12,7 +12,7 @@ use regex::Regex;
 
 use crate::Gui;
 use crate::artifact::Artifact;
-use crate::helpers::artifact::create_artifact;
+use crate::helpers::artifact::{class_supports_preview, create_artifact};
 
 #[derive(Clone, PartialEq, Default)]
 enum SortType {
@@ -77,6 +77,19 @@ fn load_artifact(
         }
     }
     (None, None)
+}
+
+fn resource_display_label(
+    resource: &Resource,
+    nicknames: &HashMap<Name, String>,
+    name_context: &NameContext,
+) -> String {
+    let display_name = nicknames
+        .get(&resource.name)
+        .cloned()
+        .unwrap_or_else(|| resource.name.with_context(name_context).to_string());
+    let class_name = resource.class_name.with_context(name_context).to_string();
+    format!("{display_name}.{class_name}")
 }
 
 impl Gui {
@@ -228,12 +241,7 @@ impl Gui {
                         if name_filter.is_empty() {
                             return true;
                         }
-                        let display_name = nicknames
-                            .get(&res.name)
-                            .cloned()
-                            .unwrap_or_else(|| res.name.with_context(name_context).to_string());
-                        let class_name = res.class_name.with_context(name_context).to_string();
-                        let displayed_resource = format!("{}.{}", display_name, class_name);
+                        let displayed_resource = resource_display_label(res, nicknames, name_context);
                         if let Some(regex) = &name_filter_regex {
                             regex.is_match(displayed_resource.as_str())
                         } else {
@@ -356,10 +364,11 @@ impl Gui {
                                     ui.style_mut().spacing.item_spacing.y = 4.0;
                                     for row in row_range {
                                         let resource = resources.get(row).unwrap();
+                                        let resource_entry = bigfile.resources.get(resource).unwrap();
                                         let nickname = self.nicknames.get(resource);
                                         let mut tooltip_text = format!(
                                             "Size: {} bytes",
-                                            bigfile.resources.get(resource).unwrap().size()
+                                            resource_entry.size()
                                         );
                                         if nickname.is_some() {
                                             tooltip_text.push_str(
@@ -370,26 +379,24 @@ impl Gui {
                                                 .as_str(),
                                             );
                                         }
-                                        let resource_name = nickname.map_or_else(
-                                            || {
-                                                resource
-                                                    .with_context(self.name_context.as_ref())
-                                                    .to_string()
-                                            },
-                                            Clone::clone,
+                                        let button_label = resource_display_label(
+                                            resource_entry,
+                                            &self.nicknames,
+                                            self.name_context.as_ref(),
                                         );
+                                        let button_text = if class_supports_preview(
+                                            resource_entry.class_name,
+                                            version,
+                                            platform,
+                                        ) {
+                                            egui::RichText::new(button_label)
+                                                .color(egui::Color32::from_rgb(120, 220, 140))
+                                        } else {
+                                            egui::RichText::new(button_label)
+                                        };
                                         let btn = ui
                                             .add(
-                                                egui::Button::new(format!(
-                                                    "{}.{}",
-                                                    resource_name,
-                                                    bigfile
-                                                        .resources
-                                                        .get(resource)
-                                                        .unwrap()
-                                                        .class_name
-                                                        .with_context(self.name_context.as_ref())
-                                                ))
+                                                egui::Button::new(button_text)
                                                 .rounding(0.0)
                                                 .truncate()
                                                 .selected(
