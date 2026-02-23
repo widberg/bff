@@ -514,6 +514,7 @@ impl eframe::App for Gui {
 
             if self.bigfile_loading {
                 ctx.set_cursor_icon(egui::CursorIcon::Progress);
+                ctx.request_repaint();
             }
 
             let menubar_response = self.menubar_panel(ctx, frame, "menubar".into());
@@ -611,6 +612,10 @@ impl eframe::App for Gui {
                     }
                 });
             }
+
+            if self.bigfile_loading {
+                show_bigfile_loading_overlay(ctx);
+            }
         });
     }
 }
@@ -649,4 +654,30 @@ fn preview_files_being_dropped(ctx: &egui::Context) {
             Color32::WHITE,
         );
     }
+}
+
+fn show_bigfile_loading_overlay(ctx: &egui::Context) {
+    use egui::*;
+
+    let painter = ctx.layer_painter(LayerId::new(
+        Order::Foreground,
+        Id::new("bigfile_loading_overlay"),
+    ));
+    let screen_rect = ctx.screen_rect();
+    painter.rect_filled(screen_rect, 0.0, Color32::from_black_alpha(128));
+
+    Window::new("loading_bigfile_window")
+        .anchor(Align2::CENTER_CENTER, vec2(0.0, 0.0))
+        .collapsible(false)
+        .resizable(false)
+        .title_bar(false)
+        .fixed_size(vec2(220.0, 90.0))
+        .show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.add_space(4.0);
+                ui.add(Spinner::new().size(28.0));
+                ui.add_space(8.0);
+                ui.label("Loading BigFile...");
+            });
+        });
 }

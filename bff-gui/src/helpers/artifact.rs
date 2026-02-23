@@ -26,11 +26,13 @@ pub fn class_supports_preview(class_name: Name, version: &Version, platform: Pla
             (version, platform),
             (&Version::Asobo(1, 6, 63, 2), Platform::PC)
                 | (&Version::Asobo(1, 381, 67, 9), Platform::PC)
-        ) || matches!(version, &Version::Asobo(1, minor, _, _) if (231..=291).contains(&minor)),
+                | (&Version::Asobo(1, 231..=291, _, _), _)
+        ),
         ClassType::Sound => matches!(
             (version, platform),
             (&Version::Asobo(1, 381, 67, 9), Platform::PC)
-        ) || matches!(version, &Version::Asobo(1, minor, _, _) if (6..=291).contains(&minor)),
+                | (&Version::Asobo(1, 6..=291, _, _), _)
+        ),
         ClassType::Mesh => matches!(
             (version, platform),
             (&Version::Asobo(1, 291, 3, 6), Platform::PC)
