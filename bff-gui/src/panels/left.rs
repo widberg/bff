@@ -3,10 +3,12 @@ use std::sync::{Arc, Mutex};
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
+use bff::bigfile::resource::Resource;
 use bff::bigfile::versions::Version;
 use bff::class::Class;
 use bff::names::{Name, NameContext};
 use bff::traits::TryIntoVersionPlatform;
+use regex::Regex;
 
 use crate::Gui;
 use crate::artifact::Artifact;
@@ -30,6 +32,8 @@ struct ListSort {
 struct ResourceListState {
     sort: ListSort,
     filter: Option<HashMap<Name, bool>>,
+    name_filter: String,
+    name_filter_regex: bool,
     resources: Option<Arc<Vec<Name>>>,
     filter_order: Option<Vec<Name>>,
 }
@@ -178,35 +182,87 @@ impl Gui {
                                     });
                                 });
                             });
-                            ui.label(format!(
-                                "{}/{}",
-                                bigfile
-                                    .resources
-                                    .values()
-                                    .filter(|res| {
-                                        *class_names.get(&res.class_name).unwrap_or(&true)
-                                    })
-                                    .collect::<Vec<_>>()
-                                    .len(),
-                                bigfile.resources.len()
-                            ));
+                            let name_filter_response = ui.add(
+                                egui::TextEdit::singleline(&mut new_state.name_filter)
+                                    .hint_text("Filter by name")
+                                    .desired_width(175.0),
+                            );
+                            if name_filter_response.changed() {
+                                changed_list = true;
+                            }
+                            if ui
+                                .checkbox(&mut new_state.name_filter_regex, "Regex")
+                                .changed()
+                            {
+                                changed_list = true;
+                            }
                         });
                     });
                     new_state.filter = Some(class_names);
+                    let name_filter = new_state.name_filter.trim().to_owned();
+                    let name_filter_lower = name_filter.to_ascii_lowercase();
+                    let mut regex_error = None;
+                    let name_filter_regex =
+                        if new_state.name_filter_regex && !name_filter.is_empty() {
+                            match Regex::new(&name_filter) {
+                                Ok(regex) => Some(regex),
+                                Err(error) => {
+                                    regex_error = Some(error.to_string());
+                                    None
+                                }
+                            }
+                        } else {
+                            None
+                        };
+                    let class_filter = new_state.filter.as_ref();
+                    let nicknames = &self.nicknames;
+                    let name_context = self.name_context.as_ref();
+                    let is_resource_visible = |res: &Resource| {
+                        if !class_filter
+                            .and_then(|filters| filters.get(&res.class_name))
+                            .copied()
+                            .unwrap_or(true)
+                        {
+                            return false;
+                        }
+                        if name_filter.is_empty() {
+                            return true;
+                        }
+                        let display_name = nicknames
+                            .get(&res.name)
+                            .cloned()
+                            .unwrap_or_else(|| res.name.with_context(name_context).to_string());
+                        let class_name = res.class_name.with_context(name_context).to_string();
+                        let displayed_resource = format!("{}.{}", display_name, class_name);
+                        if let Some(regex) = &name_filter_regex {
+                            regex.is_match(displayed_resource.as_str())
+                        } else {
+                            displayed_resource
+                                .to_ascii_lowercase()
+                                .contains(&name_filter_lower)
+                        }
+                    };
+                    ui.horizontal(|ui| {
+                        if let Some(error) = regex_error {
+                            ui.colored_label(
+                                egui::Color32::from_rgb(245, 111, 111),
+                                format!("Invalid regex: {}", error),
+                            );
+                        }
+                        let filtered_count = bigfile
+                            .resources
+                            .values()
+                            .filter(|res| is_resource_visible(*res))
+                            .count();
+                        ui.label(format!("{}/{}", filtered_count, bigfile.resources.len()));
+                    });
 
                     let resources: Arc<Vec<Name>> = match (&new_state.resources, changed_list) {
                         (None, _) | (_, true) => {
                             let mut res: Vec<(Name, Name, usize)> = bigfile
                                 .resources
                                 .values()
-                                .filter(|res| {
-                                    *new_state
-                                        .filter
-                                        .as_ref()
-                                        .unwrap_or(&HashMap::default())
-                                        .get(&res.class_name)
-                                        .unwrap_or(&true)
-                                })
+                                .filter(|res| is_resource_visible(*res))
                                 .map(|r| (r.name, r.class_name, r.size()))
                                 .collect();
                             match new_state.sort.sort_type {

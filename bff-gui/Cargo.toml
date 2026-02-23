@@ -23,6 +23,7 @@ image = { version = "0.25.5", features = [
     "png",
 ], default-features = false }
 itertools = "0.14.0"
+regex = "1.11.1"
 rfd = { version = "0.17.2", features = ["file-handle-inner"] }
 rodio = { version = "0.22.1", features = ["playback"], default-features = false }
 three-d = { version = "0.18.2", default-features = false, features = [

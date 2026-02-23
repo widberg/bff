@@ -701,6 +701,7 @@ dependencies = [
  "image",
  "itertools",
  "mimalloc",
+ "regex",
  "rfd",
  "rodio",
  "three-d",
