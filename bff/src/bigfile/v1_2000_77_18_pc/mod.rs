@@ -39,6 +39,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
         let pos = reader.stream_position().unwrap();
         let len = reader.seek(SeekFrom::End(0)).unwrap();
+        // FIXME: FRAGMENTS\UWP_MSSTORE\v1_2000_97_19\DATAS\CONSULTANTS.DUA has a pool and fails this assert
         assert_eq!(pos, len);
 
         Ok(BigFile {

@@ -24,3 +24,6 @@
 
 # cargo flamegraph
 /flamegraph.svg
+
+# compile profiling outputs
+/.compile-profile/
