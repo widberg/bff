@@ -105,6 +105,198 @@ fn main() -> BffGuiResult<()> {
 const PROG_ID: &str = "Widberg.BFF.1";
 
 #[cfg(target_os = "windows")]
+mod registry {
+    use std::io::{Error, ErrorKind, Result};
+
+    use windows::core::PCWSTR;
+    use windows::Win32::Foundation::{
+        ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND, ERROR_SUCCESS, WIN32_ERROR,
+    };
+    use windows::Win32::System::Registry::{
+        HKEY, KEY_READ, KEY_WRITE, REG_OPTION_NON_VOLATILE, REG_ROUTINE_FLAGS, REG_SAM_FLAGS,
+        REG_SZ, RRF_RT_REG_SZ, RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegDeleteValueW,
+        RegGetValueW, RegOpenKeyExW, RegSetValueExW,
+    };
+
+    pub struct Key(HKEY);
+
+    impl Key {
+        pub fn raw(&self) -> HKEY {
+            self.0
+        }
+    }
+
+    impl Drop for Key {
+        fn drop(&mut self) {
+            unsafe {
+                let _ = RegCloseKey(self.0);
+            }
+        }
+    }
+
+    fn is_not_found(status: WIN32_ERROR) -> bool {
+        status == ERROR_FILE_NOT_FOUND || status == ERROR_PATH_NOT_FOUND
+    }
+
+    fn win32_error(status: WIN32_ERROR) -> Error {
+        Error::from_raw_os_error(status.0 as i32)
+    }
+
+    fn status_to_result(status: WIN32_ERROR) -> Result<()> {
+        if status == ERROR_SUCCESS {
+            Ok(())
+        } else {
+            Err(win32_error(status))
+        }
+    }
+
+    fn widestr(value: &str) -> Vec<u16> {
+        value.encode_utf16().chain(std::iter::once(0)).collect()
+    }
+
+    pub fn open_subkey(parent: HKEY, subkey: &str, access: REG_SAM_FLAGS) -> Result<Key> {
+        let mut handle = HKEY::default();
+        let subkey = widestr(subkey);
+        unsafe {
+            status_to_result(RegOpenKeyExW(
+                parent,
+                PCWSTR(subkey.as_ptr()),
+                None,
+                access,
+                &mut handle,
+            ))?;
+        }
+        Ok(Key(handle))
+    }
+
+    pub fn create_subkey(parent: HKEY, subkey: &str) -> Result<Key> {
+        let mut handle = HKEY::default();
+        let subkey = widestr(subkey);
+        unsafe {
+            status_to_result(RegCreateKeyExW(
+                parent,
+                PCWSTR(subkey.as_ptr()),
+                None,
+                PCWSTR::null(),
+                REG_OPTION_NON_VOLATILE,
+                KEY_READ | KEY_WRITE,
+                None,
+                &mut handle,
+                None,
+            ))?;
+        }
+        Ok(Key(handle))
+    }
+
+    pub fn set_default_value_sz(key: HKEY, value: &str) -> Result<()> {
+        set_value_sz(key, None, value)
+    }
+
+    pub fn set_value_sz(key: HKEY, name: Option<&str>, value: &str) -> Result<()> {
+        let value = widestr(value);
+        let value_bytes = unsafe {
+            std::slice::from_raw_parts(value.as_ptr() as *const u8, std::mem::size_of_val(value.as_slice()))
+        };
+        unsafe {
+            match name {
+                Some(name) => {
+                    let name = widestr(name);
+                    status_to_result(RegSetValueExW(
+                        key,
+                        PCWSTR(name.as_ptr()),
+                        None,
+                        REG_SZ,
+                        Some(value_bytes),
+                    ))
+                }
+                None => status_to_result(RegSetValueExW(
+                    key,
+                    PCWSTR::null(),
+                    None,
+                    REG_SZ,
+                    Some(value_bytes),
+                )),
+            }
+        }
+    }
+
+    pub fn get_default_value_sz(key: HKEY) -> Result<Option<String>> {
+        let mut data_len = 0u32;
+        let status = unsafe {
+            RegGetValueW(
+                key,
+                PCWSTR::null(),
+                PCWSTR::null(),
+                REG_ROUTINE_FLAGS(RRF_RT_REG_SZ.0),
+                None,
+                None,
+                Some(&mut data_len),
+            )
+        };
+        if is_not_found(status) {
+            return Ok(None);
+        }
+        status_to_result(status)?;
+
+        if data_len == 0 {
+            return Ok(Some(String::new()));
+        }
+
+        let mut data = vec![0u8; data_len as usize];
+        let status = unsafe {
+            RegGetValueW(
+                key,
+                PCWSTR::null(),
+                PCWSTR::null(),
+                REG_ROUTINE_FLAGS(RRF_RT_REG_SZ.0),
+                None,
+                Some(data.as_mut_ptr() as *mut core::ffi::c_void),
+                Some(&mut data_len),
+            )
+        };
+        status_to_result(status)?;
+
+        let wide_len = (data_len as usize) / std::mem::size_of::<u16>();
+        let wide = unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u16, wide_len) };
+        let value_len = wide.iter().position(|c| *c == 0).unwrap_or(wide.len());
+        String::from_utf16(&wide[..value_len])
+            .map(Some)
+            .map_err(|error| Error::new(ErrorKind::InvalidData, error))
+    }
+
+    pub fn delete_tree_if_exists(parent: HKEY, subkey: &str) -> Result<()> {
+        let subkey = widestr(subkey);
+        let status = unsafe { RegDeleteTreeW(parent, PCWSTR(subkey.as_ptr())) };
+        if is_not_found(status) {
+            Ok(())
+        } else {
+            status_to_result(status)
+        }
+    }
+
+    pub fn delete_default_value_if_exists(key: HKEY) -> Result<()> {
+        delete_value_if_exists(key, None)
+    }
+
+    pub fn delete_value_if_exists(key: HKEY, name: Option<&str>) -> Result<()> {
+        let status = unsafe {
+            match name {
+                Some(name) => {
+                    let name = widestr(name);
+                    RegDeleteValueW(key, PCWSTR(name.as_ptr()))
+                }
+                None => RegDeleteValueW(key, PCWSTR::null()),
+            }
+        };
+        if is_not_found(status) {
+            Ok(())
+        } else {
+            status_to_result(status)
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn change_notify() {
     use windows::Win32::UI::Shell::{SHCNE_ASSOCCHANGED, SHCNF_IDLIST, SHChangeNotify};
 
@@ -116,26 +308,22 @@ fn change_notify() {
 #[cfg(target_os = "windows")]
 fn install() -> BffGuiResult<()> {
     use std::env::current_exe;
-
-    use winreg::RegKey;
-    use winreg::enums::HKEY_CURRENT_USER;
+    use windows::Win32::System::Registry::HKEY_CURRENT_USER;
 
     let exe_path = current_exe()?.to_str().unwrap_or_default().to_owned();
 
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let classes = hkcu.open_subkey("Software\\Classes")?;
-
-    let (prog, _) = classes.create_subkey(PROG_ID)?;
-    prog.set_value("", &TITLE)?;
-    let (command, _) = prog.create_subkey("Shell\\Open\\Command")?;
-    command.set_value("", &format!(r#""{}" "%1""#, exe_path))?;
+    let classes = registry::create_subkey(HKEY_CURRENT_USER, "Software\\Classes")?;
+    let prog = registry::create_subkey(classes.raw(), PROG_ID)?;
+    registry::set_default_value_sz(prog.raw(), TITLE)?;
+    let command = registry::create_subkey(prog.raw(), "Shell\\Open\\Command")?;
+    registry::set_default_value_sz(command.raw(), &format!(r#""{}" "%1""#, exe_path))?;
 
     for extension in bff::bigfile::platforms::extensions() {
-        let (extension_key, _) =
-            classes.create_subkey(format!(".{}", extension.to_string_lossy()))?;
-        extension_key.set_value("", &PROG_ID)?;
-        let (open_with, _) = extension_key.create_subkey("OpenWithProgids")?;
-        open_with.set_value(PROG_ID, &"")?;
+        let extension_key =
+            registry::create_subkey(classes.raw(), &format!(".{}", extension.to_string_lossy()))?;
+        registry::set_default_value_sz(extension_key.raw(), PROG_ID)?;
+        let open_with = registry::create_subkey(extension_key.raw(), "OpenWithProgids")?;
+        registry::set_value_sz(open_with.raw(), Some(PROG_ID), "")?;
     }
 
     change_notify();
@@ -145,27 +333,26 @@ fn install() -> BffGuiResult<()> {
 
 #[cfg(target_os = "windows")]
 fn uninstall() -> BffGuiResult<()> {
-    use winreg::RegKey;
-    use winreg::enums::{HKEY_CURRENT_USER, KEY_ALL_ACCESS};
+    use windows::Win32::System::Registry::{HKEY_CURRENT_USER, KEY_READ, KEY_WRITE};
 
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let classes = hkcu.open_subkey("Software\\Classes")?;
-
-    let _ = classes.delete_subkey_all(PROG_ID);
+    let classes = registry::open_subkey(HKEY_CURRENT_USER, "Software\\Classes", KEY_READ | KEY_WRITE)?;
+    registry::delete_tree_if_exists(classes.raw(), PROG_ID)?;
 
     for extension in bff::bigfile::platforms::extensions() {
-        if let Ok(default) = classes
-            .open_subkey_with_flags(format!(".{}", extension.to_string_lossy()), KEY_ALL_ACCESS)
+        let extension_key_name = format!(".{}", extension.to_string_lossy());
+        if let Ok(default) =
+            registry::open_subkey(classes.raw(), &extension_key_name, KEY_READ | KEY_WRITE)
         {
-            if let Ok(prog_id) = default.get_value::<String, _>("") {
+            if let Some(prog_id) = registry::get_default_value_sz(default.raw())? {
                 if prog_id == PROG_ID {
-                    default.delete_value("")?;
+                    registry::delete_default_value_if_exists(default.raw())?;
                 }
             }
 
-            if let Ok(open_with) = default.open_subkey_with_flags("OpenWithProgids", KEY_ALL_ACCESS)
+            if let Ok(open_with) =
+                registry::open_subkey(default.raw(), "OpenWithProgids", KEY_READ | KEY_WRITE)
             {
-                let _ = open_with.delete_value(PROG_ID);
+                registry::delete_value_if_exists(open_with.raw(), Some(PROG_ID))?;
             }
         }
     }
