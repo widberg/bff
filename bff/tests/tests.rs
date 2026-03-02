@@ -8,16 +8,17 @@ mod tests {
     #[global_allocator]
     static GLOBAL: MiMalloc = MiMalloc;
 
+    use std::collections::HashMap;
     use std::fs::{self, File};
     use std::io::Cursor;
     use std::path::PathBuf;
 
     use bff::bigfile::BigFile;
     use bff::bigfile::platforms::Platform;
-    use bff::bigfile::resource::Resource;
+    use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
     use bff::class::Class;
     use bff::names::NameContext;
-    use bff::traits::TryIntoVersionPlatform;
+    use bff::traits::{Export, Import, TryIntoVersionPlatform};
     use binrw::io::BufReader;
 
     #[datatest::data("../data/read.yaml")]
@@ -46,17 +47,37 @@ mod tests {
         let mut reader = BufReader::new(f);
         let name_context = NameContext::default();
         let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
+        let version = bigfile.manifest.version.clone();
 
         for resource in bigfile.resources.values() {
             let class: Class = resource
-                .try_into_version_platform(bigfile.manifest.version.clone(), platform)
+                .try_into_version_platform(version.clone(), platform)
                 .unwrap();
-
-            let new_resource: Resource = (&class)
-                .try_into_version_platform(bigfile.manifest.version.clone(), platform)
+            let bff_class = BffClass {
+                header: BffResourceHeader {
+                    platform,
+                    version: version.clone(),
+                },
+                class,
+            };
+            let resource_serialized = bff::names::json::to_string_pretty(&bff_class, &name_context)
                 .unwrap();
+            let mut roundtripped_bff_class: BffClass =
+                bff::names::json::from_reader(
+                    Cursor::new(resource_serialized.into_bytes()),
+                    &name_context,
+                )
+                .unwrap();
+            let artifacts = bff_class.class.export().unwrap_or_else(|_| HashMap::new());
+            let _ = roundtripped_bff_class.class.import(&artifacts);
 
-            assert_eq!(new_resource, *resource);
+            let new_resource: Resource = (&roundtripped_bff_class.class)
+                .try_into_version_platform(version.clone(), platform)
+                .unwrap();
+            let resource_name = resource.name.with_context(&name_context).to_string();
+            let class_name = resource.class_name.with_context(&name_context).to_string();
+
+            assert!(new_resource == *resource, "{resource_name}.{class_name}");
         }
     }
 
@@ -77,6 +98,6 @@ mod tests {
             .write(&mut writer, None, &None, &None, None, &name_context)
             .unwrap();
 
-        assert_eq!(data, writer.into_inner());
+        assert!(data == writer.into_inner());
     }
 }
