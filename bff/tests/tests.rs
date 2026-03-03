@@ -60,14 +60,13 @@ mod tests {
                 },
                 class,
             };
-            let resource_serialized = bff::names::json::to_string_pretty(&bff_class, &name_context)
-                .unwrap();
-            let mut roundtripped_bff_class: BffClass =
-                bff::names::json::from_reader(
-                    Cursor::new(resource_serialized.into_bytes()),
-                    &name_context,
-                )
-                .unwrap();
+            let resource_serialized =
+                bff::names::json::to_string_pretty(&bff_class, &name_context).unwrap();
+            let mut roundtripped_bff_class: BffClass = bff::names::json::from_reader(
+                Cursor::new(resource_serialized.into_bytes()),
+                &name_context,
+            )
+            .unwrap();
             let artifacts = bff_class.class.export().unwrap_or_else(|_| HashMap::new());
             let _ = roundtripped_bff_class.class.import(&artifacts);
 

@@ -81,7 +81,10 @@ fn describe_data_change(old_resource: &Resource, new_resource: &Resource) -> Str
     }
 }
 
-fn describe_changes(old_resource: &ResolvedResource<'_>, new_resource: &ResolvedResource<'_>) -> Vec<String> {
+fn describe_changes(
+    old_resource: &ResolvedResource<'_>,
+    new_resource: &ResolvedResource<'_>,
+) -> Vec<String> {
     let mut changes = Vec::new();
 
     if old_resource.link_name != new_resource.link_name {
@@ -115,19 +118,21 @@ pub fn diff(
     let new_resources = resolve_resources(&new_bigfile, &new_name_context, "new BigFile")?;
 
     let added = new_resources
-        .iter()
-        .filter(|(name, _)| !old_resources.contains_key(*name))
+        .keys()
+        .filter(|name| !old_resources.contains_key(*name))
+        .cloned()
         .collect::<Vec<_>>();
     let removed = old_resources
-        .iter()
-        .filter(|(name, _)| !new_resources.contains_key(*name))
+        .keys()
+        .filter(|name| !new_resources.contains_key(*name))
+        .cloned()
         .collect::<Vec<_>>();
     let changed = old_resources
         .iter()
         .filter_map(|(name, old_resource)| {
             let new_resource = new_resources.get(name)?;
             let changes = describe_changes(old_resource, new_resource);
-            (!changes.is_empty()).then_some((name, old_resource, new_resource, changes))
+            (!changes.is_empty()).then(|| format!("{name} ({})", changes.join(", ")))
         })
         .collect::<Vec<_>>();
 
@@ -138,34 +143,18 @@ pub fn diff(
         return Ok(());
     }
 
-    let mut wrote_section = false;
+    let mut sections = [("Added", added), ("Removed", removed), ("Changed", changed)]
+        .into_iter()
+        .filter(|(_, lines)| !lines.is_empty())
+        .peekable();
 
-    if !added.is_empty() {
-        writeln!(stdout, "Added:")?;
-        for (name, _) in &added {
-            writeln!(stdout, "  {name}")?;
+    while let Some((title, lines)) = sections.next() {
+        writeln!(stdout, "{title}:")?;
+        for line in lines {
+            writeln!(stdout, "  {line}")?;
         }
-        wrote_section = true;
-    }
-
-    if !removed.is_empty() {
-        if wrote_section {
+        if sections.peek().is_some() {
             writeln!(stdout)?;
-        }
-        writeln!(stdout, "Removed:")?;
-        for (name, _) in &removed {
-            writeln!(stdout, "  {name}")?;
-        }
-        wrote_section = true;
-    }
-
-    if !changed.is_empty() {
-        if wrote_section {
-            writeln!(stdout)?;
-        }
-        writeln!(stdout, "Changed:")?;
-        for (name, _, _, changes) in &changed {
-            writeln!(stdout, "  {name} ({})", changes.join(", "))?;
         }
     }
 

@@ -102,6 +102,7 @@ flamegraph CMD *OPTIONS:
     cargo flamegraph --release --bin {{ CMD }} -- {{ OPTIONS }}
 
 # cargo-build timings (https://doc.rust-lang.org/cargo/reference/timings.html),
+
 # rustc -Ztime-passes, and measureme summarize (https://github.com/rust-lang/measureme)
 [unix]
 profile-compile *TARGET:
@@ -129,6 +130,7 @@ profile-compile *TARGET:
     echo "Wrote compile profile artifacts to $out"
 
 # cargo-build timings (https://doc.rust-lang.org/cargo/reference/timings.html),
+
 # rustc -Ztime-passes, and measureme summarize (https://github.com/rust-lang/measureme)
 [windows]
 profile-compile *TARGET:

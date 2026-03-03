@@ -143,9 +143,8 @@ impl TryFrom<D3DFormat> for BmFormat {
 
 impl Export for BitmapV1_381_67_09PC {
     fn export(&self) -> BffResult<HashMap<OsString, Artifact>> {
-        let caps2 = matches!(self.link_header.bitmap_class, BitmapClass::Cubemap).then_some(
-            Caps2::CUBEMAP | Caps2::CUBEMAP_ALLFACES,
-        );
+        let caps2 = matches!(self.link_header.bitmap_class, BitmapClass::Cubemap)
+            .then_some(Caps2::CUBEMAP | Caps2::CUBEMAP_ALLFACES);
         let mut dds = Dds::new_d3d(NewD3dParams {
             height: self.link_header.height,
             width: self.link_header.width,

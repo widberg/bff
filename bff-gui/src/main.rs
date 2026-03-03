@@ -108,15 +108,30 @@ const PROG_ID: &str = "Widberg.BFF.1";
 mod registry {
     use std::io::{Error, ErrorKind, Result};
 
-    use windows::core::PCWSTR;
     use windows::Win32::Foundation::{
-        ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND, ERROR_SUCCESS, WIN32_ERROR,
+        ERROR_FILE_NOT_FOUND,
+        ERROR_PATH_NOT_FOUND,
+        ERROR_SUCCESS,
+        WIN32_ERROR,
     };
     use windows::Win32::System::Registry::{
-        HKEY, KEY_READ, KEY_WRITE, REG_OPTION_NON_VOLATILE, REG_ROUTINE_FLAGS, REG_SAM_FLAGS,
-        REG_SZ, RRF_RT_REG_SZ, RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegDeleteValueW,
-        RegGetValueW, RegOpenKeyExW, RegSetValueExW,
+        HKEY,
+        KEY_READ,
+        KEY_WRITE,
+        REG_OPTION_NON_VOLATILE,
+        REG_ROUTINE_FLAGS,
+        REG_SAM_FLAGS,
+        REG_SZ,
+        RRF_RT_REG_SZ,
+        RegCloseKey,
+        RegCreateKeyExW,
+        RegDeleteTreeW,
+        RegDeleteValueW,
+        RegGetValueW,
+        RegOpenKeyExW,
+        RegSetValueExW,
     };
+    use windows::core::PCWSTR;
 
     pub struct Key(HKEY);
 
@@ -195,7 +210,10 @@ mod registry {
     pub fn set_value_sz(key: HKEY, name: Option<&str>, value: &str) -> Result<()> {
         let value = widestr(value);
         let value_bytes = unsafe {
-            std::slice::from_raw_parts(value.as_ptr() as *const u8, std::mem::size_of_val(value.as_slice()))
+            std::slice::from_raw_parts(
+                value.as_ptr() as *const u8,
+                std::mem::size_of_val(value.as_slice()),
+            )
         };
         unsafe {
             match name {
@@ -308,6 +326,7 @@ fn change_notify() {
 #[cfg(target_os = "windows")]
 fn install() -> BffGuiResult<()> {
     use std::env::current_exe;
+
     use windows::Win32::System::Registry::HKEY_CURRENT_USER;
 
     let exe_path = current_exe()?.to_str().unwrap_or_default().to_owned();
@@ -335,7 +354,8 @@ fn install() -> BffGuiResult<()> {
 fn uninstall() -> BffGuiResult<()> {
     use windows::Win32::System::Registry::{HKEY_CURRENT_USER, KEY_READ, KEY_WRITE};
 
-    let classes = registry::open_subkey(HKEY_CURRENT_USER, "Software\\Classes", KEY_READ | KEY_WRITE)?;
+    let classes =
+        registry::open_subkey(HKEY_CURRENT_USER, "Software\\Classes", KEY_READ | KEY_WRITE)?;
     registry::delete_tree_if_exists(classes.raw(), PROG_ID)?;
 
     for extension in bff::bigfile::platforms::extensions() {

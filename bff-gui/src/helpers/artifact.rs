@@ -5,10 +5,9 @@ use std::sync::Arc;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
-use bff::class::Class;
-use bff::class::{ClassNameStyle, ClassType};
 use bff::class::bitmap::generic::BitmapGeneric;
 use bff::class::sound::generic::SoundGeneric;
+use bff::class::{Class, ClassNameStyle, ClassType};
 use bff::names::{Name, NameType};
 use bff::traits::{Artifact as BffArtifact, Export as BffExport, TryIntoVersionPlatform};
 
@@ -16,8 +15,7 @@ use crate::artifact::{Artifact, BitmapFormat};
 use crate::traits::export::{Export, RecursiveExport};
 
 pub fn class_supports_preview(class_name: Name, version: &Version, platform: Platform) -> bool {
-    let Ok((class_type, _, _)) =
-        <(ClassType, ClassNameStyle, NameType)>::try_from(class_name)
+    let Ok((class_type, _, _)) = <(ClassType, ClassNameStyle, NameType)>::try_from(class_name)
     else {
         return false;
     };
@@ -30,8 +28,7 @@ pub fn class_supports_preview(class_name: Name, version: &Version, platform: Pla
         ),
         ClassType::Sound => matches!(
             (version, platform),
-            (&Version::Asobo(1, 381, 67, 9), Platform::PC)
-                | (&Version::Asobo(1, 6..=291, _, _), _)
+            (&Version::Asobo(1, 381, 67, 9), Platform::PC) | (&Version::Asobo(1, 6..=291, _, _), _)
         ),
         ClassType::Mesh => matches!(
             (version, platform),

@@ -241,7 +241,8 @@ impl Gui {
                         if name_filter.is_empty() {
                             return true;
                         }
-                        let displayed_resource = resource_display_label(res, nicknames, name_context);
+                        let displayed_resource =
+                            resource_display_label(res, nicknames, name_context);
                         if let Some(regex) = &name_filter_regex {
                             regex.is_match(displayed_resource.as_str())
                         } else {
@@ -364,17 +365,17 @@ impl Gui {
                                     ui.style_mut().spacing.item_spacing.y = 4.0;
                                     for row in row_range {
                                         let resource = resources.get(row).unwrap();
-                                        let resource_entry = bigfile.resources.get(resource).unwrap();
+                                        let resource_entry =
+                                            bigfile.resources.get(resource).unwrap();
                                         let nickname = self.nicknames.get(resource);
-                                        let mut tooltip_text = format!(
-                                            "Size: {} bytes",
-                                            resource_entry.size()
-                                        );
+                                        let mut tooltip_text =
+                                            format!("Size: {} bytes", resource_entry.size());
                                         if nickname.is_some() {
                                             tooltip_text.push_str(
                                                 format!(
                                                     "\nOriginal name: {}",
-                                                    resource.with_context(self.name_context.as_ref())
+                                                    resource
+                                                        .with_context(self.name_context.as_ref())
                                                 )
                                                 .as_str(),
                                             );
@@ -397,12 +398,14 @@ impl Gui {
                                         let btn = ui
                                             .add(
                                                 egui::Button::new(button_text)
-                                                .rounding(0.0)
-                                                .truncate()
-                                                .selected(
-                                                    self.resource_name
-                                                        .map_or_else(|| false, |n| resource == &n),
-                                                ),
+                                                    .rounding(0.0)
+                                                    .truncate()
+                                                    .selected(
+                                                        self.resource_name.map_or_else(
+                                                            || false,
+                                                            |n| resource == &n,
+                                                        ),
+                                                    ),
                                             )
                                             .on_hover_text_at_pointer(tooltip_text);
                                         btn.context_menu(|ui| {

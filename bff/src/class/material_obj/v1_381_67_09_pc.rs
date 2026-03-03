@@ -1,9 +1,10 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{BffMap, DynArray, ResourceObjectLinkHeaderV1_381_67_09PC};
 use crate::names::Name;
 use crate::traits::{Export, Import};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, JsonSchema)]
 struct MaterialObjEntryV1_381_67_09PC {
@@ -31,10 +32,9 @@ mod material_obj_entries {
     use serde::ser::SerializeSeq;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+    use super::MaterialObjEntryV1_381_67_09PC;
     use crate::helpers::{BffMap, DynArray};
     use crate::names::Name;
-
-    use super::MaterialObjEntryV1_381_67_09PC;
 
     #[derive(Serialize)]
     struct MaterialObjEntryRefV1_381_67_09PC<'a> {

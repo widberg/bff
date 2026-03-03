@@ -199,7 +199,10 @@ pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
 
 impl Name {
     pub fn with_context<'a>(&'a self, name_context: &'a NameContext) -> NameWithContext<'a> {
-        NameWithContext { name: self, name_context }
+        NameWithContext {
+            name: self,
+            name_context,
+        }
     }
 
     fn fmt_without_context(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -836,7 +839,9 @@ pub(crate) struct DeserializeNamesContext {
 
 impl DeserializeNamesContext {
     fn new(names: Names) -> Self {
-        Self { names: RefCell::new(names) }
+        Self {
+            names: RefCell::new(names),
+        }
     }
 
     fn into_names(self) -> Names {

@@ -208,12 +208,10 @@ impl Gui {
                                 if let Some(path) = rfd::FileDialog::new()
                                     .add_filter(
                                         "raw",
-                                        &[
-                                            resource
-                                                .class_name
-                                                .with_context(self.name_context.as_ref())
-                                                .to_string(),
-                                        ],
+                                        &[resource
+                                            .class_name
+                                            .with_context(self.name_context.as_ref())
+                                            .to_string()],
                                     )
                                     .save_file()
                                 {
@@ -238,12 +236,10 @@ impl Gui {
                                 rfd::AsyncFileDialog::new()
                                     .add_filter(
                                         "raw",
-                                        &[
-                                            resource
-                                                .class_name
-                                                .with_context(self.name_context.as_ref())
-                                                .to_string(),
-                                        ],
+                                        &[resource
+                                            .class_name
+                                            .with_context(self.name_context.as_ref())
+                                            .to_string()],
                                     )
                                     .save_file()
                                     .await
@@ -271,8 +267,8 @@ impl Gui {
                                             name.with_context(self.name_context.as_ref()),
                                             class_name.with_context(self.name_context.as_ref())
                                         )
-                                            .replace(':', "_")
-                                            .replace('>', "-"),
+                                        .replace(':', "_")
+                                        .replace('>', "-"),
                                         // works fine but i don't really like this solution
                                     );
                                     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
