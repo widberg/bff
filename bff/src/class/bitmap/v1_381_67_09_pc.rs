@@ -5,7 +5,7 @@ use std::io::Cursor;
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
 use binrw::{BinRead, BinWrite};
-use ddsfile::{D3DFormat, Dds, NewD3dParams};
+use ddsfile::{Caps2, D3DFormat, Dds, NewD3dParams};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -143,13 +143,16 @@ impl TryFrom<D3DFormat> for BmFormat {
 
 impl Export for BitmapV1_381_67_09PC {
     fn export(&self) -> BffResult<HashMap<OsString, Artifact>> {
+        let caps2 = matches!(self.link_header.bitmap_class, BitmapClass::Cubemap).then_some(
+            Caps2::CUBEMAP | Caps2::CUBEMAP_ALLFACES,
+        );
         let mut dds = Dds::new_d3d(NewD3dParams {
             height: self.link_header.height,
             width: self.link_header.width,
             depth: None,
-            format: self.link_header.format0.try_into()?,
+            format: self.link_header.format1.try_into()?,
             mipmap_levels: Some(self.link_header.mipmap_count as u32),
-            caps2: None,
+            caps2,
         })
         .unwrap();
         dds.data = self.body.data.clone();
@@ -170,12 +173,23 @@ impl Import for BitmapV1_381_67_09PC {
         };
         let dds_reader = Cursor::new(data);
         let dds = Dds::read(dds_reader).map_err(|_| Error::ImportBadArtifact)?;
+        let format = dds
+            .get_d3d_format()
+            .ok_or(Error::UnimplementedImportExport)?
+            .try_into()?;
         self.link_header.width = dds.get_width();
         self.link_header.height = dds.get_height();
-        self.link_header.precalculated_size = dds.data.len() as u32;
-        self.link_header.mipmap_count = dds.get_num_mipmap_levels() as u8;
-        self.link_header.format0 = dds.get_d3d_format().unwrap().try_into()?;
-        self.link_header.format1 = dds.get_d3d_format().unwrap().try_into()?;
+        self.link_header.precalculated_size = match format {
+            BmFormat::BmA8l8 => 0,
+            _ => dds.data.len() as u32,
+        };
+        self.link_header.mipmap_count = dds.header.mip_map_count.unwrap_or(0) as u8;
+        self.link_header.format0 = if dds.header.caps2.contains(Caps2::CUBEMAP) {
+            BmFormat::BmMultipleBitmaps
+        } else {
+            format
+        };
+        self.link_header.format1 = format;
         self.body.data = dds.data;
         Ok(())
     }

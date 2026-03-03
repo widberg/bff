@@ -1333,9 +1333,7 @@ dependencies = [
 
 [[package]]
 name = "ddsfile"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "479dfe1e6737aa9e96c6ac7b69689dc4c32da8383f2c12744739d76afa8b66c4"
+version = "0.5.3-unstable"
 dependencies = [
  "bitflags 2.8.0",
  "byteorder",
