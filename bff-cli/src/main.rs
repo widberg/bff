@@ -15,6 +15,7 @@ mod crc;
 mod create;
 mod create_resource;
 mod csc;
+mod diff;
 mod dump_json_schema;
 mod error;
 mod extract;
@@ -99,6 +100,14 @@ enum Commands {
         in_names: Vec<PathBuf>,
         #[arg(long)]
         out_reference_graph: Option<PathBuf>,
+    },
+    Diff {
+        old_bigfile: PathBuf,
+        new_bigfile: PathBuf,
+        #[arg(long)]
+        old_names: Option<PathBuf>,
+        #[arg(long)]
+        new_names: Option<PathBuf>,
     },
     Names {
         bigfile: Option<PathBuf>,
@@ -293,6 +302,12 @@ fn main() -> BffCliResult<()> {
             in_names,
             out_reference_graph: out_dependencies,
         } => info::info(bigfile, in_names, out_dependencies, &name_context),
+        Commands::Diff {
+            old_bigfile,
+            new_bigfile,
+            old_names,
+            new_names,
+        } => diff::diff(old_bigfile, new_bigfile, old_names, new_names),
         Commands::Names {
             bigfile,
             wordlist,
