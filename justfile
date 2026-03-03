@@ -3,8 +3,6 @@
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-wasi_sdk_path := env_var("WASI_SDK_PATH")
-
 list:
     just --list
 
@@ -20,15 +18,8 @@ clippy:
 deny:
     cargo deny check
 
-[unix]
 test *TEST:
-    /usr/bin/env RUST_TEST_THREADS=1 cargo +nightly test --release -j 1 {{ TEST }}
-
-[windows]
-test *TEST:
-    #!powershell -NoLogo
-    $ENV:RUST_TEST_THREADS = "1"
-    cargo +nightly test --release -j 1 {{ TEST }}
+    cargo +nightly test --release -- {{ TEST }}
 
 build CMD:
     cargo build --bin {{ CMD }}
@@ -40,28 +31,28 @@ build-release CMD:
 [unix]
 build-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk build --release --no-default-features
+    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
 build-wasm:
     #!powershell -NoLogo
     cd bff-gui
-    $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
+    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
     trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [unix]
 serve-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot" trunk serve --release --no-default-features
+    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk serve --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
 serve-wasm:
     #!powershell -NoLogo
     cd bff-gui
-    $ENV:CC = "{{ wasi_sdk_path }}/bin/clang --sysroot={{ wasi_sdk_path }}/share/wasi-sysroot"
+    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
     trunk serve --release --no-default-features
 
 doc:
@@ -168,7 +159,7 @@ profile-compile *TARGET:
     Write-Output "Wrote compile profile artifacts to $out"
 
 zizmor:
-    zizmor --persona auditor --collect all .github/workflows/build.yml .github/workflows/build-wasm.yml
+    zizmor --persona auditor --collect all -- .github/workflows/build-wasm.yml .github/workflows/build.yml .github/workflows/nightly-release.yml .github/workflows/release.yml
 
 machete:
     cargo machete

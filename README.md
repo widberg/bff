@@ -3,7 +3,7 @@
 BigFile Friend
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/widberg/bff/build.yml)](https://github.com/widberg/bff/actions)
-[![Release Nightly](https://img.shields.io/badge/release-nightly-5e025f?labelColor=301934)](https://nightly.link/widberg/bff/workflows/build/master)
+[![Release Nightly](https://img.shields.io/badge/release-nightly-5e025f?labelColor=301934)](https://github.com/widberg/bff/releases/tag/nightly)
 [![Join the chat at https://discord.gg/CQgMNbYeUR](https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2)](https://discord.gg/CQgMNbYeUR)
 
 The Zouna Swiss Army knife. Originally named BigFile Friend for Zouna's resource archives, it now supports far more than just BigFiles.
@@ -108,24 +108,30 @@ Ahmed Khaled's [`ratatouille_converter.py`](https://gist.github.com/widberg/2abb
 
 ## Getting Started
 
-### Prerequisites
+### Install Release
 
-* [Rust](https://www.rust-lang.org/)
+Stable versioned releases can be found on the [Releases page](https://github.com/widberg/bff/releases).
 
-### Checkout
+### Install Nightly
+
+If you want the latest bug fixes and improvements, use the [nightly release](https://github.com/widberg/bff/releases/tag/nightly).
+
+### Build from Source
+
+#### Checkout
 
 ```sh
 git clone https://github.com/widberg/bff.git
 cd bff
 ```
 
-### Build
+#### Build
 
 ```sh
 cargo build --release
 ```
 
-### Test
+#### Test
 
 ```sh
 cargo +nightly test --release
