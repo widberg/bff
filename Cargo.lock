@@ -737,6 +737,7 @@ dependencies = [
 [[package]]
 name = "binrw"
 version = "0.16.0-pre"
+source = "git+https://github.com/widberg/binrw.git?branch=paradiso#0b0c4cd805c43f417ada074caf2c089a7f33ccaf"
 dependencies = [
  "array-init",
  "binrw_derive",
@@ -746,6 +747,7 @@ dependencies = [
 [[package]]
 name = "binrw_derive"
 version = "0.16.0-pre"
+source = "git+https://github.com/widberg/binrw.git?branch=paradiso#0b0c4cd805c43f417ada074caf2c089a7f33ccaf"
 dependencies = [
  "either",
  "owo-colors",
@@ -1334,6 +1336,7 @@ dependencies = [
 [[package]]
 name = "ddsfile"
 version = "0.5.3-unstable"
+source = "git+https://github.com/widberg/ddsfile.git?branch=master#3a4e7da590bdada6fbbc0b0733fc3f5a53fc3104"
 dependencies = [
  "bitflags 2.8.0",
  "byteorder",
