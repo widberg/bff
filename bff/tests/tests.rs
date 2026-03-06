@@ -2,7 +2,7 @@
 #![test_runner(datatest::runner)]
 
 #[cfg(test)]
-mod tests {    
+mod tests {
     use mimalloc::MiMalloc;
 
     #[global_allocator]
@@ -14,7 +14,6 @@ mod tests {
     use std::path::PathBuf;
 
     use bff::bigfile::BigFile;
-    use bff::bigfile::platforms::Platform;
     use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
     use bff::class::Class;
     use bff::names::NameContext;
@@ -25,10 +24,7 @@ mod tests {
     #[test]
     fn read(bigfile_path_str: String) {
         let bigfile_path = PathBuf::from(bigfile_path_str);
-        let platform = match bigfile_path.extension() {
-            Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-            None => Platform::PC,
-        };
+        let platform = bigfile_path.extension().unwrap().try_into().unwrap();
         let f = File::open(bigfile_path).unwrap();
         let mut reader = BufReader::new(f);
         let name_context = NameContext::default();
@@ -39,10 +35,7 @@ mod tests {
     #[test]
     fn roundtrip_resources(bigfile_path_str: String) {
         let bigfile_path = PathBuf::from(bigfile_path_str);
-        let platform = match bigfile_path.extension() {
-            Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-            None => Platform::PC,
-        };
+        let platform = bigfile_path.extension().unwrap().try_into().unwrap();
         let f = File::open(bigfile_path).unwrap();
         let mut reader = BufReader::new(f);
         let name_context = NameContext::default();
@@ -84,10 +77,7 @@ mod tests {
     #[test]
     fn roundtrip_bigfiles(bigfile_path_str: String) {
         let bigfile_path = PathBuf::from(bigfile_path_str);
-        let platform = match bigfile_path.extension() {
-            Some(extension) => extension.try_into().unwrap_or(Platform::PC),
-            None => Platform::PC,
-        };
+        let platform = bigfile_path.extension().unwrap().try_into().unwrap();
         let data = fs::read(bigfile_path).unwrap();
         let mut reader = Cursor::new(&data);
         let name_context = NameContext::default();
@@ -98,5 +88,23 @@ mod tests {
             .unwrap();
 
         assert!(data == writer.into_inner());
+    }
+
+    #[datatest::data("../data/read_write_read.yaml")]
+    #[test]
+    fn read_write_read(bigfile_path_str: String) {
+        let bigfile_path = PathBuf::from(bigfile_path_str);
+        let platform = bigfile_path.extension().unwrap().try_into().unwrap();
+        let f = File::open(bigfile_path).unwrap();
+        let mut reader = BufReader::new(f);
+        let name_context = NameContext::default();
+        let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
+        let mut writer = Cursor::new(Vec::new());
+        bigfile
+            .write(&mut writer, None, &None, &None, None, &name_context)
+            .unwrap();
+        let mut reader = Cursor::new(writer.into_inner());
+        let name_context = NameContext::default();
+        let _ = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
     }
 }
