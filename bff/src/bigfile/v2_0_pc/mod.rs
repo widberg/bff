@@ -9,6 +9,7 @@ use crate::BffResult;
 use crate::bigfile::BigFile;
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::platforms::Platform;
+use crate::bigfile::resource::Resource as BffResource;
 use crate::bigfile::versions::Version;
 use crate::helpers::{DynArray, calculated_padded, read_align_to, write_align_to};
 use crate::lz::{lzo_compress, lzo_decompress};
@@ -16,14 +17,12 @@ use crate::names::NameType;
 use crate::names::NameType::Ubisoft64;
 use crate::traits::BigFileIo;
 
-// FIXME: This should be 20 for compressed and 12 for uncompressed
-// Realistically it needs to be a new type that remembers if it's compressed
 type Resource = Resource12<20>;
 
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
-    pub resources: Vec<Resource>,
+    pub resources: Vec<BffResource>,
 }
 
 impl Block {
@@ -39,7 +38,9 @@ impl BinWrite for Block {
         endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        self.resources.write_options(writer, endian, ())?;
+        for resource in &self.resources {
+            Resource::dump_resource(resource, writer, endian)?;
+        }
         Ok(())
     }
 }
@@ -66,19 +67,23 @@ fn parse_blocks(decompressed_block_size: u32, block_sizes: &[u32]) -> BinResult<
                     &mut decompressed,
                     endian,
                     args! { count: resource_count as usize },
-                )?,
+                )?
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             });
             read_align_to(reader, 2048)?;
         } else {
-            // FIXME: This will miss the last 8 bytes of each resource
-            // See FIXME near top of this file
             blocks.push(Block {
                 compressed: false,
                 resources: Vec::<Resource>::read_options(
                     reader,
                     endian,
                     args! { count: resource_count as usize },
-                )?,
+                )?
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             });
             reader.seek(SeekFrom::Start(block_start + *block_size as u64))?;
         }
@@ -128,7 +133,7 @@ impl From<BigFileV2_0PC> for BigFile {
                     name: resource.name,
                     compress: None,
                 });
-                resources.insert(resource.name, resource.into());
+                resources.insert(resource.name, resource);
             }
 
             blocks.push(crate::bigfile::manifest::ManifestBlock {
@@ -191,7 +196,7 @@ impl BigFileIo for BigFileV2_0PC {
 
             let block_data = block_writer.into_inner();
 
-            decompressed_block_size = max(decompressed_block_size, block_data.len() as u32);
+            decompressed_block_size = max(decompressed_block_size, block_data.len() as u32 + 8);
 
             blocks.push((
                 block.resources.len() as u32,
@@ -211,7 +216,7 @@ impl BigFileIo for BigFileV2_0PC {
 
             resource_count.write_options(writer, endian, ())?;
 
-            block_data.resize(decompressed_block_size as usize, 0);
+            block_data.resize((decompressed_block_size - 8) as usize, 0);
 
             if compressed {
                 compression_type = CompressionType::Lzo;
@@ -220,13 +225,13 @@ impl BigFileIo for BigFileV2_0PC {
                 writer.write_all(&block_data)?;
             }
 
-            // FIXME: Padding isn't right
-
             let block_end = writer.stream_position()?;
 
-            write_align_to(writer, 2048, 0)?;
+            block_sizes.push((block_end - block_begin) as u32);
 
-            block_sizes.push((block_end - block_begin - if compressed { 8 } else { 0 }) as u32);
+            if compressed {
+                write_align_to(writer, 2048, 0)?;
+            }
         }
 
         // Write header at the beginning of the file and restore position

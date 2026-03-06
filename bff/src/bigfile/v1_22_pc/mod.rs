@@ -35,13 +35,13 @@ impl<const S: u32> Resource<S> {
     ) -> BinResult<()> {
         match &resource.data {
             Data(data) => {
-                (data.len() as u32 + 12).write_options(writer, endian, ())?;
+                (data.len() as u32 + S).write_options(writer, endian, ())?;
                 resource.class_name.write_options(writer, endian, ())?;
                 resource.name.write_options(writer, endian, ())?;
                 data.write_options(writer, endian, ())?;
             }
             SplitData { link_header, body } => {
-                let data_len = link_header.len() as u32 + body.len() as u32 + 12;
+                let data_len = link_header.len() as u32 + body.len() as u32 + S;
                 data_len.write_options(writer, endian, ())?;
                 resource.class_name.write_options(writer, endian, ())?;
                 resource.name.write_options(writer, endian, ())?;
