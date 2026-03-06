@@ -213,10 +213,11 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
         for (resource_count, _, compressed, mut block_data) in blocks {
             let block_begin = writer.stream_position()?;
+            let block_payload_size = decompressed_block_size.saturating_sub(4);
 
             resource_count.write_options(writer, endian, ())?;
 
-            block_data.resize(decompressed_block_size as usize, 0);
+            block_data.resize(block_payload_size as usize, 0);
 
             if compressed {
                 // FIXME: Compressed data isn't a 1-to-1 match but round trips correctly?
@@ -231,19 +232,12 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
             write_align_to(writer, 2048, 0)?;
 
-            block_sizes.push(
-                (block_end
-                    - block_begin
-                    - if compressed {
-                        match GAME {
-                            SHAUN_PROTO => 0,
-                            SHAUN => 4,
-                            _ => unreachable!(),
-                        }
-                    } else {
-                        0
-                    }) as u32,
-            );
+            block_sizes.push(match (compressed, GAME) {
+                (false, _) => (block_end - block_begin) as u32,
+                (true, SHAUN) => (block_end - block_begin) as u32,
+                (true, SHAUN_PROTO) => (block_end - block_begin - 4) as u32,
+                (_, _) => unreachable!(),
+            });
         }
 
         // Write header at the beginning of the file and restore position
@@ -269,6 +263,5 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
     const NAME_TYPE: NameType = BlackSheep32;
 
-    // FIXME: I'm not convinced this is correct, see the other v2_X BF
     type ResourceType = Resource;
 }
