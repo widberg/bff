@@ -1,6 +1,6 @@
 use std::cmp::max;
 use std::collections::HashMap;
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, binread, binrw, parser};
 
@@ -10,7 +10,7 @@ use crate::bigfile::manifest::Manifest;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::versions::{Version, VersionTriple, VersionXple};
-use crate::helpers::{DynArray, copy_repeat, write_align_to};
+use crate::helpers::{DynArray, copy_repeat};
 use crate::names::NameType::{BlackSheep32, Kalisto32};
 use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
@@ -207,21 +207,29 @@ impl<const HAS_VERSION_TRIPLE: bool, const KALISTO: bool> BigFileIo
         writer.write_all(&padding)?;
 
         let mut block_size = 0u32;
+        let mut serialized_blocks: Vec<Vec<u8>> = Vec::with_capacity(bigfile.manifest.blocks.len());
 
         for block in bigfile.manifest.blocks.iter() {
-            let block_begin = writer.stream_position()?;
+            let mut block_writer = Cursor::new(Vec::new());
 
-            (block.resources.len() as u32).write_options(writer, endian, ())?;
+            (block.resources.len() as u32).write_options(&mut block_writer, endian, ())?;
 
             for resource in block.resources.iter() {
                 let resource = bigfile.resources.get(&resource.name).unwrap();
-                Resource::<12>::dump_resource(resource, writer, endian)?;
+                Resource::<12>::dump_resource(resource, &mut block_writer, endian)?;
             }
 
-            write_align_to(writer, 0x20000, 0xCD)?;
+            block_size = max(block_size, block_writer.stream_position()? as u32);
+            serialized_blocks.push(block_writer.into_inner());
+        }
 
-            let padding_end = writer.stream_position()?;
-            block_size = max(block_size, (padding_end - block_begin) as u32);
+        for block_writer in serialized_blocks.iter() {
+            writer.write_all(block_writer)?;
+            copy_repeat(
+                writer,
+                0xCD,
+                (block_size - block_writer.len() as u32).into(),
+            )?;
         }
 
         // Write block size at the beginning of the file and restore position
