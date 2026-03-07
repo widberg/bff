@@ -28,7 +28,17 @@ mod tests {
         let f = File::open(bigfile_path).unwrap();
         let mut reader = BufReader::new(f);
         let name_context = NameContext::default();
-        let _ = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
+        let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
+
+        for (i, resource) in bigfile.resources.values().enumerate() {
+            let resource_name = resource.name.with_context(&name_context).to_string();
+            let class_name = resource.class_name.with_context(&name_context).to_string();
+
+            assert!(
+                name_context.contains(&resource.class_name),
+                "missing class name for resource {i} {resource_name}: {class_name}",
+            );
+        }
     }
 
     #[datatest::data("../data/roundtrip_resources.yaml")]
