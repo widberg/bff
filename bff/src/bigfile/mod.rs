@@ -42,7 +42,7 @@ use crate::traits::{ReferencedNames, TryIntoVersionPlatform};
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
-#[derive(Serialize, JsonSchema, Debug)]
+#[derive(Serialize, JsonSchema, Debug, Eq, PartialEq)]
 pub struct BigFile {
     #[serde(flatten)]
     pub manifest: Manifest,
