@@ -1,11 +1,13 @@
 pub mod header;
+pub mod pool;
 
 use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinWrite, Endian};
+use binrw::{BinRead, BinResult, BinWrite, Endian};
 use header::*;
+use pool::Pool;
 
 use crate::BffResult;
 use crate::bigfile::BigFile;
@@ -18,9 +20,60 @@ use crate::bigfile::v1_06_63_02_pc::resource::Resource;
 use crate::bigfile::versions::{Version, VersionXple};
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
+use crate::names::Name;
 use crate::names::NameType;
 use crate::names::NameType::Asobo32;
 use crate::traits::BigFileIo;
+
+#[binrw::parser(reader, endian)]
+fn pool_parser(
+    resources: &mut HashMap<Name, crate::bigfile::resource::Resource>,
+) -> BinResult<(ManifestPool, HashMap<Name, bool>)> {
+    let pool = Pool::read_options(reader, endian, ())?;
+
+    let resource_entry_indices = pool.header.object_names_indices.inner;
+    let resource_entries = pool
+        .header
+        .resource_descriptions
+        .iter()
+        .map(|x| ManifestPoolResourceEntry {
+            name: x.name,
+            reference_record_index: x.reference_records_index,
+        })
+        .collect::<Vec<_>>();
+    let reference_records = pool
+        .header
+        .reference_records
+        .iter()
+        .map(|x| ManifestPoolReferenceRecord {
+            resource_entries_starting_index: x.object_names_starting_index,
+            resource_entries_count: x.object_names_count,
+        })
+        .collect::<Vec<_>>();
+
+    let mut compressed = HashMap::new();
+
+    for pool_resource in pool.resources.into_iter() {
+        let name = pool_resource.resource.name;
+        let resource = resources.get_mut(&name).unwrap();
+        compressed.insert(name, pool_resource.resource.compress);
+        match &mut resource.data {
+            SplitData { body, .. } => {
+                *body = pool_resource.resource.body.into();
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    Ok((
+        ManifestPool {
+            resource_entry_indices,
+            resource_entries,
+            reference_records,
+        },
+        compressed,
+    ))
+}
 
 pub struct BigFileV1_2000_77_18PC;
 
@@ -35,12 +88,25 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
         let mut resources = HashMap::new();
 
-        let blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
+        let mut blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
+
+        let mut pool = None;
+        let end = reader.seek(SeekFrom::End(0)).unwrap();
+
+        if reader.stream_position().unwrap() != end {
+            let (parsed_pool, compressed) = pool_parser(reader, endian, (&mut resources,))?;
+            for block in blocks.iter_mut() {
+                for resource in block.resources.iter_mut() {
+                    if let Some(compress) = compressed.get(&resource.name) {
+                        resource.compress = Some(*compress);
+                    }
+                }
+            }
+            pool = Some(parsed_pool);
+        }
 
         let pos = reader.stream_position().unwrap();
-        let len = reader.seek(SeekFrom::End(0)).unwrap();
-        // FIXME: FRAGMENTS\UWP_MSSTORE\v1_2000_97_19\DATAS\CONSULTANTS.DUA has a pool and fails this assert
-        assert_eq!(pos, len);
+        assert_eq!(pos, end);
 
         Ok(BigFile {
             manifest: Manifest {
@@ -51,7 +117,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                 pool_manifest_unused: None,
                 incredi_builder_string: None,
                 blocks,
-                pool: None,
+                pool,
             },
             resources,
         })
@@ -185,7 +251,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             bigfile_type: bigfile
                 .manifest
                 .bigfile_type
-                .unwrap_or(BigFileType::Normal)
+                .unwrap_or(crate::bigfile::manifest::BigFileType::Normal)
                 .into(),
             block_working_buffer_capacity_even,
             block_working_buffer_capacity_odd,
