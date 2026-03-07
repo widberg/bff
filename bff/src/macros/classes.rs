@@ -149,19 +149,6 @@ macro_rules! classes {
         $crate::macros::classes::classes!(@module plain $class {});
     };
 
-    (@class_type_name_match $class:ident) => {
-        <$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Asobo32)),
-        <$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME_LEGACY => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Asobo32)),
-        <$class as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::AsoboAlternate32)),
-        <$class as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME_LEGACY => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::AsoboAlternate32)),
-        <$class as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Kalisto32)),
-        <$class as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME_LEGACY => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Kalisto32)),
-        <$class as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::BlackSheep32)),
-        <$class as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME_LEGACY => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::BlackSheep32)),
-        <$class as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME => Ok((ClassType::$class, ClassNameStyle::Z, crate::names::NameType::Asobo64)),
-        <$class as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME_LEGACY => Ok((ClassType::$class, ClassNameStyle::Caps, crate::names::NameType::Asobo64)),
-    };
-
     (@class_name_pattern $class:ident) => {
         crate::names::Name::Asobo32(<$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME)
             | crate::names::Name::Asobo32(<$class as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME_LEGACY)
