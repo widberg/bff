@@ -1,7 +1,9 @@
 use self::a_i_object_collection::AIObjectCollection;
 use self::a_i_obstacle_collection::AIObstacleCollection;
+use self::ambient_lightmap::AmbientLightmap;
 use self::anim_frame::AnimFrame;
 use self::animation::Animation;
+use self::animation_collection::AnimationCollection;
 use self::animation_graph::AnimationGraph;
 use self::animation_graph_override::AnimationGraphOverride;
 use self::animation_stack::AnimationStack;
@@ -21,6 +23,7 @@ use self::dialog_event::DialogEvent;
 use self::embedded_file::EmbeddedFile;
 use self::engine_parameters::EngineParameters;
 use self::entity::Entity;
+use self::entity_data::EntityData;
 use self::fence::Fence;
 use self::fence_datas::FenceDatas;
 use self::flare::Flare;
@@ -41,6 +44,8 @@ use self::h_fog_data::HFogData;
 use self::hull_spline_zone::HullSplineZone;
 use self::in_game_animation_file::InGameAnimationFile;
 use self::in_game_file::InGameFile;
+use self::lens_flare::LensFlare;
+use self::lens_flare_data::LensFlareData;
 use self::light::Light;
 use self::light_data::LightData;
 use self::light_probe_volume::LightProbeVolume;
@@ -59,6 +64,7 @@ use self::navigation_area::NavigationArea;
 use self::navigation_spline::NavigationSpline;
 use self::net_bing_obj::NetBingObj;
 use self::node::Node;
+use self::object::Object;
 use self::object_datas::ObjectDatas;
 use self::occluder::Occluder;
 use self::omni::Omni;
@@ -86,16 +92,30 @@ use self::sound_ambience::SoundAmbience;
 use self::sound_data::SoundData;
 use self::sound_event::SoundEvent;
 use self::sound_id::SoundId;
+use self::sound_node::SoundNode;
 use self::special_effect_node::SpecialEffectNode;
 use self::spline::Spline;
 use self::spline_graph::SplineGraph;
+use self::spline_node::SplineNode;
+use self::spline_point_node::SplinePointNode;
+use self::spline_point_tangent_node::SplinePointTangentNode;
 use self::spline_zone::SplineZone;
 use self::sub_world::SubWorld;
 use self::surface::Surface;
 use self::surface_datas::SurfaceDatas;
 use self::terrain::Terrain;
 use self::texture::Texture;
+use self::trigger_node::TriggerNode;
 use self::txt::Txt;
+use self::u_i3_d_canvas::UI3DCanvas;
+use self::u_i_container::UIContainer;
+use self::u_i_font::UIFont;
+use self::u_i_layout_node::UILayoutNode;
+use self::u_i_list_box::UIListBox;
+use self::u_i_material::UIMaterial;
+use self::u_i_nine_slice::UINineSlice;
+use self::u_i_panel::UIPanel;
+use self::u_i_text_panel::UITextPanel;
 use self::user_define::UserDefine;
 use self::user_define_script::UserDefineScript;
 use self::warp::Warp;
@@ -106,8 +126,10 @@ use crate::macros::classes::classes;
 
 pub mod a_i_object_collection;
 pub mod a_i_obstacle_collection;
+pub mod ambient_lightmap;
 pub mod anim_frame;
 pub mod animation;
+pub mod animation_collection;
 pub mod animation_graph;
 pub mod animation_graph_override;
 pub mod animation_stack;
@@ -127,6 +149,7 @@ pub mod dialog_event;
 pub mod embedded_file;
 pub mod engine_parameters;
 pub mod entity;
+pub mod entity_data;
 pub mod fence;
 pub mod fence_datas;
 pub mod flare;
@@ -147,6 +170,8 @@ pub mod h_fog_data;
 pub mod hull_spline_zone;
 pub mod in_game_animation_file;
 pub mod in_game_file;
+pub mod lens_flare;
+pub mod lens_flare_data;
 pub mod light;
 pub mod light_data;
 pub mod light_probe_volume;
@@ -165,6 +190,7 @@ pub mod navigation_area;
 pub mod navigation_spline;
 pub mod net_bing_obj;
 pub mod node;
+pub mod object;
 pub mod object_datas;
 pub mod occluder;
 pub mod omni;
@@ -192,17 +218,31 @@ pub mod sound_ambience;
 pub mod sound_data;
 pub mod sound_event;
 pub mod sound_id;
+pub mod sound_node;
 pub mod special_effect_node;
 pub mod spline;
 pub mod spline_graph;
+pub mod spline_node;
+pub mod spline_point_node;
+pub mod spline_point_tangent_node;
 pub mod spline_zone;
 pub mod sub_world;
 pub mod surface;
 pub mod surface_datas;
 pub mod terrain;
 pub mod texture;
+pub mod trigger_node;
 pub mod trivial_class;
 pub mod txt;
+pub mod u_i3_d_canvas;
+pub mod u_i_container;
+pub mod u_i_font;
+pub mod u_i_layout_node;
+pub mod u_i_list_box;
+pub mod u_i_material;
+pub mod u_i_nine_slice;
+pub mod u_i_panel;
+pub mod u_i_text_panel;
 pub mod user_define;
 pub mod user_define_script;
 pub mod warp;
@@ -213,7 +253,9 @@ pub mod x_ref_node;
 classes! {
     AIObstacleCollection,
     AIObjectCollection,
+    AmbientLightmap,
     Animation,
+    AnimationCollection,
     AnimationGraph,
     AnimationGraphOverride,
     AnimationStack,
@@ -234,6 +276,7 @@ classes! {
     EmbeddedFile,
     EngineParameters,
     Entity,
+    EntityData,
     Fence,
     FenceDatas,
     Flare,
@@ -254,6 +297,8 @@ classes! {
     HullSplineZone,
     InGameAnimationFile,
     InGameFile,
+    LensFlare,
+    LensFlareData,
     Light,
     LightData,
     LightProbeVolume,
@@ -272,6 +317,7 @@ classes! {
     NavigationSpline,
     NetBingObj,
     Node,
+    Object,
     ObjectDatas,
     Occluder,
     Omni,
@@ -299,16 +345,30 @@ classes! {
     SoundData,
     SoundEvent,
     SoundId,
+    SoundNode,
     SpecialEffectNode,
     Spline,
     SplineGraph,
+    SplineNode,
+    SplinePointNode,
+    SplinePointTangentNode,
     SplineZone,
     SubWorld,
     Surface,
     SurfaceDatas,
     Terrain,
     Texture,
+    TriggerNode,
     Txt,
+    UI3DCanvas,
+    UIContainer,
+    UIFont,
+    UILayoutNode,
+    UIListBox,
+    UIMaterial,
+    UINineSlice,
+    UIPanel,
+    UITextPanel,
     UserDefine,
     UserDefineScript,
     Warp,
