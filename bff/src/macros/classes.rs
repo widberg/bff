@@ -1,5 +1,12 @@
 macro_rules! classes {
     ($($class:ident),* $(,)?) => {
+        pastey::paste! {
+            $(
+                pub mod [<#$class:snake>];
+                use self::[<#$class:snake>]::[<$class>];
+            )*
+        }
+
         #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames, schemars::JsonSchema)]
         pub enum Class {
             $($class($class),)*
