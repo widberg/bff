@@ -8,6 +8,7 @@ use itertools::Itertools;
 use crate::BffResult;
 use crate::helpers::copy_repeat;
 use crate::lz::{lzo_compress, lzo_decompress};
+use crate::names::{Name, NameContext};
 
 #[derive(Debug, Default)]
 pub struct Cps {
@@ -22,8 +23,11 @@ enum Param {
     Float(f32),
 }
 
-#[binrw::parser(reader, endian)]
-fn decode_cps_script() -> BinResult<String> {
+fn decode_cps_script<R: Read + Seek>(
+    reader: &mut R,
+    endian: Endian,
+    name_context: &NameContext,
+) -> BinResult<String> {
     let mut script = String::new();
 
     let num_lines = u32::read_options(reader, endian, ())?;
@@ -31,8 +35,8 @@ fn decode_cps_script() -> BinResult<String> {
     for _ in 0..num_lines {
         let num_params = u8::read_options(reader, endian, ())?;
         if num_params != 0 {
-            let command_name = i32::read_options(reader, endian, ())?;
-            script.push_str(command_name.to_string().as_str());
+            let command_name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
+            script.push_str(command_name.with_context(name_context).to_string().as_str());
             for _ in 1..num_params {
                 script.push(' ');
                 let param = Param::read_options(reader, endian, ())?;
@@ -48,8 +52,12 @@ fn decode_cps_script() -> BinResult<String> {
     Ok(script)
 }
 
-#[binrw::writer(writer, endian)]
-fn encode_cps_script(script: &str) -> BinResult<()> {
+fn encode_cps_script<W: Write + Seek>(
+    script: &str,
+    writer: &mut W,
+    endian: Endian,
+    name_context: &NameContext,
+) -> BinResult<()> {
     let start = writer.stream_position()?;
     let mut num_lines: u32 = 0;
     num_lines.write_options(writer, endian, ())?;
@@ -59,14 +67,14 @@ fn encode_cps_script(script: &str) -> BinResult<()> {
         chars
             .peeking_take_while(|c| c.is_whitespace())
             .for_each(drop);
-        let Ok(command_name) = (&mut chars)
+        let command_name_token = (&mut chars)
             .take_while(|c| !c.is_whitespace())
-            .collect::<String>()
-            .parse::<i32>()
-        else {
+            .collect::<String>();
+        if command_name_token.is_empty() {
             0u8.write_options(writer, endian, ())?;
             continue;
-        };
+        }
+        let command_name = name_context.parse_or_hash_name(&command_name_token);
         let mut params: Vec<Param> = Vec::new();
         loop {
             chars
@@ -93,7 +101,7 @@ fn encode_cps_script(script: &str) -> BinResult<()> {
 
         let num_params = 1 + params.len() as u8;
         num_params.write_options(writer, endian, ())?;
-        command_name.write_options(writer, endian, ())?;
+        name_context.scope(|| command_name.write_options(writer, endian, ()))?;
         for param in params {
             param.write_options(writer, endian, ())?;
         }
@@ -110,12 +118,12 @@ fn encode_cps_script(script: &str) -> BinResult<()> {
 }
 
 impl BinRead for Cps {
-    type Args<'a> = ();
+    type Args<'a> = (&'a NameContext,);
 
     fn read_options<R: Read + Seek>(
         reader: &mut R,
         endian: Endian,
-        _args: Self::Args<'_>,
+        (name_context,): Self::Args<'_>,
     ) -> BinResult<Self> {
         let mut cps = Self::default();
 
@@ -124,7 +132,7 @@ impl BinRead for Cps {
         let script_count = u32::read_options(reader, endian, ())?;
 
         for _ in 0..script_count {
-            let name = i32::read_options(reader, endian, ())?;
+            let name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
             let uncompressed_size = u32::read_options(reader, endian, ())?;
             let compressed_size = u32::read_options(reader, endian, ())?;
             let offset_in_bigfile = u32::read_options(reader, endian, ())?;
@@ -137,9 +145,10 @@ impl BinRead for Cps {
 
             let uncompressed_data =
                 lzo_decompress(&compressed_data, uncompressed_size as usize).unwrap();
-            let decoded_data = decode_cps_script(&mut Cursor::new(uncompressed_data), endian, ())?;
+            let decoded_data =
+                decode_cps_script(&mut Cursor::new(uncompressed_data), endian, name_context)?;
 
-            let path = PathBuf::from(format!("{}.tsc", name));
+            let path = PathBuf::from(format!("{}.tsc", name.with_context(name_context)));
             cps.tscs.insert(path, decoded_data);
         }
 
@@ -148,13 +157,13 @@ impl BinRead for Cps {
 }
 
 impl BinWrite for Cps {
-    type Args<'a> = ();
+    type Args<'a> = (&'a NameContext,);
 
     fn write_options<W: Write + Seek>(
         &self,
         writer: &mut W,
         endian: Endian,
-        _args: Self::Args<'_>,
+        (name_context,): Self::Args<'_>,
     ) -> BinResult<()> {
         let version = CPS_VERSION;
         let flags = 0u32;
@@ -169,15 +178,9 @@ impl BinWrite for Cps {
         writer.seek(SeekFrom::Start(pos))?;
 
         for (path, script) in self.tscs.iter() {
-            let name = path
-                .file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .parse::<i32>()
-                .unwrap();
+            let name = name_context.parse_or_hash_name(path.file_stem().unwrap().to_str().unwrap());
             let mut encoded_data = Cursor::new(Vec::new());
-            encode_cps_script(script, &mut encoded_data, endian, ())?;
+            encode_cps_script(script, &mut encoded_data, endian, name_context)?;
             let encoded_data = encoded_data.into_inner();
             let uncompressed_size = encoded_data.len() as u32;
             let mut compressed_data = Cursor::new(Vec::new());
@@ -185,7 +188,7 @@ impl BinWrite for Cps {
             let compressed_data = compressed_data.into_inner();
             let compressed_size = compressed_data.len() as u32;
 
-            name.write_options(writer, endian, ())?;
+            name_context.scope(|| name.write_options(writer, endian, ()))?;
             uncompressed_size.write_options(writer, endian, ())?;
             compressed_size.write_options(writer, endian, ())?;
             let pos = writer.stream_position()?;
@@ -220,14 +223,26 @@ fn cps_crypt() -> BinResult<Vec<u8>> {
 }
 
 impl Cps {
-    pub fn read<R: Read + Seek>(reader: &mut R, endian: Endian) -> BffResult<Self> {
+    pub fn read<R: Read + Seek>(
+        reader: &mut R,
+        endian: Endian,
+        name_context: &NameContext,
+    ) -> BffResult<Self> {
         let first_char = u8::read_options(reader, endian, ())?;
         reader.seek(SeekFrom::Start(0))?;
         if first_char == CPS_FIRST_CHAR {
-            Ok(<Self as BinRead>::read_options(reader, endian, ())?)
+            Ok(<Self as BinRead>::read_options(
+                reader,
+                endian,
+                (name_context,),
+            )?)
         } else {
             let mut cps_data = Cursor::new(cps_crypt(reader, endian, ())?);
-            Ok(<Self as BinRead>::read_options(&mut cps_data, endian, ())?)
+            Ok(<Self as BinRead>::read_options(
+                &mut cps_data,
+                endian,
+                (name_context,),
+            )?)
         }
     }
 
@@ -236,12 +251,13 @@ impl Cps {
         writer: &mut W,
         endian: Endian,
         unencrypted: bool,
+        name_context: &NameContext,
     ) -> BffResult<()> {
         if unencrypted {
-            <Self as BinWrite>::write_options(self, writer, endian, ())?;
+            <Self as BinWrite>::write_options(self, writer, endian, (name_context,))?;
         } else {
             let mut cps_data = Cursor::new(Vec::new());
-            <Self as BinWrite>::write_options(self, &mut cps_data, endian, ())?;
+            <Self as BinWrite>::write_options(self, &mut cps_data, endian, (name_context,))?;
             cps_data.seek(SeekFrom::Start(0))?;
             let encrypted_data = cps_crypt(&mut cps_data, endian, ())?;
             writer.write_all(&encrypted_data)?;

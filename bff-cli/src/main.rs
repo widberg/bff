@@ -191,6 +191,8 @@ enum Commands {
     ExtractCps {
         cps: PathBuf,
         directory: PathBuf,
+        #[arg(long)]
+        in_names: Vec<PathBuf>,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -199,6 +201,8 @@ enum Commands {
     CreateCps {
         directory: PathBuf,
         cps: PathBuf,
+        #[arg(long)]
+        out_names: Option<PathBuf>,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = LzEndian::Little)]
         endian: LzEndian,
@@ -355,14 +359,23 @@ fn main() -> BffCliResult<()> {
         Commands::ExtractCps {
             cps,
             directory,
+            in_names,
             endian,
-        } => cps::extract_cps(cps, directory, endian),
+        } => cps::extract_cps(cps, directory, in_names, endian, &name_context),
         Commands::CreateCps {
             directory,
             cps,
+            out_names,
             endian,
             unencrypted,
-        } => cps::create_cps(directory, cps, endian, unencrypted),
+        } => cps::create_cps(
+            directory,
+            cps,
+            out_names,
+            endian,
+            unencrypted,
+            &name_context,
+        ),
         Commands::ExtractFatLin {
             fat,
             lin,

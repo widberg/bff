@@ -651,27 +651,51 @@ impl Names {
         self.name_type = name_type;
     }
 
-    fn insert(&mut self, string: &str) {
+    fn name_from_i32(&self, value: i32) -> Name {
+        match self.name_type {
+            NameType::Asobo32 => NameAsobo32::new(value).into(),
+            NameType::AsoboAlternate32 => NameAsoboAlternate32::new(value).into(),
+            NameType::Kalisto32 => NameKalisto32::new(value).into(),
+            NameType::BlackSheep32 => NameBlackSheep32::new(value).into(),
+            NameType::Asobo64 => NameAsobo64::new(value as i64).into(),
+            NameType::Ubisoft64 => NameUbisoft64::new(value as i64).into(),
+        }
+    }
+
+    fn parse_i32_or_hash_name(&mut self, token: &str) -> Name {
+        if let Ok(value) = token.parse::<i32>() {
+            self.name_from_i32(value)
+        } else {
+            self.insert(token)
+        }
+    }
+
+    fn insert(&mut self, string: &str) -> Name {
         let sym = self.strings.get_or_intern(string);
 
-        self.asobo32_names
-            .entry(NameAsobo32::hash_string(string))
-            .or_insert(sym);
+        let asobo32 = NameAsobo32::hash_string(string);
+        self.asobo32_names.entry(asobo32).or_insert(sym);
+        let asobo_alternate32 = NameAsoboAlternate32::hash_string(string);
         self.asobo_alternate32_names
-            .entry(NameAsoboAlternate32::hash_string(string))
+            .entry(asobo_alternate32)
             .or_insert(sym);
-        self.kalisto32_names
-            .entry(NameKalisto32::hash_string(string))
-            .or_insert(sym);
-        self.blacksheep32_names
-            .entry(NameBlackSheep32::hash_string(string))
-            .or_insert(sym);
-        self.asobo64_names
-            .entry(NameAsobo64::hash_string(string))
-            .or_insert(sym);
-        self.ubisoft64_names
-            .entry(NameUbisoft64::hash_string(string))
-            .or_insert(sym);
+        let kalisto32 = NameKalisto32::hash_string(string);
+        self.kalisto32_names.entry(kalisto32).or_insert(sym);
+        let blacksheep32 = NameBlackSheep32::hash_string(string);
+        self.blacksheep32_names.entry(blacksheep32).or_insert(sym);
+        let asobo64 = NameAsobo64::hash_string(string);
+        self.asobo64_names.entry(asobo64).or_insert(sym);
+        let ubisoft64 = NameUbisoft64::hash_string(string);
+        self.ubisoft64_names.entry(ubisoft64).or_insert(sym);
+
+        match self.name_type {
+            NameType::Asobo32 => asobo32.into(),
+            NameType::AsoboAlternate32 => asobo_alternate32.into(),
+            NameType::Kalisto32 => kalisto32.into(),
+            NameType::BlackSheep32 => blacksheep32.into(),
+            NameType::Asobo64 => asobo64.into(),
+            NameType::Ubisoft64 => ubisoft64.into(),
+        }
     }
 
     fn get(&self, name: &Name) -> Option<&str> {
@@ -910,8 +934,16 @@ impl NameContext {
         self.names.lock().unwrap().set_name_type(name_type);
     }
 
-    pub fn insert(&self, string: &str) {
-        self.names.lock().unwrap().insert(string);
+    pub fn name_from_i32(&self, value: i32) -> Name {
+        self.names.lock().unwrap().name_from_i32(value)
+    }
+
+    pub fn parse_or_hash_name(&self, token: &str) -> Name {
+        self.names.lock().unwrap().parse_i32_or_hash_name(token)
+    }
+
+    pub fn insert(&self, string: &str) -> Name {
+        self.names.lock().unwrap().insert(string)
     }
 
     pub fn contains(&self, name: &Name) -> bool {
