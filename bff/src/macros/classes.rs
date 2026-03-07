@@ -1,11 +1,27 @@
 macro_rules! classes {
-    ($($class:ident),* $(,)?) => {
-        pastey::paste! {
-            $(
-                pub mod [<#$class:snake>];
-                use self::[<#$class:snake>]::[<$class>];
-            )*
-        }
+    (
+        $(
+            $(#![$generic:ident])?
+            $class:ident
+            $({
+                $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)?
+                $(; $(pub mod $extra_mod:ident;)*)?
+            })?
+            ,
+        )*
+    ) => {
+        $(
+            classes!(@module
+                $(
+                    #![$generic]
+                )?
+                $class
+                $({
+                    $($pattern => $variant_mod::$variant),*
+                    $(; $(pub mod $extra_mod;)*)?
+                })?
+            );
+        )*
 
         #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames, schemars::JsonSchema)]
         pub enum Class {
@@ -128,6 +144,74 @@ macro_rules! classes {
                     $(Class::$class(class) => <$class as crate::traits::Import>::import(class, artifacts),)*
                 }
             }
+        }
+    };
+
+    (@module #![generic] $class:ident {}) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                $crate::macros::bff_class::bff_class! { #![generic] $class {} }
+            }
+            use self::[<#$class:snake>]::[<$class>];
+        }
+    };
+    (@module $class:ident {}) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                $crate::macros::bff_class::bff_class! { $class {} }
+            }
+            use self::[<#$class:snake>]::[<$class>];
+        }
+    };
+    (@module #![generic] $class:ident { $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)? $(; $(pub mod $extra_mod:ident;)*)? }) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                pub mod generic;
+                $(
+                    $(
+                        pub mod $extra_mod;
+                    )*
+                )?
+                $(
+                    mod $variant_mod;
+                    use self::$variant_mod::$variant;
+                )*
+                $crate::macros::bff_class::bff_class! { #![generic] $class { $($pattern => $variant),* } }
+            }
+            use self::[<#$class:snake>]::[<$class>];
+        }
+    };
+    (@module $class:ident { $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)? $(; $(pub mod $extra_mod:ident;)*)? }) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                $(
+                    $(
+                        pub mod $extra_mod;
+                    )*
+                )?
+                $(
+                    mod $variant_mod;
+                    use self::$variant_mod::$variant;
+                )*
+                $crate::macros::bff_class::bff_class! { $class { $($pattern => $variant),* } }
+            }
+            use self::[<#$class:snake>]::[<$class>];
+        }
+    };
+    (@module #![generic] $class:ident) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                $crate::macros::bff_class::bff_class! { #![generic] $class {} }
+            }
+            use self::[<#$class:snake>]::[<$class>];
+        }
+    };
+    (@module $class:ident) => {
+        pastey::paste! {
+            pub mod [<#$class:snake>] {
+                $crate::macros::bff_class::bff_class! { $class {} }
+            }
+            use self::[<#$class:snake>]::[<$class>];
         }
     };
 }

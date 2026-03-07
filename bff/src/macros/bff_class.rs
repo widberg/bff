@@ -217,10 +217,10 @@ macro_rules! bff_class {
         }
     };
     (#![generic] $class:ident {}) => {
-        bff_class! {$class {}}
+        $crate::macros::bff_class::bff_class! {$class {}}
 
         pastey::paste! {
-            impl From<#class> for generic::[<$class Generic>] {
+            impl From<$class> for generic::[<$class Generic>] {
                 fn from(
                     class: $class,
                 ) -> generic::[<$class Generic>] {
@@ -230,7 +230,7 @@ macro_rules! bff_class {
         }
     };
     (#![generic] $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
-        bff_class! {$class { $($pattern => $variant),* }}
+        $crate::macros::bff_class::bff_class! {$class { $($pattern => $variant),* }}
 
         pastey::paste! {
             impl From<$class> for generic::[<$class Generic>] {
