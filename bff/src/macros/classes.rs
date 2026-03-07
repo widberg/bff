@@ -40,16 +40,12 @@ macro_rules! classes {
             type Error = ();
 
             fn try_from(name: crate::names::Name) -> Result<(ClassType, ClassNameStyle, crate::names::NameType), ()> {
-                match name {
-                    $($crate::macros::classes::classes!(@class_name_pattern $class) => {
-                        if let Some((style, name_type)) = $crate::macros::classes::classes!(@class_name_style_type $class name) {
-                            Ok((ClassType::$class, style, name_type))
-                        } else {
-                            Err(())
-                        }
-                    },)*
-                    _ => Err(()),
-                }
+                $(
+                    if let Some((style, name_type)) = $crate::macros::classes::classes!(@class_name_style_type $class name) {
+                        return Ok((ClassType::$class, style, name_type));
+                    }
+                )*
+                Err(())
             }
         }
 
@@ -57,11 +53,12 @@ macro_rules! classes {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(resource: &crate::bigfile::resource::Resource, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Class> {
-                match resource.class_name {
-                    $($crate::macros::classes::classes!(@class_name_pattern $class)
-                        => Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$crate::macros::classes::classes!(@class_ty $class)>>::try_into_version_platform(resource, version, platform)?.into()),)*
-                    _ => Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into()),
-                }
+                $(
+                    if $crate::macros::classes::classes!(@class_name_style_type $class resource.class_name).is_some() {
+                        return Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$crate::macros::classes::classes!(@class_ty $class)>>::try_into_version_platform(resource, version, platform)?.into());
+                    }
+                )*
+                Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into())
             }
         }
 
@@ -88,11 +85,12 @@ macro_rules! classes {
             type Report = ClassTryYourBestReport;
             fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
                 report.total += 1;
-                match resource.class_name {
-                    $($crate::macros::classes::classes!(@class_name_pattern $class)
-                        => <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::TryYourBest<&crate::bigfile::resource::Resource>>::update_report(resource, platform, &mut report.$class),)*
-                    _ => {},
-                }
+                $(
+                    if $crate::macros::classes::classes!(@class_name_style_type $class resource.class_name).is_some() {
+                        <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::TryYourBest<&crate::bigfile::resource::Resource>>::update_report(resource, platform, &mut report.$class);
+                        return;
+                    }
+                )*
             }
         }
 
@@ -164,19 +162,6 @@ macro_rules! classes {
             _ => None,
         }
     }};
-
-    (@class_name_pattern $class:ident) => {
-        crate::names::Name::Asobo32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME)
-            | crate::names::Name::Asobo32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME_LEGACY)
-            | crate::names::Name::AsoboAlternate32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME)
-            | crate::names::Name::AsoboAlternate32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME_LEGACY)
-            | crate::names::Name::Kalisto32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME)
-            | crate::names::Name::Kalisto32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME_LEGACY)
-            | crate::names::Name::BlackSheep32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME)
-            | crate::names::Name::BlackSheep32(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME_LEGACY)
-            | crate::names::Name::Asobo64(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME)
-            | crate::names::Name::Asobo64(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME_LEGACY)
-    };
 
     (@module_kind_prelude generic) => {
         pub mod generic;
