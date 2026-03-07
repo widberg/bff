@@ -2,12 +2,12 @@ pub mod header;
 pub mod pool;
 
 use std::cmp::max;
-use std::collections::HashMap;
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::collections::{HashMap, HashSet, hash_map};
+use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use header::*;
-use pool::Pool;
+use pool::{calculate_padded_pool_header_size, Pool, PoolManifest, ResourceDescription};
 
 use crate::BffResult;
 use crate::bigfile::BigFile;
@@ -136,8 +136,20 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
         let mut block_working_buffer_capacity_even = 0u32;
         let mut block_working_buffer_capacity_odd = 0u32;
         let mut block_sector_padding_size = 0u32;
+        let pooled = bigfile
+            .manifest
+            .pool
+            .as_ref()
+            .map_or_else(HashSet::new, |pool| {
+                let mut names = HashSet::new();
+                for r in pool.resource_entries.iter() {
+                    names.insert(r.name);
+                }
+                names
+            });
 
         let mut block_descriptions = Vec::with_capacity(bigfile.manifest.blocks.len());
+        let mut compressed = HashMap::new();
 
         for (i, block) in bigfile.manifest.blocks.iter().enumerate() {
             let block_begin = writer.stream_position()?;
@@ -145,10 +157,22 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             let mut calculated_working_buffer_offset = 0usize;
 
             for block_resource in block.resources.iter() {
+                let is_compressed = block_resource.compress.unwrap_or_default();
+                compressed.insert(block_resource.name, is_compressed);
                 let resource = bigfile.resources.get(&block_resource.name).unwrap();
                 let begin_resource = writer.stream_position()?;
-                match (&resource.data, block_resource.compress.unwrap_or_default()) {
-                    (SplitData { link_header, body }, true) => {
+                let is_pooled = pooled.contains(&block_resource.name);
+                match (&resource.data, is_pooled, is_compressed) {
+                    (SplitData { link_header, .. }, true, _) => {
+                        (link_header.len() as u32).write_options(writer, endian, ())?;
+                        (link_header.len() as u32).write_options(writer, endian, ())?;
+                        0u32.write_options(writer, endian, ())?;
+                        0u32.write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.write_all(link_header)?;
+                    }
+                    (SplitData { link_header, body }, false, true) => {
                         let begin_header = writer.stream_position()?;
                         writer.seek(SeekFrom::Current(24))?;
                         writer.write_all(link_header)?;
@@ -181,7 +205,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                             calculated_working_buffer_offset,
                         );
                     }
-                    (SplitData { link_header, body }, false) => {
+                    (SplitData { link_header, body }, false, false) => {
                         (link_header.len() as u32 + body.len() as u32).write_options(
                             writer,
                             endian,
@@ -236,7 +260,192 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             });
         }
 
+        let _ = writer.stream_position()?;
+        let (
+            pool_sector_padding_size,
+            total_decompressed_size,
+        ) = if let Some(pool) = &bigfile.manifest.pool {
+            let begin_pool_header = writer.stream_position()?;
+
+            let resources_names_count_sum = pool
+                .reference_records
+                .iter()
+                .map(|x| x.resource_entries_count as u32)
+                .sum();
+
+            let padded_pool_header_size = calculate_padded_pool_header_size(
+                pool.resource_entry_indices.len(),
+                pool.resource_entries.len(),
+                pool.reference_records.len(),
+            );
+
+            writer.seek(SeekFrom::Current(padded_pool_header_size as i64))?;
+
+            let end_pool_header = writer.stream_position()?;
+
+            let mut resource_padded_sizes = HashMap::new();
+            let mut pool_sector_padding_size = 0u32;
+            let mut pool_resource_decompression_buffer_capacity = 0u32;
+
+            let mut pool_compression_cache = HashMap::new();
+            let mut total_decompressed_size = 0u32;
+
+            for i in pool.resource_entry_indices.iter() {
+                let entry = pool.resource_entries.get(*i as usize).unwrap();
+                let name = entry.name;
+                let resource = bigfile.resources.get(&name).unwrap();
+                let begin_resource = writer.stream_position()?;
+                match (
+                    &resource.data,
+                    compressed.get(&name).cloned().unwrap_or_default(),
+                ) {
+                    (SplitData { body, .. }, true) => {
+                        let compressed_data = match pool_compression_cache.entry(name) {
+                            hash_map::Entry::Occupied(e) => e.into_mut(),
+                            hash_map::Entry::Vacant(e) => {
+                                let mut compressed_data_writer = Cursor::new(Vec::new());
+                                lzrs_compress_data_with_header_writer_internal(
+                                    body,
+                                    &mut compressed_data_writer,
+                                    endian,
+                                    (),
+                                )?;
+                                e.insert(compressed_data_writer.into_inner())
+                            }
+                        };
+                        let compressed_body_size = compressed_data.len() as u32;
+                        compressed_body_size.write_options(writer, endian, ())?;
+                        0u32.write_options(writer, endian, ())?;
+                        (body.len() as u32).write_options(writer, endian, ())?;
+                        compressed_body_size.write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.write_all(compressed_data)?;
+                        pool_resource_decompression_buffer_capacity = max(
+                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048).unwrap_or(u32::MAX),
+                            pool_resource_decompression_buffer_capacity,
+                        );
+                        total_decompressed_size += body.len() as u32;
+                    }
+                    (SplitData { body, .. }, false) => {
+                        (body.len() as u32).write_options(writer, endian, ())?;
+                        0u32.write_options(writer, endian, ())?;
+                        (body.len() as u32).write_options(writer, endian, ())?;
+                        0u32.write_options(writer, endian, ())?;
+                        resource.class_name.write_options(writer, endian, ())?;
+                        resource.name.write_options(writer, endian, ())?;
+                        writer.write_all(body)?;
+                        pool_resource_decompression_buffer_capacity = max(
+                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048).unwrap_or(u32::MAX),
+                            pool_resource_decompression_buffer_capacity,
+                        );
+                        total_decompressed_size += body.len() as u32;
+                    }
+                    _ => todo!(),
+                }
+                let end_resource = writer.stream_position()?;
+                let resource_size = (end_resource - begin_resource) as u32;
+                let padding = write_align_to(writer, 2048, 0xFF)?;
+
+                pool_sector_padding_size += padding as u32;
+                resource_padded_sizes.insert(name, (resource_size + padding as u32) / 2048);
+            }
+
+            let pool_data_end = writer.stream_position()?;
+            writer.seek(SeekFrom::Start(begin_pool_header))?;
+
+            let resource_descriptions = pool
+                .resource_entries
+                .iter()
+                .map(|x| ResourceDescription {
+                    name: x.name,
+                    reference_count: pool
+                        .resource_entry_indices
+                        .iter()
+                        .filter(|y| pool.resource_entries.get(**y as usize).unwrap().name == x.name)
+                        .count() as u32,
+                    padded_size: *resource_padded_sizes.get(&x.name).unwrap(),
+                    reference_records_index: x.reference_record_index,
+                })
+                .collect::<Vec<_>>();
+
+            let start_chunk = (end_pool_header / 2048) as u32;
+            let reference_records = pool
+                .reference_records
+                .iter()
+                .map(|x| {
+                    let resource_entries_starting_index = x.resource_entries_starting_index;
+                    let resource_entries_count = x.resource_entries_count;
+
+                    let first = resource_entries_starting_index as usize;
+                    let last =
+                        resource_entries_starting_index as usize + resource_entries_count as usize;
+
+                    let get_resource_padded_size = |x: usize| -> u32 {
+                        let resource_entry_index = *pool.resource_entry_indices.get(x).unwrap();
+                        let resource_entry = pool
+                            .resource_entries
+                            .get(resource_entry_index as usize)
+                            .unwrap();
+                        *resource_padded_sizes.get(&resource_entry.name).unwrap()
+                    };
+
+                    let start_chunk_index =
+                        start_chunk + (0..first).map(get_resource_padded_size).sum::<u32>();
+                    let end_chunk_index = start_chunk_index
+                        + (first..last).map(get_resource_padded_size).sum::<u32>();
+
+                    pool::ReferenceRecord {
+                        start_chunk_index,
+                        end_chunk_index,
+                        object_names_starting_index: resource_entries_starting_index,
+                        object_names_count: resource_entries_count,
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            let object_names = pool
+                .resource_entries
+                .iter()
+                .map(|x| x.name)
+                .collect::<Vec<_>>()
+                .into();
+            let reference_records_indices = pool
+                .resource_entries
+                .iter()
+                .map(|x| x.reference_record_index)
+                .collect::<Vec<_>>()
+                .into();
+            let object_padded_size = resource_descriptions
+                .iter()
+                .map(|x| x.padded_size)
+                .collect::<Vec<_>>()
+                .into();
+
+            let pool_header = PoolManifest {
+                object_names_count_sum: resources_names_count_sum,
+                object_names_indices: pool.resource_entry_indices.clone().into(),
+                object_names,
+                resource_descriptions,
+                object_padded_size,
+                reference_records_indices,
+                reference_records: reference_records.into(),
+            };
+            pool_header.write_options(writer, endian, ())?;
+
+            let _ = writer.stream_position()?;
+            writer.seek(SeekFrom::Start(pool_data_end))?;
+
+            (
+                pool_sector_padding_size,
+                total_decompressed_size,
+            )
+        } else {
+            <_>::default()
+        };
+
         let end = writer.stream_position()?;
+
         writer.seek(SeekFrom::Start(begin))?;
 
         let total_resource_count = block_descriptions
@@ -262,9 +471,9 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             block_descriptions,
             tag: tag.map(|x| x.as_bytes().to_vec()),
             block_sector_padding_size,
-            pool_sector_padding_size: 0,
+            pool_sector_padding_size,
             file_size: end as u32,
-            total_decompressed_size: 0,
+            total_decompressed_size,
             total_resource_count,
         };
         header.write_options(writer, endian, ())?;
