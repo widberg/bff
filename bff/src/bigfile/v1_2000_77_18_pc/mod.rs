@@ -7,7 +7,7 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use header::*;
-use pool::{calculate_padded_pool_header_size, Pool, PoolManifest, ResourceDescription};
+use pool::{Pool, PoolManifest, ResourceDescription, calculate_padded_pool_header_size};
 
 use crate::BffResult;
 use crate::bigfile::BigFile;
@@ -20,9 +20,8 @@ use crate::bigfile::v1_06_63_02_pc::resource::Resource;
 use crate::bigfile::versions::{Version, VersionXple};
 use crate::helpers::{calculated_padded, write_align_to};
 use crate::lz::lzrs_compress_data_with_header_writer_internal;
-use crate::names::Name;
-use crate::names::NameType;
 use crate::names::NameType::Asobo32;
+use crate::names::{Name, NameType};
 use crate::traits::BigFileIo;
 
 #[binrw::parser(reader, endian)]
@@ -88,7 +87,8 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
 
         let mut resources = HashMap::new();
 
-        let mut blocks = blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
+        let mut blocks =
+            blocks_parser(reader, endian, (header.block_descriptions, &mut resources))?;
 
         let mut pool = None;
         let end = reader.seek(SeekFrom::End(0)).unwrap();
@@ -261,10 +261,9 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
         }
 
         let _ = writer.stream_position()?;
-        let (
-            pool_sector_padding_size,
-            total_decompressed_size,
-        ) = if let Some(pool) = &bigfile.manifest.pool {
+        let (pool_sector_padding_size, total_decompressed_size) = if let Some(pool) =
+            &bigfile.manifest.pool
+        {
             let begin_pool_header = writer.stream_position()?;
 
             let resources_names_count_sum = pool
@@ -322,7 +321,8 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                         resource.name.write_options(writer, endian, ())?;
                         writer.write_all(compressed_data)?;
                         pool_resource_decompression_buffer_capacity = max(
-                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048).unwrap_or(u32::MAX),
+                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048)
+                                .unwrap_or(u32::MAX),
                             pool_resource_decompression_buffer_capacity,
                         );
                         total_decompressed_size += body.len() as u32;
@@ -336,7 +336,8 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
                         resource.name.write_options(writer, endian, ())?;
                         writer.write_all(body)?;
                         pool_resource_decompression_buffer_capacity = max(
-                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048).unwrap_or(u32::MAX),
+                            u32::try_from((calculated_padded(body.len(), 2048)) / 2048)
+                                .unwrap_or(u32::MAX),
                             pool_resource_decompression_buffer_capacity,
                         );
                         total_decompressed_size += body.len() as u32;
@@ -436,10 +437,7 @@ impl BigFileIo for BigFileV1_2000_77_18PC {
             let _ = writer.stream_position()?;
             writer.seek(SeekFrom::Start(pool_data_end))?;
 
-            (
-                pool_sector_padding_size,
-                total_decompressed_size,
-            )
+            (pool_sector_padding_size, total_decompressed_size)
         } else {
             <_>::default()
         };

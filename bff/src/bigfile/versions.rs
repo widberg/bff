@@ -181,7 +181,9 @@ impl JsonSchema for Version {
     }
 }
 
-#[derive(Debug, Clone, Copy, BinRead, BinWrite, Serialize, Deserialize, JsonSchema, From, Eq, PartialEq)]
+#[derive(
+    Debug, Clone, Copy, BinRead, BinWrite, Serialize, Deserialize, JsonSchema, From, Eq, PartialEq,
+)]
 #[serde(untagged)]
 pub enum VersionXple {
     Oneple(VersionOneple),

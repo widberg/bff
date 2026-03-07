@@ -1,7 +1,7 @@
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 
 use crate::bigfile::v1_06_63_02_pc::resource::Resource;
-use crate::helpers::{calculated_padded, DynArray};
+use crate::helpers::{DynArray, calculated_padded};
 use crate::names::Name;
 
 #[binrw]
@@ -128,8 +128,7 @@ pub fn calculate_padded_pool_header_size(
     resource_descriptions_count: usize,
     reference_records_count: usize,
 ) -> usize {
-    let size =
-        4 + // equals0x400000
+    let size = 4 + // equals0x400000
         4 + // equals0x20
         4 + // object_names_count_sum
         4 + // object_names_indices count
