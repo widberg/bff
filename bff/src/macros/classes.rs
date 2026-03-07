@@ -281,11 +281,11 @@ macro_rules! classes {
             type Error = crate::error::Error;
 
             fn try_from_version_platform(
-                _class: &$class,
+                class: &$class,
                 _version: crate::bigfile::versions::Version,
                 _platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                todo!()
+                match *class {}
             }
         }
 
@@ -430,19 +430,9 @@ macro_rules! classes {
         }
     };
 
-    (@declare_class #![generic] $class:ident $variants:tt) => {
-        $crate::macros::classes::classes!(@declare_class $class $variants);
-        $crate::macros::classes::classes!(@declare_class_generic_from $class $variants);
-    };
-
-    (@declare_class_generic_from $class:ident {}) => {
-        pastey::paste! {
-            impl From<$class> for generic::[<$class Generic>] {
-                fn from(class: $class) -> generic::[<$class Generic>] {
-                    todo!()
-                }
-            }
-        }
+    (@declare_class #![generic] $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
+        $crate::macros::classes::classes!(@declare_class $class { $($pattern => $variant),* });
+        $crate::macros::classes::classes!(@declare_class_generic_from $class { $($pattern => $variant),* });
     };
 
     (@declare_class_generic_from $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
