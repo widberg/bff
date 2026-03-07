@@ -21,6 +21,19 @@ macro_rules! classes {
             );
         )*
 
+        $crate::macros::classes::classes!(@emit_class_enums $($class)*);
+        $crate::macros::classes::classes!(@emit_try_from_name $($class)*);
+        $crate::macros::classes::classes!(@emit_try_from_resource $($class)*);
+        $crate::macros::classes::classes!(@emit_try_into_resource $($class)*);
+        $crate::macros::classes::classes!(@emit_class_try_your_best_report $($class)*);
+        $crate::macros::classes::classes!(@emit_class_try_your_best_impl $($class)*);
+        $crate::macros::classes::classes!(@emit_class_try_your_best_display $($class)*);
+        $crate::macros::classes::classes!(@emit_class_names_fn $($class)*);
+        $crate::macros::classes::classes!(@emit_class_export_impl $($class)*);
+        $crate::macros::classes::classes!(@emit_class_import_impl $($class)*);
+    };
+
+    (@emit_class_enums $($class:ident)*) => {
         #[derive(serde::Serialize, Debug, derive_more::From, derive_more::IsVariant, serde::Deserialize, bff_derive::ReferencedNames, schemars::JsonSchema)]
         pub enum Class {
             $($class($crate::macros::classes::classes!(@class_ty $class)),)*
@@ -35,7 +48,9 @@ macro_rules! classes {
             Z,
             Caps,
         }
+    };
 
+    (@emit_try_from_name $($class:ident)*) => {
         impl TryFrom<crate::names::Name> for (ClassType, ClassNameStyle, crate::names::NameType) {
             type Error = ();
 
@@ -48,7 +63,9 @@ macro_rules! classes {
                 Err(())
             }
         }
+    };
 
+    (@emit_try_from_resource $($class:ident)*) => {
         impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for Class {
             type Error = crate::error::Error;
 
@@ -61,7 +78,9 @@ macro_rules! classes {
                 Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into())
             }
         }
+    };
 
+    (@emit_try_into_resource $($class:ident)*) => {
         impl crate::traits::TryFromVersionPlatform<&Class> for crate::bigfile::resource::Resource {
             type Error = crate::error::Error;
 
@@ -71,7 +90,9 @@ macro_rules! classes {
                 }
             }
         }
+    };
 
+    (@emit_class_try_your_best_report $($class:ident)*) => {
         pastey::paste! {
             #[allow(non_snake_case)]
             #[derive(Default, Debug, Clone, Copy)]
@@ -80,7 +101,9 @@ macro_rules! classes {
                 $($class: crate::class::[<#$class:snake>]::[<$class TryYourBestReport>]),*
             }
         }
+    };
 
+    (@emit_class_try_your_best_impl $($class:ident)*) => {
         impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for Class {
             type Report = ClassTryYourBestReport;
             fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
@@ -93,7 +116,9 @@ macro_rules! classes {
                 )*
             }
         }
+    };
 
+    (@emit_class_try_your_best_display $($class:ident)*) => {
         pastey::paste! {
             impl std::fmt::Display for ClassTryYourBestReport {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -106,11 +131,15 @@ macro_rules! classes {
                 }
             }
         }
+    };
 
+    (@emit_class_names_fn $($class:ident)*) => {
         pub fn class_names() -> &'static[&'static str] {
             &[$(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<&'static str>>::NAME,<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<&'static str>>::NAME_LEGACY,)*]
         }
+    };
 
+    (@emit_class_export_impl $($class:ident)*) => {
         impl crate::traits::Export for Class {
             fn export(&self) -> crate::BffResult<std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>> {
                 match self {
@@ -118,7 +147,9 @@ macro_rules! classes {
                 }
             }
         }
+    };
 
+    (@emit_class_import_impl $($class:ident)*) => {
         impl crate::traits::Import for Class {
             fn import(&mut self, artifacts: &std::collections::HashMap<std::ffi::OsString, crate::traits::Artifact>) -> crate::BffResult<()> {
                 match self {
