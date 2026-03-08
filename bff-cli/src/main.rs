@@ -23,6 +23,7 @@ mod extract_resource;
 mod fat_lin;
 mod info;
 mod lz;
+mod mqfel_settings_bin;
 mod names;
 mod psc;
 mod stdio_or_path;
@@ -209,6 +210,16 @@ enum Commands {
         #[arg(short, long)]
         unencrypted: bool,
     },
+    #[clap(alias = "xmsb")]
+    ExtractMqfelSettingsBin {
+        settings_bin: PathBuf,
+        directory: PathBuf,
+    },
+    #[clap(alias = "cmsb")]
+    CreateMqfelSettingsBin {
+        directory: PathBuf,
+        settings_bin: PathBuf,
+    },
     #[clap(alias = "xfl")]
     ExtractFatLin {
         fat: PathBuf,
@@ -357,6 +368,14 @@ fn main() -> BffCliResult<()> {
             endian,
             unencrypted,
         } => cps::create_cps(directory, cps, out_names, endian, unencrypted),
+        Commands::ExtractMqfelSettingsBin {
+            settings_bin,
+            directory,
+        } => mqfel_settings_bin::extract_mqfel_settings_bin(settings_bin, directory),
+        Commands::CreateMqfelSettingsBin {
+            directory,
+            settings_bin,
+        } => mqfel_settings_bin::create_mqfel_settings_bin(directory, settings_bin),
         Commands::ExtractFatLin {
             fat,
             lin,

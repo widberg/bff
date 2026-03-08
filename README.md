@@ -75,7 +75,7 @@ This format is from The Mighty Quest for Epic Loot. Again, it's not actually a T
 
 | Format          | Status |
 |-----------------|--------|
-| settings.bin    | ❌     |
+| settings.bin    | ✔      |
 
 ### Audio
 
