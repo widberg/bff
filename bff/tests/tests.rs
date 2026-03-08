@@ -18,6 +18,7 @@ mod tests {
     use bff::class::Class;
     use bff::names::NameContext;
     use bff::traits::{Export, Import, TryIntoVersionPlatform};
+    use bff::tsc::{mqfel_settings_bin_create, mqfel_settings_bin_extract};
     use binrw::io::BufReader;
 
     #[datatest::data("../data/read.yaml")]
@@ -128,5 +129,20 @@ mod tests {
         let name_context = NameContext::default();
         let bigfile2 = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
         assert!(bigfile == bigfile2);
+    }
+
+    #[datatest::data("../data/mqfel_settings_roundtrip.yaml")]
+    #[test]
+    fn mqfel_settings_roundtrip(settings_bin_path_str: String) {
+        let settings_bin_path = PathBuf::from(settings_bin_path_str);
+        let data = fs::read(settings_bin_path).unwrap();
+        let extracted = mqfel_settings_bin_extract(Cursor::new(&data)).unwrap();
+
+        let mut roundtrip_writer = Cursor::new(Vec::new());
+        mqfel_settings_bin_create(&extracted, &mut roundtrip_writer).unwrap();
+
+        let roundtripped =
+            mqfel_settings_bin_extract(Cursor::new(roundtrip_writer.into_inner())).unwrap();
+        assert_eq!(extracted, roundtripped);
     }
 }
