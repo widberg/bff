@@ -4,7 +4,7 @@ use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 use bff::names::{Name, NameContext, NameType};
-use bff::tsc::Cps;
+use bff::tsc::{Cps, read_default_cps_names};
 use bff::{BufReader, Endian};
 
 use crate::error::BffCliResult;
@@ -39,7 +39,11 @@ pub fn extract_cps(
     let name_context = NameContext::default();
     let endian: Endian = (*endian).into();
     name_context.set_name_type(NameType::BlackSheep32);
-    read_in_names(in_names, &name_context)?;
+    if in_names.is_empty() {
+        read_default_cps_names(&name_context)?;
+    } else {
+        read_in_names(in_names, &name_context)?;
+    }
     let mut cps_reader = BufReader::new(File::open(cps)?);
     let cps = Cps::read(&mut cps_reader, endian, &name_context)?;
 

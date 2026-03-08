@@ -2,13 +2,21 @@ use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
-use binrw::{args, BinRead, BinResult, BinWrite, Endian, NullString};
+use binrw::{BinRead, BinResult, BinWrite, Endian, NullString, args};
 use itertools::Itertools;
 
+use crate::BffResult;
 use crate::helpers::copy_repeat;
 use crate::lz::{lzo_compress, lzo_decompress};
 use crate::names::{Name, NameContext};
-use crate::BffResult;
+
+const DEFAULT_CPS_IN_NAMES: &str = include_str!("ALLSCRIPTS.CPSNameWii");
+
+pub fn read_default_cps_names(name_context: &NameContext) -> BffResult<()> {
+    let mut reader = crate::BufReader::new(Cursor::new(DEFAULT_CPS_IN_NAMES.as_bytes()));
+    name_context.read(&mut reader)?;
+    Ok(())
+}
 
 #[derive(Debug, Default)]
 pub struct Cps {
