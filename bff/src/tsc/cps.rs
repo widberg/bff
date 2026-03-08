@@ -152,7 +152,8 @@ impl BinRead for Cps {
 
         for _ in 0..script_count {
             let name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
-            if name_context.resolve(&name).is_none() && missing_file_names_seen.insert(name) {
+            let has_name_string = name_context.resolve(&name).is_some();
+            if !has_name_string && missing_file_names_seen.insert(name) {
                 missing_file_names.push(name);
             }
             let uncompressed_size = u32::read_options(reader, endian, ())?;
@@ -175,7 +176,12 @@ impl BinRead for Cps {
                 &mut missing_command_names_seen,
             )?;
 
-            let path = PathBuf::from(format!("{}.tsc", name.with_context(name_context)));
+            let name_string = name.with_context(name_context).to_string();
+            let path = if has_name_string {
+                PathBuf::from(name_string)
+            } else {
+                PathBuf::from(format!("{name_string}.tsc"))
+            };
             cps.tscs.insert(path, decoded_data);
         }
 
