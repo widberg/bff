@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use bff::names::{Name, NameContext, NameType};
 use bff::tsc::{Cps, read_default_cps_names};
 use bff::{BufReader, Endian};
+use pathdiff::diff_paths;
 
 use crate::error::BffCliResult;
 use crate::extract::{read_in_names, write_names};
@@ -47,6 +48,9 @@ pub fn extract_cps(
     let mut cps_reader = BufReader::new(File::open(cps)?);
     let cps = Cps::read(&mut cps_reader, endian, &name_context)?;
 
+    // See comment in FAT/LIN file
+    let directory = directory.join("System");
+
     for (path, data) in cps.tscs {
         let tsc_path = directory.join(path);
         let prefix = tsc_path.parent().unwrap();
@@ -72,7 +76,7 @@ fn read_files_into_cps_recursively(
             read_files_into_cps_recursively(cps, &path, base)?;
         } else {
             let tsc = std::fs::read_to_string(&path)?;
-            let relative_path = path.strip_prefix(base)?.to_path_buf();
+            let relative_path = diff_paths(&path, base).unwrap();
             cps.tscs.insert(relative_path, tsc);
         }
     }
@@ -90,7 +94,8 @@ pub fn create_cps(
     let endian: Endian = (*endian).into();
     name_context.set_name_type(NameType::BlackSheep32);
     let mut cps = Cps::default();
-    read_files_into_cps_recursively(&mut cps, directory, directory)?;
+    let directory_cwd = directory.join("System");
+    read_files_into_cps_recursively(&mut cps, directory, &directory_cwd)?;
     let names = collect_cps_names(&cps, &name_context);
 
     let mut cps_writer = BufWriter::new(File::create(cps_path)?);

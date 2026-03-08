@@ -17,7 +17,7 @@ pub fn extract_fat_lin(fat: &Path, lin: &Path, directory: &Path) -> BffCliResult
     // Paths start with at most one `..` component in known FAT files
     // We could be a lot safer about this, but this is good enough for now
     // Also for some reason Boot.tsc is repeated in the FAT and LIN files
-    let directory = directory.join("__cwd__");
+    let directory = directory.join("System");
 
     for (path, contents) in lin.files {
         let path = directory.join(path);
@@ -54,7 +54,7 @@ fn read_files_into_lin_recursively(
 
 pub fn create_fat_lin(directory: &Path, fat_path: &Path, lin_path: &Path) -> BffCliResult<()> {
     let mut lin = Lin::default();
-    let directory_cwd = directory.join("__cwd__");
+    let directory_cwd = directory.join("System");
     read_files_into_lin_recursively(&mut lin, directory, &directory_cwd)?;
 
     let mut fat_writer = BufWriter::new(File::create(fat_path)?);
