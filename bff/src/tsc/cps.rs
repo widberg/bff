@@ -166,7 +166,7 @@ fn encode_cps_script<W: Write + Seek>(
             0u8.write_options(writer, endian, ())?;
             continue;
         }
-        let command_name = name_context.parse_or_hash_name(&command_name_token);
+        let command_name = name_context.parse_i32_or_hash_name(&command_name_token);
         let mut params: Vec<Param> = Vec::new();
         loop {
             chars
@@ -323,8 +323,20 @@ impl BinWrite for Cps {
         copy_repeat(writer, 0, 0x10 * script_count as u64)?;
         writer.seek(SeekFrom::Start(pos))?;
 
-        for (path, script) in self.tscs.iter() {
-            let name = name_context.parse_or_hash_name(path.file_stem().unwrap().to_str().unwrap());
+        let mut scripts = self
+            .tscs
+            .iter()
+            .map(|(path, script)| {
+                let name =
+                    name_context.parse_i32_or_hash_name(path.file_stem().unwrap().to_str().unwrap());
+                // Sort by unsigned hash value for deterministic CPS ordering.
+                let sort_key = name.get_value() as u64;
+                (sort_key, name, path, script)
+            })
+            .collect::<Vec<_>>();
+        scripts.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.2.cmp(b.2)));
+
+        for (_, name, _, script) in scripts {
             let mut encoded_data = Cursor::new(Vec::new());
             encode_cps_script(script, &mut encoded_data, endian, name_context)?;
             let encoded_data = encoded_data.into_inner();

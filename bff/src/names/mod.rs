@@ -938,7 +938,7 @@ impl NameContext {
         self.names.lock().unwrap().name_from_i32(value)
     }
 
-    pub fn parse_or_hash_name(&self, token: &str) -> Name {
+    pub fn parse_i32_or_hash_name(&self, token: &str) -> Name {
         self.names.lock().unwrap().parse_i32_or_hash_name(token)
     }
 
