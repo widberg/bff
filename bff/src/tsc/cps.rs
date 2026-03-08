@@ -31,6 +31,83 @@ enum Param {
     Float(f32),
 }
 
+fn format_cps_float(value: f32) -> String {
+    let mut s = value.to_string();
+
+    // Normalize shorthand forms so output always has an explicit whole part.
+    if s.starts_with('.') {
+        s.insert(0, '0');
+    } else if s.starts_with("-.") || s.starts_with("+.") {
+        s.insert(1, '0');
+    }
+
+    // Ensure an explicit decimal part for non-exponent and exponent forms.
+    let e_idx = s.find('e').or_else(|| s.find('E'));
+    if let Some(i) = e_idx {
+        if !s[..i].contains('.') {
+            s.insert_str(i, ".0");
+        }
+    } else if !s.contains('.') {
+        s.push_str(".0");
+    }
+
+    s.push('f');
+    s
+}
+
+fn parse_cps_float_token(token: &str) -> Option<f32> {
+    let token = token.trim();
+    let token = token
+        .strip_suffix('f')
+        .or_else(|| token.strip_suffix('F'))
+        .unwrap_or(token)
+        .trim_end();
+
+    if token.is_empty() {
+        return None;
+    }
+
+    let normalized = if let Some(rest) = token.strip_prefix("-.") {
+        format!("-0.{rest}")
+    } else if let Some(rest) = token.strip_prefix("+.") {
+        format!("+0.{rest}")
+    } else if let Some(rest) = token.strip_prefix('.') {
+        format!("0.{rest}")
+    } else {
+        token.to_string()
+    };
+
+    normalized.parse::<f32>().ok()
+}
+
+fn escape_cps_quoted_string(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+    for c in value.chars() {
+        match c {
+            '\\' => escaped.push_str("\\\\"),
+            '"' => escaped.push_str("\\\""),
+            '\n' => escaped.push_str("\\n"),
+            '\r' => escaped.push_str("\\r"),
+            '\t' => escaped.push_str("\\t"),
+            _ => escaped.push(c),
+        }
+    }
+    escaped
+}
+
+fn format_cps_string_param(value: &str) -> String {
+    let needs_quotes = value.is_empty()
+        || value.chars().any(|c| c.is_whitespace())
+        || value.starts_with('"')
+        || parse_cps_float_token(value).is_some();
+
+    if needs_quotes {
+        format!("\"{}\"", escape_cps_quoted_string(value))
+    } else {
+        value.to_string()
+    }
+}
+
 fn decode_cps_script<R: Read + Seek>(
     reader: &mut R,
     endian: Endian,
@@ -56,8 +133,8 @@ fn decode_cps_script<R: Read + Seek>(
                 script.push(' ');
                 let param = Param::read_options(reader, endian, ())?;
                 match param {
-                    Param::String(s) => script.push_str(format!(r#""{}""#, s).as_str()),
-                    Param::Float(f) => script.push_str(f.to_string().as_str()),
+                    Param::String(s) => script.push_str(format_cps_string_param(&s.to_string()).as_str()),
+                    Param::Float(f) => script.push_str(format_cps_float(f).as_str()),
                 }
             }
         }
@@ -99,16 +176,42 @@ fn encode_cps_script<W: Write + Seek>(
             match next {
                 Some(&'"') => {
                     chars.next();
-                    let param = (&mut chars).take_while(|c| *c != '"').collect::<String>();
+                    let mut param = String::new();
+                    let mut escaped = false;
+                    for c in chars.by_ref() {
+                        if escaped {
+                            match c {
+                                'n' => param.push('\n'),
+                                'r' => param.push('\r'),
+                                't' => param.push('\t'),
+                                '"' => param.push('"'),
+                                '\\' => param.push('\\'),
+                                _ => param.push(c),
+                            }
+                            escaped = false;
+                            continue;
+                        }
+
+                        match c {
+                            '\\' => escaped = true,
+                            '"' => break,
+                            _ => param.push(c),
+                        }
+                    }
+                    if escaped {
+                        param.push('\\');
+                    }
                     params.push(Param::String(param.into()));
                 }
                 Some(_) => {
-                    let param = (&mut chars)
+                    let param_token = (&mut chars)
                         .take_while(|c| !c.is_whitespace())
-                        .collect::<String>()
-                        .parse::<f32>()
-                        .unwrap();
-                    params.push(Param::Float(param));
+                        .collect::<String>();
+                    if let Some(param) = parse_cps_float_token(&param_token) {
+                        params.push(Param::Float(param));
+                    } else {
+                        params.push(Param::String(param_token.into()));
+                    }
                 }
                 None => break,
             }

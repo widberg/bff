@@ -13,12 +13,18 @@ mod tests {
     use std::io::Cursor;
     use std::path::PathBuf;
 
+    use bff::Endian;
     use bff::bigfile::BigFile;
     use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
     use bff::class::Class;
-    use bff::names::NameContext;
+    use bff::names::{NameContext, NameType};
     use bff::traits::{Export, Import, TryIntoVersionPlatform};
-    use bff::tsc::{mqfel_settings_bin_create, mqfel_settings_bin_extract};
+    use bff::tsc::{
+        Cps,
+        mqfel_settings_bin_create,
+        mqfel_settings_bin_extract,
+        read_default_cps_names,
+    };
     use binrw::io::BufReader;
 
     #[datatest::data("../data/read.yaml")]
@@ -144,5 +150,22 @@ mod tests {
         let roundtripped =
             mqfel_settings_bin_extract(Cursor::new(roundtrip_writer.into_inner())).unwrap();
         assert_eq!(extracted, roundtripped);
+    }
+
+    #[datatest::data("../data/cps_roundtrip.yaml")]
+    #[test]
+    fn cps_roundtrip(cps_path_str: String) {
+        let cps_path = PathBuf::from(&cps_path_str);
+        let data = fs::read(cps_path).unwrap();
+        let mut reader = Cursor::new(&data);
+        let name_context = NameContext::default();
+        name_context.set_name_type(NameType::BlackSheep32);
+        read_default_cps_names(&name_context).unwrap();
+        let cps = Cps::read(&mut reader, Endian::Little, &name_context).unwrap();
+        let mut writer = Cursor::new(Vec::new());
+        cps.write(&mut writer, Endian::Little, false, &name_context)
+            .unwrap();
+
+        assert!(data == writer.into_inner());
     }
 }
