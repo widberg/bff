@@ -11,11 +11,12 @@ use bff::traits::TryYourBest;
 
 use crate::error::BffCliResult;
 
-pub fn try_your_best(path: &Path, name_context: &NameContext) -> BffCliResult<()> {
+pub fn try_your_best(path: &Path) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let f = File::open(path)?;
     let mut reader = BufReader::new(f);
 
-    if let Ok(bff_resource) = BffResource::read(&mut reader, name_context) {
+    if let Ok(bff_resource) = BffResource::read(&mut reader, &name_context) {
         let report = <Class as TryYourBest<&Resource>>::report(
             &bff_resource.resource,
             bff_resource.header.platform,

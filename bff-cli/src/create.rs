@@ -24,13 +24,13 @@ pub fn create(
     version_override: &Option<Version>,
     version_to_write: &Option<Version>,
     tag: &Option<String>,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
     let manifest_path = directory.join("manifest.json");
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
-    let manifest = bff::names::json::from_reader(manifest_reader, name_context)?;
+    let manifest = bff::names::json::from_reader(manifest_reader, &name_context)?;
 
     let mut bigfile = BigFile {
         manifest,
@@ -50,7 +50,7 @@ pub fn create(
             progress_bar.inc(1);
             if path.is_file() {
                 let mut file_reader = BufReader::new(File::open(&path)?);
-                let resource = Resource::read_bff_resource(&mut file_reader, name_context)?;
+                let resource = Resource::read_bff_resource(&mut file_reader, &name_context)?;
                 if resources.contains_key(&resource.name) {
                     return Err(crate::error::BffCliError::DuplicateResource {
                         name: resource.name,
@@ -64,7 +64,7 @@ pub fn create(
                 let resource_serialized_reader =
                     BufReader::new(File::open(resource_serialized_path)?);
                 let mut bff_class: BffClass =
-                    bff::names::json::from_reader(resource_serialized_reader, name_context)?;
+                    bff::names::json::from_reader(resource_serialized_reader, &name_context)?;
 
                 let mut artifacts = HashMap::new();
 
@@ -139,7 +139,7 @@ pub fn create(
         version_override,
         version_to_write,
         tag.as_deref(),
-        name_context,
+        &name_context,
     )?;
 
     progress_bar.set_message("Writing names");
@@ -148,7 +148,7 @@ pub fn create(
         write_names(
             out_names,
             &Some(bigfile.resources.keys().collect()),
-            name_context,
+            &name_context,
         )?;
     }
 

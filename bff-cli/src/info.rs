@@ -12,13 +12,13 @@ pub fn info(
     bigfile_path: &Path,
     in_names: &Vec<PathBuf>,
     out_reference_graph: &Option<PathBuf>,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
-    read_bigfile_names(bigfile_path, name_context)?;
-    read_in_names(in_names, name_context)?;
+    let name_context = NameContext::default();
+    read_bigfile_names(bigfile_path, &name_context)?;
+    read_in_names(in_names, &name_context)?;
 
-    let bigfile = read_bigfile(bigfile_path, &None, &None, name_context)?;
-    bff::names::json::to_writer_pretty(io::stdout().lock(), &bigfile, name_context)?;
+    let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
+    bff::names::json::to_writer_pretty(io::stdout().lock(), &bigfile, &name_context)?;
 
     if let Some(out_dependencies) = out_reference_graph {
         let f = File::create(out_dependencies)?;

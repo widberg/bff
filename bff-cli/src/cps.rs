@@ -35,13 +35,13 @@ pub fn extract_cps(
     directory: &Path,
     in_names: &Vec<PathBuf>,
     endian: &LzEndian,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let endian: Endian = (*endian).into();
     name_context.set_name_type(NameType::BlackSheep32);
-    read_in_names(in_names, name_context)?;
+    read_in_names(in_names, &name_context)?;
     let mut cps_reader = BufReader::new(File::open(cps)?);
-    let cps = Cps::read(&mut cps_reader, endian, name_context)?;
+    let cps = Cps::read(&mut cps_reader, endian, &name_context)?;
 
     for (path, data) in cps.tscs {
         let tsc_path = directory.join(path);
@@ -81,21 +81,21 @@ pub fn create_cps(
     out_names: &Option<PathBuf>,
     endian: &LzEndian,
     unencrypted: &bool,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let endian: Endian = (*endian).into();
     name_context.set_name_type(NameType::BlackSheep32);
     let mut cps = Cps::default();
     read_files_into_cps_recursively(&mut cps, directory, directory)?;
-    let names = collect_cps_names(&cps, name_context);
+    let names = collect_cps_names(&cps, &name_context);
 
     let mut cps_writer = BufWriter::new(File::create(cps_path)?);
 
-    cps.write(&mut cps_writer, endian, *unencrypted, name_context)?;
+    cps.write(&mut cps_writer, endian, *unencrypted, &name_context)?;
 
     if let Some(out_names) = out_names {
         let names: Vec<&Name> = names.iter().collect();
-        write_names(out_names, &Some(names), name_context)?;
+        write_names(out_names, &Some(names), &name_context)?;
     }
 
     Ok(())

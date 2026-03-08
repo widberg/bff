@@ -188,19 +188,19 @@ pub fn extract(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
     export_strategy: &ExportStrategy,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
-    read_bigfile_names(bigfile_path, name_context)?;
-    read_in_names(in_names, name_context)?;
+    read_bigfile_names(bigfile_path, &name_context)?;
+    read_in_names(in_names, &name_context)?;
 
     progress_bar.set_message("Reading BigFile");
     let bigfile = read_bigfile(
         bigfile_path,
         platform_override,
         version_override,
-        name_context,
+        &name_context,
     )?;
 
     progress_bar.set_message("Writing manifest");
@@ -208,7 +208,7 @@ pub fn extract(
 
     let manifest_path = directory.join("manifest.json");
     let manifest_writer = BufWriter::new(File::create(manifest_path)?);
-    bff::names::json::to_writer_pretty(manifest_writer, &bigfile.manifest, name_context)?;
+    bff::names::json::to_writer_pretty(manifest_writer, &bigfile.manifest, &name_context)?;
 
     progress_bar.set_style(ProgressStyle::default_bar());
     progress_bar.set_length(bigfile.resources.len() as u64);
@@ -223,9 +223,9 @@ pub fn extract(
         .try_for_each(|resource| {
             progress_bar.inc(1);
             if !matches!(*export_strategy, ExportStrategy::Rich)
-                || export_bff_resource(&resources_path, &bigfile, resource, name_context).is_err()
+                || export_bff_resource(&resources_path, &bigfile, resource, &name_context).is_err()
             {
-                dump_bff_resource(&resources_path, &bigfile, resource, name_context)?;
+                dump_bff_resource(&resources_path, &bigfile, resource, &name_context)?;
             }
 
             Ok::<(), BffCliError>(())

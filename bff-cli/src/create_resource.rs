@@ -19,12 +19,12 @@ pub fn create_resource(
     out_names: &Option<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     let resource_serialized_path = directory.join("resource.json");
     let resource_serialized_reader = BufReader::new(File::open(&resource_serialized_path)?);
     let mut bff_class: BffClass =
-        bff::names::json::from_reader(resource_serialized_reader, name_context)?;
+        bff::names::json::from_reader(resource_serialized_reader, &name_context)?;
 
     let mut artifacts = HashMap::new();
 
@@ -71,11 +71,11 @@ pub fn create_resource(
         &mut resource_writer,
         platform,
         version,
-        name_context,
+        &name_context,
     )?;
 
     if let Some(out_names) = out_names {
-        write_names(out_names, &None, name_context)?;
+        write_names(out_names, &None, &name_context)?;
     }
 
     Ok(())

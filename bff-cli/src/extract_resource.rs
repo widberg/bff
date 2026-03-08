@@ -19,13 +19,13 @@ pub fn extract_resource(
     in_names: &Vec<PathBuf>,
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
-    read_in_names(in_names, name_context)?;
+    let name_context = NameContext::default();
+    read_in_names(in_names, &name_context)?;
 
     let f = File::open(resource_path)?;
     let mut reader = BufReader::new(f);
-    let bff_resource = BffResource::read(&mut reader, name_context)?;
+    let bff_resource = BffResource::read(&mut reader, &name_context)?;
 
     let platform = platform_override.unwrap_or(bff_resource.header.platform);
     let version = version_override
@@ -44,7 +44,7 @@ pub fn extract_resource(
 
     let resource_serialized_path = directory.join("resource.json");
     let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
-    bff::names::json::to_writer_pretty(resource_serialized_writer, &bff_class, name_context)?;
+    bff::names::json::to_writer_pretty(resource_serialized_writer, &bff_class, &name_context)?;
 
     if let Ok(artifacts) = bff_class.class.export() {
         for (name, artifact) in artifacts {

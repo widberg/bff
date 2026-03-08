@@ -236,7 +236,6 @@ struct Args {
 
 fn main() -> BffCliResult<()> {
     let cli = Args::parse();
-    let name_context = bff::names::NameContext::default();
 
     match &cli.command {
         Commands::Extract {
@@ -253,7 +252,6 @@ fn main() -> BffCliResult<()> {
             platform_override,
             version_override,
             export_strategy,
-            &name_context,
         ),
         Commands::Create {
             directory,
@@ -271,7 +269,6 @@ fn main() -> BffCliResult<()> {
             version_override,
             version_to_write,
             tag,
-            &name_context,
         ),
         Commands::ExtractResource {
             resource,
@@ -285,7 +282,6 @@ fn main() -> BffCliResult<()> {
             in_names,
             platform_override,
             version_override,
-            &name_context,
         ),
         Commands::CreateResource {
             directory,
@@ -299,13 +295,12 @@ fn main() -> BffCliResult<()> {
             out_names,
             platform_override,
             version_override,
-            &name_context,
         ),
         Commands::Info {
             bigfile,
             in_names,
             out_reference_graph: out_dependencies,
-        } => info::info(bigfile, in_names, out_dependencies, &name_context),
+        } => info::info(bigfile, in_names, out_dependencies),
         Commands::Diff {
             old_bigfile,
             new_bigfile,
@@ -318,14 +313,7 @@ fn main() -> BffCliResult<()> {
             in_names,
             out_names,
             use_reference_graph,
-        } => names::names(
-            bigfile,
-            wordlist,
-            in_names,
-            out_names,
-            use_reference_graph,
-            &name_context,
-        ),
+        } => names::names(bigfile, wordlist, in_names, out_names, use_reference_graph),
         Commands::Crc {
             string,
             starting,
@@ -361,21 +349,14 @@ fn main() -> BffCliResult<()> {
             directory,
             in_names,
             endian,
-        } => cps::extract_cps(cps, directory, in_names, endian, &name_context),
+        } => cps::extract_cps(cps, directory, in_names, endian),
         Commands::CreateCps {
             directory,
             cps,
             out_names,
             endian,
             unencrypted,
-        } => cps::create_cps(
-            directory,
-            cps,
-            out_names,
-            endian,
-            unencrypted,
-            &name_context,
-        ),
+        } => cps::create_cps(directory, cps, out_names, endian, unencrypted),
         Commands::ExtractFatLin {
             fat,
             lin,
@@ -386,7 +367,7 @@ fn main() -> BffCliResult<()> {
             fat,
             lin,
         } => fat_lin::create_fat_lin(directory, fat, lin),
-        Commands::TryYourBest { path } => try_your_best::try_your_best(path, &name_context),
+        Commands::TryYourBest { path } => try_your_best::try_your_best(path),
         Commands::DumpJsonSchema { path } => dump_json_schema::dump_json_schema(path),
     }
 }

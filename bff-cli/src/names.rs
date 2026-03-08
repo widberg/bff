@@ -23,17 +23,17 @@ pub fn names(
     in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
     use_reference_graph: &bool,
-    name_context: &NameContext,
 ) -> BffCliResult<()> {
+    let name_context = NameContext::default();
     if let Some(bigfile_path) = bigfile_path {
-        read_bigfile_names(bigfile_path, name_context)?;
+        read_bigfile_names(bigfile_path, &name_context)?;
     }
-    read_in_names(in_names, name_context)?;
+    read_in_names(in_names, &name_context)?;
 
     if let Some(bigfile_path) = bigfile_path {
-        read_bigfile_names(bigfile_path, name_context)?;
+        read_bigfile_names(bigfile_path, &name_context)?;
 
-        let bigfile = read_bigfile(bigfile_path, &None, &None, name_context)?;
+        let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
 
         if let Some(wordlist) = wordlist {
             if *use_reference_graph {
@@ -79,7 +79,7 @@ pub fn names(
                             Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
                         let class = if let Some(resource) = bigfile.resources.get(name) {
-                            format!(".{}", resource.class_name.with_context(name_context))
+                            format!(".{}", resource.class_name.with_context(&name_context))
                         } else {
                             "".to_owned()
                         };
@@ -87,7 +87,7 @@ pub fn names(
                             let parent_name = graph
                                 .node_weight(parent)
                                 .unwrap()
-                                .with_context(name_context)
+                                .with_context(&name_context)
                                 .to_string();
                             let parent_string = if let Some((_, s)) =
                                 name_context.parse_forced_hash_name(&parent_name)
@@ -106,7 +106,7 @@ pub fn names(
             } else {
                 for resource in bigfile.resources.values() {
                     let name = &resource.name;
-                    let class = resource.class_name.with_context(name_context).to_string();
+                    let class = resource.class_name.with_context(&name_context).to_string();
                     if !name_context.contains(name) {
                         let string = match wordlist {
                             Wordlist::Empty => "".to_owned(),
@@ -126,11 +126,11 @@ pub fn names(
             write_names(
                 out_names,
                 &Some(bigfile.resources.keys().collect()),
-                name_context,
+                &name_context,
             )?;
         }
     } else if let Some(out_names) = out_names {
-        write_names(out_names, &None, name_context)?;
+        write_names(out_names, &None, &name_context)?;
     }
 
     Ok(())
