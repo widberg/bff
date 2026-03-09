@@ -237,6 +237,9 @@ impl BigFileIo for BigFileV1_08_40_02PC {
         };
         header.write_options(writer, endian, ())?;
 
+        writer.seek(SeekFrom::Start(0x71C))?;
+        writer.write_all(&[0xFF; 0xE4])?;
+
         writer.seek(SeekFrom::Start(end))?;
         Ok(())
     }

@@ -225,8 +225,13 @@ impl BigFileIo for BigFileV1_06_63_02PC {
         };
         header.write_options(writer, endian, ())?;
 
-        writer.seek(SeekFrom::Start(0x734))?;
-        writer.write_all(&[0xFF; 0xCC])?;
+        if matches!(bigfile.manifest.version, Version::Asobo(1, 220.., _, _)) {
+            writer.seek(SeekFrom::Start(0x734))?;
+            writer.write_all(&[0xFF; 0xCC])?;
+        } else {
+            writer.seek(SeekFrom::Start(0x720))?;
+            writer.write_all(&[0xFF; 0xE0])?;
+        }
 
         writer.seek(SeekFrom::Start(end))?;
         Ok(())
