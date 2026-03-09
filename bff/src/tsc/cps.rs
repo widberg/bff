@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
@@ -157,8 +157,6 @@ fn decode_cps_script<R: Read + Seek>(
     reader: &mut R,
     endian: Endian,
     name_context: &NameContext,
-    missing_command_names: &mut Vec<Name>,
-    missing_command_names_seen: &mut HashSet<Name>,
 ) -> BinResult<String> {
     let mut script = String::new();
 
@@ -168,11 +166,6 @@ fn decode_cps_script<R: Read + Seek>(
         let num_params = u8::read_options(reader, endian, ())?;
         if num_params != 0 {
             let command_name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
-            if name_context.resolve(&command_name).is_none()
-                && missing_command_names_seen.insert(command_name)
-            {
-                missing_command_names.push(command_name);
-            }
             script.push_str(command_name.with_context(name_context).to_string().as_str());
             for _ in 1..num_params {
                 script.push(' ');
@@ -263,10 +256,6 @@ impl BinRead for Cps {
         (name_context,): Self::Args<'_>,
     ) -> BinResult<Self> {
         let mut cps = Self::default();
-        let mut missing_command_names = Vec::new();
-        let mut missing_command_names_seen = HashSet::new();
-        let mut missing_file_names = Vec::new();
-        let mut missing_file_names_seen = HashSet::new();
 
         let _version = <[u8; 8]>::read_options(reader, endian, ())?;
         let _flags = u32::read_options(reader, endian, ())?;
@@ -275,9 +264,6 @@ impl BinRead for Cps {
         for _ in 0..script_count {
             let name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
             let has_name_string = name_context.resolve(&name).is_some();
-            if !has_name_string && missing_file_names_seen.insert(name) {
-                missing_file_names.push(name);
-            }
             let uncompressed_size = u32::read_options(reader, endian, ())?;
             let compressed_size = u32::read_options(reader, endian, ())?;
             let offset_in_bigfile = u32::read_options(reader, endian, ())?;
@@ -290,13 +276,8 @@ impl BinRead for Cps {
 
             let uncompressed_data =
                 lzo_decompress(&compressed_data, uncompressed_size as usize).unwrap();
-            let decoded_data = decode_cps_script(
-                &mut Cursor::new(uncompressed_data),
-                endian,
-                name_context,
-                &mut missing_command_names,
-                &mut missing_command_names_seen,
-            )?;
+            let decoded_data =
+                decode_cps_script(&mut Cursor::new(uncompressed_data), endian, name_context)?;
 
             let name_string = name.with_context(name_context).to_string();
             let path = if has_name_string {
@@ -305,16 +286,6 @@ impl BinRead for Cps {
                 PathBuf::from(format!("{name_string}.tsc"))
             };
             cps.tscs.insert(path, decoded_data);
-        }
-
-        if !missing_command_names.is_empty() || !missing_file_names.is_empty() {
-            eprintln!("CPS names without strings:");
-            for missing_name in missing_command_names {
-                eprintln!("  command name: {}", missing_name);
-            }
-            for missing_name in missing_file_names {
-                eprintln!("  file name: {}", missing_name);
-            }
         }
 
         Ok(cps)
