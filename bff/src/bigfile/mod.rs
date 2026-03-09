@@ -6,6 +6,7 @@ mod v1_08_40_02_pc;
 mod v1_2000_77_18_pc;
 mod v1_2002_45_19_pc;
 mod v1_22_pc;
+mod v1_381_64_09_pc;
 mod v2_07_pc;
 mod v2_0_pc;
 mod v2_128_52_19_pc;
@@ -28,6 +29,7 @@ use crate::bigfile::v1_22_pc::{
     BigFileV1_22PCNoVersionTriple,
     BigFileV1_22PCNoVersionTripleBlackSheep,
 };
+use crate::bigfile::v1_381_64_09_pc::BigFileV1_381_64_09PC;
 use crate::bigfile::v1_2000_77_18_pc::BigFileV1_2000_77_18PC;
 use crate::bigfile::v1_2002_45_19_pc::BigFileV1_2002_45_19PC;
 use crate::bigfile::v2_0_pc::BigFileV2_0PC;
@@ -85,7 +87,8 @@ bigfiles! {
     (Ubisoft { .. }, _) => BigFileV2_0PC,
     (AsoboLegacy(1, ..=80), _) => BigFileV1_22PC,
     (AsoboLegacy(1, _) | Asobo(1, 1..=5 | 8, _, _), _) => BigFileV1_08_40_02PC,
-    (Asobo(1, 1..=1999, _, _), _) => BigFileV1_06_63_02PC,
+    (Asobo(1, 1..=380, _, _), _) => BigFileV1_06_63_02PC,
+    (Asobo(1, 381..=1999, _, _), _) => BigFileV1_381_64_09PC,
     (Asobo(1, 0 | 2000..=2001, _, _), _) => BigFileV1_2000_77_18PC,
     (Asobo(1, 2002.., _, _), _) => BigFileV1_2002_45_19PC,
     (Asobo(2, 128, 92 | 18, _), _) => BigFileV2_128_92_19PC,
