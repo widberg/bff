@@ -3,7 +3,6 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, NullString, args};
-use itertools::Itertools;
 
 use crate::BffResult;
 use crate::helpers::copy_repeat;
@@ -18,7 +17,7 @@ pub fn read_default_cps_names(name_context: &NameContext) -> BffResult<()> {
     Ok(())
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Cps {
     pub tscs: HashMap<PathBuf, String>,
 }
@@ -55,57 +54,103 @@ fn format_cps_float(value: f32) -> String {
     s
 }
 
-fn parse_cps_float_token(token: &str) -> Option<f32> {
-    let token = token.trim();
-    let token = token
-        .strip_suffix('f')
-        .or_else(|| token.strip_suffix('F'))
-        .unwrap_or(token)
-        .trim_end();
-
-    if token.is_empty() {
-        return None;
-    }
-
-    let normalized = if let Some(rest) = token.strip_prefix("-.") {
-        format!("-0.{rest}")
-    } else if let Some(rest) = token.strip_prefix("+.") {
-        format!("+0.{rest}")
-    } else if let Some(rest) = token.strip_prefix('.') {
-        format!("0.{rest}")
-    } else {
-        token.to_string()
-    };
-
-    normalized.parse::<f32>().ok()
+fn parse_opal_float_token(token: &str) -> Option<f32> {
+    token.replace('f', "").parse::<f32>().ok()
 }
 
-fn escape_cps_quoted_string(value: &str) -> String {
-    let mut escaped = String::with_capacity(value.len());
-    for c in value.chars() {
-        match c {
-            '\\' => escaped.push_str("\\\\"),
-            '"' => escaped.push_str("\\\""),
-            '\n' => escaped.push_str("\\n"),
-            '\r' => escaped.push_str("\\r"),
-            '\t' => escaped.push_str("\\t"),
-            _ => escaped.push(c),
-        }
-    }
-    escaped
+fn is_opal_bool_token(token: &str) -> bool {
+    let upper = token.to_ascii_uppercase();
+    upper == "TRUE" || upper == "FALSE" || upper == "ON" || upper == "OFF"
 }
 
 fn format_cps_string_param(value: &str) -> String {
     let needs_quotes = value.is_empty()
         || value.chars().any(|c| c.is_whitespace())
-        || value.starts_with('"')
-        || parse_cps_float_token(value).is_some();
+        || value.contains('"')
+        || parse_opal_float_token(value).is_some()
+        || is_opal_bool_token(value);
 
     if needs_quotes {
-        format!("\"{}\"", escape_cps_quoted_string(value))
+        format!("\"{value}\"")
     } else {
         value.to_string()
     }
+}
+
+fn remove_cpp_style_comments(script: &str) -> String {
+    let mut result = String::new();
+    for line in script.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("//") {
+            continue;
+        }
+        result.push_str(trimmed);
+        result.push('\n');
+    }
+    result
+}
+
+fn remove_c_style_comments(script: &str) -> String {
+    let mut offset = 0usize;
+    let mut output = String::new();
+
+    loop {
+        let next_start = script[offset..].find("/*").map(|i| offset + i);
+        let next_end = script[offset..].find("*/").map(|i| offset + i);
+
+        match (next_start, next_end) {
+            (None, None) => {
+                output.push_str(&script[offset..]);
+                break;
+            }
+            (Some(start), None) => {
+                output.push_str(&script[offset..start]);
+                break;
+            }
+            (None, Some(end)) => {
+                let end_inclusive = end + 2;
+                output.push_str(&script[offset..end_inclusive]);
+                offset = end_inclusive;
+            }
+            (Some(start), Some(end)) if start < end => {
+                output.push_str(&script[offset..start]);
+                offset = end + 2;
+            }
+            (Some(_), Some(end)) => {
+                let end_inclusive = end + 2;
+                output.push_str(&script[offset..end_inclusive]);
+                offset = end_inclusive;
+            }
+        }
+
+        if offset >= script.len() {
+            break;
+        }
+    }
+
+    output
+}
+
+fn split_arguments_opal(line: &str) -> Vec<String> {
+    let mut chars = line.chars().collect::<Vec<_>>();
+    let mut in_quoted_string = false;
+    let separator = '\u{00FF}';
+    for c in &mut chars {
+        if *c == '"' {
+            in_quoted_string = !in_quoted_string;
+        }
+        if (*c == ' ' || *c == '\t') && !in_quoted_string {
+            *c = separator;
+        }
+    }
+
+    chars
+        .into_iter()
+        .collect::<String>()
+        .split(separator)
+        .filter(|part| !part.is_empty())
+        .map(|part| part.replace('"', ""))
+        .collect()
 }
 
 fn decode_cps_script<R: Read + Seek>(
@@ -133,7 +178,9 @@ fn decode_cps_script<R: Read + Seek>(
                 script.push(' ');
                 let param = Param::read_options(reader, endian, ())?;
                 match param {
-                    Param::String(s) => script.push_str(format_cps_string_param(&s.to_string()).as_str()),
+                    Param::String(s) => {
+                        script.push_str(format_cps_string_param(&s.to_string()).as_str())
+                    }
                     Param::Float(f) => script.push_str(format_cps_float(f).as_str()),
                 }
             }
@@ -154,66 +201,38 @@ fn encode_cps_script<W: Write + Seek>(
     let mut num_lines: u32 = 0;
     num_lines.write_options(writer, endian, ())?;
 
+    let script = remove_c_style_comments(&remove_cpp_style_comments(script));
+
     for line in script.lines() {
-        let mut chars = line.chars().peekable();
-        chars
-            .peeking_take_while(|c| c.is_whitespace())
-            .for_each(drop);
-        let command_name_token = (&mut chars)
-            .take_while(|c| !c.is_whitespace())
-            .collect::<String>();
-        if command_name_token.is_empty() {
-            0u8.write_options(writer, endian, ())?;
+        if line.is_empty() {
             continue;
         }
-        let command_name = name_context.parse_i32_or_hash_name(&command_name_token);
-        let mut params: Vec<Param> = Vec::new();
-        loop {
-            chars
-                .peeking_take_while(|c| c.is_whitespace())
-                .for_each(drop);
-            let next = chars.peek();
-            match next {
-                Some(&'"') => {
-                    chars.next();
-                    let mut param = String::new();
-                    let mut escaped = false;
-                    for c in chars.by_ref() {
-                        if escaped {
-                            match c {
-                                'n' => param.push('\n'),
-                                'r' => param.push('\r'),
-                                't' => param.push('\t'),
-                                '"' => param.push('"'),
-                                '\\' => param.push('\\'),
-                                _ => param.push(c),
-                            }
-                            escaped = false;
-                            continue;
-                        }
 
-                        match c {
-                            '\\' => escaped = true,
-                            '"' => break,
-                            _ => param.push(c),
-                        }
-                    }
-                    if escaped {
-                        param.push('\\');
-                    }
-                    params.push(Param::String(param.into()));
-                }
-                Some(_) => {
-                    let param_token = (&mut chars)
-                        .take_while(|c| !c.is_whitespace())
-                        .collect::<String>();
-                    if let Some(param) = parse_cps_float_token(&param_token) {
-                        params.push(Param::Float(param));
-                    } else {
-                        params.push(Param::String(param_token.into()));
-                    }
-                }
-                None => break,
+        let args = split_arguments_opal(line);
+        if args.is_empty() {
+            continue;
+        }
+        if args.len() > 32 {
+            eprintln!("ERROR: Command line has more than 32 parameters; skipping line: {line}");
+            continue;
+        }
+
+        let command_name_token = args[0].to_ascii_uppercase();
+        if command_name_token.contains('%') {
+            eprintln!("ERROR: Command names should not use '%': {command_name_token}");
+        }
+        let command_name = name_context.parse_i32_or_hash_name(&command_name_token);
+        let mut params: Vec<Param> = Vec::with_capacity(args.len().saturating_sub(1));
+        for param_token in args.into_iter().skip(1) {
+            let upper = param_token.to_ascii_uppercase();
+            if let Some(param) = parse_opal_float_token(&param_token) {
+                params.push(Param::Float(param));
+            } else if upper == "TRUE" || upper == "ON" {
+                params.push(Param::Float(1.0));
+            } else if upper == "FALSE" || upper == "OFF" {
+                params.push(Param::Float(0.0));
+            } else {
+                params.push(Param::String(param_token.into()));
             }
         }
 
@@ -327,8 +346,25 @@ impl BinWrite for Cps {
             .tscs
             .iter()
             .map(|(path, script)| {
-                let name =
-                    name_context.parse_i32_or_hash_name(path.file_stem().unwrap().to_str().unwrap());
+                let path_string = path.to_string_lossy();
+                let is_bare_numeric_tsc = path.components().count() == 1
+                    && path
+                        .extension()
+                        .and_then(|ext| ext.to_str())
+                        .map(|ext| ext.eq_ignore_ascii_case("tsc"))
+                        .unwrap_or(false)
+                    && path
+                        .file_stem()
+                        .and_then(|stem| stem.to_str())
+                        .and_then(|stem| stem.parse::<i32>().ok())
+                        .is_some();
+
+                let name = if is_bare_numeric_tsc {
+                    let stem = path.file_stem().and_then(|stem| stem.to_str()).unwrap();
+                    name_context.parse_i32_or_hash_name(stem)
+                } else {
+                    name_context.parse_i32_or_hash_name(path_string.as_ref())
+                };
                 // Sort by unsigned hash value for deterministic CPS ordering.
                 let sort_key = name.get_value() as u64;
                 (sort_key, name, path, script)

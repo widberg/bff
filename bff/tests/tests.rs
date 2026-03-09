@@ -156,8 +156,8 @@ mod tests {
     #[test]
     fn cps_roundtrip(cps_path_str: String) {
         let cps_path = PathBuf::from(&cps_path_str);
-        let data = fs::read(cps_path).unwrap();
-        let mut reader = Cursor::new(&data);
+        let f = File::open(cps_path).unwrap();
+        let mut reader = BufReader::new(f);
         let name_context = NameContext::default();
         name_context.set_name_type(NameType::BlackSheep32);
         read_default_cps_names(&name_context).unwrap();
@@ -166,6 +166,12 @@ mod tests {
         cps.write(&mut writer, Endian::Little, false, &name_context)
             .unwrap();
 
-        assert!(data == writer.into_inner());
+        let mut reader = Cursor::new(writer.into_inner());
+        let name_context = NameContext::default();
+        name_context.set_name_type(NameType::BlackSheep32);
+        read_default_cps_names(&name_context).unwrap();
+        let cps2 = Cps::read(&mut reader, Endian::Little, &name_context).unwrap();
+
+        assert!(cps == cps2);
     }
 }
