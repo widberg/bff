@@ -1,7 +1,6 @@
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
-use derive_more::{Deref, DerefMut};
 
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::lz::lzrs_decompress_body_parser;
@@ -85,10 +84,4 @@ impl From<Resource> for crate::bigfile::resource::Resource {
             },
         }
     }
-}
-
-#[derive(BinRead, Debug, Deref, DerefMut)]
-pub struct PoolResource {
-    #[brw(align_after(2048))]
-    pub resource: Resource,
 }
