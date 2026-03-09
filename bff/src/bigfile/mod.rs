@@ -77,8 +77,12 @@ impl BigFile {
     }
 }
 
-// FIXME: All this type stuff is nonsense. Just have modules and re-check the bf
+// TODO: All this type stuff is nonsense. Just have modules and re-check the bf
 // version/platform there instead of using generics and binrw derive everywhere.
+// Actually, I like the idea of having a monolithic backend and a
+// BigFileBackendConfiguration or split read/write configs with lots of levers
+// and knobs. We can define the config similar to what's below but the rest of
+// the code should be a lot simpler and less repetitive.
 bigfiles! {
     (Kalisto(1, 75 | 73) | BlackSheep(1, _), _) => BigFileV1_22PCNoVersionTripleBlackSheep,
     (Kalisto(1, _), _) => BigFileV1_22PCNoVersionTriple,

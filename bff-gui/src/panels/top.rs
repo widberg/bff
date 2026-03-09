@@ -223,29 +223,6 @@ impl Gui {
                                         .unwrap();
                                 }
                             }
-                            // FIXME: This nested cfg will never be active
-                            #[cfg(target_arch = "wasm32")]
-                            async {
-                                let mut w: std::io::Cursor<Vec<u8>> =
-                                    std::io::Cursor::new(Vec::new());
-                                self.bigfile
-                                    .as_ref()
-                                    .unwrap()
-                                    .dump_resource(resource, &mut w, self.name_context.as_ref())
-                                    .unwrap();
-                                rfd::AsyncFileDialog::new()
-                                    .add_filter(
-                                        "raw",
-                                        &[resource
-                                            .class_name
-                                            .with_context(self.name_context.as_ref())
-                                            .to_string()],
-                                    )
-                                    .save_file()
-                                    .await
-                                    .unwrap()
-                                    .write(&w.into_inner());
-                            };
                         }
                     });
                     ui.menu_button("All", |ui| {
