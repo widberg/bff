@@ -4,6 +4,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
 use clap::*;
 use crc::{CrcAlgorithm, CrcFormat, CrcMode};
+use crypt::CryptAlgorithm;
 use error::BffCliResult;
 use extract::ExportStrategy;
 use lz::LzEndian;
@@ -14,7 +15,7 @@ mod cps;
 mod crc;
 mod create;
 mod create_resource;
-mod csc;
+mod crypt;
 mod diff;
 mod dump_json_schema;
 mod error;
@@ -161,14 +162,31 @@ enum Commands {
         #[arg(short, long)]
         algorithm: LzAlgorithm,
     },
-    Csc {
-        input: StdioOrPath,
-        output: StdioOrPath,
+    Uncrypt {
+        crypted: StdioOrPath,
+        uncrypted: StdioOrPath,
+        #[clap(value_enum)]
+        #[arg(short, long)]
+        algorithm: CryptAlgorithm,
         #[arg(
             short,
             long,
             default_value_t = 255,
-            help = "If the default value of 255 does not work, try 252"
+            help = "Only used by csc. If the default value of 255 does not work, try 252"
+        )]
+        key: u8,
+    },
+    Crypt {
+        uncrypted: StdioOrPath,
+        crypted: StdioOrPath,
+        #[clap(value_enum)]
+        #[arg(short, long)]
+        algorithm: CryptAlgorithm,
+        #[arg(
+            short,
+            long,
+            default_value_t = 255,
+            help = "Only used by csc. If the default value of 255 does not work, try 252"
         )]
         key: u8,
     },
@@ -344,7 +362,18 @@ fn main() -> BffCliResult<()> {
             endian,
             algorithm,
         } => lz::lz(uncompressed, compressed, endian, algorithm),
-        Commands::Csc { input, output, key } => csc::csc(input, output, key),
+        Commands::Uncrypt {
+            crypted,
+            uncrypted,
+            algorithm,
+            key,
+        } => crypt::uncrypt(crypted, uncrypted, algorithm, key),
+        Commands::Crypt {
+            uncrypted,
+            crypted,
+            algorithm,
+            key,
+        } => crypt::crypt(uncrypted, crypted, algorithm, key),
         Commands::ExtractPsc {
             psc,
             directory,

@@ -73,7 +73,7 @@ fn format_cps_string_param(value: &str) -> String {
     if needs_quotes {
         format!("\"{value}\"")
     } else {
-        value.to_string()
+        value.to_owned()
     }
 }
 
@@ -373,16 +373,32 @@ const CPS_FIRST_CHAR: u8 = b'O';
 const CPS_SEED_STEP: u8 = 37;
 
 #[allow(clippy::unbuffered_bytes)]
+pub fn cps_copy<R: Read, W: Write>(reader: R, writer: &mut W) -> BffResult<()> {
+    let mut seed = CPS_FIRST_CHAR;
+    for byte in reader.bytes() {
+        let byte = byte?;
+        writer.write_all(&[byte ^ seed])?;
+        seed = seed.wrapping_add(CPS_SEED_STEP);
+    }
+
+    Ok(())
+}
+
+pub fn cps_buffer(data: &mut [u8]) {
+    let mut seed = CPS_FIRST_CHAR;
+    for byte in data {
+        *byte ^= seed;
+        seed = seed.wrapping_add(CPS_SEED_STEP);
+    }
+}
+
+#[allow(clippy::unbuffered_bytes)]
 #[binrw::parser(reader)]
 fn cps_crypt() -> BinResult<Vec<u8>> {
     let mut data = Vec::new();
 
-    let mut seed = CPS_FIRST_CHAR;
-    for byte in reader.bytes() {
-        let byte = byte?;
-        data.push(byte ^ seed);
-        seed = seed.wrapping_add(CPS_SEED_STEP);
-    }
+    reader.read_to_end(&mut data)?;
+    cps_buffer(&mut data);
 
     Ok(data)
 }
