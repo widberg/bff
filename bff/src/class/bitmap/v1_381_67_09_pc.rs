@@ -150,7 +150,7 @@ impl Export for BitmapV1_381_67_09PC {
             width: self.link_header.width,
             depth: None,
             format: self.link_header.format1.try_into()?,
-            mipmap_levels: Some(self.link_header.mipmap_count as u32),
+            mipmap_levels: Some(u32::from(self.link_header.mipmap_count).saturating_add(1)),
             caps2,
         })
         .unwrap();
@@ -182,7 +182,8 @@ impl Import for BitmapV1_381_67_09PC {
             BmFormat::BmA8l8 => 0,
             _ => dds.data.len() as u32,
         };
-        self.link_header.mipmap_count = dds.header.mip_map_count.unwrap_or(0) as u8;
+        let mip_map_count = dds.header.mip_map_count.unwrap_or(1);
+        self.link_header.mipmap_count = mip_map_count.saturating_sub(1).min(u32::from(u8::MAX)) as u8;
         self.link_header.format0 = if dds.header.caps2.contains(Caps2::CUBEMAP) {
             BmFormat::BmMultipleBitmaps
         } else {
