@@ -217,7 +217,7 @@ macro_rules! classes {
                     )*
                 )?
                 $(
-                    mod $variant_mod;
+                    pub mod $variant_mod;
                     use self::$variant_mod::$variant;
                 )*
                 $crate::macros::classes::classes!(@declare_class_kind $kind $class { $($pattern => $variant),* });

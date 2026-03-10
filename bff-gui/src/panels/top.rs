@@ -56,7 +56,7 @@ impl Gui {
         let ctx = ui.ctx().clone();
         let tx = self.tx.clone();
         let name_context = Arc::clone(&self.name_context);
-        let future = async {
+        wasm_bindgen_futures::spawn_local(async move {
             let dialog = bff::bigfile::platforms::extensions()
                 .iter()
                 .map(|s| s.to_str().unwrap())
@@ -65,17 +65,20 @@ impl Gui {
                     |acc, d| acc.add_filter(d, &[d]),
                 )
                 .pick_file()
-                .await
-                .unwrap();
-            load_bf(
-                ctx,
-                dialog.file_name(),
-                dialog.read().await,
-                tx,
-                name_context,
-            );
-        };
-        async_std::task::block_on(future);
+                .await;
+            if let Some(dialog) = dialog {
+                load_bf(
+                    ctx.clone(),
+                    dialog.file_name(),
+                    dialog.read().await,
+                    tx,
+                    name_context,
+                );
+            } else {
+                let _ = tx.send(None);
+                ctx.request_repaint();
+            }
+        });
         true
     }
     pub fn menubar_panel(
