@@ -1,6 +1,5 @@
 use std::cmp::{max, min};
 use std::io::{Read, Seek, SeekFrom, Write};
-use std::ptr::null_mut;
 
 use binrw::{BinReaderExt, BinResult, BinWriterExt, Endian};
 
@@ -159,54 +158,33 @@ impl Packet {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct Match {
     pos: u64,
-    prev: *mut Self,
-    next: *mut Self,
+    prev: Option<usize>,
+    next: Option<usize>,
 }
 
-impl Default for Match {
-    fn default() -> Self {
-        Self {
-            pos: 0,
-            prev: null_mut(),
-            next: null_mut(),
-        }
-    }
+// Detach node from previous
+fn split_off(matches: &mut [Match], node: usize) {
+    let prev = matches[node].prev.unwrap();
+    matches[prev].next = None;
+    matches[node].prev = None;
 }
 
-impl Match {
-    // Detach self from previous
-    fn split_off(&mut self) {
-        unsafe {
-            self.prev.as_mut().unwrap().next = null_mut();
-            self.prev = null_mut();
-        }
+// Insert node between target and target.prev
+fn insert_before(matches: &mut [Match], target: usize, node: usize) {
+    let target_prev = matches[target].prev;
+    matches[node].prev = target_prev;
+    if let Some(prev) = target_prev {
+        matches[prev].next = Some(node);
     }
-
-    // Insert node between self and self.prev
-    fn insert_before(&mut self, node: *mut Self) {
-        unsafe {
-            node.as_mut().unwrap().prev = self.prev;
-            if !node.as_mut().unwrap().prev.is_null() {
-                node.as_mut().unwrap().prev.as_mut().unwrap().next = node;
-            }
-            node.as_mut().unwrap().next = self;
-            node.as_mut().unwrap().next.as_mut().unwrap().prev = node;
-        }
-    }
-
-    fn next(&mut self) -> Option<&mut Self> {
-        unsafe { self.next.as_mut() }
-    }
-
-    fn prev(&mut self) -> Option<&mut Self> {
-        unsafe { self.prev.as_mut() }
-    }
+    matches[node].next = Some(target);
+    matches[target].prev = Some(node);
 }
 
 const MAXIMUM_WINDOW_SIZE: u32 = 0x8000;
+const LOOKUP_TABLE_SIZE: usize = 0x10000;
 
 impl Packet {
     fn encode(
@@ -214,7 +192,7 @@ impl Packet {
         mut uncompressed_buffer_ptr: u64,
         mut window_index: u32,
         uncompressed_buffer: &[u8],
-        g_window_buffer: &mut [Match],
+        matches: &[Match],
     ) -> bool {
         let mut remaining_length: u32 = (1 << self.match_length) + 2;
         let v20: u32 = 0x10000 >> self.match_length;
@@ -240,9 +218,12 @@ impl Packet {
                 let mut ptr: u64 = 0;
 
                 let mut match_length: i32 = 2;
-                let mut cur = g_window_buffer[window_index as usize].prev();
-                while cur.is_some() && cur.as_ref().unwrap().pos >= v5 {
-                    let current = cur.as_ref().unwrap();
+                let mut cur = matches[window_index as usize].prev;
+                while let Some(current_index) = cur {
+                    let current = &matches[current_index];
+                    if current.pos < v5 {
+                        break;
+                    }
                     if uncompressed_buffer[uncompressed_buffer_ptr as usize + 2]
                         == uncompressed_buffer[current.pos as usize + 2]
                     {
@@ -264,7 +245,7 @@ impl Packet {
                             ptr = current.pos;
                         }
                     }
-                    cur = cur.unwrap().prev();
+                    cur = current.prev;
                 }
 
                 if match_length == 2 {
@@ -303,8 +284,8 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
     uncompressed_buffer.push(0);
     uncompressed_buffer.push(0);
 
-    let mut g_window_buffer = vec![Match::default(); MAXIMUM_WINDOW_SIZE as usize];
-    let mut short_lookup = vec![Match::default(); 0x10000];
+    let lookup_start = MAXIMUM_WINDOW_SIZE as usize;
+    let mut matches = vec![Match::default(); MAXIMUM_WINDOW_SIZE as usize + LOOKUP_TABLE_SIZE];
     // I wish there was a cleaner way to do this at compile time.
     // https://stackoverflow.com/q/26757355/3997768
     let mut packets = [
@@ -323,10 +304,10 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                 .try_into()
                 .unwrap(),
         );
-        let current = &mut g_window_buffer[i as usize];
-        let next = &mut short_lookup[match_index as usize];
-        current.pos = i as u64;
-        next.insert_before(current);
+        let current = i as usize;
+        let next = lookup_start + match_index as usize;
+        matches[current].pos = i as u64;
+        insert_before(&mut matches, next, current);
     }
 
     let mut uncompressed_buffer_ptr = 0u64;
@@ -351,7 +332,7 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                     uncompressed_buffer_ptr,
                     window_index,
                     &uncompressed_buffer,
-                    &mut g_window_buffer,
+                    &matches,
                 ) {
                     return Some(i);
                 }
@@ -407,12 +388,13 @@ pub fn compress_data_writer(data: &[u8]) -> BinResult<()> {
                         .try_into()
                         .unwrap(),
                 );
-                let current = &mut g_window_buffer[(i % MAXIMUM_WINDOW_SIZE) as usize];
-                let next = &mut short_lookup[match_index as usize];
+                let current = (i % MAXIMUM_WINDOW_SIZE) as usize;
+                let next = lookup_start + match_index as usize;
 
-                current.next().unwrap().split_off();
-                current.pos = ptr as u64;
-                next.insert_before(current);
+                let current_next = matches[current].next.unwrap();
+                split_off(&mut matches, current_next);
+                matches[current].pos = ptr as u64;
+                insert_before(&mut matches, next, current);
             }
             k += 0x1000i32;
             buffer_size_2 = window_size_1;
