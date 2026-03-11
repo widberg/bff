@@ -148,7 +148,7 @@ impl Export for BitmapV1_381_67_09PC {
         let mut dds = Dds::new_d3d(NewD3dParams {
             height: self.link_header.height,
             width: self.link_header.width,
-            depth: None,
+            depth: Some(1),
             format: self.link_header.format1.try_into()?,
             mipmap_levels: Some(u32::from(self.link_header.mipmap_count).saturating_add(1)),
             caps2,
