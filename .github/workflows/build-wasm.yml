@@ -40,7 +40,8 @@ jobs:
       - name: Build
         run: trunk build --release --locked
         env:
-          CC: "${GITHUB_WORKSPACE}/wasi-sdk/bin/clang --sysroot=${GITHUB_WORKSPACE}/wasi-sdk/share/wasi-sysroot"
+          CC: ${{ github.workspace }}/wasi-sdk/bin/clang
+          CFLAGS: --sysroot=${{ github.workspace }}/wasi-sdk/share/wasi-sysroot
         working-directory: ./bff-gui/
 
       - name: Upload Pages artifact
