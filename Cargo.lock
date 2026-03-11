@@ -1165,7 +1165,7 @@ dependencies = [
  "objc2-core-audio",
  "objc2-core-audio-types",
  "objc2-core-foundation",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2869,7 +2869,7 @@ dependencies = [
  "bitflags 2.8.0",
  "block2 0.6.2",
  "objc2 0.6.3",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
 ]
 
 [[package]]
@@ -2884,7 +2884,7 @@ dependencies = [
  "objc2-core-audio",
  "objc2-core-audio-types",
  "objc2-core-foundation",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
 ]
 
 [[package]]
@@ -2894,7 +2894,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2fe5d8f6b9904a2028e9168bbdc77d06f944a39a0aef7076857db09f1298c9a"
 dependencies = [
  "objc2 0.6.3",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
 ]
 
 [[package]]
@@ -2923,14 +2923,15 @@ dependencies = [
 
 [[package]]
 name = "objc2-core-audio"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38591d29e45e81cb27870334467361ed788e7cfad7f85c1d30b1b6263fff3c2a"
+checksum = "e1eebcea8b0dbff5f7c8504f3107c68fc061a3eb44932051c8cf8a68d969c3b2"
 dependencies = [
+ "dispatch2",
  "objc2 0.6.3",
  "objc2-core-audio-types",
  "objc2-core-foundation",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
 ]
 
 [[package]]
@@ -2957,12 +2958,13 @@ dependencies = [
 
 [[package]]
 name = "objc2-core-foundation"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daeaf60f25471d26948a1c2f840e3f7d86f4109e3af4e8e4b5cd70c39690d925"
+checksum = "2a180dd8642fa45cdb7dd721cd4c11b1cadd4929ce112ebd8b9f5803cc79d536"
 dependencies = [
  "bitflags 2.8.0",
  "block2 0.6.2",
+ "dispatch2",
  "libc",
  "objc2 0.6.3",
 ]
@@ -3012,9 +3014,9 @@ dependencies = [
 
 [[package]]
 name = "objc2-foundation"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a21c6c9014b82c39515db5b396f91645182611c97d24637cf56ac01e5f8d998"
+checksum = "e3e0adef53c21f888deb4fa59fc59f7eb17404926ee8a6f59f5df0fd7f9f3272"
 dependencies = [
  "bitflags 2.8.0",
  "block2 0.6.2",
@@ -3565,7 +3567,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.0",
  "objc2-core-foundation",
- "objc2-foundation 0.3.0",
+ "objc2-foundation 0.3.2",
  "percent-encoding",
  "pollster",
  "raw-window-handle",
