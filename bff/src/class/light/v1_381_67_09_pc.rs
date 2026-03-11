@@ -6,9 +6,7 @@ use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
 use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
-#[derive(
-    ..BffStruct, GenericClass,
-)]
+#[derive(..BffStruct, GenericClass)]
 #[generic(complete)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct LightBodyV1_381_67_09PC {

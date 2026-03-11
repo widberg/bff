@@ -11,9 +11,7 @@ use crate::helpers::{PascalString, ResourceObjectLinkHeaderV1_06_63_02PC};
 use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(
-    ..BffStruct, GenericClass,
-)]
+#[derive(..BffStruct, GenericClass)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct UserDefineBodyV1_291_03_06PC {
     #[serde(skip)]

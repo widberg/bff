@@ -1,7 +1,4 @@
-use bff_derive::{GenericClass, ReferencedNames};
-use binrw::{BinRead, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use bff_derive::GenericClass;
 
 use super::generic::{SoundFlags, SoundGeneric};
 use crate::class::trivial_class::TrivialClass;
@@ -9,17 +6,7 @@ use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::names::Name;
 use crate::traits::{Export, Import};
 
-#[derive(
-    BinRead,
-    Clone,
-    Debug,
-    Serialize,
-    BinWrite,
-    Deserialize,
-    ReferencedNames,
-    GenericClass,
-    JsonSchema,
-)]
+#[derive(..BffStruct, GenericClass)]
 #[generic(name(SoundHeaderGeneric))]
 pub struct LinkHeader {
     #[referenced_names(skip)]
@@ -32,9 +19,7 @@ pub struct LinkHeader {
     pub flags: SoundFlags,
 }
 
-#[derive(
-    ..BffStruct, GenericClass,
-)]
+#[derive(..BffStruct, GenericClass)]
 #[br(import(link_header: &LinkHeader))]
 pub struct SoundBodyV1_381_67_09PC {
     #[br(count = link_header.data_size / 2)]

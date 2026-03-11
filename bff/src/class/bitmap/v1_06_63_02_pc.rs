@@ -11,9 +11,7 @@ use crate::error::Error;
 use crate::helpers::ResourceObjectLinkHeaderV1_06_63_02PC;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(
-    ..BffStruct, GenericClass,
-)]
+#[derive(..BffStruct, GenericClass)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct BitmapBodyV1_06_63_02PC {
     width: u32,

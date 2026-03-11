@@ -3,7 +3,7 @@ use std::ffi::OsString;
 
 use bff_derive::{GenericClass, ReferencedNames};
 use binrw::helpers::until_eof;
-use binrw::{BinRead, BinWrite, binread};
+use binrw::{BinWrite, binread};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -14,17 +14,7 @@ use crate::error::Error;
 use crate::helpers::ResourceObjectLinkHeaderV1_06_63_02PC;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(
-    BinRead,
-    Debug,
-    Serialize,
-    BinWrite,
-    Deserialize,
-    ReferencedNames,
-    GenericClass,
-    Clone,
-    JsonSchema,
-)]
+#[derive(..BffStruct, GenericClass, Clone)]
 #[generic(name(BitmapHeaderGeneric))]
 pub struct BitmapHeader {
     #[generic]

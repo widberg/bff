@@ -1,7 +1,4 @@
-use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinResult, BinWrite};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
@@ -37,18 +34,7 @@ fn parse_character() -> BinResult<char> {
         .unwrap())
 }
 
-#[derive(
-    BinRead,
-    Debug,
-    Serialize,
-    BinWrite,
-    Deserialize,
-    ReferencedNames,
-    PartialEq,
-    Eq,
-    Hash,
-    JsonSchema,
-)]
+#[derive(..BffStruct, PartialEq, Eq, Hash)]
 struct CharacterID(
     #[br(parse_with = parse_character)]
     #[bw(write_with = write_character)]
