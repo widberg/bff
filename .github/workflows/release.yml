@@ -54,7 +54,7 @@ jobs:
           BIN_EXTENSION: ${{ matrix.bin_extension || '' }}
         run: |
           cd ./target/release
-          7z a "../../../bff-${MATRIX_NAME}-${TAG_NAME}.zip" \
+          7z a "../../bff-${MATRIX_NAME}-${TAG_NAME}.zip" \
             "bff-cli${BIN_EXTENSION}" \
             "bff-gui${BIN_EXTENSION}"
 

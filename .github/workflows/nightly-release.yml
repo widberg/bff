@@ -67,8 +67,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git tag -f nightly "$GITHUB_SHA"
-          git push origin refs/tags/nightly --force
+          if gh api "/repos/${GITHUB_REPOSITORY}/git/ref/tags/nightly" >/dev/null 2>&1; then
+            gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly" \
+              -F sha="$GITHUB_SHA" \
+              -F force=true
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${GITHUB_REPOSITORY}/git/refs" \
+              -F ref="refs/tags/nightly" \
+              -F sha="$GITHUB_SHA"
+          fi
 
       - name: Replace nightly release assets
         if: ${{ steps.artifact_check.outputs.found == 'true' }}
