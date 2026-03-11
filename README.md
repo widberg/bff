@@ -3,6 +3,7 @@
 BigFile Friend
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/widberg/bff/build.yml)](https://github.com/widberg/bff/actions)
+[![GitHub Release](https://img.shields.io/github/v/release/widberg/bff?include_prereleases&sort=semver&display_name=release)](https://github.com/widberg/bff/releases)
 [![Release Nightly](https://img.shields.io/badge/release-nightly-5e025f?labelColor=301934)](https://github.com/widberg/bff/releases/tag/nightly)
 [![Join the chat at https://discord.gg/CQgMNbYeUR](https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2)](https://discord.gg/CQgMNbYeUR)
 
