@@ -12,7 +12,7 @@ use crate::helpers::ResourceObjectLinkHeaderV1_06_63_02PC;
 use crate::traits::{Artifact, Export, Import};
 
 #[derive(..BffStruct)]
-#[br(import(link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
+#[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct SoundBodyV1_291_03_06PC {
     #[serde(skip)]
     sample_rate: u32,
