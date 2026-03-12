@@ -31,28 +31,30 @@ build-release CMD:
 [unix]
 build-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk build --release --no-default-features
+    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang" CFLAGS="--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
 build-wasm:
     #!powershell -NoLogo
     cd bff-gui
-    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
+    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang"
+    $ENV:CFLAGS = "--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
     trunk build --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [unix]
 serve-wasm:
     cd bff-gui
-    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk serve --release --no-default-features
+    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang" CFLAGS="--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk serve --release --no-default-features
 
 # trunk (https://github.com/trunk-rs/trunk)
 [windows]
 serve-wasm:
     #!powershell -NoLogo
     cd bff-gui
-    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang --sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
+    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang"
+    $ENV:CFLAGS = "--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
     trunk serve --release --no-default-features
 
 doc:
