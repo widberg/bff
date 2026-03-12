@@ -57,6 +57,8 @@ enum Commands {
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = ExportStrategy::Binary)]
         export_strategy: ExportStrategy,
+        #[arg(long, default_value_t = String::from(".d"))]
+        rich_suffix: String,
     },
     #[clap(alias = "c")]
     Create {
@@ -274,6 +276,7 @@ fn main() -> BffCliResult<()> {
             platform_override,
             version_override,
             export_strategy,
+            rich_suffix,
         } => extract::extract(
             bigfile,
             directory,
@@ -281,6 +284,7 @@ fn main() -> BffCliResult<()> {
             platform_override,
             version_override,
             export_strategy,
+            rich_suffix,
         ),
         Commands::Create {
             directory,

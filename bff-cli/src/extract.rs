@@ -135,6 +135,7 @@ fn export_bff_resource(
     bigfile: &BigFile,
     resource: &Resource,
     name_context: &NameContext,
+    rich_suffix: &String,
 ) -> BffCliResult<()> {
     let platform = bigfile.manifest.platform;
     let version = bigfile.manifest.version.clone();
@@ -151,10 +152,10 @@ fn export_bff_resource(
         resource.name.with_context(name_context).to_string(),
         &format!(".{}", class_name),
     ));
-    let mut directory = resources_path.join(format!("{}.{}.d", name, class_name));
+    let mut directory = resources_path.join(format!("{}.{}{}", name, class_name, rich_suffix));
     let mut i = 0;
     while directory.exists() {
-        directory.set_file_name(format!("{}_{}.{}.d", name, i, class_name));
+        directory.set_file_name(format!("{}_{}.{}{}", name, i, class_name, rich_suffix));
         i += 1;
     }
 
@@ -188,6 +189,7 @@ pub fn extract(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
     export_strategy: &ExportStrategy,
+    rich_suffix: &String,
 ) -> BffCliResult<()> {
     let name_context = NameContext::default();
     let progress_bar = ProgressBar::new_spinner();
@@ -223,7 +225,14 @@ pub fn extract(
         .try_for_each(|resource| {
             progress_bar.inc(1);
             if !matches!(*export_strategy, ExportStrategy::Rich)
-                || export_bff_resource(&resources_path, &bigfile, resource, &name_context).is_err()
+                || export_bff_resource(
+                    &resources_path,
+                    &bigfile,
+                    resource,
+                    &name_context,
+                    rich_suffix,
+                )
+                .is_err()
             {
                 dump_bff_resource(&resources_path, &bigfile, resource, &name_context)?;
             }
