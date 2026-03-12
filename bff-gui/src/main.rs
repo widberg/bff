@@ -363,10 +363,10 @@ fn uninstall() -> BffGuiResult<()> {
         if let Ok(default) =
             registry::open_subkey(classes.raw(), &extension_key_name, KEY_READ | KEY_WRITE)
         {
-            if let Some(prog_id) = registry::get_default_value_sz(default.raw())? {
-                if prog_id == PROG_ID {
-                    registry::delete_default_value_if_exists(default.raw())?;
-                }
+            if let Some(prog_id) = registry::get_default_value_sz(default.raw())?
+                && prog_id == PROG_ID
+            {
+                registry::delete_default_value_if_exists(default.raw())?;
             }
 
             if let Ok(open_with) =

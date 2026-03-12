@@ -9,10 +9,10 @@ fn does_not_have_skip_attr(attrs: &Vec<Attribute>) -> bool {
         if !attr.path().is_ident("referenced_names") {
             continue;
         }
-        if let syn::Meta::List(meta) = &attr.meta {
-            if meta.tokens.is_empty() {
-                continue;
-            }
+        if let syn::Meta::List(meta) = &attr.meta
+            && meta.tokens.is_empty()
+        {
+            continue;
         }
         attr.parse_nested_meta(|meta| {
             if meta.path.is_ident("skip") {

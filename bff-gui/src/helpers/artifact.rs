@@ -47,23 +47,24 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
     match class {
         Class::Bitmap(bitmap) => {
             let data_name = OsString::from("data");
-            if let Ok(mut exported_artifacts) = BffExport::export(&bitmap) {
-                if let Some(exported_artifact) = exported_artifacts.remove(&data_name) {
-                    match exported_artifact {
-                        BffArtifact::Dds(bytes) => {
-                            return Some(Artifact::Bitmap {
-                                format: BitmapFormat::Dds,
-                                data: Arc::new(bytes),
-                            });
-                        }
-                        BffArtifact::Binary(bytes) => {
-                            return Some(Artifact::Bitmap {
-                                format: BitmapFormat::Raw,
-                                data: Arc::new(bytes),
-                            });
-                        }
-                        BffArtifact::Text(_) => {}
+            if let Ok(mut exported_artifacts) = BffExport::export(&bitmap)
+                && let Some(exported_artifact) = exported_artifacts.remove(&data_name)
+            {
+                match exported_artifact {
+                    BffArtifact::Dds(bytes) => {
+                        return Some(Artifact::Bitmap {
+                            format: BitmapFormat::Dds,
+                            data: Arc::new(bytes),
+                        });
                     }
+                    BffArtifact::Binary(bytes) => {
+                        return Some(Artifact::Bitmap {
+                            format: BitmapFormat::Raw,
+                            data: Arc::new(bytes),
+                        });
+                    }
+                    BffArtifact::Text(_) => {}
+                    BffArtifact::Wav(_) => {}
                 }
             }
 

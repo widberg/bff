@@ -7,15 +7,15 @@ impl Gui {
         egui::SidePanel::right("right")
             .resizable(true)
             .show(ctx, |ui: &mut egui::Ui| {
-                if let Some(name) = self.resource_name {
-                    if let Some(info) = self.infos.get(&name) {
-                        egui::ScrollArea::both()
-                            .auto_shrink([false; 2])
-                            .id_salt("code_scroll")
-                            .show(ui, |ui| {
-                                selectable_text(ui, info);
-                            });
-                    }
+                if let Some(name) = self.resource_name
+                    && let Some(info) = self.infos.get(&name)
+                {
+                    egui::ScrollArea::both()
+                        .auto_shrink([false; 2])
+                        .id_salt("code_scroll")
+                        .show(ui, |ui| {
+                            selectable_text(ui, info);
+                        });
                 }
             });
     }

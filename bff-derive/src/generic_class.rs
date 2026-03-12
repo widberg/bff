@@ -150,8 +150,8 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
             let into = attrs(&f.attrs);
 
             if into {
-                if let Type::Path(p) = field_type {
-                    if p.path.get_ident().is_none() {
+                if let Type::Path(p) = field_type
+                    && p.path.get_ident().is_none() {
                         let first = p.path.segments.first().unwrap();
                         if first.ident == "DynArray" {
                             return quote! { #field_ident: resource.#field_ident.inner.into_iter().map(|x| x.into()).collect::<Vec<_>>().into() };
@@ -166,7 +166,6 @@ fn impl_from_specific_to_generic(input: &DeriveInput) -> TokenStream {
                                 return quote! { #field_ident: resource.#field_ident.into_iter().map(|x| x.into()).collect::<Vec<_>>() };
                             }
                         }
-                    }
                 }
                 quote! { #field_ident: resource.#field_ident.into() }
             } else {

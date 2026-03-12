@@ -137,12 +137,11 @@ where
     }
 
     pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Self, String)> {
-        if let Some(string) = string.as_ref().strip_prefix(FORCED_NAME_STRING_CHAR) {
-            if let Some((value, s)) = string.split_once(FORCED_NAME_STRING_CHAR) {
-                if let Ok(value) = value.parse::<H::Target>() {
-                    return Some((Self::new(value), s.to_owned()));
-                }
-            }
+        if let Some(string) = string.as_ref().strip_prefix(FORCED_NAME_STRING_CHAR)
+            && let Some((value, s)) = string.split_once(FORCED_NAME_STRING_CHAR)
+            && let Ok(value) = value.parse::<H::Target>()
+        {
+            return Some((Self::new(value), s.to_owned()));
         }
         None
     }
@@ -735,19 +734,19 @@ impl Names {
             match self.name_type {
                 NameType::Asobo32 => {
                     let name = NameAsobo32::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::Asobo32(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::Asobo32(name))
+                    {
+                        continue;
                     }
                     writeln!(out, r#"{} \"{}\""#, name, string)?;
                 }
                 NameType::AsoboAlternate32 => {
                     let name = NameAsoboAlternate32::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::AsoboAlternate32(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::AsoboAlternate32(name))
+                    {
+                        continue;
                     }
                     writeln!(
                         out,
@@ -758,10 +757,10 @@ impl Names {
                 }
                 NameType::Kalisto32 => {
                     let name = NameKalisto32::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::Kalisto32(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::Kalisto32(name))
+                    {
+                        continue;
                     }
                     writeln!(
                         out,
@@ -772,10 +771,10 @@ impl Names {
                 }
                 NameType::BlackSheep32 => {
                     let name = NameBlackSheep32::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::BlackSheep32(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::BlackSheep32(name))
+                    {
+                        continue;
                     }
                     writeln!(
                         out,
@@ -786,10 +785,10 @@ impl Names {
                 }
                 NameType::Asobo64 => {
                     let name = NameAsobo64::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::Asobo64(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::Asobo64(name))
+                    {
+                        continue;
                     }
                     writeln!(
                         out,
@@ -800,10 +799,10 @@ impl Names {
                 }
                 NameType::Ubisoft64 => {
                     let name = NameUbisoft64::hash_string(string);
-                    if let Some(names) = names {
-                        if !names.contains(&&Name::Ubisoft64(name)) {
-                            continue;
-                        }
+                    if let Some(names) = names
+                        && !names.contains(&&Name::Ubisoft64(name))
+                    {
+                        continue;
                     }
                     writeln!(
                         out,

@@ -261,7 +261,7 @@ impl Gui {
                         let filtered_count = bigfile
                             .resources
                             .values()
-                            .filter(|res| is_resource_visible(*res))
+                            .filter(|res| is_resource_visible(res))
                             .count();
                         ui.label(format!("{}/{}", filtered_count, bigfile.resources.len()));
                     });
@@ -271,7 +271,7 @@ impl Gui {
                             let mut res: Vec<(Name, Name, usize)> = bigfile
                                 .resources
                                 .values()
-                                .filter(|res| is_resource_visible(*res))
+                                .filter(|res| is_resource_visible(res))
                                 .map(|r| (r.name, r.class_name, r.size()))
                                 .collect();
                             match new_state.sort.sort_type {
@@ -313,16 +313,15 @@ impl Gui {
                                 egui::Layout::top_down_justified(egui::Align::LEFT),
                                 |ui| {
                                     ui.set_min_width(10.0);
-                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                                        if let Some(cur) = self.resource_name {
-                                            let mut res_iter = resources.iter().cycle();
-                                            if res_iter.any(|n| n == &cur) {
-                                                let res = *res_iter.next().unwrap();
-                                                response.resource_clicked = Some(res);
-                                                (
-                                                    response.info_created,
-                                                    response.artifact_created,
-                                                ) = load_artifact(
+                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowDown))
+                                        && let Some(cur) = self.resource_name
+                                    {
+                                        let mut res_iter = resources.iter().cycle();
+                                        if res_iter.any(|n| n == &cur) {
+                                            let res = *res_iter.next().unwrap();
+                                            response.resource_clicked = Some(res);
+                                            (response.info_created, response.artifact_created) =
+                                                load_artifact(
                                                     &self.artifacts,
                                                     &self.infos,
                                                     bigfile,
@@ -331,24 +330,19 @@ impl Gui {
                                                     platform,
                                                     self.name_context.as_ref(),
                                                 );
-                                            }
                                         }
                                     }
-                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                                        if let Some(cur) = self.resource_name {
-                                            let mut res_iter = resources.iter();
-                                            if let Some(i) = res_iter.position(|n| n == &cur) {
-                                                let c = if i == 0 {
-                                                    resources.len() - 1
-                                                } else {
-                                                    i - 1
-                                                };
-                                                let res = *resources.get(c).unwrap();
-                                                response.resource_clicked = Some(res);
-                                                (
-                                                    response.info_created,
-                                                    response.artifact_created,
-                                                ) = load_artifact(
+                                    if ui.input(|i| i.key_pressed(egui::Key::ArrowUp))
+                                        && let Some(cur) = self.resource_name
+                                    {
+                                        let mut res_iter = resources.iter();
+                                        if let Some(i) = res_iter.position(|n| n == &cur) {
+                                            let c =
+                                                if i == 0 { resources.len() - 1 } else { i - 1 };
+                                            let res = *resources.get(c).unwrap();
+                                            response.resource_clicked = Some(res);
+                                            (response.info_created, response.artifact_created) =
+                                                load_artifact(
                                                     &self.artifacts,
                                                     &self.infos,
                                                     bigfile,
@@ -357,7 +351,6 @@ impl Gui {
                                                     platform,
                                                     self.name_context.as_ref(),
                                                 );
-                                            }
                                         }
                                     }
 

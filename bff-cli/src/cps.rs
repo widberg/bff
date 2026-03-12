@@ -20,10 +20,10 @@ fn collect_cps_names(cps: &Cps, name_context: &NameContext) -> HashSet<Name> {
             names.insert(name_context.parse_i32_or_hash_name(stem));
         }
         for line in script.lines() {
-            if let Some(command_name) = line.split_whitespace().next() {
-                if !command_name.is_empty() {
-                    names.insert(name_context.parse_i32_or_hash_name(command_name));
-                }
+            if let Some(command_name) = line.split_whitespace().next()
+                && !command_name.is_empty()
+            {
+                names.insert(name_context.parse_i32_or_hash_name(command_name));
             }
         }
     }
