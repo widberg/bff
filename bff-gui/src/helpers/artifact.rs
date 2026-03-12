@@ -6,7 +6,6 @@ use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
 use bff::class::bitmap::generic::BitmapGeneric;
-use bff::class::sound::generic::SoundGeneric;
 use bff::class::{Class, ClassNameStyle, ClassType};
 use bff::names::{Name, NameType};
 use bff::traits::{Artifact as BffArtifact, Export as BffExport, TryIntoVersionPlatform};
@@ -73,9 +72,23 @@ pub fn create_artifact(bigfile: &BigFile, class: Class) -> Option<Artifact> {
             Some(artifact)
         }
         Class::Sound(sound) => {
-            let generic = SoundGeneric::from(sound);
-            let artifact = generic.export();
-            Some(artifact)
+            let data_name = OsString::from("data");
+            if let Ok(mut exported_artifacts) = BffExport::export(&sound)
+                && let Some(exported_artifact) = exported_artifacts.remove(&data_name)
+            {
+                match exported_artifact {
+                    BffArtifact::Dds(_) => {}
+                    BffArtifact::Binary(_) => {}
+                    BffArtifact::Text(_) => {}
+                    BffArtifact::Wav(bytes) => {
+                        return Some(Artifact::Sound {
+                            data: Arc::from(bytes),
+                        });
+                    }
+                }
+            }
+
+            None
         }
         Class::Mesh(bff::class::mesh::Mesh::MeshV1_291_03_06PC(mesh)) => Some(mesh.export()),
         Class::Skin(bff::class::skin::Skin::SkinV1_291_03_06PC(skin)) => {

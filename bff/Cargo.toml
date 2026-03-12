@@ -20,6 +20,7 @@ derive_aliases = "0.4"
 derive_more = { version = "2.0.1", features = ["full"] }
 encoding_rs = "0.8.33"
 flate2 = "1.1.1"
+hound = "3.5.1"
 impl-trait-for-tuples = "0.2.2"
 indexmap = { version = "2.0.0", features = ["serde"] }
 itertools = "0.14.0"

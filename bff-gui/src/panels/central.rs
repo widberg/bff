@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::Gui;
 use crate::artifact::Artifact;
 use crate::views::image::image_view;
@@ -16,24 +14,14 @@ impl Gui {
                         Artifact::Bitmap { format, data } => {
                             image_view(ui, &resource_name, format, data);
                         }
-                        Artifact::Sound {
-                            data,
-                            sample_rate,
-                            channels,
-                        } => {
-                            sound_view(
-                                ui,
-                                "sound".into(),
-                                Arc::clone(data),
-                                *sample_rate,
-                                *channels,
-                            );
+                        Artifact::Sound { data } => {
+                            sound_view(ui, egui::Id::new(("sound", resource_name)), data.clone());
                         }
                         Artifact::Mesh(model) => {
-                            mesh_view(ui, Arc::clone(model));
+                            mesh_view(ui, model.clone());
                         }
                         Artifact::Skin(skin) => {
-                            mesh_view(ui, Arc::clone(skin));
+                            mesh_view(ui, skin.clone());
                         }
                     }
                 }

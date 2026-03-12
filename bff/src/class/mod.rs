@@ -177,9 +177,11 @@ classes! {
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::SkinV1_381_67_09PC,
     },
     SkinData,
-    #![generic] Sound {
+    Sound {
         (Asobo(1, 6..=291, _, _), _) => v1_291_03_06_pc::SoundV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::SoundV1_381_67_09PC,
+        ;
+        pub mod generic;
     },
     SoundAmbience,
     SoundData,

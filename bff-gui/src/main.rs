@@ -517,6 +517,8 @@ impl eframe::App for Gui {
         name_context.scope(|| {
             if let Ok(res) = self.rx.try_recv() {
                 if let Some((bf, path)) = res {
+                    crate::helpers::sound::stop_audio_playback();
+
                     #[cfg(not(target_arch = "wasm32"))]
                     ctx.send_viewport_cmd(egui::ViewportCommand::Title(format!(
                         "{} - {}",
@@ -566,6 +568,9 @@ impl eframe::App for Gui {
                 self.nicknames.remove(&name);
             }
             if let Some(name) = resource_list_response.resource_clicked {
+                if self.resource_name != Some(name) {
+                    crate::helpers::sound::stop_audio_playback();
+                }
                 self.resource_name = Some(name);
                 if let Some(artifact) = resource_list_response.artifact_created {
                     self.artifacts.insert(name, artifact);
@@ -637,6 +642,10 @@ impl eframe::App for Gui {
                 show_bigfile_loading_overlay(ctx);
             }
         });
+    }
+
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        crate::helpers::sound::shutdown_audio_on_exit();
     }
 }
 

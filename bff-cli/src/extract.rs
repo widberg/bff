@@ -174,6 +174,7 @@ fn export_bff_resource(
                     std::fs::write(artifact_path.with_extension("bin"), bytes)?
                 }
                 Artifact::Dds(bytes) => std::fs::write(artifact_path.with_extension("dds"), bytes)?,
+                Artifact::Wav(bytes) => std::fs::write(artifact_path.with_extension("wav"), bytes)?,
                 Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
             }
         }

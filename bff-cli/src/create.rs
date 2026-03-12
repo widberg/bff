@@ -85,6 +85,11 @@ pub fn create(
                                 let bytes = std::fs::read(path)?;
                                 artifacts.insert(name, Artifact::Dds(bytes));
                             }
+                            "wav" => {
+                                let name = path.file_stem().unwrap().to_os_string();
+                                let bytes = std::fs::read(path)?;
+                                artifacts.insert(name, Artifact::Wav(bytes));
+                            }
                             "txt" => {
                                 let name = path.file_stem().unwrap().to_os_string();
                                 let text = std::fs::read_to_string(path)?;

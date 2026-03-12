@@ -593,6 +593,7 @@ dependencies = [
  "derive_more",
  "encoding_rs",
  "flate2",
+ "hound",
  "impl-trait-for-tuples",
  "indexmap",
  "itertools",
@@ -644,7 +645,6 @@ dependencies = [
  "eframe",
  "egui",
  "egui_extras",
- "hound",
  "image",
  "itertools",
  "mimalloc",
@@ -3588,6 +3588,7 @@ checksum = "e0e2319f90472c9934314a93df9f7cf81d48cebb6e8b8536a1da7f4dc4a15125"
 dependencies = [
  "cpal",
  "dasp_sample",
+ "hound",
  "num-rational",
  "thiserror 2.0.11",
 ]

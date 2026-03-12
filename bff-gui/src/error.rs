@@ -6,7 +6,6 @@ use derive_more::From;
 pub enum BffGuiError {
     Io(std::io::Error),
     EFrame(eframe::Error),
-    Hound(hound::Error),
     Other(String),
 }
 
