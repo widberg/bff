@@ -66,6 +66,10 @@ impl BinRead for EncodedPoint {
             // 01 23 45 67 89
             // \_____/\_____/
             //    x      y
+            // It would be nice to use arbitrary-int's i20 type for this with bilge, but that
+            // complicates the BinRead/BinWrite implementation due to needing to read/write a u40.
+            // I could do something with a 5 byte array but it seems like more effort than it's
+            // worth.
             (a >> 12) as f32 / 4.,
             (((a << 20) >> 12) | b as i32) as f32 / 4.,
         ]))
