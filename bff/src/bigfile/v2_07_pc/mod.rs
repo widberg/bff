@@ -44,7 +44,7 @@ fn parse_blocks<const GAME: usize>(
     decompressed_block_size: u32,
     block_sizes: &[u32],
 ) -> BinResult<Vec<Block>> {
-    let mut blocks = Vec::new();
+    let mut blocks = Vec::with_capacity(block_sizes.len());
 
     for block_size in block_sizes {
         let block_start = reader.stream_position()?;
@@ -185,7 +185,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
 
         let mut decompressed_block_size = 0;
 
-        let mut blocks = Vec::new();
+        let mut blocks = Vec::with_capacity(bigfile.manifest.blocks.len());
 
         for block in bigfile.manifest.blocks.iter() {
             let mut block_writer = Cursor::new(Vec::new());
@@ -208,7 +208,7 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
         }
 
         decompressed_block_size = calculated_padded(decompressed_block_size as usize, 2048) as u32;
-        let mut block_sizes = Vec::new();
+        let mut block_sizes = Vec::with_capacity(blocks.len());
         let mut compression_type = CompressionType::None;
 
         for (resource_count, _, compressed, mut block_data) in blocks {

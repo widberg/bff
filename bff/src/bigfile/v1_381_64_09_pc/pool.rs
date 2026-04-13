@@ -46,10 +46,10 @@ pub struct ResourceDescriptionSOA {
 fn unzip_resource_description_soa(
     resource_descriptions: &Vec<ResourceDescription>,
 ) -> ResourceDescriptionSOA {
-    let mut names = Vec::new();
-    let mut reference_counts = Vec::new();
-    let mut padded_sizes = Vec::new();
-    let mut reference_records_indices = Vec::new();
+    let mut names = Vec::with_capacity(resource_descriptions.len());
+    let mut reference_counts = Vec::with_capacity(resource_descriptions.len());
+    let mut padded_sizes = Vec::with_capacity(resource_descriptions.len());
+    let mut reference_records_indices = Vec::with_capacity(resource_descriptions.len());
 
     for resource_description in resource_descriptions {
         names.push(resource_description.name);
