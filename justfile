@@ -27,36 +27,6 @@ build CMD:
 build-release CMD:
     cargo build --release --bin {{ CMD }}
 
-# trunk (https://github.com/trunk-rs/trunk)
-[unix]
-build-wasm:
-    cd bff-gui
-    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang" CFLAGS="--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk build --release --no-default-features
-
-# trunk (https://github.com/trunk-rs/trunk)
-[windows]
-build-wasm:
-    #!powershell -NoLogo
-    cd bff-gui
-    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang"
-    $ENV:CFLAGS = "--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
-    trunk build --release --no-default-features
-
-# trunk (https://github.com/trunk-rs/trunk)
-[unix]
-serve-wasm:
-    cd bff-gui
-    /usr/bin/env CC="{{ env_var("WASI_SDK_PATH") }}/bin/clang" CFLAGS="--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot" trunk serve --release --no-default-features
-
-# trunk (https://github.com/trunk-rs/trunk)
-[windows]
-serve-wasm:
-    #!powershell -NoLogo
-    cd bff-gui
-    $ENV:CC = "{{ env_var("WASI_SDK_PATH") }}/bin/clang"
-    $ENV:CFLAGS = "--sysroot={{ env_var("WASI_SDK_PATH") }}/share/wasi-sysroot"
-    trunk serve --release --no-default-features
-
 doc:
     cargo doc
 
@@ -68,7 +38,6 @@ run-release CMD *OPTIONS:
 
 install:
     cargo install --path bff-cli --bin bff-cli
-    cargo install --path bff-gui --bin bff-gui
 
 install-dev-deps:
     rustup install nightly
@@ -76,10 +45,6 @@ install-dev-deps:
     cargo install --locked cargo-sort flamegraph cargo-deny zizmor cargo-machete
     cargo install --locked --git https://github.com/rust-lang/measureme summarize
     {{ if os() == 'windows' { 'cargo install --locked blondie' } else { '' } }}
-
-install-dev-deps-wasm:
-    rustup target add wasm32-unknown-unknown
-    cargo install --locked trunk
 
 # flamegraph (https://github.com/flamegraph-rs/flamegraph)
 [unix]

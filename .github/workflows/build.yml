@@ -51,7 +51,7 @@ jobs:
         if: matrix.name == 'linux'
 
       - name: Build
-        run: cargo build --release --locked -p bff-cli -p bff-gui --bins
+        run: cargo build --release --locked -p bff-cli --bins
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -59,4 +59,3 @@ jobs:
           name: bff-${{ matrix.name }}-${{ github.sha }}
           path: |
             ./target/release/bff-cli${{ matrix.bin_extension }}
-            ./target/release/bff-gui${{ matrix.bin_extension }}
