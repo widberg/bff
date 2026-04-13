@@ -4,7 +4,7 @@ use std::io::Cursor;
 
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 
-use super::generic::SoundFlags;
+use super::shared::SoundFlags;
 use crate::BffResult;
 use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;

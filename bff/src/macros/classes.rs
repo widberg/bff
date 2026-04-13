@@ -1,7 +1,6 @@
 macro_rules! classes {
     (
         $(
-            $(#![$generic:ident])?
             $class:ident
             $({
                 $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)?
@@ -11,8 +10,7 @@ macro_rules! classes {
         )*
     ) => {
         $(
-            $crate::macros::classes::classes!(@entry
-                $(#![$generic])?
+            $crate::macros::classes::classes!(@module
                 $class
                 $({
                     $($pattern => $variant_mod::$variant),+
@@ -159,19 +157,6 @@ macro_rules! classes {
         }
     };
 
-    (@entry #![generic] $class:ident { $($body:tt)* }) => {
-        $crate::macros::classes::classes!(@module generic $class { $($body)* });
-    };
-    (@entry #![generic] $class:ident) => {
-        $crate::macros::classes::classes!(@module generic $class {});
-    };
-    (@entry $class:ident { $($body:tt)* }) => {
-        $crate::macros::classes::classes!(@module plain $class { $($body)* });
-    };
-    (@entry $class:ident) => {
-        $crate::macros::classes::classes!(@module plain $class {});
-    };
-
     (@class_ty $class:ident) => {
         pastey::paste! {
             crate::class::[<#$class:snake>]::[<$class>]
@@ -194,23 +179,17 @@ macro_rules! classes {
         }
     }};
 
-    (@module_kind_prelude generic) => {
-        pub mod generic;
-    };
-    (@module_kind_prelude plain) => {};
-
-    (@module $kind:ident $class:ident {}) => {
+    (@module $class:ident) => {
         pastey::paste! {
             pub mod [<#$class:snake>] {
-                $crate::macros::classes::classes!(@module_kind_prelude $kind);
-                $crate::macros::classes::classes!(@declare_class_kind $kind $class {});
+                $crate::macros::classes::classes!(@named_class $class);
+                $crate::macros::classes::classes!(@declare_class_kind_impl $class {});
             }
         }
     };
-    (@module $kind:ident $class:ident { $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)? $(; $(pub mod $extra_mod:ident;)*)? }) => {
+    (@module $class:ident { $($pattern:pat => $variant_mod:ident::$variant:ident),+ $(,)? $(; $(pub mod $extra_mod:ident;)*)? }) => {
         pastey::paste! {
             pub mod [<#$class:snake>] {
-                $crate::macros::classes::classes!(@module_kind_prelude $kind);
                 $(
                     $(
                         pub mod $extra_mod;
@@ -220,16 +199,10 @@ macro_rules! classes {
                     pub mod $variant_mod;
                     use self::$variant_mod::$variant;
                 )*
-                $crate::macros::classes::classes!(@declare_class_kind $kind $class { $($pattern => $variant),* });
+                $crate::macros::classes::classes!(@named_class $class);
+                $crate::macros::classes::classes!(@declare_class_kind_impl $class { $($pattern => $variant),* });
             }
         }
-    };
-
-    (@declare_class_kind generic $class:ident $variants:tt) => {
-        $crate::macros::classes::classes!(@declare_class #![generic] $class $variants);
-    };
-    (@declare_class_kind plain $class:ident $variants:tt) => {
-        $crate::macros::classes::classes!(@declare_class $class $variants);
     };
 
     (@named_class $class:ident) => {
@@ -264,11 +237,6 @@ macro_rules! classes {
                 const NAME_LEGACY: &'static str = stringify!([<$class:upper>]);
             }
         }
-    };
-
-    (@declare_class $class:ident $variants:tt) => {
-        $crate::macros::classes::classes!(@named_class $class);
-        $crate::macros::classes::classes!(@declare_class_kind_impl $class $variants);
     };
 
     (@declare_class_kind_impl $class:ident {}) => {
@@ -441,25 +409,6 @@ macro_rules! classes {
                         writeln!(f, "{}: {}", stringify!($variant), self.$variant)?;
                     )*
                     Ok(())
-                }
-            }
-        }
-    };
-
-    (@declare_class #![generic] $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
-        $crate::macros::classes::classes!(@declare_class $class { $($pattern => $variant),* });
-        $crate::macros::classes::classes!(@declare_class_generic_from $class { $($pattern => $variant),* });
-    };
-
-    (@declare_class_generic_from $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
-        pastey::paste! {
-            impl From<$class> for generic::[<$class Generic>] {
-                fn from(class: $class) -> generic::[<$class Generic>] {
-                    match class {
-                        $($class::$variant(class) => {
-                            (*class).into()
-                        })*
-                    }
                 }
             }
         }

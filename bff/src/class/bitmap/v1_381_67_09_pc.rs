@@ -2,15 +2,12 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io::Cursor;
 
-use bff_derive::GenericClass;
 use binrw::helpers::until_eof;
 use ddsfile::{Caps2, D3DFormat, Dds, NewD3dParams};
 
-use super::generic::BitmapGeneric;
 use crate::BffResult;
 use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
-use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::names::Name;
 use crate::traits::{Artifact, Export, Import};
 
@@ -47,19 +44,15 @@ enum BmTransp {
     Cubemap = 255,
 }
 
-#[derive(..BffStruct, GenericClass)]
-#[generic(name(BitmapHeaderGeneric))]
+#[derive(..BffStruct)]
 pub struct LinkHeader {
     #[referenced_names(skip)]
     link_name: Name,
     bitmap_class: BitmapClass,
-    #[generic]
     #[serde(skip)]
     width: u32,
-    #[generic]
     #[serde(skip)]
     height: u32,
-    #[generic]
     #[serde(skip)]
     precalculated_size: u32,
     flags: u8,
@@ -68,7 +61,6 @@ pub struct LinkHeader {
     layer: f32,
     #[serde(skip)]
     format0: BmFormat,
-    #[generic]
     #[serde(skip)]
     mipmap_count: u8,
     four: u8,
@@ -78,18 +70,15 @@ pub struct LinkHeader {
     transparency: BmTransp,
 }
 
-#[derive(..BffStruct, GenericClass)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &LinkHeader))]
 pub struct BitmapBodyV1_381_67_09PC {
     #[br(parse_with = until_eof)]
     #[serde(skip)]
-    #[generic]
     data: Vec<u8>,
 }
 
 pub type BitmapV1_381_67_09PC = TrivialClass<LinkHeader, BitmapBodyV1_381_67_09PC>;
-
-trivial_class_generic!(BitmapV1_381_67_09PC, BitmapGeneric);
 
 impl TryFrom<BmFormat> for D3DFormat {
     type Error = Error;

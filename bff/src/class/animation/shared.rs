@@ -1,12 +1,9 @@
-use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
-    DynArray,
     KeyframerBezierRot,
     KeyframerFloatComp,
     KeyframerMessage,
     KeyframerRot,
     KeyframerVec3fComp,
-    ResourceObjectLinkHeaderGeneric,
 };
 use crate::names::Name;
 
@@ -90,19 +87,3 @@ pub struct AnimationMorphModifier {
     pub keyframer_float_comp_start_frame: u16,
     pub keyframer_float_comp_frame_count: u16,
 }
-
-pub struct AnimationBodyGeneric {
-    pub duration: f32,
-    pub blending: f32,
-    pub unknown: u16,
-    pub animation_node: AnimationNode,
-    pub animation_material: AnimationMaterial,
-    pub animation_mesh: AnimationMesh,
-    pub animation_morph: AnimationMorph,
-    pub animation_node_modifiers: DynArray<AnimationNodeModifier>,
-    pub animation_material_modifiers: DynArray<AnimationMaterialModifier>,
-    pub animation_mesh_modifiers: DynArray<AnimationMeshModifier>,
-    pub animation_morph_modifiers: DynArray<AnimationMorphModifier>,
-}
-
-pub type AnimationGeneric = TrivialClass<ResourceObjectLinkHeaderGeneric, AnimationBodyGeneric>;

@@ -3,7 +3,7 @@ use binrw::binrw;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::generic::{AABBNode, Strip, Vertices};
+use super::shared::{AABBNode, Strip, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     BffBox,

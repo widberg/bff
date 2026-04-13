@@ -6,9 +6,11 @@ classes! {
     AIObstacleCollection,
     AIObjectCollection,
     AmbientLightmap,
-    #![generic] Animation {
+    Animation {
         (Asobo(1, 6..=291, _, _), PC) => v1_291_03_06_pc::AnimationV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::AnimationV1_381_67_09PC,
+        ;
+        pub mod shared;
     },
     AnimationCollection,
     AnimationGraph,
@@ -19,7 +21,7 @@ classes! {
     Binary {
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::BinaryV1_381_67_09PC,
     },
-    #![generic] Bitmap {
+    Bitmap {
         (Asobo(1, 6, 63, 2), PC) => v1_06_63_02_pc::BitmapV1_06_63_02PC,
         (Asobo(1, 231..=291, _, _), _) => v1_291_03_06_pc::BitmapV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::BitmapV1_381_67_09PC,
@@ -77,7 +79,7 @@ classes! {
     InGameFile,
     LensFlare,
     LensFlareData,
-    #![generic] Light {
+    Light {
         (Asobo(1, 3..=291, _, _), _) => v1_291_03_06_pc::LightV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::LightV1_381_67_09PC,
     },
@@ -117,7 +119,7 @@ classes! {
         (Asobo(1, 291, 3, 6), PC) => v1_291_03_06_pc::MeshV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::MeshV1_381_67_09PC,
         ;
-        pub mod generic;
+        pub mod shared;
     },
     MeshData {
         (Asobo(1, 6, 63, 2), PC) => v1_06_63_02_pc::MeshDataV1_06_63_02PC,
@@ -181,7 +183,7 @@ classes! {
         (Asobo(1, 6..=291, _, _), _) => v1_291_03_06_pc::SoundV1_291_03_06PC,
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::SoundV1_381_67_09PC,
         ;
-        pub mod generic;
+        pub mod shared;
     },
     SoundAmbience,
     SoundData,
@@ -222,7 +224,7 @@ classes! {
     UINineSlice,
     UIPanel,
     UITextPanel,
-    #![generic] UserDefine {
+    UserDefine {
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::UserDefineV1_381_67_09PC,
         (Asobo(1, _, _, _), _) => v1_291_03_06_pc::UserDefineV1_291_03_06PC,
     },

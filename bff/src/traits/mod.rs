@@ -3,7 +3,6 @@ mod export;
 mod name_hash_function;
 mod named_class;
 mod referenced_names;
-mod try_generic;
 mod try_version_platform;
 mod try_your_best;
 
@@ -12,6 +11,5 @@ pub use export::*;
 pub use name_hash_function::*;
 pub use named_class::*;
 pub use referenced_names::*;
-pub use try_generic::*;
 pub use try_version_platform::*;
 pub use try_your_best::*;

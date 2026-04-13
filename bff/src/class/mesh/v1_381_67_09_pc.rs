@@ -4,7 +4,7 @@ use binrw::{BinRead, BinWrite, binrw};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::generic::{AABBNode, Strip, VertexGroupFlags, Vertices};
+use super::shared::{AABBNode, Strip, VertexGroupFlags, Vertices};
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{
     BffMap,

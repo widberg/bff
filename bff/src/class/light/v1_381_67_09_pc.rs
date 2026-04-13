@@ -1,13 +1,8 @@
-use bff_derive::GenericClass;
-
-use super::generic::LightGeneric;
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{ObjectLinkHeaderV1_381_67_09PC, Quat, RGBA, Vec3f};
-use crate::macros::trivial_class_generic::trivial_class_generic;
 use crate::traits::{Export, Import};
 
-#[derive(..BffStruct, GenericClass)]
-#[generic(complete)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ObjectLinkHeaderV1_381_67_09PC))]
 pub struct LightBodyV1_381_67_09PC {
     rotation: Quat,
@@ -19,8 +14,6 @@ pub struct LightBodyV1_381_67_09PC {
 
 pub type LightV1_381_67_09PC =
     TrivialClass<ObjectLinkHeaderV1_381_67_09PC, LightBodyV1_381_67_09PC>;
-
-trivial_class_generic!(LightV1_381_67_09PC, LightGeneric);
 
 impl Export for LightV1_381_67_09PC {}
 impl Import for LightV1_381_67_09PC {}

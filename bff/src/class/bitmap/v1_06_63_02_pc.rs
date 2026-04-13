@@ -1,17 +1,15 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 
-use bff_derive::GenericClass;
 use binrw::helpers::until_eof;
 
-use super::generic::{BitmapBodyGeneric, BitmapGeneric, BitmapHeaderGeneric};
 use crate::BffResult;
 use crate::class::trivial_class::TrivialClass;
 use crate::error::Error;
 use crate::helpers::ResourceObjectLinkHeaderV1_06_63_02PC;
 use crate::traits::{Artifact, Export, Import};
 
-#[derive(..BffStruct, GenericClass)]
+#[derive(..BffStruct)]
 #[br(import(_link_header: &ResourceObjectLinkHeaderV1_06_63_02PC))]
 pub struct BitmapBodyV1_06_63_02PC {
     width: u32,
@@ -26,35 +24,11 @@ pub struct BitmapBodyV1_06_63_02PC {
     flag: u16,
     #[br(parse_with = until_eof)]
     #[serde(skip)]
-    #[generic]
     data: Vec<u8>,
 }
 
 pub type BitmapV1_06_63_02PC =
     TrivialClass<ResourceObjectLinkHeaderV1_06_63_02PC, BitmapBodyV1_06_63_02PC>;
-
-impl From<BitmapV1_06_63_02PC> for BitmapGeneric {
-    fn from(value: BitmapV1_06_63_02PC) -> Self {
-        let link_header = BitmapHeaderGeneric {
-            width: value.body.width,
-            height: value.body.height,
-            precalculated_size: value.body.precalculated_size,
-            mipmap_count: value.body.mipmap_count,
-        };
-
-        let body = BitmapBodyGeneric {
-            data: value.body.data,
-        };
-
-        Self {
-            class_name: value.class_name,
-            name: value.name,
-            link_name: value.link_name,
-            link_header,
-            body,
-        }
-    }
-}
 
 impl Export for BitmapV1_06_63_02PC {
     fn export(&self) -> BffResult<HashMap<OsString, Artifact>> {
