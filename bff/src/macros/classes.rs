@@ -41,18 +41,13 @@ macro_rules! classes {
         pub enum ClassType {
             $($class,)*
         }
-
-        pub enum ClassNameStyle {
-            Z,
-            Caps,
-        }
     };
 
     (@emit_try_from_name $($class:ident)*) => {
-        impl TryFrom<crate::names::Name> for (ClassType, ClassNameStyle, crate::names::NameType) {
+        impl TryFrom<crate::names::Name> for (ClassType, crate::names::NameStyle, crate::names::NameType) {
             type Error = ();
 
-            fn try_from(name: crate::names::Name) -> Result<(ClassType, ClassNameStyle, crate::names::NameType), ()> {
+            fn try_from(name: crate::names::Name) -> Result<(ClassType, crate::names::NameStyle, crate::names::NameType), ()> {
                 $(
                     if let Some((style, name_type)) = $crate::macros::classes::classes!(@class_name_style_type $class name) {
                         return Ok((ClassType::$class, style, name_type));
@@ -165,18 +160,18 @@ macro_rules! classes {
 
     (@class_name_style_type $class:ident $name:expr) => {{
         match $name {
-            crate::names::Name::Asobo32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Asobo32)),
-            crate::names::Name::Asobo32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Asobo32)),
-            crate::names::Name::AsoboAlternate32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::AsoboAlternate32)),
-            crate::names::Name::AsoboAlternate32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::AsoboAlternate32)),
-            crate::names::Name::Kalisto32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Kalisto32)),
-            crate::names::Name::Kalisto32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Kalisto32)),
-            crate::names::Name::BlackSheep32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::BlackSheep32)),
-            crate::names::Name::BlackSheep32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::BlackSheep32)),
-            crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Asobo64)),
-            crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Asobo64)),
-            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Ubisoft64)),
-            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Ubisoft64)),
+            crate::names::Name::Asobo32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::Asobo32)),
+            crate::names::Name::Asobo32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo32>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::Asobo32)),
+            crate::names::Name::AsoboAlternate32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::AsoboAlternate32)),
+            crate::names::Name::AsoboAlternate32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsoboAlternate32>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::AsoboAlternate32)),
+            crate::names::Name::Kalisto32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::Kalisto32)),
+            crate::names::Name::Kalisto32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameKalisto32>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::Kalisto32)),
+            crate::names::Name::BlackSheep32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::BlackSheep32)),
+            crate::names::Name::BlackSheep32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::BlackSheep32)),
+            crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::Asobo64)),
+            crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::Asobo64)),
+            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME => Some((crate::names::NameStyle::Z, crate::names::NameType::Ubisoft64)),
+            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME_LEGACY => Some((crate::names::NameStyle::Caps, crate::names::NameType::Ubisoft64)),
             _ => None,
         }
     }};
