@@ -33,6 +33,7 @@ pub fn blocks_parser(
     for block_description in block_descriptions {
         let block = Block::read_options(reader, endian, (&block_description,))?;
         let mut block_resources = Vec::with_capacity(block.resources.len());
+        resources.reserve(block.resources.len());
         for resource in block.resources.into_iter() {
             block_resources.push(ManifestResource {
                 name: resource.name,
@@ -108,6 +109,8 @@ impl BigFileIo for BigFileV1_06_63_02PC {
             let block_begin = writer.stream_position()?;
 
             let mut calculated_working_buffer_offset = 0usize;
+
+            compressed.reserve(block.resources.len());
 
             for block_resource in block.resources.iter() {
                 let is_compressed = block_resource.compress.unwrap_or_default();

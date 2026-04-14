@@ -127,7 +127,7 @@ impl From<BigFileV2_0PC> for BigFile {
 
         for block in bigfile.blocks.into_iter() {
             let mut block_resources = Vec::with_capacity(block.resources.len());
-
+            resources.reserve(block.resources.len());
             for resource in block.resources {
                 block_resources.push(crate::bigfile::manifest::ManifestResource {
                     name: resource.name,

@@ -128,7 +128,7 @@ impl<const GAME: usize> From<BigFileV2_07PC<GAME>> for BigFile {
 
         for block in bigfile.blocks.into_iter() {
             let mut block_resources = Vec::with_capacity(block.resources.len());
-
+            resources.reserve(block.resources.len());
             for resource in block.resources {
                 block_resources.push(crate::bigfile::manifest::ManifestResource {
                     name: resource.name,

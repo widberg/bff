@@ -42,6 +42,7 @@ pub fn blocks_parser(
                     .map(|d| d.resource_count)
                     .sum::<u32>() as usize,
         );
+        resources.reserve(block_resource_descriptions.resources.len());
         for resource in block_resource_descriptions.resources.into_iter() {
             reader.seek(SeekFrom::Start(resource.offset as u64 * 2048))?;
             let resource = Resource::read_options(reader, endian, ())?;

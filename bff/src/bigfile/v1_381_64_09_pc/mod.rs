@@ -88,7 +88,7 @@ fn pool_parser(
         })
         .collect::<Vec<_>>();
 
-    let mut compressed = HashMap::new();
+    let mut compressed = HashMap::with_capacity(pool.resources.len());
 
     for pool_resource in pool.resources.into_iter() {
         let name = pool_resource.resource.name;
@@ -326,7 +326,8 @@ impl BigFileIo for BigFileV1_381_64_09PC {
 
             let end_pool_header = writer.stream_position()?;
 
-            let mut resource_padded_sizes = HashMap::new();
+            let mut resource_padded_sizes =
+                HashMap::with_capacity(pool.resource_entry_indices.len());
 
             let mut pool_sector_padding_size = 0u32;
             let mut pool_resource_decompression_buffer_capacity = 0;
