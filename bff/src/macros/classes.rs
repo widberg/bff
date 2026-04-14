@@ -175,6 +175,8 @@ macro_rules! classes {
             crate::names::Name::BlackSheep32(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameBlackSheep32>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::BlackSheep32)),
             crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Asobo64)),
             crate::names::Name::Asobo64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameAsobo64>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Asobo64)),
+            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME => Some((ClassNameStyle::Z, crate::names::NameType::Ubisoft64)),
+            crate::names::Name::Ubisoft64(n) if n == <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::NamedClass<crate::names::NameUbisoft64>>::NAME_LEGACY => Some((ClassNameStyle::Caps, crate::names::NameType::Ubisoft64)),
             _ => None,
         }
     }};
@@ -230,6 +232,11 @@ macro_rules! classes {
             impl crate::traits::NamedClass<crate::names::NameAsobo64> for $class {
                 const NAME: crate::names::NameAsobo64 = crate::names::NameAsobo64::new(crate::crc::asobo64(stringify!([<$class _Z>]).as_bytes()));
                 const NAME_LEGACY: crate::names::NameAsobo64 = crate::names::NameAsobo64::new(crate::crc::asobo64(stringify!([<$class:upper>]).as_bytes()));
+            }
+
+            impl crate::traits::NamedClass<crate::names::NameUbisoft64> for $class {
+                const NAME: crate::names::NameUbisoft64 = crate::names::NameUbisoft64::new(crate::crc::ubisoft64(stringify!([<$class _Z>]).as_bytes()));
+                const NAME_LEGACY: crate::names::NameUbisoft64 = crate::names::NameUbisoft64::new(crate::crc::ubisoft64(stringify!([<$class:upper>]).as_bytes()));
             }
 
             impl crate::traits::NamedClass<&'static str> for $class {
