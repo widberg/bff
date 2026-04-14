@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Seek};
 use std::path::Path;
 
 use bff::bigfile::BigFile;
@@ -12,17 +12,24 @@ use bff::traits::TryYourBest;
 use crate::error::BffCliResult;
 
 pub fn try_your_best(path: &Path) -> BffCliResult<()> {
-    let name_context = NameContext::default();
     let f = File::open(path)?;
     let mut reader = BufReader::new(f);
 
-    if let Ok(bff_resource) = BffResource::read(&mut reader, &name_context) {
-        let report = <Class as TryYourBest<&Resource>>::report(
-            &bff_resource.resource,
-            bff_resource.header.platform,
-        );
-        println!("{}", report);
-    } else {
+    if let Ok(name_type) = bff::bigfile::resource::BffResourceHeader::probe_name_type(&mut reader) {
+        reader.rewind()?;
+        let name_context = NameContext::new(name_type);
+        if let Ok(bff_resource) = BffResource::read(&mut reader, &name_context) {
+            let report = <Class as TryYourBest<&Resource>>::report(
+                &bff_resource.resource,
+                bff_resource.header.platform,
+            );
+            println!("{}", report);
+            return Ok(());
+        }
+        reader.rewind()?;
+    }
+
+    {
         let platform = path
             .extension()
             .and_then(|e| e.try_into().ok())

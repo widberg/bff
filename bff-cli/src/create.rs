@@ -7,13 +7,31 @@ use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
-use bff::names::NameContext;
+use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
+
+fn validate_version_override_name_type(
+    version_override: &Option<Version>,
+    expected_name_type: NameType,
+) -> BffCliResult<()> {
+    if let Some(version_override) = version_override {
+        let override_name_type: NameType = version_override.try_into()?;
+        if override_name_type != expected_name_type {
+            return Err(std::io::Error::other(format!(
+                "`--version-override` implies NameType {:?}, but context requires {:?}",
+                override_name_type, expected_name_type
+            ))
+            .into());
+        }
+    }
+
+    Ok(())
+}
 
 #[allow(clippy::too_many_arguments)]
 pub fn create(
@@ -25,10 +43,14 @@ pub fn create(
     version_to_write: &Option<Version>,
     tag: &Option<String>,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
     let manifest_path = directory.join("manifest.json");
+    let manifest_name_type = bff::names::json::probe_name_type_from_manifest_reader(
+        BufReader::new(File::open(&manifest_path)?),
+    )?;
+    validate_version_override_name_type(version_override, manifest_name_type)?;
+    let name_context = NameContext::new(manifest_name_type);
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
     let manifest = bff::names::json::from_reader(manifest_reader, &name_context)?;
 

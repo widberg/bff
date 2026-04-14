@@ -1,14 +1,14 @@
 use std::collections::VecDeque;
 use std::path::PathBuf;
 
-use bff::names::{NameContext, WORDLIST_ANIMALS, WORDLIST_BIP39, get_forced_hash_string};
+use bff::names::{NameContext, NameType, WORDLIST_ANIMALS, WORDLIST_BIP39, get_forced_hash_string};
 use bff::petgraph;
 use bff::petgraph::visit::{VisitMap, Visitable};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
-use crate::extract::{read_bigfile, read_bigfile_names, read_in_names, write_names};
+use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names, write_names};
 
 #[derive(ValueEnum, Clone, Copy)]
 pub enum Wordlist {
@@ -19,20 +19,27 @@ pub enum Wordlist {
 
 pub fn names(
     bigfile_path: &Option<PathBuf>,
+    name_type: &Option<NameType>,
     wordlist: &Option<Wordlist>,
     in_names: &Vec<PathBuf>,
     out_names: &Option<PathBuf>,
     use_reference_graph: &bool,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let name_context = if let Some(bigfile_path) = bigfile_path {
+        probe_bigfile_name_context(bigfile_path, &None, &None)?
+    } else {
+        NameContext::new(name_type.ok_or_else(|| {
+            std::io::Error::other(
+                "`--name-type` is required when `--bigfile` is not provided",
+            )
+        })?)
+    };
     if let Some(bigfile_path) = bigfile_path {
         read_bigfile_names(bigfile_path, &name_context)?;
     }
     read_in_names(in_names, &name_context)?;
 
     if let Some(bigfile_path) = bigfile_path {
-        read_bigfile_names(bigfile_path, &name_context)?;
-
         let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
 
         if let Some(wordlist) = wordlist {

@@ -1,4 +1,4 @@
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 
 use binrw::{BinRead, BinWrite, binrw};
 use schemars::JsonSchema;
@@ -8,7 +8,7 @@ use super::platforms::Platform;
 use super::versions::Version;
 use crate::BffResult;
 use crate::class::Class;
-use crate::names::{Name, NameContext};
+use crate::names::{Name, NameContext, NameType};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {
@@ -49,6 +49,17 @@ pub struct BffResourceHeader {
 }
 
 impl BffResourceHeader {
+    pub fn name_type(&self) -> BffResult<NameType> {
+        (&self.version).try_into()
+    }
+
+    pub fn probe_name_type<R: Read + Seek>(reader: &mut R) -> BffResult<NameType> {
+        let start = reader.stream_position()?;
+        let header = Self::read(reader)?;
+        reader.seek(SeekFrom::Start(start))?;
+        header.name_type()
+    }
+
     fn data_padded_size_on_disk(&self) -> u16 {
         let non_data_size = 4 + 2;
         let total_unpadded_size =

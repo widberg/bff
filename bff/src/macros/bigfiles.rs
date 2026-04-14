@@ -1,6 +1,24 @@
 macro_rules! bigfiles {
     ($($pattern:pat => $bigfile:ident),* $(,)?) => {
         impl BigFile {
+            pub fn probe_name_type_platform<R: std::io::Read + std::io::Seek>(
+                reader: &mut R,
+                _platform: crate::bigfile::platforms::Platform,
+                version_override: &Option<crate::bigfile::versions::Version>,
+            ) -> crate::BffResult<crate::names::NameType> {
+                use binrw::BinRead;
+
+                let start = reader.stream_position()?;
+                let version: crate::bigfile::versions::Version =
+                    crate::helpers::FixedStringNull::<256>::read_be(reader)?
+                        .as_str()
+                        .into();
+                reader.seek(std::io::SeekFrom::Start(start))?;
+
+                let version = version_override.clone().unwrap_or(version);
+                (&version).try_into()
+            }
+
             #[allow(unused_imports)]
             pub fn read_platform<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
@@ -19,13 +37,20 @@ macro_rules! bigfiles {
                         .as_str()
                         .into();
                 let version = version_override.clone().unwrap_or(version);
-                name_context.scope(|| match (&version, platform) {
+                match (&version, platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        <$bigfile as BigFileIo>::read(reader, version, platform)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| <$bigfile as BigFileIo>::read(reader, version, platform))
                     })*
                     _ => Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into()),
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -53,15 +78,22 @@ macro_rules! bigfiles {
                     version.to_string()
                 };
                 crate::helpers::FixedStringNull::<256>::write_be(&version_string.into(), writer)?;
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        <$bigfile as BigFileIo>::write(self, writer, tag)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| <$bigfile as BigFileIo>::write(self, writer, tag))
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -78,15 +110,24 @@ macro_rules! bigfiles {
                 let platform = self.manifest.platform;
                 let endian: crate::Endian = platform.into();
                 let version = &self.manifest.version;
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(
@@ -119,15 +160,24 @@ macro_rules! bigfiles {
                 let platform = self.manifest.platform;
                 let endian: crate::Endian = platform.into();
                 let version = &self.manifest.version;
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -143,15 +193,24 @@ macro_rules! bigfiles {
                 let crate::bigfile::resource::BffResourceHeader { platform, version } =
                     <crate::bigfile::resource::BffResourceHeader as binrw::BinRead>::read(reader)?;
                 let endian: crate::Endian = platform.into();
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
         }
 
@@ -170,15 +229,24 @@ macro_rules! bigfiles {
 
                 let endian: crate::Endian = platform.into();
                 let resource = self;
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -202,15 +270,24 @@ macro_rules! bigfiles {
                     writer,
                 )?;
                 let resource = self;
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -225,15 +302,24 @@ macro_rules! bigfiles {
                 use crate::traits::BigFileIo;
 
                 let endian: crate::Endian = platform.into();
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
 
             #[allow(unused_imports)]
@@ -248,15 +334,24 @@ macro_rules! bigfiles {
                 let crate::bigfile::resource::BffResourceHeader { platform, version } =
                     <crate::bigfile::resource::BffResourceHeader as binrw::BinRead>::read(reader)?;
                 let endian: crate::Endian = platform.into();
-                name_context.scope(|| match (version.clone(), platform) {
+                match (version.clone(), platform) {
                     $($pattern => {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
-                        Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
+                            return Err(std::io::Error::other(format!(
+                                "NameContext type mismatch: expected {:?}, got {:?}",
+                                <$bigfile as BigFileIo>::NAME_TYPE,
+                                name_context.name_type()
+                            ))
+                            .into());
+                        }
+                        name_context.scope(|| {
+                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
+                        })
                     })*
                     (version, platform) => {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
-                })
+                }
             }
         }
 
@@ -277,13 +372,12 @@ macro_rules! bigfiles {
             ) {
                 use crate::traits::BigFileIo;
 
-                let name_context = crate::names::NameContext::default();
                 report.total += 1;
                 // TODO: Probably need a way to do this without specifying a version.
                 $(
                     reader.seek(std::io::SeekFrom::Start(256)).unwrap();
                     report.$bigfile += {
-                        name_context.set_name_type(<$bigfile as BigFileIo>::NAME_TYPE);
+                        let name_context = crate::names::NameContext::new(<$bigfile as BigFileIo>::NAME_TYPE);
                         <bool as Into<usize>>::into(name_context.scope(|| {
                             <$bigfile as BigFileIo>::read(
                                 reader,

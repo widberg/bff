@@ -2,18 +2,17 @@ use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-use bff::names::NameContext;
 use bff::petgraph::dot::{Config, Dot};
 
 use crate::error::BffCliResult;
-use crate::extract::{read_bigfile, read_bigfile_names, read_in_names};
+use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names};
 
 pub fn info(
     bigfile_path: &Path,
     in_names: &Vec<PathBuf>,
     out_reference_graph: &Option<PathBuf>,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
     read_bigfile_names(bigfile_path, &name_context)?;
     read_in_names(in_names, &name_context)?;
 

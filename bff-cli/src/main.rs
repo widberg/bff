@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
+use bff::names::NameType;
 use clap::*;
 use crc::{CrcAlgorithm, CrcFormat, CrcMode};
 use crypt::CryptAlgorithm;
@@ -115,6 +116,8 @@ enum Commands {
     },
     Names {
         bigfile: Option<PathBuf>,
+        #[arg(long)]
+        name_type: Option<NameType>,
         #[clap(value_enum)]
         #[arg(short, long)]
         wordlist: Option<Wordlist>,
@@ -342,11 +345,19 @@ fn main() -> BffCliResult<()> {
         } => diff::diff(old_bigfile, new_bigfile, old_names, new_names),
         Commands::Names {
             bigfile,
+            name_type,
             wordlist,
             in_names,
             out_names,
             use_reference_graph,
-        } => names::names(bigfile, wordlist, in_names, out_names, use_reference_graph),
+        } => names::names(
+            bigfile,
+            name_type,
+            wordlist,
+            in_names,
+            out_names,
+            use_reference_graph,
+        ),
         Commands::Crc {
             string,
             starting,

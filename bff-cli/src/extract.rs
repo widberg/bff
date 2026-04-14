@@ -83,6 +83,23 @@ pub fn read_bigfile(
     )?)
 }
 
+pub fn probe_bigfile_name_context(
+    bigfile_path: &Path,
+    platform_override: &Option<Platform>,
+    version_override: &Option<Version>,
+) -> BffCliResult<NameContext> {
+    let platform = platform_override.unwrap_or_else(|| {
+        bigfile_path
+            .extension()
+            .and_then(|e| e.try_into().ok())
+            .unwrap_or(Platform::PC)
+    });
+    let f = File::open(bigfile_path)?;
+    let mut reader = BufReader::new(f);
+    let name_type = BigFile::probe_name_type_platform(&mut reader, platform, version_override)?;
+    Ok(NameContext::new(name_type))
+}
+
 const INVALID_PATH_CHARS: [u8; 41] = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
     26, 27, 28, 29, 30, 31, 34, 42, 47, 58, 60, 62, 63, 92, 124,
@@ -192,7 +209,7 @@ pub fn extract(
     export_strategy: &ExportStrategy,
     rich_suffix: &String,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let name_context = probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
     read_bigfile_names(bigfile_path, &name_context)?;

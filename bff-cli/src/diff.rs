@@ -9,7 +9,7 @@ use bff::bigfile::resource::Resource;
 use bff::names::NameContext;
 
 use crate::error::BffCliResult;
-use crate::extract::{read_bigfile, read_bigfile_names};
+use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_names};
 
 struct ResolvedResource<'a> {
     link_name: Option<String>,
@@ -27,7 +27,7 @@ fn load_bigfile(
     bigfile_path: &Path,
     name_path: &Option<PathBuf>,
 ) -> BffCliResult<(BigFile, NameContext)> {
-    let name_context = NameContext::default();
+    let name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
     read_bigfile_names(bigfile_path, &name_context)?;
     if let Some(name_path) = name_path {
         read_name_file(name_path, &name_context)?;

@@ -7,11 +7,29 @@ use bff::BufReader;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
-use bff::names::NameContext;
+use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
+
+fn validate_version_override_name_type(
+    version_override: &Option<Version>,
+    expected_name_type: NameType,
+) -> BffCliResult<()> {
+    if let Some(version_override) = version_override {
+        let override_name_type: NameType = version_override.try_into()?;
+        if override_name_type != expected_name_type {
+            return Err(std::io::Error::other(format!(
+                "`--version-override` implies NameType {:?}, but context requires {:?}",
+                override_name_type, expected_name_type
+            ))
+            .into());
+        }
+    }
+
+    Ok(())
+}
 
 pub fn create_resource(
     directory: &Path,
@@ -20,8 +38,12 @@ pub fn create_resource(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
     let resource_serialized_path = directory.join("resource.json");
+    let name_type = bff::names::json::probe_name_type_from_bff_class_reader(BufReader::new(
+        File::open(&resource_serialized_path)?,
+    ))?;
+    validate_version_override_name_type(version_override, name_type)?;
+    let name_context = NameContext::new(name_type);
     let resource_serialized_reader = BufReader::new(File::open(&resource_serialized_path)?);
     let mut bff_class: BffClass =
         bff::names::json::from_reader(resource_serialized_reader, &name_context)?;

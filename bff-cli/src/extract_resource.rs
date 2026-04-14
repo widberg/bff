@@ -7,11 +7,29 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
 use bff::class::Class;
-use bff::names::NameContext;
+use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
 
 use crate::error::BffCliResult;
 use crate::extract::read_in_names;
+
+fn validate_version_override_name_type(
+    version_override: &Option<Version>,
+    expected_name_type: NameType,
+) -> BffCliResult<()> {
+    if let Some(version_override) = version_override {
+        let override_name_type: NameType = version_override.try_into()?;
+        if override_name_type != expected_name_type {
+            return Err(std::io::Error::other(format!(
+                "`--version-override` implies NameType {:?}, but context requires {:?}",
+                override_name_type, expected_name_type
+            ))
+            .into());
+        }
+    }
+
+    Ok(())
+}
 
 pub fn extract_resource(
     resource_path: &Path,
@@ -20,7 +38,10 @@ pub fn extract_resource(
     platform_override: &Option<Platform>,
     version_override: &Option<Version>,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let mut probe_reader = BufReader::new(File::open(resource_path)?);
+    let name_type = BffResourceHeader::probe_name_type(&mut probe_reader)?;
+    validate_version_override_name_type(version_override, name_type)?;
+    let name_context = NameContext::new(name_type);
     read_in_names(in_names, &name_context)?;
 
     let f = File::open(resource_path)?;

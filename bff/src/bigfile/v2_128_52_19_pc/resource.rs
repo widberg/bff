@@ -4,7 +4,7 @@ use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
 
 use crate::bigfile::resource::ResourceData::SplitData;
 use crate::lz::{lz4_decompress_body_parser, zlib_decompress_body_parser};
-use crate::names::{Name, NameAsobo64};
+use crate::names::Name;
 
 #[parser(reader, endian)]
 fn body_parser(
@@ -77,7 +77,7 @@ impl Resource {
                 resource.name.write_options(writer, endian, ())?;
                 resource
                     .link_name
-                    .unwrap_or(NameAsobo64::default().into())
+                    .unwrap_or_default()
                     .write_options(writer, endian, ())?;
                 (link_header.len() as u32 + body.len() as u32).write_options(writer, endian, ())?;
                 (link_header.len() as u32).write_options(writer, endian, ())?;

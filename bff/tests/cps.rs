@@ -14,8 +14,7 @@ fn read_write_read(cps_path_str: String) {
     let cps_path = resolve_repo_data_path(&cps_path_str);
     let f = File::open(cps_path).unwrap();
     let mut reader = BufReader::new(f);
-    let name_context = NameContext::default();
-    name_context.set_name_type(NameType::BlackSheep32);
+    let name_context = NameContext::new(NameType::BlackSheep32);
     read_default_cps_names(&name_context).unwrap();
     let cps = Cps::read(&mut reader, Endian::Little, &name_context).unwrap();
     let mut writer = Cursor::new(Vec::new());
@@ -23,8 +22,7 @@ fn read_write_read(cps_path_str: String) {
         .unwrap();
 
     let mut reader = Cursor::new(writer.into_inner());
-    let name_context = NameContext::default();
-    name_context.set_name_type(NameType::BlackSheep32);
+    let name_context = NameContext::new(NameType::BlackSheep32);
     read_default_cps_names(&name_context).unwrap();
     let cps2 = Cps::read(&mut reader, Endian::Little, &name_context).unwrap();
 

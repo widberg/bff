@@ -1,30 +1,25 @@
 mod wordlist;
 
 use std::borrow::Cow;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter, Write as _};
-use std::hash::Hash;
 use std::io::{BufRead, Read, Seek, Write};
-use std::str::FromStr;
 use std::sync::Mutex;
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use const_power_of_two::PowerOfTwoUsize;
-use derive_more::{Display, From};
 use encoding_rs::WINDOWS_1252;
 use num_traits::AsPrimitive;
 use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_context::context_scope;
-use string_interner::backend::BucketBackend;
-use string_interner::{DefaultSymbol, StringInterner};
 pub use wordlist::*;
 
 use crate::BffResult;
-use crate::class::class_names;
+use crate::class::class_base_names;
 use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
 use crate::macros::names::names;
 use crate::traits::NameHashFunction;
@@ -66,107 +61,125 @@ fn with_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
     })
 }
 
-fn current_name_type() -> NameType {
-    with_name_context(|name_context| {
-        name_context
-            .map(NameContext::name_type)
-            .unwrap_or(NameType::Asobo32)
-    })
+fn current_name_type() -> Option<NameType> {
+    with_name_context(|name_context| name_context.map(NameContext::name_type))
 }
 
-fn parse_forced_hash_name_for_type<S: AsRef<str>>(
-    name_type: NameType,
-    string: S,
-) -> Option<(Name, String)> {
-    match name_type {
-        NameType::Asobo32 => {
-            NameAsobo32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
-        NameType::AsoboAlternate32 => {
-            NameAsoboAlternate32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
-        NameType::Kalisto32 => {
-            NameKalisto32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
-        NameType::BlackSheep32 => {
-            NameBlackSheep32::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
-        NameType::Asobo64 => {
-            NameAsobo64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
-        NameType::Ubisoft64 => {
-            NameUbisoft64::parse_forced_hash_name(string).map(|(n, s)| (n.into(), s))
-        }
+pub fn active_name_type() -> Option<NameType> {
+    current_name_type()
+}
+
+trait NameTarget: Copy + AsPrimitive<i64> {
+    fn from_i32(value: i32) -> Self;
+    fn from_raw(raw: u64) -> Self;
+    fn into_raw(self) -> u64;
+    fn parse_forced(string: &str) -> Option<Self>;
+}
+
+impl NameTarget for i32 {
+    fn from_i32(value: i32) -> Self {
+        value
+    }
+
+    fn from_raw(raw: u64) -> Self {
+        let raw_u32: u32 = raw.as_();
+        raw_u32.as_()
+    }
+
+    fn into_raw(self) -> u64 {
+        let raw_u32: u32 = self.as_();
+        raw_u32.as_()
+    }
+
+    fn parse_forced(string: &str) -> Option<Self> {
+        string.parse().ok()
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, BinRead, BinWrite, Debug, Display)]
-pub struct NameVariant<H: NameHashFunction>(H::Target)
-where
-    for<'a> H::Target:
-        PartialEq + Eq + Hash + Copy + Clone + BinRead + BinWrite<Args<'a> = ()> + Display + Debug,
-    for<'a> <H::Target as BinRead>::Args<'a>: Default;
+impl NameTarget for i64 {
+    fn from_i32(value: i32) -> Self {
+        value.as_()
+    }
 
-impl<H: NameHashFunction> NameVariant<H>
-where
-    for<'a> H::Target: PartialEq
-        + Eq
-        + Hash
-        + Copy
-        + Clone
-        + BinRead
-        + BinWrite<Args<'a> = ()>
-        + Display
-        + Debug
-        + FromStr,
-    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
-    for<'a> <H::Target as BinRead>::Args<'a>: Default,
-{
-    pub const fn new(value: H::Target) -> Self {
+    fn from_raw(raw: u64) -> Self {
+        raw.as_()
+    }
+
+    fn into_raw(self) -> u64 {
+        self.as_()
+    }
+
+    fn parse_forced(string: &str) -> Option<Self> {
+        string.parse().ok()
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+pub struct Name(u64);
+
+impl Name {
+    pub const fn from_raw(value: u64) -> Self {
         Self(value)
     }
 
-    pub fn hash(bytes: &[u8]) -> Self {
-        Self(H::hash(bytes))
+    pub const fn as_raw(self) -> u64 {
+        self.0
     }
 
-    pub fn hash_string(string: &str) -> Self {
-        if let Some((name, _)) = Self::parse_forced_hash_name(string) {
-            return name;
+    pub fn with_context<'a>(&'a self, name_context: &'a NameContext) -> NameWithContext<'a> {
+        NameWithContext {
+            name: self,
+            name_context,
         }
-        Self::hash(string.as_bytes())
     }
 
-    pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Self, String)> {
-        if let Some(string) = string.as_ref().strip_prefix(FORCED_NAME_STRING_CHAR)
-            && let Some((value, s)) = string.split_once(FORCED_NAME_STRING_CHAR)
-            && let Ok(value) = value.parse::<H::Target>()
-        {
-            return Some((Self::new(value), s.to_owned()));
+    fn from_hash_target<H>(value: H::Target) -> Self
+    where
+        H: NameHashFunction,
+        H::Target: NameTarget,
+    {
+        Self(value.into_raw())
+    }
+
+    fn to_hash_target<H>(self) -> H::Target
+    where
+        H: NameHashFunction,
+        H::Target: NameTarget,
+    {
+        H::Target::from_raw(self.0)
+    }
+
+    fn fmt_number_for_type(&self, f: &mut Formatter<'_>, name_type: NameType) -> fmt::Result {
+        write!(f, "{}", name_type.value_from_name(*self))
+    }
+
+    pub fn is_default(&self) -> bool {
+        current_name_type().is_some_and(|name_type| *self == hash_string_for_type(name_type, ""))
+    }
+
+    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
+    where
+        usize: PowerOfTwoUsize<N>,
+    {
+        if current_name_type().is_some_and(NameType::is_32_bit) || self.0 <= u32::MAX as u64 {
+            let value_u32: u32 = self.0.as_();
+            get_wordlist_encoded_string(value_u32, wordlist)
+        } else {
+            get_wordlist_encoded_string(self.0, wordlist)
         }
-        None
     }
-}
 
-pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Name, String)> {
-    parse_forced_hash_name_for_type(current_name_type(), string)
-}
-
-pub type NameAsobo32 = NameVariant<Asobo32>;
-pub type NameAsoboAlternate32 = NameVariant<AsoboAlternate32>;
-pub type NameKalisto32 = NameVariant<Kalisto32>;
-pub type NameBlackSheep32 = NameVariant<BlackSheep32>;
-pub type NameAsobo64 = NameVariant<Asobo64>;
-pub type NameUbisoft64 = NameVariant<Ubisoft64>;
-
-#[derive(From, PartialEq, Eq, Hash, Copy, Clone)]
-pub enum Name {
-    Asobo32(NameAsobo32),
-    AsoboAlternate32(NameAsoboAlternate32),
-    Kalisto32(NameKalisto32),
-    BlackSheep32(NameBlackSheep32),
-    Asobo64(NameAsobo64),
-    Ubisoft64(NameUbisoft64),
+    pub fn get_value(&self) -> i64 {
+        match current_name_type() {
+            Some(name_type) => name_type.value_from_name(*self),
+            None if self.0 <= u32::MAX as u64 => {
+                let value_u32: u32 = self.0.as_();
+                let value_i32: i32 = value_u32.as_();
+                value_i32.as_()
+            }
+            None => self.0.as_(),
+        }
+    }
 }
 
 pub struct NameWithContext<'a> {
@@ -197,60 +210,86 @@ pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
     format!("{FORCED_NAME_STRING_CHAR}{value}{FORCED_NAME_STRING_CHAR}{string}")
 }
 
-impl Name {
-    pub fn with_context<'a>(&'a self, name_context: &'a NameContext) -> NameWithContext<'a> {
-        NameWithContext {
-            name: self,
-            name_context,
-        }
-    }
-
-    fn fmt_without_context(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Asobo32(name) => write!(f, "{}", name.0),
-            Self::AsoboAlternate32(name) => write!(f, "{}", name.0),
-            Self::Kalisto32(name) => write!(f, "{}", name.0),
-            Self::BlackSheep32(name) => write!(f, "{}", name.0),
-            Self::Asobo64(name) => write!(f, "{}", name.0),
-            Self::Ubisoft64(name) => write!(f, "{}", name.0),
-        }
-    }
-
-    pub fn is_default(&self) -> bool {
-        match *self {
-            Self::Asobo32(name) => name == NameAsobo32::default(),
-            Self::AsoboAlternate32(name) => name == NameAsoboAlternate32::default(),
-            Self::Kalisto32(name) => name == NameKalisto32::default(),
-            Self::BlackSheep32(name) => name == NameBlackSheep32::default(),
-            Self::Asobo64(name) => name == NameAsobo64::default(),
-            Self::Ubisoft64(name) => name == NameUbisoft64::default(),
-        }
-    }
-
-    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
-    where
-        usize: PowerOfTwoUsize<N>,
+fn parse_forced_hash_name_for_hash<H, S>(string: S) -> Option<(Name, String)>
+where
+    H: NameHashFunction,
+    H::Target: NameTarget,
+    S: AsRef<str>,
+{
+    let string = string.as_ref();
+    if let Some(string) = string.strip_prefix(FORCED_NAME_STRING_CHAR)
+        && let Some((value, name_string)) = string.split_once(FORCED_NAME_STRING_CHAR)
+        && let Some(value) = H::Target::parse_forced(value)
     {
-        match self {
-            Self::Asobo32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Self::AsoboAlternate32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Self::Kalisto32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Self::BlackSheep32(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Self::Asobo64(name) => get_wordlist_encoded_string(name.0, wordlist),
-            Self::Ubisoft64(name) => get_wordlist_encoded_string(name.0, wordlist),
-        }
+        return Some((Name::from_hash_target::<H>(value), name_string.to_owned()));
     }
+    None
+}
 
-    pub fn get_value(&self) -> i64 {
-        match self {
-            Self::Asobo32(name) => name.0 as i64,
-            Self::AsoboAlternate32(name) => name.0 as i64,
-            Self::Kalisto32(name) => name.0 as i64,
-            Self::BlackSheep32(name) => name.0 as i64,
-            Self::Asobo64(name) => name.0,
-            Self::Ubisoft64(name) => name.0,
-        }
-    }
+fn hash_bytes_for_hash<H>(bytes: &[u8]) -> Name
+where
+    H: NameHashFunction,
+    H::Target: NameTarget,
+{
+    Name::from_hash_target::<H>(H::hash(bytes))
+}
+
+fn name_from_i32_for_hash<H>(value: i32) -> Name
+where
+    H: NameHashFunction,
+    H::Target: NameTarget,
+{
+    Name::from_hash_target::<H>(H::Target::from_i32(value))
+}
+
+fn name_value_for_hash<H>(name: Name) -> i64
+where
+    H: NameHashFunction,
+    H::Target: NameTarget,
+{
+    let value: H::Target = name.to_hash_target::<H>();
+    value.as_()
+}
+
+fn read_name_for_hash<H, R>(reader: &mut R, endian: Endian) -> BinResult<Name>
+where
+    H: NameHashFunction,
+    H::Target: NameTarget + for<'a> BinRead<Args<'a> = ()>,
+    R: Read + Seek,
+{
+    let value = H::Target::read_options(reader, endian, ())?;
+    Ok(Name::from_hash_target::<H>(value))
+}
+
+fn write_name_for_hash<H, W>(writer: &mut W, endian: Endian, name: Name) -> BinResult<()>
+where
+    H: NameHashFunction,
+    H::Target: NameTarget + for<'a> BinWrite<Args<'a> = ()>,
+    W: Write + Seek,
+{
+    let value: H::Target = name.to_hash_target::<H>();
+    value.write_options(writer, endian, ())
+}
+
+fn parse_forced_hash_name_for_type<S: AsRef<str>>(
+    name_type: NameType,
+    string: S,
+) -> Option<(Name, String)> {
+    name_type.parse_forced_hash_name(string)
+}
+
+pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Name, String)> {
+    current_name_type().and_then(|name_type| parse_forced_hash_name_for_type(name_type, string))
+}
+
+pub fn hash_bytes_for_type(name_type: NameType, bytes: &[u8]) -> Name {
+    name_type.hash_bytes(bytes)
+}
+
+pub fn hash_string_for_type<S: AsRef<str>>(name_type: NameType, string: S) -> Name {
+    parse_forced_hash_name_for_type(name_type, string.as_ref())
+        .map(|(name, _)| name)
+        .unwrap_or_else(|| name_type.hash_bytes(string.as_ref().as_bytes()))
 }
 
 impl BinRead for Name {
@@ -261,22 +300,14 @@ impl BinRead for Name {
         endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<Self> {
-        match current_name_type() {
-            NameType::Asobo32 => NameAsobo32::read_options(reader, endian, ()).map(Name::Asobo32),
-            NameType::AsoboAlternate32 => {
-                NameAsoboAlternate32::read_options(reader, endian, ()).map(Name::AsoboAlternate32)
-            }
-            NameType::Kalisto32 => {
-                NameKalisto32::read_options(reader, endian, ()).map(Name::Kalisto32)
-            }
-            NameType::BlackSheep32 => {
-                NameBlackSheep32::read_options(reader, endian, ()).map(Name::BlackSheep32)
-            }
-            NameType::Asobo64 => NameAsobo64::read_options(reader, endian, ()).map(Name::Asobo64),
-            NameType::Ubisoft64 => {
-                NameUbisoft64::read_options(reader, endian, ()).map(Name::Ubisoft64)
-            }
-        }
+        let pos = reader.stream_position().unwrap_or(0);
+        let Some(name_type) = current_name_type() else {
+            return Err(binrw::Error::AssertFail {
+                pos,
+                message: "Name read requires an active NameContext".to_owned(),
+            });
+        };
+        name_type.read_name(reader, endian)
     }
 }
 
@@ -289,28 +320,14 @@ impl BinWrite for Name {
         endian: Endian,
         _args: Self::Args<'_>,
     ) -> BinResult<()> {
-        let name_type = current_name_type();
-        match self {
-            Self::Asobo32(name) if name_type == NameType::Asobo32 => {
-                name.write_options(writer, endian, ())
-            }
-            Self::AsoboAlternate32(name) if name_type == NameType::AsoboAlternate32 => {
-                name.write_options(writer, endian, ())
-            }
-            Self::Kalisto32(name) if name_type == NameType::Kalisto32 => {
-                name.write_options(writer, endian, ())
-            }
-            Self::BlackSheep32(name) if name_type == NameType::BlackSheep32 => {
-                name.write_options(writer, endian, ())
-            }
-            Self::Asobo64(name) if name_type == NameType::Asobo64 => {
-                name.write_options(writer, endian, ())
-            }
-            Self::Ubisoft64(name) if name_type == NameType::Ubisoft64 => {
-                name.write_options(writer, endian, ())
-            }
-            _ => todo!("Cannot convert between name types"),
-        }
+        let pos = writer.stream_position().unwrap_or(0);
+        let Some(name_type) = current_name_type() else {
+            return Err(binrw::Error::AssertFail {
+                pos,
+                message: "Name write requires an active NameContext".to_owned(),
+            });
+        };
+        name_type.write_name(writer, endian, *self)
     }
 }
 
@@ -322,218 +339,99 @@ enum SerdeName<'a, T> {
     String(String),
 }
 
-impl<H: NameHashFunction> From<&str> for NameVariant<H>
-where
-    for<'a> H::Target: PartialEq
-        + Eq
-        + Hash
-        + Copy
-        + Clone
-        + BinRead
-        + BinWrite<Args<'a> = ()>
-        + Display
-        + Debug
-        + FromStr,
-    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
-    for<'a> <H::Target as BinRead>::Args<'a>: Default,
-{
-    fn from(value: &str) -> Self {
-        Self::hash_string(value)
-    }
-}
-
-impl<H: NameHashFunction> Default for NameVariant<H>
-where
-    for<'a> H::Target: PartialEq
-        + Eq
-        + Hash
-        + Copy
-        + Clone
-        + BinRead
-        + BinWrite<Args<'a> = ()>
-        + Display
-        + Debug
-        + FromStr,
-    <<H as NameHashFunction>::Target as FromStr>::Err: Debug,
-    for<'a> <H::Target as BinRead>::Args<'a>: Default,
-{
-    fn default() -> Self {
-        Self::hash_string("")
-    }
-}
-
-fn matches_name_type(expected: Option<NameType>, actual: NameType) -> bool {
-    expected.is_none_or(|expected| expected == actual)
-}
-
-fn serialize_name_value<S: serde::Serializer>(
-    name: &Name,
+fn serialize_name_value_for_hash<H, S>(
+    name: Name,
     serializer: S,
-    expected_name_type: Option<NameType>,
-) -> Result<S::Ok, S::Error> {
-    use serde::ser::Error as _;
+) -> Result<S::Ok, S::Error>
+where
+    H: NameHashFunction,
+    H::Target: NameTarget + Serialize,
+    S: serde::Serializer,
+{
+    let value: H::Target = name.to_hash_target::<H>();
+    value.serialize(serializer)
+}
 
-    match name {
-        Name::Asobo32(name) if matches_name_type(expected_name_type, NameType::Asobo32) => {
-            name.0.serialize(serializer)
-        }
-        Name::AsoboAlternate32(name)
-            if matches_name_type(expected_name_type, NameType::AsoboAlternate32) =>
-        {
-            name.0.serialize(serializer)
-        }
-        Name::Kalisto32(name) if matches_name_type(expected_name_type, NameType::Kalisto32) => {
-            name.0.serialize(serializer)
-        }
-        Name::BlackSheep32(name)
-            if matches_name_type(expected_name_type, NameType::BlackSheep32) =>
-        {
-            name.0.serialize(serializer)
-        }
-        Name::Asobo64(name) if matches_name_type(expected_name_type, NameType::Asobo64) => {
-            name.0.serialize(serializer)
-        }
-        Name::Ubisoft64(name) if matches_name_type(expected_name_type, NameType::Ubisoft64) => {
-            name.0.serialize(serializer)
-        }
-        _ => Err(S::Error::custom("Cannot convert between name types")),
-    }
+fn serialize_name_value_for_type<S: serde::Serializer>(
+    name: Name,
+    serializer: S,
+    name_type: NameType,
+) -> Result<S::Ok, S::Error> {
+    name_type.serialize_name_value(name, serializer)
 }
 
 impl Default for Name {
     fn default() -> Self {
-        match current_name_type() {
-            NameType::Asobo32 => NameAsobo32::default().into(),
-            NameType::AsoboAlternate32 => NameAsoboAlternate32::default().into(),
-            NameType::Kalisto32 => NameKalisto32::default().into(),
-            NameType::BlackSheep32 => NameBlackSheep32::default().into(),
-            NameType::Asobo64 => NameAsobo64::default().into(),
-            NameType::Ubisoft64 => NameUbisoft64::default().into(),
-        }
+        current_name_type()
+            .map(|name_type| hash_string_for_type(name_type, ""))
+            .unwrap_or_else(|| Name(0))
     }
 }
 
 impl Serialize for Name {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::Error as _;
+
         context_scope(|cx| {
             if let Ok(names_context) = cx.get::<SerializeNamesContext>() {
                 if let Some(name) = names_context.resolve(self) {
                     return name.serialize(serializer);
                 }
-
-                return serialize_name_value(self, serializer, Some(names_context.name_type()));
+                return serialize_name_value_for_type(*self, serializer, names_context.name_type());
             }
 
             with_name_context(|name_context| {
-                if let Some(name_context) = name_context {
-                    if let Some(name) = name_context.resolve(self) {
-                        return name.serialize(serializer);
-                    }
+                let Some(name_context) = name_context else {
+                    return Err(S::Error::custom(
+                        "Name serialization requires an active NameContext",
+                    ));
+                };
 
-                    return serialize_name_value(self, serializer, Some(name_context.name_type()));
+                if let Some(name) = name_context.resolve(self) {
+                    return name.serialize(serializer);
                 }
 
-                serialize_name_value(self, serializer, None)
+                serialize_name_value_for_type(*self, serializer, name_context.name_type())
             })
         })
+    }
+}
+
+fn deserialize_name_for_hash<'de, H, D, F>(
+    deserializer: D,
+    name_type: NameType,
+    mut add_name: F,
+) -> Result<Name, D::Error>
+where
+    H: NameHashFunction,
+    H::Target: NameTarget + Deserialize<'de>,
+    D: Deserializer<'de>,
+    F: FnMut(&str),
+{
+    let serde_name: SerdeName<'_, H::Target> = SerdeName::deserialize(deserializer)?;
+    match serde_name {
+        SerdeName::Name(name) => Ok(Name::from_hash_target::<H>(name)),
+        SerdeName::Str(string) => {
+            add_name(string);
+            Ok(hash_string_for_type(name_type, string))
+        }
+        SerdeName::String(string) => {
+            add_name(string.as_str());
+            Ok(hash_string_for_type(name_type, string))
+        }
     }
 }
 
 fn deserialize_name_with_type<'de, D, F>(
     deserializer: D,
     name_type: NameType,
-    mut add_name: F,
+    add_name: F,
 ) -> Result<Name, D::Error>
 where
     D: Deserializer<'de>,
     F: FnMut(&str),
 {
-    match name_type {
-        NameType::Asobo32 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameAsobo32::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameAsobo32::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameAsobo32::hash_string(string.as_str()).into())
-                }
-            }
-        }
-        NameType::AsoboAlternate32 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameAsoboAlternate32::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameAsoboAlternate32::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameAsoboAlternate32::hash_string(string.as_str()).into())
-                }
-            }
-        }
-        NameType::Kalisto32 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameKalisto32::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameKalisto32::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameKalisto32::hash_string(string.as_str()).into())
-                }
-            }
-        }
-        NameType::BlackSheep32 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameBlackSheep32::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameBlackSheep32::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameBlackSheep32::hash_string(string.as_str()).into())
-                }
-            }
-        }
-        NameType::Asobo64 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameAsobo64::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameAsobo64::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameAsobo64::hash_string(string.as_str()).into())
-                }
-            }
-        }
-        NameType::Ubisoft64 => {
-            let serde_name = SerdeName::deserialize(deserializer)?;
-            match serde_name {
-                SerdeName::Name(name) => Ok(NameUbisoft64::new(name).into()),
-                SerdeName::Str(string) => {
-                    add_name(string);
-                    Ok(NameUbisoft64::hash_string(string).into())
-                }
-                SerdeName::String(string) => {
-                    add_name(string.as_str());
-                    Ok(NameUbisoft64::hash_string(string.as_str()).into())
-                }
-            }
-        }
-    }
+    name_type.deserialize_name(deserializer, add_name)
 }
 
 impl<'de> Deserialize<'de> for Name {
@@ -541,23 +439,23 @@ impl<'de> Deserialize<'de> for Name {
     where
         D: Deserializer<'de>,
     {
+        use serde::de::Error as _;
+
         context_scope(|cx| {
             if let Ok(names_context) = cx.get::<DeserializeNamesContext>() {
-                return deserialize_name_with_type(
-                    deserializer,
-                    names_context.name_type(),
-                    |string| names_context.insert(string),
-                );
+                return deserialize_name_with_type(deserializer, names_context.name_type(), |string| {
+                    names_context.insert(string);
+                });
             }
 
             with_name_context(|name_context| {
-                let name_type = name_context
-                    .map(NameContext::name_type)
-                    .unwrap_or(NameType::Asobo32);
-                deserialize_name_with_type(deserializer, name_type, |string| {
-                    if let Some(name_context) = name_context {
-                        name_context.insert(string);
-                    }
+                let Some(name_context) = name_context else {
+                    return Err(D::Error::custom(
+                        "Name deserialization requires an active NameContext",
+                    ));
+                };
+                deserialize_name_with_type(deserializer, name_context.name_type(), |string| {
+                    name_context.insert(string);
                 })
             })
         })
@@ -590,13 +488,22 @@ impl JsonSchema for Name {
 
 impl Display for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.fmt_without_context(f)
+        with_name_context(|name_context| {
+            let Some(name_context) = name_context else {
+                return Err(fmt::Error);
+            };
+            self.fmt_number_for_type(f, name_context.name_type())
+        })
     }
 }
 
 impl Debug for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.fmt_without_context(f)
+        if let Some(name_type) = current_name_type() {
+            self.fmt_number_for_type(f, name_type)
+        } else {
+            write!(f, "{}", self.0)
+        }
     }
 }
 
@@ -606,7 +513,7 @@ impl Display for NameWithContext<'_> {
             return write!(f, "{}", name);
         }
 
-        self.name.fmt_without_context(f)
+        self.name.fmt_number_for_type(f, self.name_context.name_type())
     }
 }
 
@@ -616,40 +523,54 @@ impl Debug for NameWithContext<'_> {
             return write!(f, r#"\"{}\""#, name);
         }
 
-        self.name.fmt_without_context(f)
+        self.name.fmt_number_for_type(f, self.name_context.name_type())
     }
 }
 
 #[derive(Debug)]
 struct Names {
     name_type: NameType,
-    strings: StringInterner<BucketBackend>,
-    asobo32_names: HashMap<NameAsobo32, DefaultSymbol>,
-    asobo_alternate32_names: HashMap<NameAsoboAlternate32, DefaultSymbol>,
-    kalisto32_names: HashMap<NameKalisto32, DefaultSymbol>,
-    blacksheep32_names: HashMap<NameBlackSheep32, DefaultSymbol>,
-    asobo64_names: HashMap<NameAsobo64, DefaultSymbol>,
-    ubisoft64_names: HashMap<NameUbisoft64, DefaultSymbol>,
+    names: HashMap<Name, String>,
 }
 
 impl Names {
+    fn new(name_type: NameType) -> Self {
+        let mut names = Self {
+            name_type,
+            names: Default::default(),
+        };
+
+        for class_name in class_base_names() {
+            let canonical = apply_name_style(class_name, name_type_style(name_type));
+            names.insert(canonical.as_str());
+        }
+
+        names.insert("");
+
+        names
+    }
+
+    fn into_retyped(mut self, name_type: NameType) -> Self {
+        if self.name_type == name_type {
+            return self;
+        }
+
+        self.name_type = name_type;
+        let old_names = std::mem::take(&mut self.names);
+        for string in old_names.into_values() {
+            self.names
+                .entry(hash_string_for_type(self.name_type, &string))
+                .or_insert(string);
+        }
+        self
+    }
+
     fn name_type(&self) -> NameType {
         self.name_type
     }
 
-    fn set_name_type(&mut self, name_type: NameType) {
-        self.name_type = name_type;
-    }
-
     fn name_from_i32(&self, value: i32) -> Name {
-        match self.name_type {
-            NameType::Asobo32 => NameAsobo32::new(value).into(),
-            NameType::AsoboAlternate32 => NameAsoboAlternate32::new(value).into(),
-            NameType::Kalisto32 => NameKalisto32::new(value).into(),
-            NameType::BlackSheep32 => NameBlackSheep32::new(value).into(),
-            NameType::Asobo64 => NameAsobo64::new(value as i64).into(),
-            NameType::Ubisoft64 => NameUbisoft64::new(value as i64).into(),
-        }
+        self.name_type.name_from_i32(value)
     }
 
     fn parse_i32_or_hash_name(&mut self, token: &str) -> Name {
@@ -661,44 +582,13 @@ impl Names {
     }
 
     fn insert(&mut self, string: &str) -> Name {
-        let sym = self.strings.get_or_intern(string);
-
-        let asobo32 = NameAsobo32::hash_string(string);
-        self.asobo32_names.entry(asobo32).or_insert(sym);
-        let asobo_alternate32 = NameAsoboAlternate32::hash_string(string);
-        self.asobo_alternate32_names
-            .entry(asobo_alternate32)
-            .or_insert(sym);
-        let kalisto32 = NameKalisto32::hash_string(string);
-        self.kalisto32_names.entry(kalisto32).or_insert(sym);
-        let blacksheep32 = NameBlackSheep32::hash_string(string);
-        self.blacksheep32_names.entry(blacksheep32).or_insert(sym);
-        let asobo64 = NameAsobo64::hash_string(string);
-        self.asobo64_names.entry(asobo64).or_insert(sym);
-        let ubisoft64 = NameUbisoft64::hash_string(string);
-        self.ubisoft64_names.entry(ubisoft64).or_insert(sym);
-
-        match self.name_type {
-            NameType::Asobo32 => asobo32.into(),
-            NameType::AsoboAlternate32 => asobo_alternate32.into(),
-            NameType::Kalisto32 => kalisto32.into(),
-            NameType::BlackSheep32 => blacksheep32.into(),
-            NameType::Asobo64 => asobo64.into(),
-            NameType::Ubisoft64 => ubisoft64.into(),
-        }
+        let name = hash_string_for_type(self.name_type, string);
+        self.names.entry(name).or_insert_with(|| string.to_owned());
+        name
     }
 
     fn get(&self, name: &Name) -> Option<&str> {
-        match name {
-            Name::Asobo32(n) => self.strings.resolve(*self.asobo32_names.get(n)?),
-            Name::AsoboAlternate32(n) => {
-                self.strings.resolve(*self.asobo_alternate32_names.get(n)?)
-            }
-            Name::Kalisto32(n) => self.strings.resolve(*self.kalisto32_names.get(n)?),
-            Name::BlackSheep32(n) => self.strings.resolve(*self.blacksheep32_names.get(n)?),
-            Name::Asobo64(n) => self.strings.resolve(*self.asobo64_names.get(n)?),
-            Name::Ubisoft64(n) => self.strings.resolve(*self.ubisoft64_names.get(n)?),
-        }
+        self.names.get(name).map(String::as_str)
     }
 
     fn read<R: BufRead>(&mut self, reader: &mut R) -> BffResult<()> {
@@ -721,88 +611,26 @@ impl Names {
 
     fn write<W: Write>(&self, writer: &mut W, names: &Option<Vec<&Name>>) -> BffResult<()> {
         let mut out = String::new();
-        for (_, string) in &self.strings {
-            match self.name_type {
-                NameType::Asobo32 => {
-                    let name = NameAsobo32::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::Asobo32(name))
-                    {
-                        continue;
-                    }
-                    writeln!(out, r#"{} \"{}\""#, name, string)?;
-                }
-                NameType::AsoboAlternate32 => {
-                    let name = NameAsoboAlternate32::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::AsoboAlternate32(name))
-                    {
-                        continue;
-                    }
-                    writeln!(
-                        out,
-                        r#"{} \"{}\""#,
-                        NameAsoboAlternate32::hash_string(string),
-                        string
-                    )?;
-                }
-                NameType::Kalisto32 => {
-                    let name = NameKalisto32::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::Kalisto32(name))
-                    {
-                        continue;
-                    }
-                    writeln!(
-                        out,
-                        r#"{} \"{}\""#,
-                        NameKalisto32::hash_string(string),
-                        string
-                    )?;
-                }
-                NameType::BlackSheep32 => {
-                    let name = NameBlackSheep32::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::BlackSheep32(name))
-                    {
-                        continue;
-                    }
-                    writeln!(
-                        out,
-                        r#"{} \"{}\""#,
-                        NameBlackSheep32::hash_string(string),
-                        string
-                    )?;
-                }
-                NameType::Asobo64 => {
-                    let name = NameAsobo64::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::Asobo64(name))
-                    {
-                        continue;
-                    }
-                    writeln!(
-                        out,
-                        r#"{} \"{}\""#,
-                        NameAsobo64::hash_string(string),
-                        string
-                    )?;
-                }
-                NameType::Ubisoft64 => {
-                    let name = NameUbisoft64::hash_string(string);
-                    if let Some(names) = names
-                        && !names.contains(&&Name::Ubisoft64(name))
-                    {
-                        continue;
-                    }
-                    writeln!(
-                        out,
-                        r#"{} \"{}\""#,
-                        NameUbisoft64::hash_string(string),
-                        string
-                    )?;
-                }
+        let mut entries: Vec<(&Name, &String)> = self.names.iter().collect();
+        entries.sort_unstable_by(|(name_a, string_a), (name_b, string_b)| {
+            name_a
+                .0
+                .cmp(&name_b.0)
+                .then_with(|| string_a.cmp(string_b))
+        });
+
+        for (name, string) in entries {
+            if let Some(names) = names
+                && !names.contains(&name)
+            {
+                continue;
             }
+            writeln!(
+                out,
+                r#"{} \"{}\""#,
+                self.name_type.value_from_name(*name),
+                string
+            )?;
         }
 
         let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&out);
@@ -818,28 +646,19 @@ impl Names {
 
 pub(crate) struct SerializeNamesContext {
     names: Names,
-    name_type: Cell<NameType>,
 }
 
 impl SerializeNamesContext {
     fn new(names: Names) -> Self {
-        Self {
-            name_type: Cell::new(names.name_type()),
-            names,
-        }
+        Self { names }
     }
 
-    fn into_names(mut self) -> Names {
-        self.names.set_name_type(self.name_type.get());
+    fn into_names(self) -> Names {
         self.names
     }
 
     fn name_type(&self) -> NameType {
-        self.name_type.get()
-    }
-
-    pub(crate) fn set_name_type(&self, name_type: NameType) {
-        self.name_type.set(name_type);
+        self.names.name_type()
     }
 
     fn resolve(&self, name: &Name) -> Option<&str> {
@@ -866,46 +685,28 @@ impl DeserializeNamesContext {
         self.names.borrow().name_type()
     }
 
-    pub(crate) fn set_name_type(&self, name_type: NameType) {
-        self.names.borrow_mut().set_name_type(name_type);
-    }
-
     pub(crate) fn insert(&self, string: &str) {
         self.names.borrow_mut().insert(string);
     }
 }
 
-impl Default for Names {
-    fn default() -> Self {
-        let mut names = Self {
-            name_type: NameType::Asobo32,
-            strings: StringInterner::new(),
-            asobo32_names: Default::default(),
-            asobo_alternate32_names: Default::default(),
-            kalisto32_names: Default::default(),
-            blacksheep32_names: Default::default(),
-            asobo64_names: Default::default(),
-            ubisoft64_names: Default::default(),
-        };
-
-        for class_name in class_names() {
-            names.insert(class_name);
-        }
-
-        names.insert("");
-
-        names
-    }
-}
-
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct NameContext {
     names: Mutex<Names>,
 }
 
 impl NameContext {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(name_type: NameType) -> Self {
+        Self {
+            names: Mutex::new(Names::new(name_type)),
+        }
+    }
+
+    pub fn into_retyped(self, name_type: NameType) -> Self {
+        let names = self.names.into_inner().unwrap().into_retyped(name_type);
+        Self {
+            names: Mutex::new(names),
+        }
     }
 
     pub fn scope<R>(&self, f: impl FnOnce() -> R) -> R {
@@ -918,10 +719,6 @@ impl NameContext {
 
     pub fn name_type(&self) -> NameType {
         self.names.lock().unwrap().name_type()
-    }
-
-    pub fn set_name_type(&self, name_type: NameType) {
-        self.names.lock().unwrap().set_name_type(name_type);
     }
 
     pub fn name_from_i32(&self, value: i32) -> Name {
@@ -966,9 +763,47 @@ pub mod json {
 
     use serde::Serialize;
     use serde::de::DeserializeOwned;
+    use serde_json::Value;
     use serde_context::{deserialize_with_context, serialize_with_context};
 
-    use super::{DeserializeNamesContext, NameContext, SerializeNamesContext};
+    use crate::bigfile::versions::Version;
+
+    use super::{DeserializeNamesContext, NameContext, NameType, SerializeNamesContext};
+
+    fn probe_name_type_from_value(value: &Value) -> serde_json::Result<NameType> {
+        let version_string = value
+            .get("version")
+            .and_then(Value::as_str)
+            .ok_or_else(|| {
+                serde_json::Error::io(Error::new(
+                    ErrorKind::InvalidData,
+                    "missing string field `version`",
+                ))
+            })?;
+        let version: Version = version_string.into();
+        (&version).try_into().map_err(|err: crate::BffError| {
+            serde_json::Error::io(Error::new(
+                ErrorKind::InvalidData,
+                format!("unable to derive NameType from version `{version_string}`: {err}"),
+            ))
+        })
+    }
+
+    pub fn probe_name_type_from_manifest_reader<R: Read>(reader: R) -> serde_json::Result<NameType> {
+        let value: Value = serde_json::from_reader(reader)?;
+        probe_name_type_from_value(&value)
+    }
+
+    pub fn probe_name_type_from_bff_class_reader<R: Read>(reader: R) -> serde_json::Result<NameType> {
+        let value: Value = serde_json::from_reader(reader)?;
+        let header = value.get("header").ok_or_else(|| {
+            serde_json::Error::io(Error::new(
+                ErrorKind::InvalidData,
+                "missing object field `header`",
+            ))
+        })?;
+        probe_name_type_from_value(header)
+    }
 
     pub fn from_reader<R, T>(reader: R, name_context: &NameContext) -> serde_json::Result<T>
     where
@@ -976,7 +811,11 @@ pub mod json {
         T: DeserializeOwned,
     {
         let mut names_guard = name_context.names.lock().unwrap();
-        let names_context = DeserializeNamesContext::new(std::mem::take(&mut *names_guard));
+        let name_type = names_guard.name_type();
+        let names_context = DeserializeNamesContext::new(std::mem::replace(
+            &mut *names_guard,
+            super::Names::new(name_type),
+        ));
         let mut deserializer = serde_json::Deserializer::from_reader(reader);
         let result = deserialize_with_context(&mut deserializer, &names_context);
         *names_guard = names_context.into_names();
@@ -993,7 +832,11 @@ pub mod json {
         T: Serialize + ?Sized,
     {
         let mut names_guard = name_context.names.lock().unwrap();
-        let names_context = SerializeNamesContext::new(std::mem::take(&mut *names_guard));
+        let name_type = names_guard.name_type();
+        let names_context = SerializeNamesContext::new(std::mem::replace(
+            &mut *names_guard,
+            super::Names::new(name_type),
+        ));
         let mut serializer = serde_json::Serializer::pretty(writer);
         let result = serialize_with_context(value, &mut serializer, &names_context);
         *names_guard = names_context.into_names();
@@ -1005,7 +848,11 @@ pub mod json {
         T: Serialize + ?Sized,
     {
         let mut names_guard = name_context.names.lock().unwrap();
-        let names_context = SerializeNamesContext::new(std::mem::take(&mut *names_guard));
+        let name_type = names_guard.name_type();
+        let names_context = SerializeNamesContext::new(std::mem::replace(
+            &mut *names_guard,
+            super::Names::new(name_type),
+        ));
         let mut serializer = serde_json::Serializer::pretty(Vec::new());
         let serialize_result = serialize_with_context(value, &mut serializer, &names_context);
         *names_guard = names_context.into_names();

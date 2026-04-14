@@ -37,9 +37,8 @@ pub fn extract_cps(
     in_names: &Vec<PathBuf>,
     endian: &LzEndian,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let name_context = NameContext::new(NameType::BlackSheep32);
     let endian: Endian = (*endian).into();
-    name_context.set_name_type(NameType::BlackSheep32);
     if in_names.is_empty() {
         read_default_cps_names(&name_context)?;
     } else {
@@ -90,9 +89,8 @@ pub fn create_cps(
     endian: &LzEndian,
     unencrypted: &bool,
 ) -> BffCliResult<()> {
-    let name_context = NameContext::default();
+    let name_context = NameContext::new(NameType::BlackSheep32);
     let endian: Endian = (*endian).into();
-    name_context.set_name_type(NameType::BlackSheep32);
     let mut cps = Cps::default();
     let directory_cwd = directory.join("System");
     read_files_into_cps_recursively(&mut cps, directory, &directory_cwd)?;
