@@ -3,11 +3,10 @@ use std::borrow::Cow;
 use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_context::context_scope;
 
 use crate::traits::NameHashFunction;
 
-use super::context::{DeserializeNamesContext, with_name_context};
+use super::context::{with_name_context, with_name_context_mut};
 use super::value::NameTarget;
 use super::{Name, NameType, hash_string_for_type};
 
@@ -104,24 +103,25 @@ impl<'de> Deserialize<'de> for Name {
     {
         use serde::de::Error as _;
 
-        context_scope(|cx| {
-            if let Ok(names_context) = cx.get::<DeserializeNamesContext>() {
+        with_name_context_mut(|name_context| {
+            if let Some(name_context) = name_context {
                 return deserialize_name_with_type(
                     deserializer,
-                    names_context.name_type(),
+                    name_context.name_type(),
                     |string| {
-                        names_context.insert(string);
+                        name_context.insert(string);
                     },
                 );
             }
-
             with_name_context(|name_context| {
                 let Some(name_context) = name_context else {
                     return Err(D::Error::custom(
                         "Name deserialization requires an active NameContext",
                     ));
                 };
-                deserialize_name_with_type(deserializer, name_context.name_type(), |_| {})
+                deserialize_name_with_type(deserializer, name_context.name_type(), |string| {
+                    let _ = string;
+                })
             })
         })
     }
