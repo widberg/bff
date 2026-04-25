@@ -42,7 +42,7 @@ impl Serialize for Name {
                 ));
             };
 
-            if let Some(name) = name_context.resolve(self) {
+            if let Some(name) = name_context.resolve(*self) {
                 return name.serialize(serializer);
             }
 

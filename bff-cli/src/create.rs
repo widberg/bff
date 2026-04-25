@@ -154,9 +154,10 @@ pub fn create(
     progress_bar.set_message("Writing names");
 
     if let Some(out_names) = out_names {
+        let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
         write_names(
             out_names,
-            &Some(bigfile.resources.keys().collect()),
+            Some(resource_names.as_slice()),
             &name_context,
         )?;
     }

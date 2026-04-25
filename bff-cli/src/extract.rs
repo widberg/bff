@@ -51,7 +51,7 @@ pub fn read_in_names(in_names: &Vec<PathBuf>, name_context: &mut NameContext) ->
 
 pub fn write_names(
     out_names: &Path,
-    names: &Option<Vec<&Name>>,
+    names: Option<&[Name]>,
     name_context: &NameContext,
 ) -> BffCliResult<()> {
     let f = File::create(out_names)?;

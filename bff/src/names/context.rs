@@ -105,8 +105,8 @@ fn insert_name(names: &mut NameMap, name_type: NameType, string: &str) -> Name {
     name
 }
 
-fn get_name<'a>(names: &'a NameMap, name: &Name) -> Option<&'a str> {
-    names.get(name).map(String::as_str)
+fn get_name<'a>(names: &'a NameMap, name: Name) -> Option<&'a str> {
+    names.get(&name).map(String::as_str)
 }
 
 fn read_names<R: BufRead>(
@@ -135,10 +135,13 @@ fn write_names<W: Write>(
     names: &NameMap,
     name_type: NameType,
     writer: &mut W,
-    only_names: &Option<Vec<&Name>>,
+    only_names: Option<&[Name]>,
 ) -> BffResult<()> {
     let mut out = String::new();
-    let mut entries: Vec<(&Name, &String)> = names.iter().collect();
+    let mut entries: Vec<(Name, &String)> = names
+        .iter()
+        .map(|(name, string)| (*name, string))
+        .collect();
     entries.sort_unstable_by(|(name_a, string_a), (name_b, string_b)| {
         name_a
             .as_raw()
@@ -155,7 +158,7 @@ fn write_names<W: Write>(
         writeln!(
             out,
             r#"{} \"{}\""#,
-            name_type.value_from_name(*name),
+            name_type.value_from_name(name),
             string
         )?;
     }
@@ -234,11 +237,11 @@ impl NameContext {
         insert_name(&mut self.names, self.name_type, string)
     }
 
-    pub fn contains(&self, name: &Name) -> bool {
+    pub fn contains(&self, name: Name) -> bool {
         get_name(&self.names, name).is_some()
     }
 
-    pub fn resolve(&self, name: &Name) -> Option<String> {
+    pub fn resolve(&self, name: Name) -> Option<String> {
         get_name(&self.names, name).map(std::borrow::ToOwned::to_owned)
     }
 
@@ -246,7 +249,7 @@ impl NameContext {
         read_names(&mut self.names, self.name_type, reader)
     }
 
-    pub fn write<W: Write>(&self, writer: &mut W, names: &Option<Vec<&Name>>) -> BffResult<()> {
+    pub fn write<W: Write>(&self, writer: &mut W, names: Option<&[Name]>) -> BffResult<()> {
         write_names(&self.names, self.name_type, writer, names)
     }
 }

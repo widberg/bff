@@ -263,7 +263,7 @@ impl BinRead for Cps {
 
         for _ in 0..script_count {
             let name = name_context.scope(|| Name::read_options(reader, endian, ()))?;
-            let has_name_string = name_context.resolve(&name).is_some();
+            let has_name_string = name_context.resolve(name).is_some();
             let uncompressed_size = u32::read_options(reader, endian, ())?;
             let compressed_size = u32::read_options(reader, endian, ())?;
             let offset_in_bigfile = u32::read_options(reader, endian, ())?;

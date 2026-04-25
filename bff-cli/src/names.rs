@@ -77,7 +77,7 @@ pub fn names(
                         }
                     }
 
-                    let name = graph.node_weight(node).unwrap();
+                    let name = *graph.node_weight(node).unwrap();
                     let name_in_db = name_context.contains(name);
                     if !name_in_db {
                         let string = match wordlist {
@@ -85,7 +85,7 @@ pub fn names(
                             Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
                             Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
-                        let class = if let Some(resource) = bigfile.resources.get(name) {
+                        let class = if let Some(resource) = bigfile.resources.get(&name) {
                             format!(".{}", resource.class_name.with_context(&name_context))
                         } else {
                             "".to_owned()
@@ -112,7 +112,7 @@ pub fn names(
                 }
             } else {
                 for resource in bigfile.resources.values() {
-                    let name = &resource.name;
+                    let name = resource.name;
                     let class = resource.class_name.with_context(&name_context).to_string();
                     if !name_context.contains(name) {
                         let string = match wordlist {
@@ -130,14 +130,15 @@ pub fn names(
         }
 
         if let Some(out_names) = out_names {
+            let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
             write_names(
                 out_names,
-                &Some(bigfile.resources.keys().collect()),
+                Some(resource_names.as_slice()),
                 &name_context,
             )?;
         }
     } else if let Some(out_names) = out_names {
-        write_names(out_names, &None, &name_context)?;
+        write_names(out_names, None, &name_context)?;
     }
 
     Ok(())

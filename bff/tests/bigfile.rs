@@ -18,7 +18,7 @@ fn assert_no_missing_class_names(bigfile: &BigFile, name_context: &NameContext) 
         let class_name = resource.class_name.with_context(name_context).to_string();
 
         assert!(
-            name_context.contains(&resource.class_name),
+            name_context.contains(resource.class_name),
             "missing class name for resource {i} {resource_name}: {class_name}",
         );
     }
@@ -51,7 +51,7 @@ fn roundtrip_resources(bigfile_path_str: String) {
     let platform = bigfile_path.extension().unwrap().try_into().unwrap();
     let f = File::open(bigfile_path).unwrap();
     let mut reader = BufReader::new(f);
-    let name_context = probe_name_context(&mut reader, platform);
+    let mut name_context = probe_name_context(&mut reader, platform);
     let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
     let version = bigfile.manifest.version.clone();
 
@@ -70,7 +70,7 @@ fn roundtrip_resources(bigfile_path_str: String) {
             bff::names::json::to_string_pretty(&bff_class, &name_context).unwrap();
         let mut roundtripped_bff_class: BffClass = bff::names::json::from_reader(
             Cursor::new(resource_serialized.into_bytes()),
-            &name_context,
+            &mut name_context,
         )
         .unwrap();
         let artifacts = bff_class.class.export().unwrap_or_else(|_| HashMap::new());

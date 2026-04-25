@@ -101,8 +101,8 @@ pub fn create_cps(
     cps.write(&mut cps_writer, endian, *unencrypted, &mut name_context)?;
 
     if let Some(out_names) = out_names {
-        let names: Vec<&Name> = names.iter().collect();
-        write_names(out_names, &Some(names), &name_context)?;
+        let names: Vec<Name> = names.into_iter().collect();
+        write_names(out_names, Some(names.as_slice()), &name_context)?;
     }
 
     Ok(())

@@ -102,7 +102,7 @@ pub fn create_resource(
     )?;
 
     if let Some(out_names) = out_names {
-        write_names(out_names, &None, &name_context)?;
+        write_names(out_names, None, &name_context)?;
     }
 
     Ok(())

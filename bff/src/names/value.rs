@@ -70,9 +70,9 @@ impl Name {
         self.0
     }
 
-    pub fn with_context<'a>(&'a self, name_context: &'a NameContext) -> NameWithContext<'a> {
+    pub fn with_context<'a>(&self, name_context: &'a NameContext) -> NameWithContext<'a> {
         NameWithContext {
-            name: self,
+            name: *self,
             name_context,
         }
     }
@@ -125,7 +125,7 @@ impl Name {
 }
 
 pub struct NameWithContext<'a> {
-    name: &'a Name,
+    name: Name,
     name_context: &'a NameContext,
 }
 
@@ -146,7 +146,7 @@ where
     out
 }
 
-pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
+pub fn get_forced_hash_string<S: AsRef<str>>(name: Name, string: S) -> String {
     let value = name.get_value();
     let string = string.as_ref();
     format!("{FORCED_NAME_STRING_CHAR}{value}{FORCED_NAME_STRING_CHAR}{string}")
