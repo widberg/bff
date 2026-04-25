@@ -1,13 +1,13 @@
 use std::io::{Error, ErrorKind, Read, Write};
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_context::{deserialize_with_context, serialize_with_context};
 use serde_json::Value;
 
 use crate::bigfile::versions::Version;
 
-use super::context::{DeserializeNamesContext, Names, SerializeNamesContext};
+use super::context::{DeserializeNamesContext, SerializeNamesContext, new_names};
 use super::{NameContext, NameType};
 
 fn probe_name_type_from_value(value: &Value) -> serde_json::Result<NameType> {
@@ -50,10 +50,12 @@ where
     R: Read,
     T: DeserializeOwned,
 {
+    let name_type = name_context.name_type();
     let mut names_guard = name_context.names.lock().unwrap();
-    let name_type = names_guard.name_type();
-    let names_context =
-        DeserializeNamesContext::new(std::mem::replace(&mut *names_guard, Names::new(name_type)));
+    let names_context = DeserializeNamesContext::new(
+        name_type,
+        std::mem::replace(&mut *names_guard, new_names(name_type)),
+    );
     let mut deserializer = serde_json::Deserializer::from_reader(reader);
     let result = deserialize_with_context(&mut deserializer, &names_context);
     *names_guard = names_context.into_names();
@@ -69,10 +71,12 @@ where
     W: Write,
     T: Serialize + ?Sized,
 {
+    let name_type = name_context.name_type();
     let mut names_guard = name_context.names.lock().unwrap();
-    let name_type = names_guard.name_type();
-    let names_context =
-        SerializeNamesContext::new(std::mem::replace(&mut *names_guard, Names::new(name_type)));
+    let names_context = SerializeNamesContext::new(
+        name_type,
+        std::mem::replace(&mut *names_guard, new_names(name_type)),
+    );
     let mut serializer = serde_json::Serializer::pretty(writer);
     let result = serialize_with_context(value, &mut serializer, &names_context);
     *names_guard = names_context.into_names();
@@ -83,10 +87,12 @@ pub fn to_string_pretty<T>(value: &T, name_context: &NameContext) -> serde_json:
 where
     T: Serialize + ?Sized,
 {
+    let name_type = name_context.name_type();
     let mut names_guard = name_context.names.lock().unwrap();
-    let name_type = names_guard.name_type();
-    let names_context =
-        SerializeNamesContext::new(std::mem::replace(&mut *names_guard, Names::new(name_type)));
+    let names_context = SerializeNamesContext::new(
+        name_type,
+        std::mem::replace(&mut *names_guard, new_names(name_type)),
+    );
     let mut serializer = serde_json::Serializer::pretty(Vec::new());
     let serialize_result = serialize_with_context(value, &mut serializer, &names_context);
     *names_guard = names_context.into_names();
