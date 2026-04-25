@@ -8,7 +8,9 @@ use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
-use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names, write_names};
+use crate::extract::{
+    probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names, write_names,
+};
 
 #[derive(ValueEnum, Clone, Copy)]
 pub enum Wordlist {
@@ -25,19 +27,17 @@ pub fn names(
     out_names: &Option<PathBuf>,
     use_reference_graph: &bool,
 ) -> BffCliResult<()> {
-    let name_context = if let Some(bigfile_path) = bigfile_path {
+    let mut name_context = if let Some(bigfile_path) = bigfile_path {
         probe_bigfile_name_context(bigfile_path, &None, &None)?
     } else {
         NameContext::new(name_type.ok_or_else(|| {
-            std::io::Error::other(
-                "`--name-type` is required when `--bigfile` is not provided",
-            )
+            std::io::Error::other("`--name-type` is required when `--bigfile` is not provided")
         })?)
     };
     if let Some(bigfile_path) = bigfile_path {
-        read_bigfile_names(bigfile_path, &name_context)?;
+        read_bigfile_names(bigfile_path, &mut name_context)?;
     }
-    read_in_names(in_names, &name_context)?;
+    read_in_names(in_names, &mut name_context)?;
 
     if let Some(bigfile_path) = bigfile_path {
         let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;

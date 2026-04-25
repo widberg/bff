@@ -41,8 +41,8 @@ pub fn extract_resource(
     let mut probe_reader = BufReader::new(File::open(resource_path)?);
     let name_type = BffResourceHeader::probe_name_type(&mut probe_reader)?;
     validate_version_override_name_type(version_override, name_type)?;
-    let name_context = NameContext::new(name_type);
-    read_in_names(in_names, &name_context)?;
+    let mut name_context = NameContext::new(name_type);
+    read_in_names(in_names, &mut name_context)?;
 
     let f = File::open(resource_path)?;
     let mut reader = BufReader::new(f);

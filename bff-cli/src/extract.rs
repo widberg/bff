@@ -24,7 +24,7 @@ pub enum ExportStrategy {
     Rich,
 }
 
-pub fn read_bigfile_names(bigfile_path: &Path, name_context: &NameContext) -> BffCliResult<()> {
+pub fn read_bigfile_names(bigfile_path: &Path, name_context: &mut NameContext) -> BffCliResult<()> {
     if let Some(extension) = bigfile_path.extension() {
         let name_extension =
             try_platform_style_to_name_extension(extension.try_into()?, extension.try_into()?)?;
@@ -39,7 +39,7 @@ pub fn read_bigfile_names(bigfile_path: &Path, name_context: &NameContext) -> Bf
     Ok(())
 }
 
-pub fn read_in_names(in_names: &Vec<PathBuf>, name_context: &NameContext) -> BffCliResult<()> {
+pub fn read_in_names(in_names: &Vec<PathBuf>, name_context: &mut NameContext) -> BffCliResult<()> {
     for in_name in in_names {
         let f = File::open(in_name)?;
         let mut reader = BufReader::new(f);
@@ -209,11 +209,12 @@ pub fn extract(
     export_strategy: &ExportStrategy,
     rich_suffix: &String,
 ) -> BffCliResult<()> {
-    let name_context = probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
+    let mut name_context =
+        probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
-    read_bigfile_names(bigfile_path, &name_context)?;
-    read_in_names(in_names, &name_context)?;
+    read_bigfile_names(bigfile_path, &mut name_context)?;
+    read_in_names(in_names, &mut name_context)?;
 
     progress_bar.set_message("Reading BigFile");
     let bigfile = read_bigfile(

@@ -16,7 +16,7 @@ struct ResolvedResource<'a> {
     resource: &'a Resource,
 }
 
-fn read_name_file(name_path: &Path, name_context: &NameContext) -> BffCliResult<()> {
+fn read_name_file(name_path: &Path, name_context: &mut NameContext) -> BffCliResult<()> {
     let f = File::open(name_path)?;
     let mut reader = BufReader::new(f);
     name_context.read(&mut reader)?;
@@ -27,10 +27,10 @@ fn load_bigfile(
     bigfile_path: &Path,
     name_path: &Option<PathBuf>,
 ) -> BffCliResult<(BigFile, NameContext)> {
-    let name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
-    read_bigfile_names(bigfile_path, &name_context)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
+    read_bigfile_names(bigfile_path, &mut name_context)?;
     if let Some(name_path) = name_path {
-        read_name_file(name_path, &name_context)?;
+        read_name_file(name_path, &mut name_context)?;
     }
     let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
     Ok((bigfile, name_context))

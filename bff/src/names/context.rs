@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::io::{BufRead, Write};
-use std::sync::Mutex;
 
 use encoding_rs::WINDOWS_1252;
 use serde_context::context_scope;
@@ -172,29 +171,6 @@ fn write_names<W: Write>(
     Ok(())
 }
 
-pub(super) struct SerializeNamesContext {
-    name_type: NameType,
-    names: NameMap,
-}
-
-impl SerializeNamesContext {
-    pub(super) fn new(name_type: NameType, names: NameMap) -> Self {
-        Self { name_type, names }
-    }
-
-    pub(super) fn into_names(self) -> NameMap {
-        self.names
-    }
-
-    pub(super) fn name_type(&self) -> NameType {
-        self.name_type
-    }
-
-    pub(super) fn resolve(&self, name: &Name) -> Option<&str> {
-        get_name(&self.names, name)
-    }
-}
-
 pub(super) struct DeserializeNamesContext {
     name_type: NameType,
     names: RefCell<NameMap>,
@@ -225,7 +201,7 @@ impl DeserializeNamesContext {
 pub struct NameContext {
     name_type: NameType,
     default_name: Name,
-    pub(super) names: Mutex<NameMap>,
+    names: NameMap,
 }
 
 impl NameContext {
@@ -233,7 +209,7 @@ impl NameContext {
         Self {
             name_type,
             default_name: hash_string_for_type(name_type, ""),
-            names: Mutex::new(new_names(name_type)),
+            names: new_names(name_type),
         }
     }
 
@@ -242,11 +218,11 @@ impl NameContext {
             return self;
         }
 
-        let names = into_retyped_names(self.names.into_inner().unwrap(), self.name_type, name_type);
+        let names = into_retyped_names(self.names, self.name_type, name_type);
         Self {
             name_type,
             default_name: hash_string_for_type(name_type, ""),
-            names: Mutex::new(names),
+            names,
         }
     }
 
@@ -270,32 +246,35 @@ impl NameContext {
         name_from_i32(self.name_type, value)
     }
 
-    pub fn parse_i32_or_hash_name(&self, token: &str) -> Name {
-        parse_i32_or_hash_name(&mut self.names.lock().unwrap(), self.name_type, token)
+    pub fn parse_i32_or_hash_name(&mut self, token: &str) -> Name {
+        parse_i32_or_hash_name(&mut self.names, self.name_type, token)
     }
 
-    pub fn insert(&self, string: &str) -> Name {
-        insert_name(&mut self.names.lock().unwrap(), self.name_type, string)
+    pub fn insert(&mut self, string: &str) -> Name {
+        insert_name(&mut self.names, self.name_type, string)
     }
 
     pub fn contains(&self, name: &Name) -> bool {
-        get_name(&self.names.lock().unwrap(), name).is_some()
+        get_name(&self.names, name).is_some()
     }
 
     pub fn resolve(&self, name: &Name) -> Option<String> {
-        let names = self.names.lock().unwrap();
-        get_name(&names, name).map(std::borrow::ToOwned::to_owned)
+        get_name(&self.names, name).map(std::borrow::ToOwned::to_owned)
     }
 
-    pub fn read<R: BufRead>(&self, reader: &mut R) -> BffResult<()> {
-        read_names(&mut self.names.lock().unwrap(), self.name_type, reader)
+    pub fn read<R: BufRead>(&mut self, reader: &mut R) -> BffResult<()> {
+        read_names(&mut self.names, self.name_type, reader)
     }
 
     pub fn write<W: Write>(&self, writer: &mut W, names: &Option<Vec<&Name>>) -> BffResult<()> {
-        write_names(&self.names.lock().unwrap(), self.name_type, writer, names)
+        write_names(&self.names, self.name_type, writer, names)
     }
 
     pub fn parse_forced_hash_name<S: AsRef<str>>(&self, string: S) -> Option<(Name, String)> {
         parse_forced_hash_name_for_type(self.name_type(), string)
+    }
+
+    pub(super) fn replace_names(&mut self, names: NameMap) -> NameMap {
+        std::mem::replace(&mut self.names, names)
     }
 }

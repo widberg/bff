@@ -7,7 +7,7 @@ use serde_context::context_scope;
 
 use crate::traits::NameHashFunction;
 
-use super::context::{DeserializeNamesContext, SerializeNamesContext, with_name_context};
+use super::context::{DeserializeNamesContext, with_name_context};
 use super::value::NameTarget;
 use super::{Name, NameType, hash_string_for_type};
 
@@ -44,27 +44,18 @@ impl Serialize for Name {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::Error as _;
 
-        context_scope(|cx| {
-            if let Ok(names_context) = cx.get::<SerializeNamesContext>() {
-                if let Some(name) = names_context.resolve(self) {
-                    return name.serialize(serializer);
-                }
-                return serialize_name_value_for_type(*self, serializer, names_context.name_type());
+        with_name_context(|name_context| {
+            let Some(name_context) = name_context else {
+                return Err(S::Error::custom(
+                    "Name serialization requires an active NameContext",
+                ));
+            };
+
+            if let Some(name) = name_context.resolve(self) {
+                return name.serialize(serializer);
             }
 
-            with_name_context(|name_context| {
-                let Some(name_context) = name_context else {
-                    return Err(S::Error::custom(
-                        "Name serialization requires an active NameContext",
-                    ));
-                };
-
-                if let Some(name) = name_context.resolve(self) {
-                    return name.serialize(serializer);
-                }
-
-                serialize_name_value_for_type(*self, serializer, name_context.name_type())
-            })
+            serialize_name_value_for_type(*self, serializer, name_context.name_type())
         })
     }
 }
@@ -130,9 +121,7 @@ impl<'de> Deserialize<'de> for Name {
                         "Name deserialization requires an active NameContext",
                     ));
                 };
-                deserialize_name_with_type(deserializer, name_context.name_type(), |string| {
-                    name_context.insert(string);
-                })
+                deserialize_name_with_type(deserializer, name_context.name_type(), |_| {})
             })
         })
     }

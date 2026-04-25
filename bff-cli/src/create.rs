@@ -10,7 +10,6 @@ use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
 use indicatif::{ProgressBar, ProgressStyle};
-use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
@@ -50,9 +49,9 @@ pub fn create(
         BufReader::new(File::open(&manifest_path)?),
     )?;
     validate_version_override_name_type(version_override, manifest_name_type)?;
-    let name_context = NameContext::new(manifest_name_type);
+    let mut name_context = NameContext::new(manifest_name_type);
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
-    let manifest = bff::names::json::from_reader(manifest_reader, &name_context)?;
+    let manifest = bff::names::json::from_reader(manifest_reader, &mut name_context)?;
 
     let mut bigfile = BigFile {
         manifest,
@@ -65,96 +64,79 @@ pub fn create(
     progress_bar.set_style(ProgressStyle::default_bar());
     progress_bar.set_length(std::fs::read_dir(&resources_path)?.count() as u64);
 
-    bigfile.resources = std::fs::read_dir(resources_path)?
-        .par_bridge()
-        .try_fold(HashMap::new, |mut resources, file| {
-            let path = file?.path();
-            progress_bar.inc(1);
-            if path.is_file() {
-                let mut file_reader = BufReader::new(File::open(&path)?);
-                let resource = Resource::read_bff_resource(&mut file_reader, &name_context)?;
-                if resources.contains_key(&resource.name) {
-                    return Err(crate::error::BffCliError::DuplicateResource {
-                        name: resource.name,
-                    });
-                }
-                resources.insert(resource.name, resource);
-                Ok(resources)
-            } else if path.is_dir() {
-                let directory = path;
-                let resource_serialized_path = directory.join("resource.json");
-                let resource_serialized_reader =
-                    BufReader::new(File::open(resource_serialized_path)?);
-                let mut bff_class: BffClass =
-                    bff::names::json::from_reader(resource_serialized_reader, &name_context)?;
-
-                let mut artifacts = HashMap::new();
-
-                for file in std::fs::read_dir(directory)? {
-                    let path = file?.path();
-                    if path.is_file() {
-                        if path.file_name() == Some("resource.json".as_ref()) {
-                            continue;
-                        }
-                        match path.extension().unwrap().to_str().unwrap() {
-                            "bin" => {
-                                let name = path.file_stem().unwrap().to_os_string();
-                                let bytes = std::fs::read(path)?;
-                                artifacts.insert(name, Artifact::Binary(bytes));
-                            }
-                            "dds" => {
-                                let name = path.file_stem().unwrap().to_os_string();
-                                let bytes = std::fs::read(path)?;
-                                artifacts.insert(name, Artifact::Dds(bytes));
-                            }
-                            "wav" => {
-                                let name = path.file_stem().unwrap().to_os_string();
-                                let bytes = std::fs::read(path)?;
-                                artifacts.insert(name, Artifact::Wav(bytes));
-                            }
-                            "txt" => {
-                                let name = path.file_stem().unwrap().to_os_string();
-                                let text = std::fs::read_to_string(path)?;
-                                artifacts.insert(name, Artifact::Text(text));
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-
-                let _ = bff_class.class.import(&artifacts);
-
-                let platform = platform_override.unwrap_or(bff_class.header.platform);
-                let version = version_override
-                    .as_ref()
-                    .unwrap_or(&bff_class.header.version);
-
-                let resource: Resource =
-                    (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
-
-                if resources.contains_key(&resource.name) {
-                    return Err(crate::error::BffCliError::DuplicateResource {
-                        name: resource.name,
-                    });
-                }
-                resources.insert(resource.name, resource);
-                Ok(resources)
-            } else {
-                Ok(resources)
+    let mut resources = HashMap::new();
+    for file in std::fs::read_dir(resources_path)? {
+        let path = file?.path();
+        progress_bar.inc(1);
+        if path.is_file() {
+            let mut file_reader = BufReader::new(File::open(&path)?);
+            let resource = Resource::read_bff_resource(&mut file_reader, &name_context)?;
+            if resources.contains_key(&resource.name) {
+                return Err(crate::error::BffCliError::DuplicateResource {
+                    name: resource.name,
+                });
             }
-        })
-        .try_reduce(HashMap::new, |resources_out, resources_in| {
-            resources_in.into_iter().try_fold(
-                resources_out,
-                |mut resources_out, (name, resource)| {
-                    if resources_out.contains_key(&name) {
-                        return Err(crate::error::BffCliError::DuplicateResource { name });
+            resources.insert(resource.name, resource);
+        } else if path.is_dir() {
+            let directory = path;
+            let resource_serialized_path = directory.join("resource.json");
+            let resource_serialized_reader = BufReader::new(File::open(resource_serialized_path)?);
+            let mut bff_class: BffClass =
+                bff::names::json::from_reader(resource_serialized_reader, &mut name_context)?;
+
+            let mut artifacts = HashMap::new();
+
+            for file in std::fs::read_dir(directory)? {
+                let path = file?.path();
+                if path.is_file() {
+                    if path.file_name() == Some("resource.json".as_ref()) {
+                        continue;
                     }
-                    resources_out.insert(name, resource);
-                    Ok(resources_out)
-                },
-            )
-        })?;
+                    match path.extension().unwrap().to_str().unwrap() {
+                        "bin" => {
+                            let name = path.file_stem().unwrap().to_os_string();
+                            let bytes = std::fs::read(path)?;
+                            artifacts.insert(name, Artifact::Binary(bytes));
+                        }
+                        "dds" => {
+                            let name = path.file_stem().unwrap().to_os_string();
+                            let bytes = std::fs::read(path)?;
+                            artifacts.insert(name, Artifact::Dds(bytes));
+                        }
+                        "wav" => {
+                            let name = path.file_stem().unwrap().to_os_string();
+                            let bytes = std::fs::read(path)?;
+                            artifacts.insert(name, Artifact::Wav(bytes));
+                        }
+                        "txt" => {
+                            let name = path.file_stem().unwrap().to_os_string();
+                            let text = std::fs::read_to_string(path)?;
+                            artifacts.insert(name, Artifact::Text(text));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
+            let _ = bff_class.class.import(&artifacts);
+
+            let platform = platform_override.unwrap_or(bff_class.header.platform);
+            let version = version_override
+                .as_ref()
+                .unwrap_or(&bff_class.header.version);
+
+            let resource: Resource =
+                (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
+
+            if resources.contains_key(&resource.name) {
+                return Err(crate::error::BffCliError::DuplicateResource {
+                    name: resource.name,
+                });
+            }
+            resources.insert(resource.name, resource);
+        }
+    }
+    bigfile.resources = resources;
 
     progress_bar.set_style(ProgressStyle::default_spinner());
     progress_bar.set_message("Writing BigFile");

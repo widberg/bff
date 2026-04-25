@@ -11,7 +11,7 @@ use crate::names::{Name, NameContext};
 
 const DEFAULT_CPS_IN_NAMES: &str = include_str!("ALLSCRIPTS.CPSNameWii");
 
-pub fn read_default_cps_names(name_context: &NameContext) -> BffResult<()> {
+pub fn read_default_cps_names(name_context: &mut NameContext) -> BffResult<()> {
     let mut reader = crate::BufReader::new(Cursor::new(DEFAULT_CPS_IN_NAMES.as_bytes()));
     name_context.read(&mut reader)?;
     Ok(())
@@ -188,7 +188,7 @@ fn encode_cps_script<W: Write + Seek>(
     script: &str,
     writer: &mut W,
     endian: Endian,
-    name_context: &NameContext,
+    name_context: &mut NameContext,
 ) -> BinResult<()> {
     let start = writer.stream_position()?;
     let mut num_lines: u32 = 0;
@@ -293,7 +293,7 @@ impl BinRead for Cps {
 }
 
 impl BinWrite for Cps {
-    type Args<'a> = (&'a NameContext,);
+    type Args<'a> = (&'a mut NameContext,);
 
     fn write_options<W: Write + Seek>(
         &self,
@@ -432,7 +432,7 @@ impl Cps {
         writer: &mut W,
         endian: Endian,
         unencrypted: bool,
-        name_context: &NameContext,
+        name_context: &mut NameContext,
     ) -> BffResult<()> {
         if unencrypted {
             <Self as BinWrite>::write_options(self, writer, endian, (name_context,))?;

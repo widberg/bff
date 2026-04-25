@@ -12,9 +12,9 @@ pub fn info(
     in_names: &Vec<PathBuf>,
     out_reference_graph: &Option<PathBuf>,
 ) -> BffCliResult<()> {
-    let name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
-    read_bigfile_names(bigfile_path, &name_context)?;
-    read_in_names(in_names, &name_context)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
+    read_bigfile_names(bigfile_path, &mut name_context)?;
+    read_in_names(in_names, &mut name_context)?;
 
     let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
     bff::names::json::to_writer_pretty(io::stdout().lock(), &bigfile, &name_context)?;

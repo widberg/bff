@@ -43,10 +43,10 @@ pub fn create_resource(
         File::open(&resource_serialized_path)?,
     ))?;
     validate_version_override_name_type(version_override, name_type)?;
-    let name_context = NameContext::new(name_type);
+    let mut name_context = NameContext::new(name_type);
     let resource_serialized_reader = BufReader::new(File::open(&resource_serialized_path)?);
     let mut bff_class: BffClass =
-        bff::names::json::from_reader(resource_serialized_reader, &name_context)?;
+        bff::names::json::from_reader(resource_serialized_reader, &mut name_context)?;
 
     let mut artifacts = HashMap::new();
 
