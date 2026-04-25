@@ -52,17 +52,24 @@ pub(super) fn current_name_type() -> Option<NameType> {
     with_name_context(|name_context| name_context.map(NameContext::name_type))
 }
 
+pub(super) fn current_default_name() -> Option<Name> {
+    with_name_context(|name_context| name_context.map(NameContext::default_name))
+}
+
 #[derive(Debug)]
 pub(super) struct Names {
     name_type: NameType,
     names: HashMap<Name, String>,
+    default_name: Name,
 }
 
 impl Names {
     pub(super) fn new(name_type: NameType) -> Self {
+        let default_name = hash_string_for_type(name_type, "");
         let mut names = Self {
             name_type,
             names: Default::default(),
+            default_name,
         };
 
         for class_name in class_base_names() {
@@ -70,7 +77,7 @@ impl Names {
             names.insert(canonical.as_str());
         }
 
-        names.insert("");
+        names.names.insert(default_name, String::new());
 
         names
     }
@@ -81,6 +88,7 @@ impl Names {
         }
 
         self.name_type = name_type;
+        self.default_name = hash_string_for_type(self.name_type, "");
         let old_names = std::mem::take(&mut self.names);
         for string in old_names.into_values() {
             self.names
@@ -92,6 +100,10 @@ impl Names {
 
     pub(super) fn name_type(&self) -> NameType {
         self.name_type
+    }
+
+    pub(super) fn default_name(&self) -> Name {
+        self.default_name
     }
 
     fn name_from_i32(&self, value: i32) -> Name {
@@ -244,6 +256,10 @@ impl NameContext {
 
     pub fn name_type(&self) -> NameType {
         self.names.lock().unwrap().name_type()
+    }
+
+    pub fn default_name(&self) -> Name {
+        self.names.lock().unwrap().default_name()
     }
 
     pub fn name_from_i32(&self, value: i32) -> Name {

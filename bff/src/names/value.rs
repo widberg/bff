@@ -8,7 +8,7 @@ use num_traits::AsPrimitive;
 
 use crate::traits::NameHashFunction;
 
-use super::context::{current_name_type, with_name_context};
+use super::context::{current_default_name, current_name_type, with_name_context};
 use super::{NameContext, NameType};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
@@ -98,7 +98,7 @@ impl Name {
     }
 
     pub fn is_default(&self) -> bool {
-        current_name_type().is_some_and(|name_type| *self == hash_string_for_type(name_type, ""))
+        current_name_type().is_some() && *self == Default::default()
     }
 
     pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
@@ -281,9 +281,7 @@ impl BinWrite for Name {
 
 impl Default for Name {
     fn default() -> Self {
-        current_name_type()
-            .map(|name_type| hash_string_for_type(name_type, ""))
-            .unwrap_or(Self(0))
+        current_default_name().unwrap_or(Self(0))
     }
 }
 
