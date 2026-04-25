@@ -36,7 +36,7 @@ macro_rules! names {
             pub const fn target_bits(self) -> usize {
                 match self {
                     $(
-                        NameType::$name => core::mem::size_of::<<$name_hash_function as crate::traits::NameHashFunction>::Target>() * 8,
+                        NameType::$name => core::mem::size_of::<<$name_hash_function as $crate::traits::NameHashFunction>::Target>() * 8,
                     )*
                 }
             }
@@ -45,27 +45,27 @@ macro_rules! names {
                 self.target_bits() == 32
             }
 
-            pub fn hash_bytes(self, bytes: &[u8]) -> crate::names::Name {
+            pub fn hash_bytes(self, bytes: &[u8]) -> $crate::names::Name {
                 match self {
-                    $(NameType::$name => hash_bytes_for_hash::<$name_hash_function>(bytes),)*
+                    $(NameType::$name => $crate::names::value::hash_bytes_for_hash::<$name_hash_function>(bytes),)*
                 }
             }
 
-            pub fn parse_forced_hash_name<S: AsRef<str>>(self, string: S) -> Option<(crate::names::Name, String)> {
+            pub fn parse_forced_hash_name<S: AsRef<str>>(self, string: S) -> Option<($crate::names::Name, String)> {
                 match self {
-                    $(NameType::$name => parse_forced_hash_name_for_hash::<$name_hash_function, S>(string),)*
+                    $(NameType::$name => $crate::names::value::parse_forced_hash_name_for_hash::<$name_hash_function, S>(string),)*
                 }
             }
 
-            pub fn name_from_i32(self, value: i32) -> crate::names::Name {
+            pub fn name_from_i32(self, value: i32) -> $crate::names::Name {
                 match self {
-                    $(NameType::$name => name_from_i32_for_hash::<$name_hash_function>(value),)*
+                    $(NameType::$name => $crate::names::value::name_from_i32_for_hash::<$name_hash_function>(value),)*
                 }
             }
 
-            pub fn value_from_name(self, name: crate::names::Name) -> i64 {
+            pub fn value_from_name(self, name: $crate::names::Name) -> i64 {
                 match self {
-                    $(NameType::$name => name_value_for_hash::<$name_hash_function>(name),)*
+                    $(NameType::$name => $crate::names::value::name_value_for_hash::<$name_hash_function>(name),)*
                 }
             }
 
@@ -73,9 +73,9 @@ macro_rules! names {
                 self,
                 reader: &mut R,
                 endian: binrw::Endian,
-            ) -> binrw::BinResult<crate::names::Name> {
+            ) -> binrw::BinResult<$crate::names::Name> {
                 match self {
-                    $(NameType::$name => read_name_for_hash::<$name_hash_function, R>(reader, endian),)*
+                    $(NameType::$name => $crate::names::value::read_name_for_hash::<$name_hash_function, R>(reader, endian),)*
                 }
             }
 
@@ -83,20 +83,20 @@ macro_rules! names {
                 self,
                 writer: &mut W,
                 endian: binrw::Endian,
-                name: crate::names::Name,
+                name: $crate::names::Name,
             ) -> binrw::BinResult<()> {
                 match self {
-                    $(NameType::$name => write_name_for_hash::<$name_hash_function, W>(writer, endian, name),)*
+                    $(NameType::$name => $crate::names::value::write_name_for_hash::<$name_hash_function, W>(writer, endian, name),)*
                 }
             }
 
             pub fn serialize_name_value<S: serde::Serializer>(
                 self,
-                name: crate::names::Name,
+                name: $crate::names::Name,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
                 match self {
-                    $(NameType::$name => serialize_name_value_for_hash::<$name_hash_function, S>(name, serializer),)*
+                    $(NameType::$name => $crate::names::serde_schema::serialize_name_value_for_hash::<$name_hash_function, S>(name, serializer),)*
                 }
             }
 
@@ -104,13 +104,13 @@ macro_rules! names {
                 self,
                 deserializer: D,
                 add_name: F,
-            ) -> Result<crate::names::Name, D::Error>
+            ) -> Result<$crate::names::Name, D::Error>
             where
                 D: serde::Deserializer<'de>,
                 F: FnMut(&str),
             {
                 match self {
-                    $(NameType::$name => deserialize_name_for_hash::<$name_hash_function, D, F>(deserializer, self, add_name),)*
+                    $(NameType::$name => $crate::names::serde_schema::deserialize_name_for_hash::<$name_hash_function, D, F>(deserializer, self, add_name),)*
                 }
             }
         }
