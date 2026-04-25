@@ -6,57 +6,12 @@ use binrw::{BinRead, BinResult, BinWrite, Endian};
 use const_power_of_two::PowerOfTwoUsize;
 use num_traits::AsPrimitive;
 
-use crate::traits::NameHashFunction;
+use crate::traits::{NameHashFunction, NameTarget};
 
 use super::context::{current_name_type, with_name_context};
 use super::{NameContext, NameType};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
-
-pub(super) trait NameTarget: Copy + AsPrimitive<i64> {
-    fn from_i32(value: i32) -> Self;
-    fn from_raw(raw: u64) -> Self;
-    fn into_raw(self) -> u64;
-    fn parse_forced(string: &str) -> Option<Self>;
-}
-
-impl NameTarget for i32 {
-    fn from_i32(value: i32) -> Self {
-        value
-    }
-
-    fn from_raw(raw: u64) -> Self {
-        let raw_u32: u32 = raw.as_();
-        raw_u32.as_()
-    }
-
-    fn into_raw(self) -> u64 {
-        let raw_u32: u32 = self.as_();
-        raw_u32.as_()
-    }
-
-    fn parse_forced(string: &str) -> Option<Self> {
-        string.parse().ok()
-    }
-}
-
-impl NameTarget for i64 {
-    fn from_i32(value: i32) -> Self {
-        value.as_()
-    }
-
-    fn from_raw(raw: u64) -> Self {
-        raw.as_()
-    }
-
-    fn into_raw(self) -> u64 {
-        self.as_()
-    }
-
-    fn parse_forced(string: &str) -> Option<Self> {
-        string.parse().ok()
-    }
-}
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Name(u64);
@@ -80,7 +35,6 @@ impl Name {
     pub(super) fn from_hash_target<H>(value: H::Target) -> Self
     where
         H: NameHashFunction,
-        H::Target: NameTarget,
     {
         Self(value.into_raw())
     }
@@ -88,7 +42,6 @@ impl Name {
     pub(super) fn to_hash_target<H>(self) -> H::Target
     where
         H: NameHashFunction,
-        H::Target: NameTarget,
     {
         H::Target::from_raw(self.0)
     }
@@ -155,7 +108,6 @@ pub fn get_forced_hash_string<S: AsRef<str>>(name: Name, string: S) -> String {
 pub(super) fn parse_forced_hash_name_for_hash<H, S>(string: S) -> Option<(Name, String)>
 where
     H: NameHashFunction,
-    H::Target: NameTarget,
     S: AsRef<str>,
 {
     let string = string.as_ref();
@@ -171,7 +123,6 @@ where
 pub(super) fn hash_bytes_for_hash<H>(bytes: &[u8]) -> Name
 where
     H: NameHashFunction,
-    H::Target: NameTarget,
 {
     Name::from_hash_target::<H>(H::hash(bytes))
 }
@@ -179,7 +130,6 @@ where
 pub(super) fn name_from_i32_for_hash<H>(value: i32) -> Name
 where
     H: NameHashFunction,
-    H::Target: NameTarget,
 {
     Name::from_hash_target::<H>(H::Target::from_i32(value))
 }
@@ -187,7 +137,6 @@ where
 pub(super) fn name_value_for_hash<H>(name: Name) -> i64
 where
     H: NameHashFunction,
-    H::Target: NameTarget,
 {
     let value: H::Target = name.to_hash_target::<H>();
     value.as_()
@@ -196,7 +145,7 @@ where
 pub(super) fn read_name_for_hash<H, R>(reader: &mut R, endian: Endian) -> BinResult<Name>
 where
     H: NameHashFunction,
-    H::Target: NameTarget + for<'a> BinRead<Args<'a> = ()>,
+    H::Target: for<'a> BinRead<Args<'a> = ()>,
     R: Read + Seek,
 {
     let value = H::Target::read_options(reader, endian, ())?;
@@ -206,7 +155,7 @@ where
 pub(super) fn write_name_for_hash<H, W>(writer: &mut W, endian: Endian, name: Name) -> BinResult<()>
 where
     H: NameHashFunction,
-    H::Target: NameTarget + for<'a> BinWrite<Args<'a> = ()>,
+    H::Target: for<'a> BinWrite<Args<'a> = ()>,
     W: Write + Seek,
 {
     let value: H::Target = name.to_hash_target::<H>();

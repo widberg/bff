@@ -7,7 +7,6 @@ use serde::{Deserialize, Deserializer, Serialize};
 use crate::traits::NameHashFunction;
 
 use super::context::{with_name_context, with_name_context_mut};
-use super::value::NameTarget;
 use super::{Name, NameType, hash_string_for_type};
 
 #[derive(Serialize, Deserialize, JsonSchema)]
@@ -24,7 +23,7 @@ pub(super) fn serialize_name_value_for_hash<H, S>(
 ) -> Result<S::Ok, S::Error>
 where
     H: NameHashFunction,
-    H::Target: NameTarget + Serialize,
+    H::Target: Serialize,
     S: serde::Serializer,
 {
     let value: H::Target = name.to_hash_target::<H>();
@@ -60,7 +59,7 @@ pub(super) fn deserialize_name_for_hash<'de, H, D, F>(
 ) -> Result<Name, D::Error>
 where
     H: NameHashFunction,
-    H::Target: NameTarget + Deserialize<'de>,
+    H::Target: Deserialize<'de>,
     D: Deserializer<'de>,
     F: FnMut(&str),
 {

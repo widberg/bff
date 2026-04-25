@@ -1,6 +1,7 @@
-// this should be const https://github.com/rust-lang/rust/issues/67792
+use super::name_target::NameTarget;
+
 pub trait NameHashFunction {
-    type Target;
+    type Target: NameTarget;
     fn hash(bytes: &[u8]) -> Self::Target;
     fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target;
 }
