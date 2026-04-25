@@ -31,14 +31,6 @@ where
     value.serialize(serializer)
 }
 
-fn serialize_name_value_for_type<S: serde::Serializer>(
-    name: Name,
-    serializer: S,
-    name_type: NameType,
-) -> Result<S::Ok, S::Error> {
-    name_type.serialize_name_value(name, serializer)
-}
-
 impl Serialize for Name {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::Error as _;
@@ -54,7 +46,9 @@ impl Serialize for Name {
                 return name.serialize(serializer);
             }
 
-            serialize_name_value_for_type(*self, serializer, name_context.name_type())
+            name_context
+                .name_type()
+                .serialize_name_value(*self, serializer)
         })
     }
 }
@@ -84,18 +78,6 @@ where
     }
 }
 
-fn deserialize_name_with_type<'de, D, F>(
-    deserializer: D,
-    name_type: NameType,
-    add_name: F,
-) -> Result<Name, D::Error>
-where
-    D: Deserializer<'de>,
-    F: FnMut(&str),
-{
-    name_type.deserialize_name(deserializer, add_name)
-}
-
 impl<'de> Deserialize<'de> for Name {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -105,13 +87,11 @@ impl<'de> Deserialize<'de> for Name {
 
         with_name_context_mut(|name_context| {
             if let Some(name_context) = name_context {
-                return deserialize_name_with_type(
-                    deserializer,
-                    name_context.name_type(),
-                    |string| {
+                return name_context
+                    .name_type()
+                    .deserialize_name(deserializer, |string| {
                         name_context.insert(string);
-                    },
-                );
+                    });
             }
             with_name_context(|name_context| {
                 let Some(name_context) = name_context else {
@@ -119,9 +99,11 @@ impl<'de> Deserialize<'de> for Name {
                         "Name deserialization requires an active NameContext",
                     ));
                 };
-                deserialize_name_with_type(deserializer, name_context.name_type(), |string| {
-                    let _ = string;
-                })
+                name_context
+                    .name_type()
+                    .deserialize_name(deserializer, |string| {
+                        let _ = string;
+                    })
             })
         })
     }

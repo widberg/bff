@@ -157,7 +157,7 @@ macro_rules! classes {
             type Report = ClassTryYourBestReport;
             fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
                 report.total += 1;
-                let Some(name_type) = crate::names::active_name_type() else {
+                let Some(name_type) = crate::names::context::current_name_type() else {
                     return;
                 };
                 let Some(class_type) = ClassType::from_name_and_type(resource.class_name, name_type) else {

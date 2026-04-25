@@ -8,7 +8,6 @@ use encoding_rs::WINDOWS_1252;
 use crate::BffResult;
 use crate::class::class_base_names;
 
-use super::value::parse_forced_hash_name_for_type;
 use super::{Name, NameType, apply_name_style, hash_string_for_type, name_type_style};
 
 thread_local! {
@@ -33,7 +32,7 @@ impl Drop for NameContextScopeGuard {
     }
 }
 
-fn with_active_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
+pub(super) fn with_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
     ACTIVE_NAME_CONTEXT_STACK.with(|stack| {
         let context = stack.borrow().last().copied().map(|ptr| {
             // SAFETY: Pointers are pushed only from `NameContext::scope` and popped by
@@ -44,11 +43,7 @@ fn with_active_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
     })
 }
 
-pub(super) fn with_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
-    with_active_name_context(f)
-}
-
-fn with_active_name_context_mut<R>(f: impl FnOnce(Option<&mut NameContext>) -> R) -> R {
+pub(super) fn with_name_context_mut<R>(f: impl FnOnce(Option<&mut NameContext>) -> R) -> R {
     ACTIVE_MUT_NAME_CONTEXT_STACK.with(|stack| {
         let context = stack.borrow().last().copied().map(|ptr| {
             // SAFETY: Pointers are pushed only from `NameContext::scope_mut` and popped by
@@ -59,16 +54,8 @@ fn with_active_name_context_mut<R>(f: impl FnOnce(Option<&mut NameContext>) -> R
     })
 }
 
-pub(super) fn with_name_context_mut<R>(f: impl FnOnce(Option<&mut NameContext>) -> R) -> R {
-    with_active_name_context_mut(f)
-}
-
-pub(super) fn current_name_type() -> Option<NameType> {
+pub(crate) fn current_name_type() -> Option<NameType> {
     with_name_context(|name_context| name_context.map(NameContext::name_type))
-}
-
-pub(super) fn current_default_name() -> Option<Name> {
-    with_name_context(|name_context| name_context.map(NameContext::default_name))
 }
 
 pub(super) type NameMap = HashMap<Name, String>;
@@ -104,13 +91,9 @@ fn into_retyped_names(
     names
 }
 
-fn name_from_i32(name_type: NameType, value: i32) -> Name {
-    name_type.name_from_i32(value)
-}
-
 fn parse_i32_or_hash_name(names: &mut NameMap, name_type: NameType, token: &str) -> Name {
     if let Ok(value) = token.parse::<i32>() {
-        name_from_i32(name_type, value)
+        name_type.name_from_i32(value)
     } else {
         insert_name(names, name_type, token)
     }
@@ -243,10 +226,6 @@ impl NameContext {
         self.default_name
     }
 
-    pub fn name_from_i32(&self, value: i32) -> Name {
-        name_from_i32(self.name_type, value)
-    }
-
     pub fn parse_i32_or_hash_name(&mut self, token: &str) -> Name {
         parse_i32_or_hash_name(&mut self.names, self.name_type, token)
     }
@@ -269,9 +248,5 @@ impl NameContext {
 
     pub fn write<W: Write>(&self, writer: &mut W, names: &Option<Vec<&Name>>) -> BffResult<()> {
         write_names(&self.names, self.name_type, writer, names)
-    }
-
-    pub fn parse_forced_hash_name<S: AsRef<str>>(&self, string: S) -> Option<(Name, String)> {
-        parse_forced_hash_name_for_type(self.name_type(), string)
     }
 }

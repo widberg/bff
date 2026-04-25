@@ -97,7 +97,7 @@ pub fn names(
                                 .with_context(&name_context)
                                 .to_string();
                             let parent_string = if let Some((_, s)) =
-                                name_context.parse_forced_hash_name(&parent_name)
+                                name_context.name_type().parse_forced_hash_name(&parent_name)
                             {
                                 s
                             } else {

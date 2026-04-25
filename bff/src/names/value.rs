@@ -8,7 +8,7 @@ use num_traits::AsPrimitive;
 
 use crate::traits::NameHashFunction;
 
-use super::context::{current_default_name, current_name_type, with_name_context};
+use super::context::{current_name_type, with_name_context};
 use super::{NameContext, NameType};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
@@ -98,7 +98,7 @@ impl Name {
     }
 
     pub fn is_default(&self) -> bool {
-        current_name_type().is_some() && *self == Default::default()
+        with_name_context(|ctx| ctx.is_some_and(|c| *self == c.default_name()))
     }
 
     pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
@@ -116,12 +116,10 @@ impl Name {
     pub fn get_value(&self) -> i64 {
         match current_name_type() {
             Some(name_type) => name_type.value_from_name(*self),
-            None if self.0 <= u32::MAX as u64 => {
-                let value_u32: u32 = self.0.as_();
-                let value_i32: i32 = value_u32.as_();
-                value_i32.as_()
-            }
-            None => self.0.as_(),
+            None => match u32::try_from(self.0) {
+                Ok(v) => i64::from(v as i32),
+                Err(_) => self.0 as i64,
+            },
         }
     }
 }
@@ -146,10 +144,6 @@ where
         x >>= wordlist_bits;
     }
     out
-}
-
-pub fn active_name_type() -> Option<NameType> {
-    current_name_type()
 }
 
 pub fn get_forced_hash_string<S: AsRef<str>>(name: &Name, string: S) -> String {
@@ -219,23 +213,13 @@ where
     value.write_options(writer, endian, ())
 }
 
-pub(super) fn parse_forced_hash_name_for_type<S: AsRef<str>>(
-    name_type: NameType,
-    string: S,
-) -> Option<(Name, String)> {
-    name_type.parse_forced_hash_name(string)
-}
-
 pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Name, String)> {
-    current_name_type().and_then(|name_type| parse_forced_hash_name_for_type(name_type, string))
-}
-
-pub fn hash_bytes_for_type(name_type: NameType, bytes: &[u8]) -> Name {
-    name_type.hash_bytes(bytes)
+    current_name_type().and_then(|name_type| name_type.parse_forced_hash_name(string))
 }
 
 pub fn hash_string_for_type<S: AsRef<str>>(name_type: NameType, string: S) -> Name {
-    parse_forced_hash_name_for_type(name_type, string.as_ref())
+    name_type
+        .parse_forced_hash_name(string.as_ref())
         .map(|(name, _)| name)
         .unwrap_or_else(|| name_type.hash_bytes(string.as_ref().as_bytes()))
 }
@@ -281,7 +265,8 @@ impl BinWrite for Name {
 
 impl Default for Name {
     fn default() -> Self {
-        current_default_name().unwrap_or(Self(0))
+        with_name_context(|name_context| name_context.map(NameContext::default_name))
+            .unwrap_or(Self(0))
     }
 }
 

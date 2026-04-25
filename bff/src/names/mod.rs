@@ -6,8 +6,7 @@ pub mod wordlist;
 
 pub use context::NameContext;
 pub use value::{
-    Name, NameWithContext, active_name_type, get_forced_hash_string, hash_bytes_for_type,
-    hash_string_for_type, parse_forced_hash_name,
+    Name, NameWithContext, get_forced_hash_string, hash_string_for_type, parse_forced_hash_name,
 };
 pub use wordlist::*;
 
