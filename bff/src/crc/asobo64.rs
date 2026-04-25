@@ -1,5 +1,3 @@
-use crate::traits::NameHashFunction;
-
 pub(super) const CRC64_TABLE: [u64; 256] = [
     0x0000000000000000,
     0x42f0e1eba9ea3693,
@@ -274,18 +272,4 @@ pub const fn asobo64_options(bytes: &[u8], starting: i64) -> i64 {
     }
 
     hash as i64
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Asobo64;
-impl NameHashFunction for Asobo64 {
-    type Target = i64;
-
-    fn hash(bytes: &[u8]) -> Self::Target {
-        asobo64(bytes)
-    }
-
-    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        asobo64_options(bytes, starting)
-    }
 }

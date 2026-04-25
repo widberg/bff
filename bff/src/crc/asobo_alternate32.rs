@@ -1,5 +1,4 @@
 use crate::crc::asobo32::CRC32_TABLE;
-use crate::traits::NameHashFunction;
 
 pub const fn asobo_alternate32(bytes: &[u8]) -> i32 {
     asobo_alternate32_options(bytes, 0)
@@ -16,17 +15,4 @@ pub const fn asobo_alternate32_options(bytes: &[u8], starting: i32) -> i32 {
     }
 
     hash as i32
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct AsoboAlternate32;
-impl NameHashFunction for AsoboAlternate32 {
-    type Target = i32;
-
-    fn hash(bytes: &[u8]) -> Self::Target {
-        asobo_alternate32(bytes)
-    }
-
-    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        asobo_alternate32_options(bytes, starting)
-    }
 }

@@ -1,7 +1,9 @@
 use std::io::{self, BufRead, Read};
 
-use bff::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, RaceNet32, Ubisoft64};
-use bff::traits::NameHashFunction;
+use bff::crc::{
+    asobo32_options, asobo64_options, asobo_alternate32_options, blacksheep32_options,
+    kalisto32_options, racenet32_options, ubisoft64_options,
+};
 use clap::ValueEnum;
 
 use crate::error::BffCliResult;
@@ -73,21 +75,19 @@ fn format_hash64(hash: i64, format: &CrcFormat) -> String {
 fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcFormat) -> String {
     let starting = *starting;
     match algorithm {
-        CrcAlgorithm::Asobo => format_hash(Asobo32::hash_options(bytes, starting as i32), format),
+        CrcAlgorithm::Asobo => format_hash(asobo32_options(bytes, starting as i32), format),
         CrcAlgorithm::AsoboAlternate => format_hash(
-            AsoboAlternate32::hash_options(bytes, starting as i32),
+            asobo_alternate32_options(bytes, starting as i32),
             format,
         ),
-        CrcAlgorithm::Kalisto => {
-            format_hash(Kalisto32::hash_options(bytes, starting as i32), format)
-        }
+        CrcAlgorithm::Kalisto => format_hash(kalisto32_options(bytes, starting as i32), format),
         CrcAlgorithm::BlackSheep => {
-            format_hash(BlackSheep32::hash_options(bytes, starting as i32), format)
+            format_hash(blacksheep32_options(bytes, starting as i32), format)
         }
-        CrcAlgorithm::Asobo64 => format_hash64(Asobo64::hash_options(bytes, starting), format),
-        CrcAlgorithm::Ubisoft64 => format_hash64(Ubisoft64::hash_options(bytes, starting), format),
+        CrcAlgorithm::Asobo64 => format_hash64(asobo64_options(bytes, starting), format),
+        CrcAlgorithm::Ubisoft64 => format_hash64(ubisoft64_options(bytes, starting), format),
         CrcAlgorithm::RaceNet32 | CrcAlgorithm::MQFEL32 => {
-            format_hash(RaceNet32::hash_options(bytes, starting as i32), format)
+            format_hash(racenet32_options(bytes, starting as i32), format)
         }
     }
 }

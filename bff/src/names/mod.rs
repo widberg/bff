@@ -10,18 +10,18 @@ pub use value::{
 };
 pub use wordlist::*;
 
-use crate::crc::{Asobo32, Asobo64, AsoboAlternate32, BlackSheep32, Kalisto32, Ubisoft64};
+use crate::crc::{asobo32, asobo64, asobo_alternate32, blacksheep32, kalisto32, ubisoft64};
 use crate::macros::names::names;
 
 names! {
     styles: [Z(append_z), Caps(str::to_uppercase)],
     names: [
-        Asobo32(Z, Asobo32),
-        AsoboAlternate32(Caps, AsoboAlternate32),
-        Kalisto32(Caps, Kalisto32),
-        BlackSheep32(Caps, BlackSheep32),
-        Asobo64(Z, Asobo64),
-        Ubisoft64(Caps, Ubisoft64),
+        Asobo32(Z, i32, asobo32),
+        AsoboAlternate32(Caps, i32, asobo_alternate32),
+        Kalisto32(Caps, i32, kalisto32),
+        BlackSheep32(Caps, i32, blacksheep32),
+        Asobo64(Z, i64, asobo64),
+        Ubisoft64(Caps, i64, ubisoft64),
     ]
 }
 

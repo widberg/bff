@@ -1,5 +1,3 @@
-use crate::traits::NameHashFunction;
-
 // This algorithm is also used by Ubisoft
 
 // Appears to be the same as FreeBSD
@@ -54,18 +52,4 @@ pub const fn blacksheep32_options(bytes: &[u8], starting: i32) -> i32 {
     }
 
     !hash as i32
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct BlackSheep32;
-impl NameHashFunction for BlackSheep32 {
-    type Target = i32;
-
-    fn hash(bytes: &[u8]) -> Self::Target {
-        blacksheep32(bytes)
-    }
-
-    fn hash_options(bytes: &[u8], starting: Self::Target) -> Self::Target {
-        blacksheep32_options(bytes, starting)
-    }
 }

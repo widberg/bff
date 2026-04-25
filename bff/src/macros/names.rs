@@ -2,9 +2,24 @@ macro_rules! names {
     (
         styles: [$($style:ident($style_transform:expr)),* $(,)?],
         names: [
-            $($name:ident($name_style:ident, $name_hash_function:ty)),* $(,)?
+            $($name:ident($name_style:ident, $name_target:ty, $name_hash:path)),* $(,)?
         ]
     ) => {
+        $(
+            pastey::paste! {
+                #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+                struct [<$name NameHashFunction>];
+
+                impl $crate::traits::NameHashFunction for [<$name NameHashFunction>] {
+                    type Target = $name_target;
+
+                    fn hash(bytes: &[u8]) -> Self::Target {
+                        $name_hash(bytes)
+                    }
+                }
+            }
+        )*
+
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum NameStyle {
             $($style,)*
@@ -32,85 +47,87 @@ macro_rules! names {
             }
         }
 
-        impl NameType {
-            pub const fn target_bits(self) -> usize {
-                match self {
-                    $(
-                        NameType::$name => core::mem::size_of::<<$name_hash_function as $crate::traits::NameHashFunction>::Target>() * 8,
-                    )*
+        pastey::paste! {
+            impl NameType {
+                pub const fn target_bits(self) -> usize {
+                    match self {
+                        $(
+                            NameType::$name => core::mem::size_of::<$name_target>() * 8,
+                        )*
+                    }
                 }
-            }
 
-            pub const fn is_32_bit(self) -> bool {
-                self.target_bits() == 32
-            }
-
-            pub fn hash_bytes(self, bytes: &[u8]) -> $crate::names::Name {
-                match self {
-                    $(NameType::$name => $crate::names::value::hash_bytes_for_hash::<$name_hash_function>(bytes),)*
+                pub const fn is_32_bit(self) -> bool {
+                    self.target_bits() == 32
                 }
-            }
 
-            pub fn parse_forced_hash_name<S: AsRef<str>>(self, string: S) -> Option<($crate::names::Name, String)> {
-                match self {
-                    $(NameType::$name => $crate::names::value::parse_forced_hash_name_for_hash::<$name_hash_function, S>(string),)*
+                pub fn hash_bytes(self, bytes: &[u8]) -> $crate::names::Name {
+                    match self {
+                        $(NameType::$name => $crate::names::value::hash_bytes_for_hash::<[<$name NameHashFunction>]>(bytes),)*
+                    }
                 }
-            }
 
-            pub fn name_from_i32(self, value: i32) -> $crate::names::Name {
-                match self {
-                    $(NameType::$name => $crate::names::value::name_from_i32_for_hash::<$name_hash_function>(value),)*
+                pub fn parse_forced_hash_name<S: AsRef<str>>(self, string: S) -> Option<($crate::names::Name, String)> {
+                    match self {
+                        $(NameType::$name => $crate::names::value::parse_forced_hash_name_for_hash::<[<$name NameHashFunction>], S>(string),)*
+                    }
                 }
-            }
 
-            pub fn value_from_name(self, name: $crate::names::Name) -> i64 {
-                match self {
-                    $(NameType::$name => $crate::names::value::name_value_for_hash::<$name_hash_function>(name),)*
+                pub fn name_from_i32(self, value: i32) -> $crate::names::Name {
+                    match self {
+                        $(NameType::$name => $crate::names::value::name_from_i32_for_hash::<[<$name NameHashFunction>]>(value),)*
+                    }
                 }
-            }
 
-            pub fn read_name<R: std::io::Read + std::io::Seek>(
-                self,
-                reader: &mut R,
-                endian: binrw::Endian,
-            ) -> binrw::BinResult<$crate::names::Name> {
-                match self {
-                    $(NameType::$name => $crate::names::value::read_name_for_hash::<$name_hash_function, R>(reader, endian),)*
+                pub fn value_from_name(self, name: $crate::names::Name) -> i64 {
+                    match self {
+                        $(NameType::$name => $crate::names::value::name_value_for_hash::<[<$name NameHashFunction>]>(name),)*
+                    }
                 }
-            }
 
-            pub fn write_name<W: std::io::Write + std::io::Seek>(
-                self,
-                writer: &mut W,
-                endian: binrw::Endian,
-                name: $crate::names::Name,
-            ) -> binrw::BinResult<()> {
-                match self {
-                    $(NameType::$name => $crate::names::value::write_name_for_hash::<$name_hash_function, W>(writer, endian, name),)*
+                pub fn read_name<R: std::io::Read + std::io::Seek>(
+                    self,
+                    reader: &mut R,
+                    endian: binrw::Endian,
+                ) -> binrw::BinResult<$crate::names::Name> {
+                    match self {
+                        $(NameType::$name => $crate::names::value::read_name_for_hash::<[<$name NameHashFunction>], R>(reader, endian),)*
+                    }
                 }
-            }
 
-            pub fn serialize_name_value<S: serde::Serializer>(
-                self,
-                name: $crate::names::Name,
-                serializer: S,
-            ) -> Result<S::Ok, S::Error> {
-                match self {
-                    $(NameType::$name => $crate::names::serde_schema::serialize_name_value_for_hash::<$name_hash_function, S>(name, serializer),)*
+                pub fn write_name<W: std::io::Write + std::io::Seek>(
+                    self,
+                    writer: &mut W,
+                    endian: binrw::Endian,
+                    name: $crate::names::Name,
+                ) -> binrw::BinResult<()> {
+                    match self {
+                        $(NameType::$name => $crate::names::value::write_name_for_hash::<[<$name NameHashFunction>], W>(writer, endian, name),)*
+                    }
                 }
-            }
 
-            pub fn deserialize_name<'de, D, F>(
-                self,
-                deserializer: D,
-                add_name: F,
-            ) -> Result<$crate::names::Name, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-                F: FnMut(&str),
-            {
-                match self {
-                    $(NameType::$name => $crate::names::serde_schema::deserialize_name_for_hash::<$name_hash_function, D, F>(deserializer, self, add_name),)*
+                pub fn serialize_name_value<S: serde::Serializer>(
+                    self,
+                    name: $crate::names::Name,
+                    serializer: S,
+                ) -> Result<S::Ok, S::Error> {
+                    match self {
+                        $(NameType::$name => $crate::names::serde_schema::serialize_name_value_for_hash::<[<$name NameHashFunction>], S>(name, serializer),)*
+                    }
+                }
+
+                pub fn deserialize_name<'de, D, F>(
+                    self,
+                    deserializer: D,
+                    add_name: F,
+                ) -> Result<$crate::names::Name, D::Error>
+                where
+                    D: serde::Deserializer<'de>,
+                    F: FnMut(&str),
+                {
+                    match self {
+                        $(NameType::$name => $crate::names::serde_schema::deserialize_name_for_hash::<[<$name NameHashFunction>], D, F>(deserializer, self, add_name),)*
+                    }
                 }
             }
         }
