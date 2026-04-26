@@ -11,9 +11,9 @@ use crate::traits::NameHashFunction;
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 enum SerdeName<'a, T> {
-    Name(T),
     Str(&'a str),
     String(String),
+    Name(T),
 }
 
 pub(super) fn serialize_name_value_for_hash<H, S>(
@@ -22,11 +22,12 @@ pub(super) fn serialize_name_value_for_hash<H, S>(
 ) -> Result<S::Ok, S::Error>
 where
     H: NameHashFunction,
-    H::Target: Serialize,
+    H::Display: Serialize,
     S: serde::Serializer,
 {
     let value: H::Target = name.to_hash_target::<H>();
-    value.serialize(serializer)
+    let display = H::display_from_target(value);
+    display.serialize(serializer)
 }
 
 impl Serialize for Name {
@@ -58,13 +59,12 @@ pub(super) fn deserialize_name_for_hash<'de, H, D, F>(
 ) -> Result<Name, D::Error>
 where
     H: NameHashFunction,
-    H::Target: Deserialize<'de>,
+    H::Display: Deserialize<'de>,
     D: Deserializer<'de>,
     F: FnMut(&str),
 {
-    let serde_name: SerdeName<'_, H::Target> = SerdeName::deserialize(deserializer)?;
+    let serde_name: SerdeName<'_, H::Display> = SerdeName::deserialize(deserializer)?;
     match serde_name {
-        SerdeName::Name(name) => Ok(Name::from_hash_target::<H>(name)),
         SerdeName::Str(string) => {
             add_name(string);
             Ok(hash_string_for_type(name_type, string))
@@ -73,6 +73,7 @@ where
             add_name(string.as_str());
             Ok(hash_string_for_type(name_type, string))
         }
+        SerdeName::Name(name) => Ok(Name::from_hash_target::<H>(H::target_from_display(name))),
     }
 }
 

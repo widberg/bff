@@ -337,7 +337,7 @@ impl BinWrite for Cps {
                     name_context.parse_i32_or_hash_name(path_string.as_ref())
                 };
                 // Sort by unsigned hash value for deterministic CPS ordering.
-                let sort_key = name.get_value() as u64;
+                let sort_key = name.as_raw();
                 (sort_key, name, path, script)
             })
             .collect::<Vec<_>>();

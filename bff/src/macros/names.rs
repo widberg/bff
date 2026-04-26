@@ -2,7 +2,7 @@ macro_rules! names {
     (
         styles: [$($style:ident($style_transform:expr)),* $(,)?],
         names: [
-            $($name:ident($name_style:ident, $name_target:ty, $name_hash:path)),* $(,)?
+            $($name:ident($name_style:ident, $name_target:ty, $name_display:ty, $name_hash:path)),* $(,)?
         ]
     ) => {
         $(
@@ -12,9 +12,10 @@ macro_rules! names {
 
                 impl $crate::traits::NameHashFunction for [<$name NameHashFunction>] {
                     type Target = $name_target;
+                    type Display = $name_display;
 
                     fn hash(bytes: &[u8]) -> Self::Target {
-                        $name_hash(bytes)
+                        num_traits::AsPrimitive::<Self::Target>::as_($name_hash(bytes))
                     }
                 }
             }
@@ -73,6 +74,12 @@ macro_rules! names {
                     }
                 }
 
+                pub fn parse_name_value<S: AsRef<str>>(self, string: S) -> Option<$crate::names::Name> {
+                    match self {
+                        $(NameType::$name => $crate::names::value::parse_name_value_for_hash::<[<$name NameHashFunction>], S>(string),)*
+                    }
+                }
+
                 pub fn name_from_i32(self, value: i32) -> $crate::names::Name {
                     match self {
                         $(NameType::$name => $crate::names::value::name_from_i32_for_hash::<[<$name NameHashFunction>]>(value),)*
@@ -82,6 +89,22 @@ macro_rules! names {
                 pub fn value_from_name(self, name: $crate::names::Name) -> i64 {
                     match self {
                         $(NameType::$name => $crate::names::value::name_value_for_hash::<[<$name NameHashFunction>]>(name),)*
+                    }
+                }
+
+                pub fn value_string_from_name(self, name: $crate::names::Name) -> String {
+                    match self {
+                        $(NameType::$name => $crate::names::value::name_value_string_for_hash::<[<$name NameHashFunction>]>(name),)*
+                    }
+                }
+
+                pub fn fmt_name_value(
+                    self,
+                    name: $crate::names::Name,
+                    f: &mut std::fmt::Formatter<'_>,
+                ) -> std::fmt::Result {
+                    match self {
+                        $(NameType::$name => $crate::names::value::fmt_name_for_hash::<[<$name NameHashFunction>]>(name, f),)*
                     }
                 }
 

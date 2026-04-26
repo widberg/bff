@@ -20,12 +20,12 @@ use crate::macros::names::names;
 names! {
     styles: [Z(append_z), Caps(str::to_uppercase)],
     names: [
-        Asobo32(Z, i32, asobo32),
-        AsoboAlternate32(Caps, i32, asobo_alternate32),
-        Kalisto32(Caps, i32, kalisto32),
-        BlackSheep32(Caps, i32, blacksheep32),
-        Asobo64(Z, i64, asobo64),
-        Ubisoft64(Caps, i64, ubisoft64),
+        Asobo32(Z, u32, i32, asobo32),
+        AsoboAlternate32(Caps, u32, i32, asobo_alternate32),
+        Kalisto32(Caps, u32, i32, kalisto32),
+        BlackSheep32(Caps, u32, i32, blacksheep32),
+        Asobo64(Z, u64, i64, asobo64),
+        Ubisoft64(Caps, u64, i64, ubisoft64),
     ]
 }
 

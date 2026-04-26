@@ -91,8 +91,8 @@ fn into_retyped_names(
 }
 
 fn parse_i32_or_hash_name(names: &mut NameMap, name_type: NameType, token: &str) -> Name {
-    if let Ok(value) = token.parse::<i32>() {
-        name_type.name_from_i32(value)
+    if let Some(name) = name_type.parse_name_value(token) {
+        name
     } else {
         insert_name(names, name_type, token)
     }
@@ -152,7 +152,12 @@ fn write_names<W: Write>(
         {
             continue;
         }
-        writeln!(out, r#"{} \"{}\""#, name_type.value_from_name(name), string)?;
+        writeln!(
+            out,
+            r#"{} \"{}\""#,
+            name_type.value_string_from_name(name),
+            string
+        )?;
     }
 
     let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&out);

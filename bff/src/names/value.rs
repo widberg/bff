@@ -46,7 +46,7 @@ impl Name {
     }
 
     fn fmt_number_for_type(&self, f: &mut Formatter<'_>, name_type: NameType) -> fmt::Result {
-        write!(f, "{}", name_type.value_from_name(*self))
+        name_type.fmt_name_value(*self, f)
     }
 
     pub fn is_default(&self) -> bool {
@@ -99,9 +99,21 @@ where
 }
 
 pub fn get_forced_hash_string<S: AsRef<str>>(name: Name, string: S) -> String {
-    let value = name.get_value();
+    let value = with_name_context(|name_context| {
+        name_context
+            .map(|ctx| ctx.name_type().value_string_from_name(name))
+            .unwrap_or_else(|| name.get_value().to_string())
+    });
     let string = string.as_ref();
     format!("{FORCED_NAME_STRING_CHAR}{value}{FORCED_NAME_STRING_CHAR}{string}")
+}
+
+pub(super) fn parse_name_value_for_hash<H, S>(string: S) -> Option<Name>
+where
+    H: NameHashFunction,
+    S: AsRef<str>,
+{
+    H::parse_display(string.as_ref()).map(Name::from_hash_target::<H>)
 }
 
 pub(super) fn parse_forced_hash_name_for_hash<H, S>(string: S) -> Option<(Name, String)>
@@ -112,9 +124,9 @@ where
     let string = string.as_ref();
     if let Some(string) = string.strip_prefix(FORCED_NAME_STRING_CHAR)
         && let Some((value, name_string)) = string.split_once(FORCED_NAME_STRING_CHAR)
-        && let Some(value) = H::Target::parse_forced(value)
+        && let Some(name) = parse_name_value_for_hash::<H, _>(value)
     {
-        return Some((Name::from_hash_target::<H>(value), name_string.to_owned()));
+        return Some((name, name_string.to_owned()));
     }
     None
 }
@@ -138,7 +150,24 @@ where
     H: NameHashFunction,
 {
     let value: H::Target = name.to_hash_target::<H>();
-    value.as_()
+    let display = H::display_from_target(value);
+    display.as_()
+}
+
+pub(super) fn name_value_string_for_hash<H>(name: Name) -> String
+where
+    H: NameHashFunction,
+{
+    let value: H::Target = name.to_hash_target::<H>();
+    H::display_from_target(value).to_string()
+}
+
+pub(super) fn fmt_name_for_hash<H>(name: Name, f: &mut Formatter<'_>) -> fmt::Result
+where
+    H: NameHashFunction,
+{
+    let value: H::Target = name.to_hash_target::<H>();
+    write!(f, "{}", H::display_from_target(value))
 }
 
 pub(super) fn read_name_for_hash<H, R>(reader: &mut R, endian: Endian) -> BinResult<Name>
