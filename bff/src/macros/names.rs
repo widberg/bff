@@ -26,6 +26,10 @@ macro_rules! names {
             $($style,)*
         }
 
+        pub const ALL_NAME_STYLES: &[NameStyle] = &[
+            $(NameStyle::$style,)*
+        ];
+
         pub const fn name_style_transform(style: NameStyle) -> fn(&str) -> String {
             match style {
                 $(NameStyle::$style => $style_transform,)*

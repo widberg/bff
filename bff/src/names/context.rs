@@ -5,7 +5,7 @@ use std::io::{BufRead, Write};
 
 use encoding_rs::WINDOWS_1252;
 
-use super::{Name, NameType, apply_name_style, hash_string_for_type, name_type_style};
+use super::{ALL_NAME_STYLES, Name, NameType, apply_name_style, hash_string_for_type};
 use crate::BffResult;
 use crate::class::class_base_names;
 use crate::error::{InvalidNameDecodingError, InvalidNameEncodingError};
@@ -161,12 +161,16 @@ pub struct NameContext {
 
 impl NameContext {
     pub fn new(name_type: NameType) -> Self {
-        let default_name = hash_string_for_type(name_type, DEFAULT_NAME_STRING);
         let mut names = NameMap::default();
+
         for class_name in class_base_names() {
-            let canonical = apply_name_style(class_name, name_type_style(name_type));
-            insert_name(&mut names, name_type, canonical.as_str());
+            for style in ALL_NAME_STYLES {
+                let canonical = apply_name_style(class_name, *style);
+                insert_name(&mut names, name_type, canonical.as_str());
+            }
         }
+
+        let default_name = hash_string_for_type(name_type, DEFAULT_NAME_STRING);
         names.insert(default_name, DEFAULT_NAME_STRING.to_owned());
 
         Self {
