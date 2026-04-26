@@ -5,10 +5,9 @@ use std::io::{BufRead, Write};
 
 use encoding_rs::WINDOWS_1252;
 
+use super::{Name, NameType, apply_name_style, hash_string_for_type, name_type_style};
 use crate::BffResult;
 use crate::class::class_base_names;
-
-use super::{Name, NameType, apply_name_style, hash_string_for_type, name_type_style};
 
 thread_local! {
     static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = const { RefCell::new(Vec::new()) };
@@ -138,10 +137,8 @@ fn write_names<W: Write>(
     only_names: Option<&[Name]>,
 ) -> BffResult<()> {
     let mut out = String::new();
-    let mut entries: Vec<(Name, &String)> = names
-        .iter()
-        .map(|(name, string)| (*name, string))
-        .collect();
+    let mut entries: Vec<(Name, &String)> =
+        names.iter().map(|(name, string)| (*name, string)).collect();
     entries.sort_unstable_by(|(name_a, string_a), (name_b, string_b)| {
         name_a
             .as_raw()
@@ -155,12 +152,7 @@ fn write_names<W: Write>(
         {
             continue;
         }
-        writeln!(
-            out,
-            r#"{} \"{}\""#,
-            name_type.value_from_name(name),
-            string
-        )?;
+        writeln!(out, r#"{} \"{}\""#, name_type.value_from_name(name), string)?;
     }
 
     let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&out);

@@ -1,8 +1,13 @@
 use std::io::{self, BufRead, Read};
 
 use bff::crc::{
-    asobo32_options, asobo64_options, asobo_alternate32_options, blacksheep32_options,
-    kalisto32_options, racenet32_options, ubisoft64_options,
+    asobo_alternate32_options,
+    asobo32_options,
+    asobo64_options,
+    blacksheep32_options,
+    kalisto32_options,
+    racenet32_options,
+    ubisoft64_options,
 };
 use clap::ValueEnum;
 
@@ -76,10 +81,9 @@ fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcForm
     let starting = *starting;
     match algorithm {
         CrcAlgorithm::Asobo => format_hash(asobo32_options(bytes, starting as i32), format),
-        CrcAlgorithm::AsoboAlternate => format_hash(
-            asobo_alternate32_options(bytes, starting as i32),
-            format,
-        ),
+        CrcAlgorithm::AsoboAlternate => {
+            format_hash(asobo_alternate32_options(bytes, starting as i32), format)
+        }
         CrcAlgorithm::Kalisto => format_hash(kalisto32_options(bytes, starting as i32), format),
         CrcAlgorithm::BlackSheep => {
             format_hash(blacksheep32_options(bytes, starting as i32), format)

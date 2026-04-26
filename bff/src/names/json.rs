@@ -4,9 +4,8 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::bigfile::versions::Version;
-
 use super::{NameContext, NameType};
+use crate::bigfile::versions::Version;
 
 fn probe_name_type_from_value(value: &Value) -> serde_json::Result<NameType> {
     let version_string = value

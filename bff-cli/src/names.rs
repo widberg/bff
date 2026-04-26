@@ -9,7 +9,11 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
 use crate::extract::{
-    probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names, write_names,
+    probe_bigfile_name_context,
+    read_bigfile,
+    read_bigfile_names,
+    read_in_names,
+    write_names,
 };
 
 #[derive(ValueEnum, Clone, Copy)]
@@ -96,8 +100,9 @@ pub fn names(
                                 .unwrap()
                                 .with_context(&name_context)
                                 .to_string();
-                            let parent_string = if let Some((_, s)) =
-                                name_context.name_type().parse_forced_hash_name(&parent_name)
+                            let parent_string = if let Some((_, s)) = name_context
+                                .name_type()
+                                .parse_forced_hash_name(&parent_name)
                             {
                                 s
                             } else {
@@ -131,11 +136,7 @@ pub fn names(
 
         if let Some(out_names) = out_names {
             let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
-            write_names(
-                out_names,
-                Some(resource_names.as_slice()),
-                &name_context,
-            )?;
+            write_names(out_names, Some(resource_names.as_slice()), &name_context)?;
         }
     } else if let Some(out_names) = out_names {
         write_names(out_names, None, &name_context)?;

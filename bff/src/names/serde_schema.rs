@@ -4,10 +4,9 @@ use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::traits::NameHashFunction;
-
 use super::context::{with_name_context, with_name_context_mut};
 use super::{Name, NameType, hash_string_for_type};
+use crate::traits::NameHashFunction;
 
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]

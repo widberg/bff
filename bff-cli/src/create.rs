@@ -155,11 +155,7 @@ pub fn create(
 
     if let Some(out_names) = out_names {
         let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
-        write_names(
-            out_names,
-            Some(resource_names.as_slice()),
-            &name_context,
-        )?;
+        write_names(out_names, Some(resource_names.as_slice()), &name_context)?;
     }
 
     progress_bar.finish_and_clear();

@@ -6,11 +6,15 @@ pub mod wordlist;
 
 pub use context::NameContext;
 pub use value::{
-    Name, NameWithContext, get_forced_hash_string, hash_string_for_type, parse_forced_hash_name,
+    Name,
+    NameWithContext,
+    get_forced_hash_string,
+    hash_string_for_type,
+    parse_forced_hash_name,
 };
 pub use wordlist::*;
 
-use crate::crc::{asobo32, asobo64, asobo_alternate32, blacksheep32, kalisto32, ubisoft64};
+use crate::crc::{asobo_alternate32, asobo32, asobo64, blacksheep32, kalisto32, ubisoft64};
 use crate::macros::names::names;
 
 names! {
