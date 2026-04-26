@@ -10,6 +10,8 @@ use crate::BffResult;
 use crate::class::class_base_names;
 use crate::error::{InvalidNameDecodingError, InvalidNameEncodingError};
 
+const DEFAULT_NAME_STRING: &str = "";
+
 thread_local! {
     static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = const { RefCell::new(Vec::new()) };
     static ACTIVE_MUT_NAME_CONTEXT_STACK: RefCell<Vec<*mut NameContext>> = const { RefCell::new(Vec::new()) };
@@ -60,45 +62,10 @@ pub(crate) fn current_name_type() -> Option<NameType> {
 
 pub(super) type NameMap = HashMap<Name, String>;
 
-pub(super) fn new_names(name_type: NameType) -> NameMap {
-    let mut names = NameMap::default();
-
-    for class_name in class_base_names() {
-        let canonical = apply_name_style(class_name, name_type_style(name_type));
-        insert_name(&mut names, name_type, canonical.as_str());
-    }
-
-    names.insert(hash_string_for_type(name_type, ""), String::new());
-
-    names
-}
-
-fn into_retyped_names(
-    mut names: NameMap,
-    old_name_type: NameType,
-    new_name_type: NameType,
-) -> NameMap {
-    if old_name_type == new_name_type {
-        return names;
-    }
-
-    let old_names = std::mem::take(&mut names);
-    for string in old_names.into_values() {
-        names
-            .entry(hash_string_for_type(new_name_type, &string))
-            .or_insert(string);
-    }
-    names
-}
-
 fn insert_name(names: &mut NameMap, name_type: NameType, string: &str) -> Name {
     let name = hash_string_for_type(name_type, string);
     names.entry(name).or_insert_with(|| string.to_owned());
     name
-}
-
-fn get_name<'a>(names: &'a NameMap, name: Name) -> Option<&'a str> {
-    names.get(&name).map(String::as_str)
 }
 
 fn read_names<R: BufRead>(
@@ -194,10 +161,18 @@ pub struct NameContext {
 
 impl NameContext {
     pub fn new(name_type: NameType) -> Self {
+        let default_name = hash_string_for_type(name_type, DEFAULT_NAME_STRING);
+        let mut names = NameMap::default();
+        for class_name in class_base_names() {
+            let canonical = apply_name_style(class_name, name_type_style(name_type));
+            insert_name(&mut names, name_type, canonical.as_str());
+        }
+        names.insert(default_name, DEFAULT_NAME_STRING.to_owned());
+
         Self {
             name_type,
-            default_name: hash_string_for_type(name_type, ""),
-            names: new_names(name_type),
+            default_name,
+            names,
         }
     }
 
@@ -206,10 +181,17 @@ impl NameContext {
             return self;
         }
 
-        let names = into_retyped_names(self.names, self.name_type, name_type);
+        let mut names = self.names;
+        let old_names = std::mem::take(&mut names);
+        for string in old_names.into_values() {
+            names
+                .entry(hash_string_for_type(name_type, &string))
+                .or_insert(string);
+        }
+
         Self {
             name_type,
-            default_name: hash_string_for_type(name_type, ""),
+            default_name: hash_string_for_type(name_type, DEFAULT_NAME_STRING),
             names,
         }
     }
@@ -246,11 +228,11 @@ impl NameContext {
     }
 
     pub fn contains(&self, name: Name) -> bool {
-        get_name(&self.names, name).is_some()
+        self.names.contains_key(&name)
     }
 
     pub fn resolve(&self, name: Name) -> Option<String> {
-        get_name(&self.names, name).map(std::borrow::ToOwned::to_owned)
+        self.names.get(&name).cloned()
     }
 
     pub fn read<R: BufRead>(&mut self, reader: &mut R) -> BffResult<()> {

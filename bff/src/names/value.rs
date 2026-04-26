@@ -45,10 +45,6 @@ impl Name {
         H::Target::from_raw(self.0)
     }
 
-    fn fmt_number_for_type(&self, f: &mut Formatter<'_>, name_type: NameType) -> fmt::Result {
-        name_type.fmt_name_value(*self, f)
-    }
-
     pub fn is_default(&self) -> bool {
         with_name_context(|ctx| ctx.is_some_and(|c| *self == c.default_name()))
     }
@@ -227,7 +223,7 @@ impl Display for Name {
             let Some(name_context) = name_context else {
                 return Err(fmt::Error);
             };
-            self.fmt_number_for_type(f, name_context.name_type())
+            name_context.name_type().fmt_name_value(*self, f)
         })
     }
 }
@@ -235,7 +231,7 @@ impl Display for Name {
 impl Debug for Name {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         if let Some(name_type) = current_name_type() {
-            self.fmt_number_for_type(f, name_type)
+            name_type.fmt_name_value(*self, f)
         } else {
             write!(f, "{}", self.0)
         }
@@ -248,8 +244,7 @@ impl Display for NameWithContext<'_> {
             return write!(f, "{}", name);
         }
 
-        self.name
-            .fmt_number_for_type(f, self.name_context.name_type())
+        self.name_context.name_type().fmt_name_value(self.name, f)
     }
 }
 
@@ -259,7 +254,6 @@ impl Debug for NameWithContext<'_> {
             return write!(f, r#"\"{}\""#, name);
         }
 
-        self.name
-            .fmt_number_for_type(f, self.name_context.name_type())
+        self.name_context.name_type().fmt_name_value(self.name, f)
     }
 }
