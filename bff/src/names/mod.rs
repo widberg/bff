@@ -1,5 +1,6 @@
 pub mod context;
 pub mod json;
+mod scope;
 pub mod serde_schema;
 pub mod value;
 pub mod wordlist;

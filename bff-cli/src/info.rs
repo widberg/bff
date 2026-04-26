@@ -24,7 +24,7 @@ pub fn info(
         let mut writer = BufWriter::new(f);
         let graph = bigfile.reference_graph();
         let dot = Dot::with_config(&graph, &[Config::EdgeNoLabel]);
-        write!(&mut writer, "{:?}", dot)?;
+        name_context.scope(|| write!(&mut writer, "{:?}", dot))?;
     }
 
     Ok(())

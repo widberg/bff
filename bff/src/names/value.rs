@@ -6,7 +6,7 @@ use binrw::{BinRead, BinResult, BinWrite, Endian};
 use const_power_of_two::PowerOfTwoUsize;
 use num_traits::AsPrimitive;
 
-use super::context::{current_name_type, with_name_context};
+use super::scope::{current_name_type, with_name_context};
 use super::{NameContext, NameType};
 use crate::traits::{NameHashFunction, NameTarget};
 

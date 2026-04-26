@@ -1,64 +1,15 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::io::{BufRead, Write};
 
 use encoding_rs::WINDOWS_1252;
 
-use super::{ALL_NAME_STYLES, Name, NameType, apply_name_style, hash_string_for_type};
+use super::{ALL_NAME_STYLES, Name, NameType, apply_name_style, hash_string_for_type, scope};
 use crate::BffResult;
 use crate::class::class_base_names;
 use crate::error::{InvalidNameDecodingError, InvalidNameEncodingError};
 
 const DEFAULT_NAME_STRING: &str = "";
-
-thread_local! {
-    static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = const { RefCell::new(Vec::new()) };
-    static ACTIVE_MUT_NAME_CONTEXT_STACK: RefCell<Vec<*mut NameContext>> = const { RefCell::new(Vec::new()) };
-}
-
-struct NameContextScopeGuard {
-    is_mut: bool,
-}
-
-impl Drop for NameContextScopeGuard {
-    fn drop(&mut self) {
-        if self.is_mut {
-            ACTIVE_MUT_NAME_CONTEXT_STACK.with(|stack| {
-                stack.borrow_mut().pop();
-            });
-        }
-        ACTIVE_NAME_CONTEXT_STACK.with(|stack| {
-            stack.borrow_mut().pop();
-        });
-    }
-}
-
-pub(super) fn with_name_context<R>(f: impl FnOnce(Option<&NameContext>) -> R) -> R {
-    ACTIVE_NAME_CONTEXT_STACK.with(|stack| {
-        let context = stack.borrow().last().copied().map(|ptr| {
-            // SAFETY: Pointers are pushed only from `NameContext::scope` and popped by
-            // `NameContextScopeGuard`, so they are valid for the duration of the scope.
-            unsafe { &*ptr }
-        });
-        f(context)
-    })
-}
-
-pub(super) fn with_name_context_mut<R>(f: impl FnOnce(Option<&mut NameContext>) -> R) -> R {
-    ACTIVE_MUT_NAME_CONTEXT_STACK.with(|stack| {
-        let context = stack.borrow().last().copied().map(|ptr| {
-            // SAFETY: Pointers are pushed only from `NameContext::scope_mut` and popped by
-            // `NameContextScopeGuard`, so they are valid for the duration of the scope.
-            unsafe { &mut *ptr }
-        });
-        f(context)
-    })
-}
-
-pub(crate) fn current_name_type() -> Option<NameType> {
-    with_name_context(|name_context| name_context.map(NameContext::name_type))
-}
 
 pub(super) type NameMap = HashMap<Name, String>;
 
@@ -201,22 +152,11 @@ impl NameContext {
     }
 
     pub fn scope<R>(&self, f: impl FnOnce() -> R) -> R {
-        ACTIVE_NAME_CONTEXT_STACK.with(|stack| {
-            stack.borrow_mut().push(self as *const Self);
-        });
-        let _guard = NameContextScopeGuard { is_mut: false };
-        f()
+        scope::scope(self, f)
     }
 
     pub fn scope_mut<R>(&mut self, f: impl FnOnce() -> R) -> R {
-        ACTIVE_NAME_CONTEXT_STACK.with(|stack| {
-            stack.borrow_mut().push(self as *const Self);
-        });
-        ACTIVE_MUT_NAME_CONTEXT_STACK.with(|stack| {
-            stack.borrow_mut().push(self as *mut Self);
-        });
-        let _guard = NameContextScopeGuard { is_mut: true };
-        f()
+        scope::scope_mut(self, f)
     }
 
     pub fn name_type(&self) -> NameType {
