@@ -23,9 +23,6 @@ macro_rules! classes {
         $crate::macros::classes::classes!(@emit_class_name_maps $($class)*);
         $crate::macros::classes::classes!(@emit_try_from_resource $($class)*);
         $crate::macros::classes::classes!(@emit_try_into_resource $($class)*);
-        $crate::macros::classes::classes!(@emit_class_try_your_best_report $($class)*);
-        $crate::macros::classes::classes!(@emit_class_try_your_best_impl $($class)*);
-        $crate::macros::classes::classes!(@emit_class_try_your_best_display $($class)*);
         $crate::macros::classes::classes!(@emit_class_names_fn $($class)*);
         $crate::macros::classes::classes!(@emit_class_export_impl $($class)*);
         $crate::macros::classes::classes!(@emit_class_import_impl $($class)*);
@@ -141,54 +138,6 @@ macro_rules! classes {
         }
     };
 
-    (@emit_class_try_your_best_report $($class:ident)*) => {
-        pastey::paste! {
-            #[allow(non_snake_case)]
-            #[derive(Default, Debug, Clone, Copy)]
-            pub struct ClassTryYourBestReport {
-                pub total: usize,
-                $($class: crate::class::[<#$class:snake>]::[<$class TryYourBestReport>]),*
-            }
-        }
-    };
-
-    (@emit_class_try_your_best_impl $($class:ident)*) => {
-        impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for Class {
-            type Report = ClassTryYourBestReport;
-            fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
-                report.total += 1;
-                let Some(name_type) = crate::names::context::current_name_type() else {
-                    return;
-                };
-                let Some(class_type) = ClassType::from_name_and_type(resource.class_name, name_type) else {
-                    return;
-                };
-                match class_type {
-                    $(
-                        ClassType::$class => {
-                            <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::TryYourBest<&crate::bigfile::resource::Resource>>::update_report(resource, platform, &mut report.$class);
-                        }
-                    )*
-                }
-            }
-        }
-    };
-
-    (@emit_class_try_your_best_display $($class:ident)*) => {
-        pastey::paste! {
-            impl std::fmt::Display for ClassTryYourBestReport {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    writeln!(f, "ClassTryYourBestReport")?;
-                    writeln!(f, "Total: {}", self.total)?;
-                    $(if self.$class.total != 0 {
-                        <crate::class::[<#$class:snake>]::[<$class TryYourBestReport>] as std::fmt::Display>::fmt(&self.$class, f)?;
-                    })*
-                    Ok(())
-                }
-            }
-        }
-    };
-
     (@emit_class_names_fn $($class:ident)*) => {
         pub fn class_base_names() -> &'static[&'static str] {
             &[ $(stringify!($class),)* ]
@@ -299,28 +248,6 @@ macro_rules! classes {
             }
         }
 
-        pastey::paste! {
-            #[allow(non_snake_case)]
-            #[derive(Default, Clone, Copy, Debug)]
-            pub struct [<$class TryYourBestReport>] {
-                pub total: usize,
-            }
-
-            impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for $class {
-                type Report = [<$class TryYourBestReport>];
-                fn update_report(_resource: &crate::bigfile::resource::Resource, _platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
-                    report.total += 1;
-                }
-            }
-
-            impl std::fmt::Display for [<$class TryYourBestReport>] {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    writeln!(f, "{}", stringify!($class))?;
-                    writeln!(f, "Total: {}", self.total)?;
-                    Ok(())
-                }
-            }
-        }
     };
 
     (@declare_class_kind_impl $class:ident { $($pattern:pat => $variant:ident),* $(,)? }) => {
@@ -387,35 +314,6 @@ macro_rules! classes {
             }
         }
 
-        pastey::paste! {
-            #[allow(non_snake_case)]
-            #[derive(Default, Clone, Copy, Debug)]
-            pub struct [<$class TryYourBestReport>] {
-                pub total: usize,
-                $($variant: usize),*
-            }
-
-            impl crate::traits::TryYourBest<&crate::bigfile::resource::Resource> for $class {
-                type Report = [<$class TryYourBestReport>];
-                fn update_report(resource: &crate::bigfile::resource::Resource, platform: crate::bigfile::platforms::Platform, report: &mut Self::Report) {
-                    report.total += 1;
-                    $(
-                        report.$variant += <bool as Into<usize>>::into(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$variant>>::try_into_version_platform(resource, crate::bigfile::versions::Version::Asobo(0, 0, 0, 0), platform).is_ok());
-                    )*
-                }
-            }
-
-            impl std::fmt::Display for [<$class TryYourBestReport>] {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    writeln!(f, "{}", stringify!($class))?;
-                    writeln!(f, "Total: {}", self.total)?;
-                    $(
-                        writeln!(f, "{}: {}", stringify!($variant), self.$variant)?;
-                    )*
-                    Ok(())
-                }
-            }
-        }
     };
 }
 

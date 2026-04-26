@@ -29,7 +29,6 @@ mod mqfel_settings_bin;
 mod names;
 mod psc;
 mod stdio_or_path;
-mod try_your_best;
 
 use mimalloc::MiMalloc;
 use shadow_rs::shadow;
@@ -261,8 +260,6 @@ enum Commands {
         fat: PathBuf,
         lin: PathBuf,
     },
-    #[clap(alias = "tyb")]
-    TryYourBest { path: PathBuf },
     #[clap(alias = "djs")]
     DumpJsonSchema { path: PathBuf },
 }
@@ -437,7 +434,6 @@ fn main() -> BffCliResult<()> {
             fat,
             lin,
         } => fat_lin::create_fat_lin(directory, fat, lin),
-        Commands::TryYourBest { path } => try_your_best::try_your_best(path),
         Commands::DumpJsonSchema { path } => dump_json_schema::dump_json_schema(path),
     }
 }

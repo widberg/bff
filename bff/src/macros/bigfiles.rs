@@ -355,54 +355,6 @@ macro_rules! bigfiles {
             }
         }
 
-        #[allow(non_snake_case)]
-        #[derive(Default, Clone, Copy, Debug)]
-        pub struct BigFileTryYourBestReport {
-            pub total: usize,
-            $($bigfile: usize),*
-        }
-
-        impl<R: std::io::Read + std::io::Seek> crate::traits::TryYourBest<&mut R> for BigFile {
-            type Report = BigFileTryYourBestReport;
-
-            fn update_report(
-                reader: &mut R,
-                platform: crate::bigfile::platforms::Platform,
-                report: &mut Self::Report,
-            ) {
-                use crate::traits::BigFileIo;
-
-                report.total += 1;
-                // TODO: Probably need a way to do this without specifying a version.
-                $(
-                    reader.seek(std::io::SeekFrom::Start(256)).unwrap();
-                    report.$bigfile += {
-                        let name_context = crate::names::NameContext::new(<$bigfile as BigFileIo>::NAME_TYPE);
-                        <bool as Into<usize>>::into(name_context.scope(|| {
-                            <$bigfile as BigFileIo>::read(
-                                reader,
-                                crate::bigfile::versions::Version::Asobo(0, 0, 0, 0),
-                                platform,
-                            )
-                            .is_ok()
-                        }))
-                    };
-                )*
-                reader.rewind().unwrap();
-            }
-        }
-
-        impl std::fmt::Display for BigFileTryYourBestReport {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                writeln!(f, "BigFile")?;
-                writeln!(f, "Total: {}", self.total)?;
-                $(
-                    writeln!(f, "{}: {}", stringify!($bigfile), self.$bigfile)?;
-                )*
-                Ok(())
-            }
-        }
-
         impl TryFrom<&crate::bigfile::versions::Version> for crate::names::NameType {
             type Error = crate::BffError;
 
