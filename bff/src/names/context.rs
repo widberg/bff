@@ -8,6 +8,7 @@ use encoding_rs::WINDOWS_1252;
 use super::{Name, NameType, apply_name_style, hash_string_for_type, name_type_style};
 use crate::BffResult;
 use crate::class::class_base_names;
+use crate::error::{InvalidNameDecodingError, InvalidNameEncodingError};
 
 thread_local! {
     static ACTIVE_NAME_CONTEXT_STACK: RefCell<Vec<*const NameContext>> = const { RefCell::new(Vec::new()) };
@@ -109,9 +110,20 @@ fn read_names<R: BufRead>(
     reader.read_to_end(&mut bytes)?;
 
     let (cow, encoding_used, had_errors) = WINDOWS_1252.decode(&bytes);
-    // TODO: Handle errors
-    assert_eq!(encoding_used, WINDOWS_1252);
-    assert!(!had_errors, "Name decoding failed");
+    if encoding_used != WINDOWS_1252 {
+        return Err(InvalidNameDecodingError::new(format!(
+            "decoder returned `{}` but expected `{}`",
+            encoding_used.name(),
+            WINDOWS_1252.name()
+        ))
+        .into());
+    }
+    if had_errors {
+        return Err(InvalidNameDecodingError::new(
+            "input contained invalid byte sequences".to_owned(),
+        )
+        .into());
+    }
 
     for line in cow.lines() {
         if let Some((_, string)) = line.split_once(' ') {
@@ -153,9 +165,20 @@ fn write_names<W: Write>(
     }
 
     let (cow, encoding_used, had_errors) = WINDOWS_1252.encode(&out);
-    // TODO: Handle errors
-    assert_eq!(encoding_used, WINDOWS_1252);
-    assert!(!had_errors, "Name encoding failed");
+    if encoding_used != WINDOWS_1252 {
+        return Err(InvalidNameEncodingError::new(format!(
+            "encoder used `{}` but expected `{}`",
+            encoding_used.name(),
+            WINDOWS_1252.name()
+        ))
+        .into());
+    }
+    if had_errors {
+        return Err(InvalidNameEncodingError::new(
+            "output contains characters not representable in windows-1252".to_owned(),
+        )
+        .into());
+    }
 
     writer.write_all(&cow)?;
 

@@ -3,6 +3,7 @@ use std::io::{BufRead, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 use crate::BffResult;
+use crate::error::InvalidFatEntryError;
 use crate::helpers::write_align_to;
 
 pub struct FatEntry {
@@ -20,10 +21,12 @@ impl Fat {
     pub fn read<R: BufRead>(reader: &mut R) -> BffResult<Self> {
         let mut fat = Self::default();
 
-        for line in reader.lines() {
+        for (line_number, line) in reader.lines().enumerate() {
             let line = line?;
             let components = line.rsplitn(3, ' ').collect::<Vec<_>>();
-            assert_eq!(components.len(), 3); // TODO: Use a real error
+            if components.len() != 3 {
+                return Err(InvalidFatEntryError::new(line_number + 1, line).into());
+            }
             fat.entries.push(FatEntry {
                 path: PathBuf::from(components[2]),
                 offset: components[1].parse()?,
