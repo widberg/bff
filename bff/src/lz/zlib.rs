@@ -82,7 +82,6 @@ pub fn zlib_decompress_data_parser(
     decompressed_size: u32,
     compressed_size: u32,
 ) -> BinResult<Vec<u8>> {
-    // TODO: Don't use asserts. Add proper error handling.
     if compressed_size != 0 {
         let mut decoder = ZlibDecoder::new(reader.take(compressed_size as u64));
         let mut decompressed_buffer = Vec::with_capacity(decompressed_size as usize);

@@ -261,7 +261,6 @@ macro_rules! classes {
                 platform: crate::bigfile::platforms::Platform,
             ) -> crate::BffResult<$class> {
                 Err(
-                        // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
                         crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into(),
                     )
             }
@@ -363,7 +362,6 @@ macro_rules! classes {
                         Ok(std::boxed::Box::new(shadow_class).into())
                     })*
                     _ => Err(
-                        // TODO: Pick the right name based on the algorithm and suffix for the current BigFile
                         crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into(),
                     ),
                 }
