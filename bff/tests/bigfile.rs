@@ -7,7 +7,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
 use bff::class::Class;
 use bff::names::NameContext;
-use bff::traits::{Export, Import, TryIntoVersionPlatform};
+use bff::traits::{Export, FromResource, Import, IntoResource};
 use binrw::io::BufReader;
 
 use crate::path_helpers::resolve_bigfile_path;
@@ -56,9 +56,8 @@ fn roundtrip_resources(bigfile_path_str: String) {
     let version = bigfile.manifest.version.clone();
 
     for resource in bigfile.resources.values() {
-        let class: Class = resource
-            .try_into_version_platform(version.clone(), platform)
-            .unwrap();
+        let class: Class =
+            Class::from_resource(resource, version.clone(), platform, &name_context).unwrap();
         let bff_class = BffClass {
             header: BffResourceHeader {
                 platform,
@@ -76,8 +75,9 @@ fn roundtrip_resources(bigfile_path_str: String) {
         let artifacts = bff_class.class.export().unwrap_or_else(|_| HashMap::new());
         let _ = roundtripped_bff_class.class.import(&artifacts);
 
-        let new_resource: Resource = (&roundtripped_bff_class.class)
-            .try_into_version_platform(version.clone(), platform)
+        let new_resource: Resource = roundtripped_bff_class
+            .class
+            .into_resource(version.clone(), platform, &name_context)
             .unwrap();
         let resource_name = resource.name.with_context(&name_context).to_string();
         let class_name = resource.class_name.with_context(&name_context).to_string();

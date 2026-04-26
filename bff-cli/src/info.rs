@@ -22,7 +22,7 @@ pub fn info(
     if let Some(out_dependencies) = out_reference_graph {
         let f = File::create(out_dependencies)?;
         let mut writer = BufWriter::new(f);
-        let graph = bigfile.reference_graph();
+        let graph = bigfile.reference_graph(&name_context);
         let dot = Dot::with_config(&graph, &[Config::EdgeNoLabel]);
         name_context.scope(|| write!(&mut writer, "{:?}", dot))?;
     }

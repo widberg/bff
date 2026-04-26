@@ -109,15 +109,18 @@ macro_rules! classes {
     };
 
     (@emit_try_from_resource $($class:ident)*) => {
-        impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for Class {
-            type Error = crate::error::Error;
-
-            fn try_from_version_platform(resource: &crate::bigfile::resource::Resource, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<Class> {
+        impl crate::traits::FromResource for Class {
+            fn from_resource(
+                resource: &crate::bigfile::resource::Resource,
+                version: crate::bigfile::versions::Version,
+                platform: crate::bigfile::platforms::Platform,
+                name_context: &crate::names::NameContext,
+            ) -> crate::BffResult<Class> {
                 let name_type = (&version).try_into()?;
                 if let Some(class_type) = ClassType::from_name_and_type(resource.class_name, name_type) {
                     return match class_type {
                         $(
-                            ClassType::$class => Ok(<&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$crate::macros::classes::classes!(@class_ty $class)>>::try_into_version_platform(resource, version, platform)?.into()),
+                            ClassType::$class => Ok(<$crate::macros::classes::classes!(@class_ty $class) as crate::traits::FromResource>::from_resource(resource, version, platform, name_context)?.into()),
                         )*
                     };
                 }
@@ -127,12 +130,15 @@ macro_rules! classes {
     };
 
     (@emit_try_into_resource $($class:ident)*) => {
-        impl crate::traits::TryFromVersionPlatform<&Class> for crate::bigfile::resource::Resource {
-            type Error = crate::error::Error;
-
-            fn try_from_version_platform(class: &Class, version: crate::bigfile::versions::Version, platform: crate::bigfile::platforms::Platform) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                match class {
-                    $(Class::$class(class) => Ok(<&$crate::macros::classes::classes!(@class_ty $class) as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)?),)*
+        impl crate::traits::IntoResource for Class {
+            fn into_resource(
+                &self,
+                version: crate::bigfile::versions::Version,
+                platform: crate::bigfile::platforms::Platform,
+                name_context: &crate::names::NameContext,
+            ) -> crate::BffResult<crate::bigfile::resource::Resource> {
+                match self {
+                    $(Class::$class(class) => <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::IntoResource>::into_resource(class, version, platform, name_context),)*
                 }
             }
         }
@@ -201,13 +207,12 @@ macro_rules! classes {
         impl crate::traits::Export for $class {}
         impl crate::traits::Import for $class {}
 
-        impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for $class {
-            type Error = crate::error::Error;
-
-            fn try_from_version_platform(
+        impl crate::traits::FromResource for $class {
+            fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
+                _name_context: &crate::names::NameContext,
             ) -> crate::BffResult<$class> {
                 Err(
                         crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into(),
@@ -215,15 +220,14 @@ macro_rules! classes {
             }
         }
 
-        impl crate::traits::TryFromVersionPlatform<&$class> for crate::bigfile::resource::Resource {
-            type Error = crate::error::Error;
-
-            fn try_from_version_platform(
-                class: &$class,
+        impl crate::traits::IntoResource for $class {
+            fn into_resource(
+                &self,
                 _version: crate::bigfile::versions::Version,
                 _platform: crate::bigfile::platforms::Platform,
+                _name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                match *class {}
+                match *self {}
             }
         }
 
@@ -272,20 +276,19 @@ macro_rules! classes {
             }
         }
 
-        impl crate::traits::TryFromVersionPlatform<&crate::bigfile::resource::Resource> for $class {
-            type Error = crate::error::Error;
-
+        impl crate::traits::FromResource for $class {
             #[allow(unused_imports)]
-            fn try_from_version_platform(
+            fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
+                name_context: &crate::names::NameContext,
             ) -> crate::BffResult<$class> {
                 use crate::bigfile::platforms::Platform::*;
                 use crate::bigfile::versions::Version::*;
                 match (version.clone(), platform) {
                     $($pattern => {
-                        let shadow_class: $variant = <&crate::bigfile::resource::Resource as crate::traits::TryIntoVersionPlatform<$variant>>::try_into_version_platform(resource, version, platform)?;
+                        let shadow_class: $variant = <$variant as crate::traits::FromResource>::from_resource(resource, version, platform, name_context)?;
                         Ok(std::boxed::Box::new(shadow_class).into())
                     })*
                     _ => Err(
@@ -295,20 +298,19 @@ macro_rules! classes {
             }
         }
 
-        impl crate::traits::TryFromVersionPlatform<&$class> for crate::bigfile::resource::Resource {
-            type Error = crate::error::Error;
-
+        impl crate::traits::IntoResource for $class {
             #[allow(unused_imports)]
-            fn try_from_version_platform(
-                class: &$class,
+            fn into_resource(
+                &self,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
+                name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
                 use crate::bigfile::platforms::Platform::*;
                 use crate::bigfile::versions::Version::*;
-                match class {
+                match self {
                     $($class::$variant(class) => {
-                        <&$variant as crate::traits::TryIntoVersionPlatform<crate::bigfile::resource::Resource>>::try_into_version_platform(class, version, platform)
+                        <$variant as crate::traits::IntoResource>::into_resource(class, version, platform, name_context)
                     })*
                 }
             }

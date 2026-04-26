@@ -8,7 +8,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Import, TryIntoVersionPlatform};
+use bff::traits::{Artifact, Import, IntoResource};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
@@ -90,7 +90,9 @@ pub fn create_resource(
         .unwrap_or(&bff_class.header.version);
 
     let resource: Resource =
-        (&bff_class.class).try_into_version_platform(version.clone(), platform)?;
+        bff_class
+            .class
+            .into_resource(version.clone(), platform, &name_context)?;
 
     let mut resource_writer = BufWriter::new(File::create(resource_path)?);
     Resource::dump_bff_resource(

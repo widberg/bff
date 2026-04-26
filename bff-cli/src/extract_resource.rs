@@ -8,7 +8,7 @@ use bff::bigfile::resource::{BffClass, BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
 use bff::class::Class;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
+use bff::traits::{Artifact, Export, FromResource};
 
 use crate::error::BffCliResult;
 use crate::extract::read_in_names;
@@ -57,8 +57,12 @@ pub fn extract_resource(
         version: version.clone(),
     };
 
-    let class: Class =
-        (&bff_resource.resource).try_into_version_platform(version.clone(), platform)?;
+    let class: Class = Class::from_resource(
+        &bff_resource.resource,
+        version.clone(),
+        platform,
+        &name_context,
+    )?;
     let bff_class = BffClass { header, class };
 
     std::fs::create_dir(directory)?;

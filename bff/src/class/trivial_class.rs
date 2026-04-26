@@ -5,14 +5,13 @@ use binrw::{BinRead, BinWrite};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::BffError;
 use crate::bigfile::platforms::Platform;
 use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::versions::Version;
-use crate::error::Error;
-use crate::names::Name;
-use crate::traits::TryFromVersionPlatform;
+use crate::names::{Name, NameContext};
+use crate::traits::{FromResource, IntoResource};
+use crate::{BffError, BffResult};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, ReferencedNames)]
 pub struct TrivialClass<LinkHeaderType, BodyType> {
@@ -30,21 +29,19 @@ fn is_eof(cursor: &mut std::io::Cursor<&[u8]>) -> bool {
     cursor.fill_buf().map(|buf| buf.is_empty()).unwrap_or(true)
 }
 
-impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&Resource>
-    for TrivialClass<LinkHeaderType, BodyType>
+impl<LinkHeaderType, BodyType> FromResource for TrivialClass<LinkHeaderType, BodyType>
 where
     for<'a> LinkHeaderType: BinRead + 'a,
     for<'a> <LinkHeaderType as BinRead>::Args<'a>: Default,
     for<'a> BodyType: BinRead<Args<'a> = (&'a LinkHeaderType,)> + 'a,
 {
-    type Error = Error;
-
-    fn try_from_version_platform(
+    fn from_resource(
         resource: &Resource,
         _version: Version,
         platform: Platform,
-    ) -> Result<Self, Self::Error> {
-        match &resource.data {
+        name_context: &NameContext,
+    ) -> BffResult<Self> {
+        name_context.scope(|| match &resource.data {
             SplitData { link_header, body } => {
                 let mut link_header_cursor = Cursor::new(link_header as &[u8]);
                 let mut body_cursor = Cursor::new(body as &[u8]);
@@ -89,47 +86,47 @@ where
                     body,
                 })
             }
-        }
+        })
     }
 }
 
-impl<LinkHeaderType, BodyType> TryFromVersionPlatform<&TrivialClass<LinkHeaderType, BodyType>>
-    for Resource
+impl<LinkHeaderType, BodyType> IntoResource for TrivialClass<LinkHeaderType, BodyType>
 where
     for<'a> LinkHeaderType: BinWrite + 'a,
     for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
     for<'a> BodyType: BinWrite + 'a,
     for<'a> <BodyType as BinWrite>::Args<'a>: Default,
 {
-    type Error = Error;
-
-    fn try_from_version_platform(
-        class: &TrivialClass<LinkHeaderType, BodyType>,
+    fn into_resource(
+        &self,
         _version: Version,
         platform: Platform,
-    ) -> Result<Self, Self::Error> {
-        let mut link_header_cursor = Cursor::new(Vec::new());
-        let mut body_cursor = Cursor::new(Vec::new());
-        LinkHeaderType::write_options(
-            &class.link_header,
-            &mut link_header_cursor,
-            platform.into(),
-            <LinkHeaderType as BinWrite>::Args::default(),
-        )?;
-        BodyType::write_options(
-            &class.body,
-            &mut body_cursor,
-            platform.into(),
-            <BodyType as BinWrite>::Args::default(),
-        )?;
-        Ok(Self {
-            class_name: class.class_name,
-            name: class.name,
-            link_name: class.link_name,
-            data: SplitData {
-                link_header: link_header_cursor.into_inner().into(),
-                body: body_cursor.into_inner().into(),
-            },
+        name_context: &NameContext,
+    ) -> BffResult<Resource> {
+        name_context.scope(|| {
+            let mut link_header_cursor = Cursor::new(Vec::new());
+            let mut body_cursor = Cursor::new(Vec::new());
+            LinkHeaderType::write_options(
+                &self.link_header,
+                &mut link_header_cursor,
+                platform.into(),
+                <LinkHeaderType as BinWrite>::Args::default(),
+            )?;
+            BodyType::write_options(
+                &self.body,
+                &mut body_cursor,
+                platform.into(),
+                <BodyType as BinWrite>::Args::default(),
+            )?;
+            Ok(Resource {
+                class_name: self.class_name,
+                name: self.name,
+                link_name: self.link_name,
+                data: SplitData {
+                    link_header: link_header_cursor.into_inner().into(),
+                    body: body_cursor.into_inner().into(),
+                },
+            })
         })
     }
 }

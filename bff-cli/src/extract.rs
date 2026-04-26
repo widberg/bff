@@ -9,7 +9,7 @@ use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
 use bff::bigfile::versions::Version;
 use bff::class::Class;
 use bff::names::{Name, NameContext};
-use bff::traits::{Artifact, Export, TryIntoVersionPlatform};
+use bff::traits::{Artifact, Export, FromResource};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -161,7 +161,7 @@ fn export_bff_resource(
         version: version.clone(),
     };
 
-    let class: Class = resource.try_into_version_platform(version.clone(), platform)?;
+    let class: Class = Class::from_resource(resource, version.clone(), platform, name_context)?;
     let bff_class = BffClass { header, class };
 
     let class_name = resource.class_name.with_context(name_context).to_string();

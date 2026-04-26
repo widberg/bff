@@ -56,7 +56,7 @@ pub fn names(
             if *use_reference_graph {
                 let progress_bar = ProgressBar::new_spinner();
                 progress_bar.set_message("Generating reference graph");
-                let graph = bigfile.reference_graph();
+                let graph = bigfile.reference_graph(&name_context);
 
                 progress_bar.set_message("Finding roots");
                 let mut discovered = graph.visit_map();
