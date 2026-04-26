@@ -6,19 +6,9 @@ pub trait NameDisplay<Target>: Copy + Display + FromStr {
     fn into_target(self) -> Target;
 }
 
-impl NameDisplay<i32> for i32 {
-    fn from_target(target: i32) -> Self {
-        target
-    }
-
-    fn into_target(self) -> i32 {
-        self
-    }
-}
-
 impl NameDisplay<u32> for i32 {
     fn from_target(target: u32) -> Self {
-        target as i32
+        target as Self
     }
 
     fn into_target(self) -> u32 {
@@ -26,19 +16,9 @@ impl NameDisplay<u32> for i32 {
     }
 }
 
-impl NameDisplay<i64> for i64 {
-    fn from_target(target: i64) -> Self {
-        target
-    }
-
-    fn into_target(self) -> i64 {
-        self
-    }
-}
-
 impl NameDisplay<u64> for i64 {
     fn from_target(target: u64) -> Self {
-        target as i64
+        target as Self
     }
 
     fn into_target(self) -> u64 {

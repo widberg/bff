@@ -161,7 +161,7 @@ where
 }
 
 pub fn parse_forced_hash_name<S: AsRef<str>>(string: S) -> Option<(Name, String)> {
-    current_name_type().and_then(|name_type| name_type.parse_forced_hash_name(string))
+    current_name_type()?.parse_forced_hash_name(string)
 }
 
 pub fn hash_string_for_type<S: AsRef<str>>(name_type: NameType, string: S) -> Name {

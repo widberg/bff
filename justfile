@@ -15,6 +15,9 @@ fmt:
 clippy:
     cargo +nightly clippy --tests
 
+check:
+    cargo +nightly check --tests
+
 deny:
     cargo deny check
 
@@ -134,9 +137,7 @@ machete:
 unused:
     cargo workspace-unused-pub
 
-flint: fmt clippy deny zizmor machete
-
-check: flint test
+flint: fmt clippy check deny zizmor machete
 
 clean:
     cargo clean

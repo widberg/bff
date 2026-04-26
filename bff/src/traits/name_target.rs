@@ -5,7 +5,7 @@ pub trait NameTarget: Copy {
 
 impl NameTarget for u32 {
     fn from_raw(raw: u64) -> Self {
-        raw as u32
+        raw as Self
     }
 
     fn into_raw(self) -> u64 {
