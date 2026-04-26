@@ -1,8 +1,3 @@
-use std::ffi::OsStr;
-
-use binrw::Endian;
-
-use crate::BffResult;
 use crate::macros::platforms::platforms;
 
 // Add new platforms to the end of this list
@@ -27,8 +22,4 @@ platforms! {
         Switch([D("DNX", "NNX")], Little),
         XboxSeries([D("DXS", "NXS")], Little),
     ]
-}
-
-pub fn try_extension_to_endian(extension: &OsStr) -> BffResult<Endian> {
-    extension.try_into().map(<Platform as Into<Endian>>::into)
 }

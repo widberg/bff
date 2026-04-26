@@ -64,16 +64,6 @@ impl Name {
             get_wordlist_encoded_string(self.0, wordlist)
         }
     }
-
-    pub fn get_value(&self) -> i64 {
-        match current_name_type() {
-            Some(name_type) => name_type.value_from_name(*self),
-            None => match u32::try_from(self.0) {
-                Ok(v) => i64::from(v as i32),
-                Err(_) => self.0 as i64,
-            },
-        }
-    }
 }
 
 pub struct NameWithContext<'a> {
@@ -98,12 +88,12 @@ where
     out
 }
 
-pub fn get_forced_hash_string<S: AsRef<str>>(name: Name, string: S) -> String {
-    let value = with_name_context(|name_context| {
-        name_context
-            .map(|ctx| ctx.name_type().value_string_from_name(name))
-            .unwrap_or_else(|| name.get_value().to_string())
-    });
+pub fn get_forced_hash_string_for_type<S: AsRef<str>>(
+    name_type: NameType,
+    name: Name,
+    string: S,
+) -> String {
+    let value = name_type.value_string_from_name(name);
     let string = string.as_ref();
     format!("{FORCED_NAME_STRING_CHAR}{value}{FORCED_NAME_STRING_CHAR}{string}")
 }
@@ -136,22 +126,6 @@ where
     H: NameHashFunction,
 {
     Name::from_hash_target::<H>(H::hash(bytes))
-}
-
-pub(super) fn name_from_i32_for_hash<H>(value: i32) -> Name
-where
-    H: NameHashFunction,
-{
-    Name::from_hash_target::<H>(H::Target::from_i32(value))
-}
-
-pub(super) fn name_value_for_hash<H>(name: Name) -> i64
-where
-    H: NameHashFunction,
-{
-    let value: H::Target = name.to_hash_target::<H>();
-    let display = H::display_from_target(value);
-    display.as_()
 }
 
 pub(super) fn name_value_string_for_hash<H>(name: Name) -> String

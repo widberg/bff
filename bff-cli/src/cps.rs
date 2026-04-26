@@ -17,13 +17,21 @@ fn collect_cps_names(cps: &Cps, name_context: &mut NameContext) -> HashSet<Name>
 
     for (path, script) in &cps.tscs {
         if let Some(stem) = path.file_stem().and_then(|stem| stem.to_str()) {
-            names.insert(name_context.parse_i32_or_hash_name(stem));
+            let name = name_context
+                .name_type()
+                .parse_name_value(stem)
+                .unwrap_or_else(|| name_context.insert(stem));
+            names.insert(name);
         }
         for line in script.lines() {
             if let Some(command_name) = line.split_whitespace().next()
                 && !command_name.is_empty()
             {
-                names.insert(name_context.parse_i32_or_hash_name(command_name));
+                let name = name_context
+                    .name_type()
+                    .parse_name_value(command_name)
+                    .unwrap_or_else(|| name_context.insert(command_name));
+                names.insert(name);
             }
         }
     }

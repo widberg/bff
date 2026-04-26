@@ -8,7 +8,7 @@ pub use context::NameContext;
 pub use value::{
     Name,
     NameWithContext,
-    get_forced_hash_string,
+    get_forced_hash_string_for_type,
     hash_string_for_type,
     parse_forced_hash_name,
 };

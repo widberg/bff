@@ -27,3 +27,6 @@
 
 # compile profiling outputs
 /.compile-profile/
+
+# cargo workspace-unused-pub
+/index.scip

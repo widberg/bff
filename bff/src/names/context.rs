@@ -90,14 +90,6 @@ fn into_retyped_names(
     names
 }
 
-fn parse_i32_or_hash_name(names: &mut NameMap, name_type: NameType, token: &str) -> Name {
-    if let Some(name) = name_type.parse_name_value(token) {
-        name
-    } else {
-        insert_name(names, name_type, token)
-    }
-}
-
 fn insert_name(names: &mut NameMap, name_type: NameType, string: &str) -> Name {
     let name = hash_string_for_type(name_type, string);
     names.entry(name).or_insert_with(|| string.to_owned());
@@ -224,10 +216,6 @@ impl NameContext {
 
     pub fn default_name(&self) -> Name {
         self.default_name
-    }
-
-    pub fn parse_i32_or_hash_name(&mut self, token: &str) -> Name {
-        parse_i32_or_hash_name(&mut self.names, self.name_type, token)
     }
 
     pub fn insert(&mut self, string: &str) -> Name {

@@ -1,9 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use num_traits::AsPrimitive;
-
-pub trait NameDisplay<Target>: Copy + Display + FromStr + AsPrimitive<i64> {
+pub trait NameDisplay<Target>: Copy + Display + FromStr {
     fn from_target(target: Target) -> Self;
     fn into_target(self) -> Target;
 }

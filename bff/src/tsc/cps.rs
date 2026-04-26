@@ -214,7 +214,10 @@ fn encode_cps_script<W: Write + Seek>(
         if command_name_token.contains('%') {
             eprintln!("ERROR: Command names should not use '%': {command_name_token}");
         }
-        let command_name = name_context.parse_i32_or_hash_name(&command_name_token);
+        let command_name = name_context
+            .name_type()
+            .parse_name_value(&command_name_token)
+            .unwrap_or_else(|| name_context.insert(&command_name_token));
         let mut params: Vec<Param> = Vec::with_capacity(args.len().saturating_sub(1));
         for param_token in args.into_iter().skip(1) {
             let upper = param_token.to_ascii_uppercase();
@@ -332,9 +335,15 @@ impl BinWrite for Cps {
 
                 let name = if is_bare_numeric_tsc {
                     let stem = path.file_stem().and_then(|stem| stem.to_str()).unwrap();
-                    name_context.parse_i32_or_hash_name(stem)
+                    name_context
+                        .name_type()
+                        .parse_name_value(stem)
+                        .unwrap_or_else(|| name_context.insert(stem))
                 } else {
-                    name_context.parse_i32_or_hash_name(path_string.as_ref())
+                    name_context
+                        .name_type()
+                        .parse_name_value(path_string.as_ref())
+                        .unwrap_or_else(|| name_context.insert(path_string.as_ref()))
                 };
                 // Sort by unsigned hash value for deterministic CPS ordering.
                 let sort_key = name.as_raw();

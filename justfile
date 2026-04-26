@@ -131,6 +131,9 @@ zizmor:
 machete:
     cargo machete
 
+unused:
+    cargo workspace-unused-pub
+
 flint: fmt clippy deny zizmor machete
 
 check: flint test

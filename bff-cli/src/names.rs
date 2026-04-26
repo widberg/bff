@@ -1,7 +1,13 @@
 use std::collections::VecDeque;
 use std::path::PathBuf;
 
-use bff::names::{NameContext, NameType, WORDLIST_ANIMALS, WORDLIST_BIP39, get_forced_hash_string};
+use bff::names::{
+    NameContext,
+    NameType,
+    WORDLIST_ANIMALS,
+    WORDLIST_BIP39,
+    get_forced_hash_string_for_type,
+};
 use bff::petgraph;
 use bff::petgraph::visit::{VisitMap, Visitable};
 use clap::ValueEnum;
@@ -112,7 +118,11 @@ pub fn names(
                         } else {
                             format!("{}{}", string, class)
                         };
-                        name_context.insert(&get_forced_hash_string(name, name_string));
+                        name_context.insert(&get_forced_hash_string_for_type(
+                            name_context.name_type(),
+                            name,
+                            name_string,
+                        ));
                     }
                 }
             } else {
@@ -125,7 +135,8 @@ pub fn names(
                             Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
                             Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
-                        name_context.insert(&get_forced_hash_string(
+                        name_context.insert(&get_forced_hash_string_for_type(
+                            name_context.name_type(),
                             name,
                             format!("{}.{}", string, class),
                         ));

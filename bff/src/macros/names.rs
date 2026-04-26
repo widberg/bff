@@ -80,18 +80,6 @@ macro_rules! names {
                     }
                 }
 
-                pub fn name_from_i32(self, value: i32) -> $crate::names::Name {
-                    match self {
-                        $(NameType::$name => $crate::names::value::name_from_i32_for_hash::<[<$name NameHashFunction>]>(value),)*
-                    }
-                }
-
-                pub fn value_from_name(self, name: $crate::names::Name) -> i64 {
-                    match self {
-                        $(NameType::$name => $crate::names::value::name_value_for_hash::<[<$name NameHashFunction>]>(name),)*
-                    }
-                }
-
                 pub fn value_string_from_name(self, name: $crate::names::Name) -> String {
                     match self {
                         $(NameType::$name => $crate::names::value::name_value_string_for_hash::<[<$name NameHashFunction>]>(name),)*
