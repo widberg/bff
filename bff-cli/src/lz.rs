@@ -21,6 +21,8 @@ use clap::ValueEnum;
 use crate::error::BffCliResult;
 use crate::stdio_or_path::StdioOrPath;
 
+pub const DEFAULT_DECOMPRESSED_BUFFER_SIZE: usize = 0x0400_0000;
+
 #[derive(ValueEnum, Clone, Copy)]
 pub enum LzEndian {
     Big,
@@ -108,6 +110,7 @@ fn unlz_internal<R: Read, W: Write>(
     uncompressed: &mut W,
     endian: Endian,
     algorithm: LzAlgorithm,
+    buffer_size: usize,
 ) -> BffCliResult<()> {
     let mut buf: Vec<u8> = Vec::new();
     compressed.read_to_end(&mut buf)?;
@@ -119,8 +122,8 @@ fn unlz_internal<R: Read, W: Write>(
         LzAlgorithm::Lzo => {
             let mut compressed = Vec::new();
             reader.read_to_end(&mut compressed)?;
-            lzo_decompress(&compressed, 0x4000000)?
-        } // TODO: Add a CLI argument for the size
+            lzo_decompress(&compressed, buffer_size)?
+        }
         LzAlgorithm::Lz4 => lz4_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Arcode => arcode_decompress_data_with_header_parser(&mut reader, endian)?,
         LzAlgorithm::Zlib => zlib_decompress_data_with_header_parser(&mut reader, endian)?,
@@ -136,30 +139,50 @@ pub fn unlz(
     uncompressed: &StdioOrPath,
     endian: &LzEndian,
     algorithm: &LzAlgorithm,
+    buffer_size: &usize,
 ) -> BffCliResult<()> {
     let endian: Endian = (*endian).into();
     let algorithm = *algorithm;
+    let buffer_size = *buffer_size;
 
     match (compressed, uncompressed) {
         (StdioOrPath::Stdio, StdioOrPath::Stdio) => {
             let stdin = io::stdin();
             let stdout = io::stdout();
-            unlz_internal(&mut stdin.lock(), &mut stdout.lock(), endian, algorithm)
+            unlz_internal(
+                &mut stdin.lock(),
+                &mut stdout.lock(),
+                endian,
+                algorithm,
+                buffer_size,
+            )
         }
         (StdioOrPath::Stdio, StdioOrPath::Path(output_path)) => {
             let stdin = io::stdin();
             let mut output = BufWriter::new(File::create(output_path)?);
-            unlz_internal(&mut stdin.lock(), &mut output, endian, algorithm)
+            unlz_internal(
+                &mut stdin.lock(),
+                &mut output,
+                endian,
+                algorithm,
+                buffer_size,
+            )
         }
         (StdioOrPath::Path(input_path), StdioOrPath::Stdio) => {
             let mut input = BufReader::new(File::open(input_path)?);
             let stdout = io::stdout();
-            unlz_internal(&mut input, &mut stdout.lock(), endian, algorithm)
+            unlz_internal(
+                &mut input,
+                &mut stdout.lock(),
+                endian,
+                algorithm,
+                buffer_size,
+            )
         }
         (StdioOrPath::Path(input_path), StdioOrPath::Path(output_path)) => {
             let mut input = BufReader::new(File::open(input_path)?);
             let mut output = BufWriter::new(File::create(output_path)?);
-            unlz_internal(&mut input, &mut output, endian, algorithm)
+            unlz_internal(&mut input, &mut output, endian, algorithm, buffer_size)
         }
     }
 }

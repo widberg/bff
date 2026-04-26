@@ -156,6 +156,12 @@ enum Commands {
         #[clap(value_enum)]
         #[arg(short, long)]
         algorithm: LzAlgorithm,
+        #[arg(
+            long,
+            default_value_t = lz::DEFAULT_DECOMPRESSED_BUFFER_SIZE,
+            help = "Only used by lzo. Size in bytes of the decompression buffer"
+        )]
+        buffer_size: usize,
     },
     Lz {
         uncompressed: StdioOrPath,
@@ -370,7 +376,8 @@ fn main() -> BffCliResult<()> {
             uncompressed,
             endian,
             algorithm,
-        } => lz::unlz(compressed, uncompressed, endian, algorithm),
+            buffer_size,
+        } => lz::unlz(compressed, uncompressed, endian, algorithm, buffer_size),
         Commands::Lz {
             uncompressed,
             compressed,
