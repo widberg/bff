@@ -92,8 +92,12 @@ pub fn names(
                     if !name_in_db {
                         let string = match wordlist {
                             Wordlist::Empty => "".to_owned(),
-                            Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
-                            Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
+                            Wordlist::Animals => name
+                                .with_context(&name_context)
+                                .get_wordlist_encoded_string(WORDLIST_ANIMALS),
+                            Wordlist::BIP39 => name
+                                .with_context(&name_context)
+                                .get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
                         let class = if let Some(resource) = bigfile.resources.get(&name) {
                             format!(".{}", resource.class_name.with_context(&name_context))
@@ -132,8 +136,12 @@ pub fn names(
                     if !name_context.contains(name) {
                         let string = match wordlist {
                             Wordlist::Empty => "".to_owned(),
-                            Wordlist::Animals => name.get_wordlist_encoded_string(WORDLIST_ANIMALS),
-                            Wordlist::BIP39 => name.get_wordlist_encoded_string(WORDLIST_BIP39),
+                            Wordlist::Animals => name
+                                .with_context(&name_context)
+                                .get_wordlist_encoded_string(WORDLIST_ANIMALS),
+                            Wordlist::BIP39 => name
+                                .with_context(&name_context)
+                                .get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
                         name_context.insert(&get_forced_hash_string_for_type(
                             name_context.name_type(),

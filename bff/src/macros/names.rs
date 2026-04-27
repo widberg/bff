@@ -5,6 +5,9 @@ macro_rules! names {
             $($name:ident($name_style:ident, $name_target:ty, $name_display:ty, $name_hash:path)),* $(,)?
         ]
     ) => {
+        $crate::macros::names::names!(@emit_empty_hash_asserts
+            $($name_hash),*
+        );
         $crate::macros::names::names!(@emit_hash_function_types
             $($name($name_target, $name_display, $name_hash)),*
         );
@@ -17,6 +20,12 @@ macro_rules! names {
         $crate::macros::names::names!(@emit_name_type_impl
             $($name($name_target)),*
         );
+    };
+
+    (@emit_empty_hash_asserts $($name_hash:path),* $(,)?) => {
+        const _: () = {
+            $(assert!($name_hash(b"") == 0);)*
+        };
     };
 
     (@emit_hash_function_types $($name:ident($name_target:ty, $name_display:ty, $name_hash:path)),* $(,)?) => {
@@ -81,10 +90,6 @@ macro_rules! names {
                             NameType::$name => core::mem::size_of::<$name_target>() * 8,
                         )*
                     }
-                }
-
-                pub const fn is_32_bit(self) -> bool {
-                    self.target_bits() == 32
                 }
 
                 pub fn hash_bytes(self, bytes: &[u8]) -> $crate::names::Name {

@@ -9,8 +9,6 @@ use crate::BffResult;
 use crate::class::class_base_names;
 use crate::error::{InvalidNameDecodingError, InvalidNameEncodingError};
 
-const DEFAULT_NAME_STRING: &str = "";
-
 pub(super) type NameMap = HashMap<Name, String>;
 
 fn insert_name(names: &mut NameMap, name_type: NameType, string: &str) -> Name {
@@ -106,7 +104,6 @@ fn write_names<W: Write>(
 #[derive(Debug)]
 pub struct NameContext {
     name_type: NameType,
-    default_name: Name,
     names: NameMap,
 }
 
@@ -121,14 +118,9 @@ impl NameContext {
             }
         }
 
-        let default_name = hash_string_for_type(name_type, DEFAULT_NAME_STRING);
-        names.insert(default_name, DEFAULT_NAME_STRING.to_owned());
+        names.insert(Name::default(), String::new());
 
-        Self {
-            name_type,
-            default_name,
-            names,
-        }
+        Self { name_type, names }
     }
 
     pub fn into_retyped(self, name_type: NameType) -> Self {
@@ -144,11 +136,7 @@ impl NameContext {
                 .or_insert(string);
         }
 
-        Self {
-            name_type,
-            default_name: hash_string_for_type(name_type, DEFAULT_NAME_STRING),
-            names,
-        }
+        Self { name_type, names }
     }
 
     pub fn scope<R>(&self, f: impl FnOnce() -> R) -> R {
@@ -161,10 +149,6 @@ impl NameContext {
 
     pub fn name_type(&self) -> NameType {
         self.name_type
-    }
-
-    pub fn default_name(&self) -> Name {
-        self.default_name
     }
 
     pub fn insert(&mut self, string: &str) -> Name {

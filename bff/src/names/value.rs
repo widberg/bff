@@ -4,7 +4,6 @@ use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use const_power_of_two::PowerOfTwoUsize;
-use num_traits::AsPrimitive;
 
 use super::scope::{current_name_type, with_name_context};
 use super::{NameContext, NameType};
@@ -12,7 +11,7 @@ use crate::traits::{NameHashFunction, NameTarget};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Default)]
 pub struct Name(u64);
 
 impl Name {
@@ -46,19 +45,7 @@ impl Name {
     }
 
     pub fn is_default(&self) -> bool {
-        with_name_context(|ctx| ctx.is_some_and(|c| *self == c.default_name()))
-    }
-
-    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
-    where
-        usize: PowerOfTwoUsize<N>,
-    {
-        if current_name_type().is_some_and(NameType::is_32_bit) || self.0 <= u32::MAX as u64 {
-            let value_u32: u32 = self.0.as_();
-            get_wordlist_encoded_string(value_u32, wordlist)
-        } else {
-            get_wordlist_encoded_string(self.0, wordlist)
-        }
+        *self == Self::default()
     }
 }
 
@@ -67,21 +54,23 @@ pub struct NameWithContext<'a> {
     name_context: &'a NameContext,
 }
 
-fn get_wordlist_encoded_string<T, const N: usize>(x: T, wordlist: [&str; N]) -> String
-where
-    T: AsPrimitive<usize>,
-    usize: PowerOfTwoUsize<N>,
-{
-    let wordlist_mask = wordlist.len() - 1;
-    let wordlist_bits = wordlist_mask.count_ones() as usize;
-    let mut out = String::new();
-    let mut x = x.as_();
-    for _ in 0..(size_of::<T>() * 8).div_ceil(wordlist_bits) {
-        let index = x & wordlist_mask;
-        out.push_str(wordlist[index]);
-        x >>= wordlist_bits;
+impl NameWithContext<'_> {
+    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
+    where
+        usize: PowerOfTwoUsize<N>,
+    {
+        let target_bits = self.name_context.name_type().target_bits();
+        let wordlist_mask = (wordlist.len() - 1) as u64;
+        let wordlist_bits = wordlist_mask.count_ones() as usize;
+        let mut out = String::new();
+        let mut value = self.name.0;
+        for _ in 0..target_bits.div_ceil(wordlist_bits) {
+            let index = (value & wordlist_mask) as usize;
+            out.push_str(wordlist[index]);
+            value >>= wordlist_bits;
+        }
+        out
     }
-    out
 }
 
 pub fn get_forced_hash_string_for_type<S: AsRef<str>>(
@@ -207,13 +196,6 @@ impl BinWrite for Name {
             });
         };
         name_type.write_name(writer, endian, *self)
-    }
-}
-
-impl Default for Name {
-    fn default() -> Self {
-        with_name_context(|name_context| name_context.map(NameContext::default_name))
-            .unwrap_or(Self(0))
     }
 }
 
