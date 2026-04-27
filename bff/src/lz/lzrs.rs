@@ -145,7 +145,7 @@ struct Packet {
 }
 
 impl Packet {
-    fn with_match_length(match_length: i32) -> Self {
+    const fn with_match_length(match_length: i32) -> Self {
         Self {
             match_length,
             total_length: 0,
@@ -153,7 +153,7 @@ impl Packet {
         }
     }
 
-    fn reset_total_length(&mut self) {
+    const fn reset_total_length(&mut self) {
         self.total_length = 0;
     }
 }

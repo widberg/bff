@@ -119,7 +119,7 @@ impl Export for BitmapV1_381_67_09PC {
             caps2,
         })
         .unwrap();
-        dds.data = self.body.data.clone();
+        dds.data.clone_from(&self.body.data);
         let mut dds_writer = Cursor::new(Vec::new());
         dds.write(&mut dds_writer).unwrap();
         Ok(HashMap::from([(

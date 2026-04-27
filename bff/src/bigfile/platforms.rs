@@ -25,7 +25,7 @@ platforms! {
 }
 
 impl Platform {
-    pub fn size_on_disk(&self) -> u16 {
+    pub const fn size_on_disk(&self) -> u16 {
         1
     }
 }

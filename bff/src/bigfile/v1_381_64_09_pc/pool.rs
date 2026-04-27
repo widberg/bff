@@ -119,7 +119,7 @@ pub struct PoolHeader {
     _reference_records_sentinel: ReferenceRecord,
 }
 
-pub fn calculate_padded_pool_header_size(
+pub const fn calculate_padded_pool_header_size(
     resource_descriptions_indices_size: usize,
     resource_descriptions_size: usize,
     reference_records_size: usize,

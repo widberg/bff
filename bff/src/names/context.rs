@@ -147,7 +147,7 @@ impl NameContext {
         scope::scope_mut(self, f)
     }
 
-    pub fn name_type(&self) -> NameType {
+    pub const fn name_type(&self) -> NameType {
         self.name_type
     }
 

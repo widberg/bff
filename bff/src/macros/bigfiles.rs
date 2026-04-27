@@ -1,7 +1,7 @@
 macro_rules! bigfiles {
     ($($pattern:pat => $bigfile:ident),* $(,)?) => {
         impl BigFile {
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn read_platform<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
                 platform: crate::bigfile::platforms::Platform,
@@ -35,7 +35,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn write<W: std::io::Write + std::io::Seek>(
                 &self,
                 writer: &mut W,
@@ -78,7 +78,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn dump_resource<W: std::io::Write + std::io::Seek>(
                 &self,
                 resource: &crate::bigfile::resource::Resource,
@@ -112,7 +112,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn read_resource<R: std::io::Read + std::io::Seek>(
                 &self,
                 reader: &mut R,
@@ -145,7 +145,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(
                 &self,
                 reader: &mut R,
@@ -179,7 +179,7 @@ macro_rules! bigfiles {
             }
         }
 
-        #[allow(unused_imports)]
+        #[expect(unused_imports)]
         impl crate::bigfile::resource::Resource {
             pub fn dump_resource<W: std::io::Write + std::io::Seek>(
                 &self,
@@ -214,7 +214,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(
                 &self,
                 writer: &mut W,
@@ -255,7 +255,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn read_resource<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
                 platform: crate::bigfile::platforms::Platform,
@@ -287,7 +287,7 @@ macro_rules! bigfiles {
                 }
             }
 
-            #[allow(unused_imports)]
+            #[expect(unused_imports)]
             pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
                 name_context: &crate::names::NameContext,

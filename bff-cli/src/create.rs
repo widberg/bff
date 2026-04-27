@@ -8,7 +8,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, Resource};
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Import, IntoResource};
+use bff::traits::{Artifact, Import, ToResource};
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
@@ -32,7 +32,6 @@ fn validate_version_override_name_type(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,
@@ -128,7 +127,7 @@ pub fn create(
             let resource: Resource =
                 bff_class
                     .class
-                    .into_resource(version.clone(), platform, &name_context)?;
+                    .to_resource(version.clone(), platform, &name_context)?;
 
             if resources.contains_key(&resource.name) {
                 return Err(crate::error::BffCliError::DuplicateResource {

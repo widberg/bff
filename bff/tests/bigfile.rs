@@ -7,7 +7,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
 use bff::class::Class;
 use bff::names::NameContext;
-use bff::traits::{Export, FromResource, Import, IntoResource};
+use bff::traits::{Export, FromResource, Import, ToResource};
 use binrw::io::BufReader;
 
 use crate::path_helpers::resolve_bigfile_path;
@@ -77,7 +77,7 @@ fn roundtrip_resources(bigfile_path_str: String) {
 
         let new_resource: Resource = roundtripped_bff_class
             .class
-            .into_resource(version.clone(), platform, &name_context)
+            .to_resource(version.clone(), platform, &name_context)
             .unwrap();
         let resource_name = resource.name.with_context(&name_context).to_string();
         let class_name = resource.class_name.with_context(&name_context).to_string();

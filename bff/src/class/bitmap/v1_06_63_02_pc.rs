@@ -56,7 +56,7 @@ impl Import for BitmapV1_06_63_02PC {
         else {
             return Err(Error::ImportBadArtifact);
         };
-        self.body.data = data.clone();
+        self.body.data.clone_from(data);
         Ok(())
     }
 }

@@ -123,7 +123,7 @@ pub struct PoolResource {
     pub resource: Resource,
 }
 
-pub fn calculate_padded_pool_header_size(
+pub const fn calculate_padded_pool_header_size(
     object_names_count: usize,
     resource_descriptions_count: usize,
     reference_records_count: usize,

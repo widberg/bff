@@ -65,7 +65,7 @@ pub enum Version {
 }
 
 impl Version {
-    pub fn size_on_disk(&self) -> u16 {
+    pub const fn size_on_disk(&self) -> u16 {
         1 + match self {
             Self::Asobo(_, _, _, _) => 2 * 4,
             Self::AsoboLegacy(_, _) => 2 * 2,

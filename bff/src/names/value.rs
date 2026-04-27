@@ -23,7 +23,7 @@ impl Name {
         self.0
     }
 
-    pub fn with_context<'a>(&self, name_context: &'a NameContext) -> NameWithContext<'a> {
+    pub const fn with_context<'a>(&self, name_context: &'a NameContext) -> NameWithContext<'a> {
         NameWithContext {
             name: *self,
             name_context,

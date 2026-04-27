@@ -381,7 +381,7 @@ const CPS_VERSION: &[u8; 8] = b"OPAL_1.0";
 const CPS_FIRST_CHAR: u8 = b'O';
 const CPS_SEED_STEP: u8 = 37;
 
-#[allow(clippy::unbuffered_bytes)]
+#[expect(clippy::unbuffered_bytes)]
 pub fn cps_copy<R: Read, W: Write>(reader: R, writer: &mut W) -> BffResult<()> {
     let mut seed = CPS_FIRST_CHAR;
     for byte in reader.bytes() {
@@ -401,7 +401,6 @@ pub fn cps_buffer(data: &mut [u8]) {
     }
 }
 
-#[allow(clippy::unbuffered_bytes)]
 #[binrw::parser(reader)]
 fn cps_crypt() -> BinResult<Vec<u8>> {
     let mut data = Vec::new();

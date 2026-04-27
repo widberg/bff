@@ -128,7 +128,7 @@ pub enum Vertices {
 }
 
 impl Vertices {
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         match self {
             Self::LayoutPosition(layout_positions) => layout_positions.len(),
             Self::LayoutPositionUV(layout_position_uvs) => layout_position_uvs.len(),
@@ -139,7 +139,7 @@ impl Vertices {
         }
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         match self {
             Self::LayoutPosition(layout_positions) => layout_positions.is_empty(),
             Self::LayoutPositionUV(layout_position_uvs) => layout_position_uvs.is_empty(),
@@ -150,7 +150,7 @@ impl Vertices {
         }
     }
 
-    pub fn layout(&self) -> usize {
+    pub const fn layout(&self) -> usize {
         match self {
             Self::LayoutPosition(_) => LayoutPosition::SIZE,
             Self::LayoutPositionUV(_) => LayoutPositionUV::SIZE,

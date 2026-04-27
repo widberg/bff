@@ -120,22 +120,22 @@ macro_rules! classes {
     };
 
     (@emit_try_into_resource $($class:ident)*) => {
-        impl crate::traits::IntoResource for Class {
-            fn into_resource(
+        impl crate::traits::ToResource for Class {
+            fn to_resource(
                 &self,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
                 match self {
-                    $(Class::$class(class) => <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::IntoResource>::into_resource(class, version, platform, name_context),)*
+                    $(Class::$class(class) => <$crate::macros::classes::classes!(@class_ty $class) as crate::traits::ToResource>::to_resource(class, version, platform, name_context),)*
                 }
             }
         }
     };
 
     (@emit_class_names_fn $($class:ident)*) => {
-        pub fn class_base_names() -> &'static[&'static str] {
+        pub const fn class_base_names() -> &'static[&'static str] {
             &[ $(stringify!($class),)* ]
         }
     };
@@ -210,8 +210,8 @@ macro_rules! classes {
             }
         }
 
-        impl crate::traits::IntoResource for $class {
-            fn into_resource(
+        impl crate::traits::ToResource for $class {
+            fn to_resource(
                 &self,
                 _version: crate::bigfile::versions::Version,
                 _platform: crate::bigfile::platforms::Platform,
@@ -267,7 +267,6 @@ macro_rules! classes {
         }
 
         impl crate::traits::FromResource for $class {
-            #[allow(unused_imports)]
             fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
                 version: crate::bigfile::versions::Version,
@@ -288,9 +287,9 @@ macro_rules! classes {
             }
         }
 
-        impl crate::traits::IntoResource for $class {
-            #[allow(unused_imports)]
-            fn into_resource(
+        impl crate::traits::ToResource for $class {
+            #[expect(unused_imports)]
+            fn to_resource(
                 &self,
                 version: crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
@@ -300,7 +299,7 @@ macro_rules! classes {
                 use crate::bigfile::versions::Version::*;
                 match self {
                     $($class::$variant(class) => {
-                        <$variant as crate::traits::IntoResource>::into_resource(class, version, platform, name_context)
+                        <$variant as crate::traits::ToResource>::to_resource(class, version, platform, name_context)
                     })*
                 }
             }

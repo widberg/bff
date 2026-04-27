@@ -10,11 +10,11 @@ mod math;
 mod option;
 mod strings;
 
-pub fn calculate_padding(position: usize, alignment: usize) -> usize {
+pub const fn calculate_padding(position: usize, alignment: usize) -> usize {
     position.next_multiple_of(alignment) - position
 }
 
-pub fn calculated_padded(position: usize, alignment: usize) -> usize {
+pub const fn calculated_padded(position: usize, alignment: usize) -> usize {
     position.next_multiple_of(alignment)
 }
 

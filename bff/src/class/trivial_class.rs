@@ -10,7 +10,7 @@ use crate::bigfile::resource::Resource;
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::versions::Version;
 use crate::names::{Name, NameContext};
-use crate::traits::{FromResource, IntoResource};
+use crate::traits::{FromResource, ToResource};
 use crate::{BffError, BffResult};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, ReferencedNames)]
@@ -90,14 +90,14 @@ where
     }
 }
 
-impl<LinkHeaderType, BodyType> IntoResource for TrivialClass<LinkHeaderType, BodyType>
+impl<LinkHeaderType, BodyType> ToResource for TrivialClass<LinkHeaderType, BodyType>
 where
     for<'a> LinkHeaderType: BinWrite + 'a,
     for<'a> <LinkHeaderType as BinWrite>::Args<'a>: Default,
     for<'a> BodyType: BinWrite + 'a,
     for<'a> <BodyType as BinWrite>::Args<'a>: Default,
 {
-    fn into_resource(
+    fn to_resource(
         &self,
         _version: Version,
         platform: Platform,

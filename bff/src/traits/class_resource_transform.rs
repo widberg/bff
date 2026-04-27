@@ -13,8 +13,8 @@ pub trait FromResource: Sized {
     ) -> BffResult<Self>;
 }
 
-pub trait IntoResource {
-    fn into_resource(
+pub trait ToResource {
+    fn to_resource(
         &self,
         version: Version,
         platform: Platform,

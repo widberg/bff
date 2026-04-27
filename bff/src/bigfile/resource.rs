@@ -60,7 +60,7 @@ impl BffResourceHeader {
         header.name_type()
     }
 
-    fn data_padded_size_on_disk(&self) -> u16 {
+    const fn data_padded_size_on_disk(&self) -> u16 {
         let non_data_size = 4 + 2;
         let total_unpadded_size =
             non_data_size + self.platform.size_on_disk() + self.version.size_on_disk();
