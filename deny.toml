@@ -91,14 +91,10 @@ ignore = [
 # [possible values: any SPDX 3.11 short identifier (+ optional exception)].
 allow = [
     "Apache-2.0",
-    "BSD-2-Clause",
     "BSD-3-Clause",
     "BSL-1.0",
-    "ISC",
-    "LicenseRef-UFL-1.0",
     "MIT-0",
     "MIT",
-    "OFL-1.1",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
@@ -209,6 +205,9 @@ deny = [
 
 # Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
+    "syn@1.0.109",
+    "windows-link@0.1.1",
+    "windows-sys@0.59.0",
     #"ansi_term@0.11.0",
     #{ crate = "ansi_term@0.11.0", reason = "you can specify a reason why it can't be updated/removed" },
 ]
@@ -217,10 +216,6 @@ skip = [
 # dependencies starting at the specified crate, up to a certain depth, which is
 # by default infinite.
 skip-tree = [
-    "accesskit_winit",
-    "itertools",
-    "windows",
-    "zerocopy",
     #"ansi_term@0.11.0", # will be skipped along with _all_ of its direct and transitive dependencies
     #{ crate = "ansi_term@0.11.0", depth = 20 },
 ]
