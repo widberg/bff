@@ -23,3 +23,9 @@ platforms! {
         XboxSeries([D("DXS", "NXS")], Little),
     ]
 }
+
+impl Platform {
+    pub fn size_on_disk(&self) -> u16 {
+        1
+    }
+}

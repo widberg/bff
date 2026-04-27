@@ -96,16 +96,6 @@ macro_rules! classes {
                 map.get(&name).copied()
             }
         }
-
-        impl TryFrom<(crate::names::Name, crate::names::NameType)> for ClassType {
-            type Error = ();
-
-            fn try_from(
-                (name, name_type): (crate::names::Name, crate::names::NameType),
-            ) -> Result<ClassType, ()> {
-                ClassType::from_name_and_type(name, name_type).ok_or(())
-            }
-        }
     };
 
     (@emit_try_from_resource $($class:ident)*) => {

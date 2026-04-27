@@ -30,6 +30,11 @@ names! {
     ]
 }
 
+#[inline]
+pub fn apply_name_style<S: AsRef<str>>(string: S, style: NameStyle) -> String {
+    name_style_transform(style)(string.as_ref())
+}
+
 // Faster than format!() but more verbose
 #[inline]
 fn append_z(s: &str) -> String {

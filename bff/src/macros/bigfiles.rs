@@ -1,24 +1,6 @@
 macro_rules! bigfiles {
     ($($pattern:pat => $bigfile:ident),* $(,)?) => {
         impl BigFile {
-            pub fn probe_name_type_platform<R: std::io::Read + std::io::Seek>(
-                reader: &mut R,
-                _platform: crate::bigfile::platforms::Platform,
-                version_override: &Option<crate::bigfile::versions::Version>,
-            ) -> crate::BffResult<crate::names::NameType> {
-                use binrw::BinRead;
-
-                let start = reader.stream_position()?;
-                let version: crate::bigfile::versions::Version =
-                    crate::helpers::FixedStringNull::<256>::read_be(reader)?
-                        .as_str()
-                        .into();
-                reader.seek(std::io::SeekFrom::Start(start))?;
-
-                let version = version_override.clone().unwrap_or(version);
-                (&version).try_into()
-            }
-
             #[allow(unused_imports)]
             pub fn read_platform<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
@@ -128,23 +110,6 @@ macro_rules! bigfiles {
                         Err(crate::error::UnimplementedVersionPlatformError::new(version, platform).into())
                     }
                 }
-            }
-
-            pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(
-                &self,
-                resource: &crate::bigfile::resource::Resource,
-                writer: &mut W,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<()> {
-                let platform = self.manifest.platform;
-                let version = &self.manifest.version;
-                crate::bigfile::resource::Resource::dump_bff_resource(
-                    resource,
-                    writer,
-                    platform,
-                    version,
-                    name_context,
-                )
             }
 
             #[allow(unused_imports)]

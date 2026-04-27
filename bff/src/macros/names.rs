@@ -61,11 +61,6 @@ macro_rules! names {
                 $(NameStyle::$style => $style_transform,)*
             }
         }
-
-        #[inline]
-        pub fn apply_name_style<S: AsRef<str>>(string: S, style: NameStyle) -> String {
-            name_style_transform(style)(string.as_ref())
-        }
     };
 
     (@emit_name_types $($name:ident($name_style:ident)),* $(,)?) => {
