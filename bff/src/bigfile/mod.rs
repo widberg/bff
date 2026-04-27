@@ -17,8 +17,6 @@ pub mod versions;
 use std::collections::HashMap;
 
 use petgraph::Graph;
-use schemars::JsonSchema;
-use serde::Serialize;
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::Resource;
@@ -44,11 +42,9 @@ use crate::traits::{FromResource, ReferencedNames};
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
-#[derive(Serialize, JsonSchema, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct BigFile {
-    #[serde(flatten)]
     pub manifest: Manifest,
-    #[serde(skip)]
     pub resources: HashMap<Name, Resource>,
 }
 

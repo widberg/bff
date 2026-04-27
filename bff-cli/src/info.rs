@@ -17,7 +17,7 @@ pub fn info(
     read_in_names(in_names, &mut name_context)?;
 
     let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
-    bff::names::json::to_writer_pretty(io::stdout().lock(), &bigfile, &name_context)?;
+    bff::names::json::to_writer_pretty(io::stdout().lock(), &bigfile.manifest, &name_context)?;
 
     if let Some(out_dependencies) = out_reference_graph {
         let f = File::create(out_dependencies)?;
