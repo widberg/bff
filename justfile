@@ -45,7 +45,7 @@ install:
 install-dev-deps:
     rustup install nightly
     rustup update nightly
-    cargo install --locked cargo-sort flamegraph cargo-deny zizmor cargo-machete
+    cargo install --locked cargo-sort flamegraph cargo-deny zizmor cargo-machete cargo-workspace-unused-pub
     cargo install --locked --git https://github.com/rust-lang/measureme summarize
     {{ if os() == 'windows' { 'cargo install --locked blondie' } else { '' } }}
 
