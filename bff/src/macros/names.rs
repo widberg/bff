@@ -5,6 +5,21 @@ macro_rules! names {
             $($name:ident($name_style:ident, $name_target:ty, $name_display:ty, $name_hash:path)),* $(,)?
         ]
     ) => {
+        $crate::macros::names::names!(@emit_hash_function_types
+            $($name($name_target, $name_display, $name_hash)),*
+        );
+        $crate::macros::names::names!(@emit_name_styles
+            $($style($style_transform)),*
+        );
+        $crate::macros::names::names!(@emit_name_types
+            $($name($name_style)),*
+        );
+        $crate::macros::names::names!(@emit_name_type_impl
+            $($name($name_target)),*
+        );
+    };
+
+    (@emit_hash_function_types $($name:ident($name_target:ty, $name_display:ty, $name_hash:path)),* $(,)?) => {
         $(
             pastey::paste! {
                 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -20,7 +35,9 @@ macro_rules! names {
                 }
             }
         )*
+    };
 
+    (@emit_name_styles $($style:ident($style_transform:expr)),* $(,)?) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum NameStyle {
             $($style,)*
@@ -40,7 +57,9 @@ macro_rules! names {
         pub fn apply_name_style<S: AsRef<str>>(string: S, style: NameStyle) -> String {
             name_style_transform(style)(string.as_ref())
         }
+    };
 
+    (@emit_name_types $($name:ident($name_style:ident)),* $(,)?) => {
         #[derive(Debug, Copy, Clone, PartialEq, Eq, derive_more::Display, derive_more::FromStr)]
         pub enum NameType {
             $($name,)*
@@ -51,7 +70,9 @@ macro_rules! names {
                 $(NameType::$name => NameStyle::$name_style,)*
             }
         }
+    };
 
+    (@emit_name_type_impl $($name:ident($name_target:ty)),* $(,)?) => {
         pastey::paste! {
             impl NameType {
                 pub const fn target_bits(self) -> usize {
