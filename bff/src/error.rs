@@ -22,17 +22,6 @@ pub struct UnimplementedClassError {
 }
 
 #[derive(Debug, Constructor, Display, Error)]
-#[display(
-    "Unsupported BigFile version, platform combination: {}, {}",
-    version,
-    platform
-)]
-pub struct UnimplementedVersionPlatformError {
-    pub version: Version,
-    pub platform: Platform,
-}
-
-#[derive(Debug, Constructor, Display, Error)]
 #[display("Unsupported BigFile version: {}", version)]
 pub struct UnimplementedVersionError {
     pub version: Version,
@@ -85,7 +74,6 @@ pub enum Error {
     ParseInt(std::num::ParseIntError),
     UnimplementedClass(UnimplementedClassError),
     UnimplementedVersion(UnimplementedVersionError),
-    UnimplementedVersionPlatform(UnimplementedVersionPlatformError),
     Utf8(std::string::FromUtf8Error),
     UnimplementedImportExport,
     ImportBadArtifact,
