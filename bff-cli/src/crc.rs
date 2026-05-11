@@ -13,7 +13,7 @@ use clap::ValueEnum;
 
 use crate::error::BffCliResult;
 
-#[derive(ValueEnum, Clone)]
+#[derive(ValueEnum, Clone, Copy)]
 pub enum CrcAlgorithm {
     #[value(alias("a"))]
     Asobo,
@@ -33,13 +33,13 @@ pub enum CrcAlgorithm {
     MQFEL32,
 }
 
-#[derive(ValueEnum, Clone)]
+#[derive(ValueEnum, Clone, Copy)]
 pub enum CrcMode {
     Bytes,
     Lines,
 }
 
-#[derive(ValueEnum, Clone)]
+#[derive(ValueEnum, Clone, Copy)]
 pub enum CrcFormat {
     #[value(alias("s"))]
     Signed,
@@ -49,7 +49,7 @@ pub enum CrcFormat {
     Hexadecimal,
 }
 
-fn format_hash(hash: i32, format: &CrcFormat) -> String {
+fn format_hash(hash: i32, format: CrcFormat) -> String {
     match format {
         CrcFormat::Signed => {
             format!("{}", hash)
@@ -63,7 +63,7 @@ fn format_hash(hash: i32, format: &CrcFormat) -> String {
     }
 }
 
-fn format_hash64(hash: i64, format: &CrcFormat) -> String {
+fn format_hash64(hash: i64, format: CrcFormat) -> String {
     match format {
         CrcFormat::Signed => {
             format!("{}", hash)
@@ -77,8 +77,7 @@ fn format_hash64(hash: i64, format: &CrcFormat) -> String {
     }
 }
 
-fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcFormat) -> String {
-    let starting = *starting;
+fn hash(bytes: &[u8], starting: i64, algorithm: CrcAlgorithm, format: CrcFormat) -> String {
     match algorithm {
         CrcAlgorithm::Asobo => format_hash(asobo32_options(bytes, starting as i32), format),
         CrcAlgorithm::AsoboAlternate => {
@@ -97,11 +96,11 @@ fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcForm
 }
 
 pub fn crc(
-    string: Option<&String>,
-    starting: &i64,
-    algorithm: &CrcAlgorithm,
-    mode: &CrcMode,
-    format: &CrcFormat,
+    string: Option<&str>,
+    starting: i64,
+    algorithm: CrcAlgorithm,
+    mode: CrcMode,
+    format: CrcFormat,
 ) -> BffCliResult<()> {
     match (string, mode) {
         (Some(string), CrcMode::Bytes) => {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
@@ -35,11 +35,11 @@ fn validate_version_override_name_type(
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,
-    out_names: Option<&PathBuf>,
-    platform_override: Option<&Platform>,
+    out_names: Option<&Path>,
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
     version_to_write: Option<&Version>,
-    tag: Option<&String>,
+    tag: Option<&str>,
 ) -> BffCliResult<()> {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
@@ -115,7 +115,7 @@ pub fn create(
             let _ = bff_class.class.import(&artifacts);
 
             let BffResource { resource, .. } = bff_class.bff_resource_with_override(
-                platform_override.copied(),
+                platform_override,
                 version_override,
                 &name_context,
             )?;
@@ -136,10 +136,10 @@ pub fn create(
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
     bigfile.write(
         &mut bigfile_writer,
-        platform_override.copied(),
+        platform_override,
         version_override,
         version_to_write,
-        tag.map(String::as_str),
+        tag,
         &name_context,
     )?;
 

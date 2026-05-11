@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bff::BufReader;
 use bff::bigfile::BigFile;
@@ -117,13 +117,11 @@ fn describe_changes(
 pub fn diff(
     old_bigfile_path: &Path,
     new_bigfile_path: &Path,
-    old_name_path: Option<&PathBuf>,
-    new_name_path: Option<&PathBuf>,
+    old_name_path: Option<&Path>,
+    new_name_path: Option<&Path>,
 ) -> BffCliResult<()> {
-    let (old_bigfile, old_name_context) =
-        load_bigfile(old_bigfile_path, old_name_path.map(PathBuf::as_path))?;
-    let (new_bigfile, new_name_context) =
-        load_bigfile(new_bigfile_path, new_name_path.map(PathBuf::as_path))?;
+    let (old_bigfile, old_name_context) = load_bigfile(old_bigfile_path, old_name_path)?;
+    let (new_bigfile, new_name_context) = load_bigfile(new_bigfile_path, new_name_path)?;
 
     let old_resources = resolve_resources(&old_bigfile, &old_name_context, "old BigFile")?;
     let new_resources = resolve_resources(&new_bigfile, &new_name_context, "new BigFile")?;

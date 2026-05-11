@@ -9,8 +9,8 @@ use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_name
 
 pub fn info(
     bigfile_path: &Path,
-    in_names: &Vec<PathBuf>,
-    out_reference_graph: Option<&PathBuf>,
+    in_names: &[PathBuf],
+    out_reference_graph: Option<&Path>,
 ) -> BffCliResult<()> {
     let mut name_context = probe_bigfile_name_context(bigfile_path, None, None)?;
     read_bigfile_names(bigfile_path, &mut name_context)?;

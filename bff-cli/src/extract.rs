@@ -38,7 +38,7 @@ pub fn read_bigfile_names(bigfile_path: &Path, name_context: &mut NameContext) -
     Ok(())
 }
 
-pub fn read_in_names(in_names: &Vec<PathBuf>, name_context: &mut NameContext) -> BffCliResult<()> {
+pub fn read_in_names(in_names: &[PathBuf], name_context: &mut NameContext) -> BffCliResult<()> {
     for in_name in in_names {
         let f = File::open(in_name)?;
         let mut reader = BufReader::new(f);
@@ -62,11 +62,11 @@ pub fn write_names(
 
 pub fn read_bigfile(
     bigfile_path: &Path,
-    platform_override: Option<&Platform>,
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
     name_context: &NameContext,
 ) -> BffCliResult<BigFile> {
-    let platform = platform_override.copied().unwrap_or_else(|| {
+    let platform = platform_override.unwrap_or_else(|| {
         bigfile_path
             .extension()
             .and_then(|e| e.try_into().ok())
@@ -84,10 +84,10 @@ pub fn read_bigfile(
 
 pub fn probe_bigfile_name_context(
     bigfile_path: &Path,
-    platform_override: Option<&Platform>,
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
 ) -> BffCliResult<NameContext> {
-    let platform = platform_override.copied().unwrap_or_else(|| {
+    let platform = platform_override.unwrap_or_else(|| {
         bigfile_path
             .extension()
             .and_then(|e| e.try_into().ok())
@@ -157,7 +157,7 @@ fn export_bff_resource(
     resources_path: &Path,
     bff_resource: &BffResourceRef,
     name_context: &NameContext,
-    rich_suffix: &String,
+    rich_suffix: &str,
 ) -> BffCliResult<()> {
     let bff_class = bff_resource.bff_class(name_context)?;
 
@@ -208,13 +208,14 @@ fn export_bff_resource(
 pub fn extract(
     bigfile_path: &Path,
     directory: &Path,
-    in_names: &Vec<PathBuf>,
-    platform_override: Option<&Platform>,
+    in_names: &[PathBuf],
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
-    export_strategy: &ExportStrategy,
-    rich_suffix: &String,
+    export_strategy: ExportStrategy,
+    rich_suffix: &str,
 ) -> BffCliResult<()> {
-    let mut name_context = probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
+    let mut name_context =
+        probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
     read_bigfile_names(bigfile_path, &mut name_context)?;
@@ -246,7 +247,7 @@ pub fn extract(
         .par_bridge()
         .try_for_each(|bff_resource| {
             progress_bar.inc(1);
-            if !matches!(*export_strategy, ExportStrategy::Rich)
+            if !matches!(export_strategy, ExportStrategy::Rich)
                 || export_bff_resource(&resources_path, &bff_resource, &name_context, rich_suffix)
                     .is_err()
             {

@@ -52,15 +52,12 @@ fn crypt_internal<R: Read, W: Write>(
 }
 
 fn process(
-    input: &StdioOrPath,
-    output: &StdioOrPath,
-    algorithm: &CryptAlgorithm,
-    key: &u8,
+    input: StdioOrPath,
+    output: StdioOrPath,
+    algorithm: CryptAlgorithm,
+    key: u8,
     direction: CryptDirection,
 ) -> BffCliResult<()> {
-    let algorithm = *algorithm;
-    let key = *key;
-
     match (input, output) {
         (StdioOrPath::Stdio, StdioOrPath::Stdio) => {
             let stdin = io::stdin();
@@ -92,19 +89,19 @@ fn process(
 }
 
 pub fn crypt(
-    uncrypted: &StdioOrPath,
-    crypted: &StdioOrPath,
-    algorithm: &CryptAlgorithm,
-    key: &u8,
+    uncrypted: StdioOrPath,
+    crypted: StdioOrPath,
+    algorithm: CryptAlgorithm,
+    key: u8,
 ) -> BffCliResult<()> {
     process(uncrypted, crypted, algorithm, key, CryptDirection::Crypt)
 }
 
 pub fn uncrypt(
-    crypted: &StdioOrPath,
-    uncrypted: &StdioOrPath,
-    algorithm: &CryptAlgorithm,
-    key: &u8,
+    crypted: StdioOrPath,
+    uncrypted: StdioOrPath,
+    algorithm: CryptAlgorithm,
+    key: u8,
 ) -> BffCliResult<()> {
     process(crypted, uncrypted, algorithm, key, CryptDirection::Uncrypt)
 }

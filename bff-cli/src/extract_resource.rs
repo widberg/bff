@@ -33,8 +33,8 @@ fn validate_version_override_name_type(
 pub fn extract_resource(
     resource_path: &Path,
     directory: &Path,
-    in_names: &Vec<PathBuf>,
-    platform_override: Option<&Platform>,
+    in_names: &[PathBuf],
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
 ) -> BffCliResult<()> {
     let mut probe_reader = BufReader::new(File::open(resource_path)?);
@@ -47,11 +47,8 @@ pub fn extract_resource(
     let mut reader = BufReader::new(f);
     let bff_resource = BffResource::read(&mut reader, &name_context)?;
 
-    let bff_class = bff_resource.bff_class_with_override(
-        platform_override.copied(),
-        version_override,
-        &name_context,
-    )?;
+    let bff_class =
+        bff_resource.bff_class_with_override(platform_override, version_override, &name_context)?;
 
     std::fs::create_dir(directory)?;
 

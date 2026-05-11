@@ -25,9 +25,9 @@ impl From<PscAlgorithm> for bff::tsc::PscAlgorithm {
     }
 }
 
-pub fn extract_psc(psc: &Path, directory: &Path, algorithm: &PscAlgorithm) -> BffCliResult<()> {
+pub fn extract_psc(psc: &Path, directory: &Path, algorithm: PscAlgorithm) -> BffCliResult<()> {
     let mut psc_reader = BufReader::new(File::open(psc)?);
-    let psc = Psc::read(&mut psc_reader, (*algorithm).into())?;
+    let psc = Psc::read(&mut psc_reader, algorithm.into())?;
 
     for (path, data) in psc.tscs {
         let tsc_path = directory.join(path);
@@ -61,13 +61,13 @@ fn read_files_into_psc_recursively(
     Ok(())
 }
 
-pub fn create_psc(directory: &Path, psc_path: &Path, algorithm: &PscAlgorithm) -> BffCliResult<()> {
+pub fn create_psc(directory: &Path, psc_path: &Path, algorithm: PscAlgorithm) -> BffCliResult<()> {
     let mut psc = Psc::default();
     read_files_into_psc_recursively(&mut psc, directory, directory)?;
 
     let mut psc_writer = BufWriter::new(File::create(psc_path)?);
 
-    psc.write(&mut psc_writer, (*algorithm).into())?;
+    psc.write(&mut psc_writer, algorithm.into())?;
 
     Ok(())
 }

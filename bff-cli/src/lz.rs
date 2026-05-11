@@ -73,13 +73,12 @@ fn lz_internal<R: Read, W: Write>(
 }
 
 pub fn lz(
-    uncompressed: &StdioOrPath,
-    compressed: &StdioOrPath,
-    endian: &LzEndian,
-    algorithm: &LzAlgorithm,
+    uncompressed: StdioOrPath,
+    compressed: StdioOrPath,
+    endian: LzEndian,
+    algorithm: LzAlgorithm,
 ) -> BffCliResult<()> {
-    let endian: Endian = (*endian).into();
-    let algorithm = *algorithm;
+    let endian: Endian = endian.into();
 
     match (uncompressed, compressed) {
         (StdioOrPath::Stdio, StdioOrPath::Stdio) => {
@@ -135,15 +134,13 @@ fn unlz_internal<R: Read, W: Write>(
 }
 
 pub fn unlz(
-    compressed: &StdioOrPath,
-    uncompressed: &StdioOrPath,
-    endian: &LzEndian,
-    algorithm: &LzAlgorithm,
-    buffer_size: &usize,
+    compressed: StdioOrPath,
+    uncompressed: StdioOrPath,
+    endian: LzEndian,
+    algorithm: LzAlgorithm,
+    buffer_size: usize,
 ) -> BffCliResult<()> {
-    let endian: Endian = (*endian).into();
-    let algorithm = *algorithm;
-    let buffer_size = *buffer_size;
+    let endian: Endian = endian.into();
 
     match (compressed, uncompressed) {
         (StdioOrPath::Stdio, StdioOrPath::Stdio) => {

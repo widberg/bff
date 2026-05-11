@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bff::BufReader;
 use bff::bigfile::platforms::Platform;
@@ -34,8 +34,8 @@ fn validate_version_override_name_type(
 pub fn create_resource(
     directory: &Path,
     resource_path: &Path,
-    out_names: Option<&PathBuf>,
-    platform_override: Option<&Platform>,
+    out_names: Option<&Path>,
+    platform_override: Option<Platform>,
     version_override: Option<&Version>,
 ) -> BffCliResult<()> {
     let resource_serialized_path = directory.join("resource.json");
@@ -84,11 +84,8 @@ pub fn create_resource(
 
     let _ = bff_class.class.import(&artifacts);
 
-    let bff_resource = bff_class.bff_resource_with_override(
-        platform_override.copied(),
-        version_override,
-        &name_context,
-    )?;
+    let bff_resource =
+        bff_class.bff_resource_with_override(platform_override, version_override, &name_context)?;
 
     let mut resource_writer = BufWriter::new(File::create(resource_path)?);
     bff_resource.write(&mut resource_writer, &name_context)?;
