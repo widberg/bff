@@ -20,6 +20,7 @@ pub struct TrivialClass<LinkHeaderType, BodyType> {
     #[referenced_names(skip)]
     pub name: Name,
     #[referenced_names(skip)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub link_name: Option<Name>,
     pub link_header: LinkHeaderType,
     pub body: BodyType,
