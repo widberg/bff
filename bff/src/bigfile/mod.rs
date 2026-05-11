@@ -87,7 +87,7 @@ impl BigFile {
         reader.seek(std::io::SeekFrom::Start(start))?;
 
         let version = version_override.clone().unwrap_or(version);
-        (&version).try_into()
+        version.name_type()
     }
 
     pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(

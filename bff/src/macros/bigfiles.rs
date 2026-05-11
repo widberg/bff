@@ -286,17 +286,13 @@ macro_rules! bigfiles {
             }
         }
 
-        impl TryFrom<&crate::bigfile::versions::Version> for crate::names::NameType {
-            type Error = crate::BffError;
-
-            fn try_from(
-                version: &crate::bigfile::versions::Version,
-            ) -> Result<crate::names::NameType, Self::Error> {
+        impl crate::bigfile::versions::Version {
+            pub fn name_type(&self) -> crate::BffResult<crate::names::NameType> {
                 use crate::bigfile::versions::Version::*;
                 use crate::traits::BigFileIo;
-                match version {
+                match self {
                     $($version_pattern => Ok(<$bigfile as BigFileIo>::NAME_TYPE),)*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version.clone()).into()),
+                    _ => Err(crate::error::UnimplementedVersionError::new(self.clone()).into()),
                 }
             }
         }

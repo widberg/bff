@@ -50,7 +50,7 @@ pub struct BffResourceHeader {
 
 impl BffResourceHeader {
     pub fn name_type(&self) -> BffResult<NameType> {
-        (&self.version).try_into()
+        self.version.name_type()
     }
 
     pub fn probe_name_type<R: Read + Seek>(reader: &mut R) -> BffResult<NameType> {

@@ -19,7 +19,7 @@ fn validate_version_override_name_type(
     expected_name_type: NameType,
 ) -> BffCliResult<()> {
     if let Some(version_override) = version_override {
-        let override_name_type: NameType = version_override.try_into()?;
+        let override_name_type = version_override.name_type()?;
         if override_name_type != expected_name_type {
             return Err(std::io::Error::other(format!(
                 "`--version-override` implies NameType {:?}, but context requires {:?}",

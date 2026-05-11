@@ -106,7 +106,7 @@ macro_rules! classes {
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<Class> {
-                let name_type = (&version).try_into()?;
+                let name_type = version.name_type()?;
                 if let Some(class_type) = ClassType::from_name_and_type(resource.class_name, name_type) {
                     return match class_type {
                         $(

@@ -18,7 +18,7 @@ fn probe_name_type_from_value(value: &Value) -> serde_json::Result<NameType> {
             ))
         })?;
     let version: Version = version_string.into();
-    (&version).try_into().map_err(|err: crate::BffError| {
+    version.name_type().map_err(|err: crate::BffError| {
         serde_json::Error::io(Error::new(
             ErrorKind::InvalidData,
             format!("unable to derive NameType from version `{version_string}`: {err}"),
