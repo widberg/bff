@@ -4,10 +4,9 @@ use std::io::Cursor;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
-use bff::class::Class;
+use bff::bigfile::resource::{BffClass, Resource};
 use bff::names::NameContext;
-use bff::traits::{Export, FromResource, Import, ToResource};
+use bff::traits::{Export, Import, ToResource};
 use binrw::io::BufReader;
 
 use crate::path_helpers::resolve_bigfile_path;
@@ -64,15 +63,7 @@ fn roundtrip_resources(bigfile_path_str: String) {
     let version = &bigfile.manifest().version;
 
     for bff_resource in bigfile.bff_resources() {
-        let class: Class =
-            Class::from_resource(bff_resource.resource, version, platform, &name_context).unwrap();
-        let bff_class = BffClass {
-            header: BffResourceHeader {
-                platform,
-                version: version.clone(),
-            },
-            class,
-        };
+        let bff_class = bff_resource.bff_class(&name_context).unwrap();
         let resource_serialized =
             bff::names::json::to_string_pretty(&bff_class, &name_context).unwrap();
         let mut roundtripped_bff_class: BffClass = bff::names::json::from_reader(

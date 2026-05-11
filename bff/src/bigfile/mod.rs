@@ -35,10 +35,9 @@ use crate::bigfile::v2_07_pc::{BigFileV2_07PCPROTO, BigFileV2_07PCSHAUN};
 use crate::bigfile::v2_128_52_19_pc::BigFileV2_128_52_19PC;
 use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::bigfile::v2_256_38_19_pc::BigFileV2_256_38_19PC;
-use crate::class::Class;
 use crate::macros::bigfiles::bigfiles;
 use crate::names::{Name, NameContext};
-use crate::traits::{FromResource, ReferencedNames};
+use crate::traits::ReferencedNames;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
@@ -95,15 +94,12 @@ impl BigFile {
     pub fn reference_graph(&self, name_context: &NameContext) -> Graph<Name, ()> {
         let mut graph = Graph::with_capacity(self.resources.len(), 0);
         let mut node_ids = HashMap::new();
-        for (&name, resource) in &self.resources {
-            let references = Class::from_resource(
-                resource,
-                &self.manifest.version,
-                self.manifest.platform,
-                name_context,
-            )
-            .map(|class| class.referenced_names())
-            .unwrap_or_default();
+        for bff_resource in self.bff_resources() {
+            let name = bff_resource.resource.name;
+            let references = bff_resource
+                .bff_class(name_context)
+                .map(|bff_class| bff_class.class.referenced_names())
+                .unwrap_or_default();
             let from_id = *node_ids.entry(name).or_insert_with(|| graph.add_node(name));
             for reference in references {
                 let to_id = *node_ids
@@ -131,23 +127,6 @@ impl BigFile {
 
         let version = version_override.clone().unwrap_or(version);
         version.name_type()
-    }
-
-    pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(
-        &self,
-        resource: &crate::bigfile::resource::Resource,
-        writer: &mut W,
-        name_context: &crate::names::NameContext,
-    ) -> crate::BffResult<()> {
-        let platform = self.manifest.platform;
-        let version = &self.manifest.version;
-        crate::bigfile::resource::Resource::dump_bff_resource(
-            resource,
-            writer,
-            platform,
-            version,
-            name_context,
-        )
     }
 }
 

@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, Resource};
+use bff::bigfile::resource::{BffClass, BffResource, Resource};
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Import, ToResource};
+use bff::traits::{Artifact, Import};
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
@@ -114,15 +114,11 @@ pub fn create(
 
             let _ = bff_class.class.import(&artifacts);
 
-            let platform = platform_override.unwrap_or(bff_class.header.platform);
-            let version = version_override
-                .as_ref()
-                .unwrap_or(&bff_class.header.version);
-
-            let resource: Resource =
-                bff_class
-                    .class
-                    .to_resource(version, platform, &name_context)?;
+            let BffResource { resource, .. } = bff_class.bff_resource_with_override(
+                *platform_override,
+                version_override.as_ref(),
+                &name_context,
+            )?;
 
             if resources.contains_key(&resource.name) {
                 return Err(crate::error::BffCliError::DuplicateResource {

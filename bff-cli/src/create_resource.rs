@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 
 use bff::BufReader;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, Resource};
+use bff::bigfile::resource::BffClass;
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Import, ToResource};
+use bff::traits::{Artifact, Import};
 
 use crate::error::BffCliResult;
 use crate::extract::write_names;
@@ -84,23 +84,14 @@ pub fn create_resource(
 
     let _ = bff_class.class.import(&artifacts);
 
-    let platform = platform_override.unwrap_or(bff_class.header.platform);
-    let version = version_override
-        .as_ref()
-        .unwrap_or(&bff_class.header.version);
-
-    let resource: Resource = bff_class
-        .class
-        .to_resource(version, platform, &name_context)?;
-
-    let mut resource_writer = BufWriter::new(File::create(resource_path)?);
-    Resource::dump_bff_resource(
-        &resource,
-        &mut resource_writer,
-        platform,
-        version,
+    let bff_resource = bff_class.bff_resource_with_override(
+        *platform_override,
+        version_override.as_ref(),
         &name_context,
     )?;
+
+    let mut resource_writer = BufWriter::new(File::create(resource_path)?);
+    bff_resource.write(&mut resource_writer, &name_context)?;
 
     if let Some(out_names) = out_names {
         write_names(out_names, None, &name_context)?;

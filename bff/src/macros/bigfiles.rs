@@ -192,43 +192,6 @@ macro_rules! bigfiles {
                 }
             }
 
-            pub fn dump_bff_resource<W: std::io::Write + std::io::Seek>(
-                &self,
-                writer: &mut W,
-                platform: crate::bigfile::platforms::Platform,
-                version: &crate::bigfile::versions::Version,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<()> {
-                use crate::bigfile::versions::Version::*;
-                use crate::traits::BigFileIo;
-
-                let endian: crate::Endian = platform.into();
-                <crate::bigfile::resource::BffResourceHeader as binrw::BinWrite>::write(
-                    &crate::bigfile::resource::BffResourceHeader {
-                        platform,
-                        version: version.clone(),
-                    },
-                    writer,
-                )?;
-                let resource = self;
-                match version {
-                    $($version_pattern => {
-                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
-                            return Err(std::io::Error::other(format!(
-                                "NameContext type mismatch: expected {:?}, got {:?}",
-                                <$bigfile as BigFileIo>::NAME_TYPE,
-                                name_context.name_type()
-                            ))
-                            .into());
-                        }
-                        name_context.scope(|| {
-                            Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
-                        })
-                    })*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version.clone()).into()),
-                }
-            }
-
             pub fn read_resource<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
                 platform: crate::bigfile::platforms::Platform,

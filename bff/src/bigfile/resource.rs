@@ -9,6 +9,7 @@ use super::versions::Version;
 use crate::BffResult;
 use crate::class::Class;
 use crate::names::{Name, NameContext, NameType};
+use crate::traits::{FromResource, ToResource};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum ResourceData {
@@ -87,7 +88,59 @@ pub struct BffResourceRef<'a> {
     pub resource: &'a Resource,
 }
 
+impl BffClass {
+    pub fn bff_resource(&self, name_context: &NameContext) -> BffResult<BffResource> {
+        self.bff_resource_with_override(None, None, name_context)
+    }
+
+    pub fn bff_resource_with_override(
+        &self,
+        platform_override: Option<Platform>,
+        version_override: Option<&Version>,
+        name_context: &NameContext,
+    ) -> BffResult<BffResource> {
+        let platform = platform_override.unwrap_or(self.header.platform);
+        let version = version_override.unwrap_or(&self.header.version);
+        let resource = self.class.to_resource(version, platform, name_context)?;
+        Ok(BffResource {
+            header: BffResourceHeader {
+                platform,
+                version: version.clone(),
+            },
+            resource,
+        })
+    }
+}
+
 impl BffResource {
+    pub const fn as_ref(&self) -> BffResourceRef<'_> {
+        BffResourceRef {
+            platform: self.header.platform,
+            version: &self.header.version,
+            resource: &self.resource,
+        }
+    }
+
+    pub fn bff_class(&self, name_context: &NameContext) -> BffResult<BffClass> {
+        self.bff_class_with_override(None, None, name_context)
+    }
+
+    pub fn bff_class_with_override(
+        &self,
+        platform_override: Option<Platform>,
+        version_override: Option<&Version>,
+        name_context: &NameContext,
+    ) -> BffResult<BffClass> {
+        let platform = platform_override.unwrap_or(self.header.platform);
+        let version = version_override.unwrap_or(&self.header.version);
+        BffResourceRef {
+            platform,
+            version,
+            resource: &self.resource,
+        }
+        .bff_class(name_context)
+    }
+
     pub fn read<R: Read + Seek>(reader: &mut R, name_context: &NameContext) -> BffResult<Self> {
         let header = BffResourceHeader::read(reader)?;
         let resource =
@@ -117,6 +170,14 @@ impl BffResourceRef<'_> {
             platform: self.platform,
             version: self.version.clone(),
         }
+    }
+
+    pub fn bff_class(&self, name_context: &NameContext) -> BffResult<BffClass> {
+        let class = Class::from_resource(self.resource, self.version, self.platform, name_context)?;
+        Ok(BffClass {
+            header: self.header(),
+            class,
+        })
     }
 
     pub fn write<W: Write + Seek>(

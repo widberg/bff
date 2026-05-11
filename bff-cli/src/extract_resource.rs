@@ -4,11 +4,10 @@ use std::path::{Path, PathBuf};
 
 use bff::BufReader;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, BffResource, BffResourceHeader};
+use bff::bigfile::resource::{BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
-use bff::class::Class;
 use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Export, FromResource};
+use bff::traits::{Artifact, Export};
 
 use crate::error::BffCliResult;
 use crate::extract::read_in_names;
@@ -48,18 +47,11 @@ pub fn extract_resource(
     let mut reader = BufReader::new(f);
     let bff_resource = BffResource::read(&mut reader, &name_context)?;
 
-    let platform = platform_override.unwrap_or(bff_resource.header.platform);
-    let version = version_override
-        .as_ref()
-        .unwrap_or(&bff_resource.header.version);
-    let header = BffResourceHeader {
-        platform,
-        version: version.clone(),
-    };
-
-    let class: Class =
-        Class::from_resource(&bff_resource.resource, version, platform, &name_context)?;
-    let bff_class = BffClass { header, class };
+    let bff_class = bff_resource.bff_class_with_override(
+        *platform_override,
+        version_override.as_ref(),
+        &name_context,
+    )?;
 
     std::fs::create_dir(directory)?;
 

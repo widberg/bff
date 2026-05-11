@@ -5,11 +5,10 @@ use std::path::{Path, PathBuf};
 use bff::BufReader;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
-use bff::bigfile::resource::{BffClass, BffResourceHeader, Resource};
+use bff::bigfile::resource::BffResourceRef;
 use bff::bigfile::versions::Version;
-use bff::class::Class;
 use bff::names::{Name, NameContext};
-use bff::traits::{Artifact, Export, FromResource};
+use bff::traits::{Artifact, Export};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -127,13 +126,20 @@ fn strip_suffix_if_exists(s: String, suffix: &str) -> String {
 
 fn dump_bff_resource(
     resources_path: &Path,
-    bigfile: &BigFile,
-    resource: &Resource,
+    bff_resource: &BffResourceRef,
     name_context: &NameContext,
 ) -> BffCliResult<()> {
-    let class_name = resource.class_name.with_context(name_context).to_string();
+    let class_name = bff_resource
+        .resource
+        .class_name
+        .with_context(name_context)
+        .to_string();
     let name = clean_path(strip_suffix_if_exists(
-        resource.name.with_context(name_context).to_string(),
+        bff_resource
+            .resource
+            .name
+            .with_context(name_context)
+            .to_string(),
         &format!(".{}", class_name),
     ));
     let mut path = resources_path.join(format!("{}.{}", name, class_name));
@@ -143,30 +149,29 @@ fn dump_bff_resource(
         i += 1;
     }
     let mut writer = BufWriter::new(File::create(path)?);
-    bigfile.dump_bff_resource(resource, &mut writer, name_context)?;
+    bff_resource.write(&mut writer, name_context)?;
     Ok(())
 }
 
 fn export_bff_resource(
     resources_path: &Path,
-    bigfile: &BigFile,
-    resource: &Resource,
+    bff_resource: &BffResourceRef,
     name_context: &NameContext,
     rich_suffix: &String,
 ) -> BffCliResult<()> {
-    let platform = bigfile.manifest().platform;
-    let version = &bigfile.manifest().version;
-    let header = BffResourceHeader {
-        platform,
-        version: version.clone(),
-    };
+    let bff_class = bff_resource.bff_class(name_context)?;
 
-    let class: Class = Class::from_resource(resource, version, platform, name_context)?;
-    let bff_class = BffClass { header, class };
-
-    let class_name = resource.class_name.with_context(name_context).to_string();
+    let class_name = bff_resource
+        .resource
+        .class_name
+        .with_context(name_context)
+        .to_string();
     let name = clean_path(strip_suffix_if_exists(
-        resource.name.with_context(name_context).to_string(),
+        bff_resource
+            .resource
+            .name
+            .with_context(name_context)
+            .to_string(),
         &format!(".{}", class_name),
     ));
     let mut directory = resources_path.join(format!("{}.{}{}", name, class_name, rich_suffix));
@@ -243,21 +248,10 @@ pub fn extract(
         .try_for_each(|bff_resource| {
             progress_bar.inc(1);
             if !matches!(*export_strategy, ExportStrategy::Rich)
-                || export_bff_resource(
-                    &resources_path,
-                    &bigfile,
-                    bff_resource.resource,
-                    &name_context,
-                    rich_suffix,
-                )
-                .is_err()
+                || export_bff_resource(&resources_path, &bff_resource, &name_context, rich_suffix)
+                    .is_err()
             {
-                dump_bff_resource(
-                    &resources_path,
-                    &bigfile,
-                    bff_resource.resource,
-                    &name_context,
-                )?;
+                dump_bff_resource(&resources_path, &bff_resource, &name_context)?;
             }
 
             Ok::<(), BffCliError>(())
