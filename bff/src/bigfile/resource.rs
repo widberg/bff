@@ -81,6 +81,12 @@ pub struct BffResource {
     pub resource: Resource,
 }
 
+pub struct BffResourceRef<'a> {
+    pub platform: Platform,
+    pub version: &'a Version,
+    pub resource: &'a Resource,
+}
+
 impl BffResource {
     pub fn read<R: Read + Seek>(reader: &mut R, name_context: &NameContext) -> BffResult<Self> {
         let header = BffResourceHeader::read(reader)?;
@@ -101,6 +107,26 @@ impl BffResource {
             &self.header.version,
             name_context,
         )?;
+        Ok(())
+    }
+}
+
+impl BffResourceRef<'_> {
+    pub fn header(&self) -> BffResourceHeader {
+        BffResourceHeader {
+            platform: self.platform,
+            version: self.version.clone(),
+        }
+    }
+
+    pub fn write<W: Write + Seek>(
+        &self,
+        writer: &mut W,
+        name_context: &NameContext,
+    ) -> BffResult<()> {
+        self.header().write(writer)?;
+        self.resource
+            .dump_resource(writer, self.platform, self.version, name_context)?;
         Ok(())
     }
 }

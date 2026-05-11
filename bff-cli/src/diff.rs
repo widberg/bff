@@ -43,16 +43,25 @@ fn resolve_resources<'a>(
 ) -> BffCliResult<BTreeMap<String, ResolvedResource<'a>>> {
     let mut resources = BTreeMap::new();
 
-    for resource in bigfile.resources.values() {
-        let resource_name = resource.name.with_context(name_context).to_string();
-        let class_name = resource.class_name.with_context(name_context).to_string();
+    for bff_resource in bigfile.bff_resources() {
+        let resource_name = bff_resource
+            .resource
+            .name
+            .with_context(name_context)
+            .to_string();
+        let class_name = bff_resource
+            .resource
+            .class_name
+            .with_context(name_context)
+            .to_string();
         let full_name = format!("{resource_name}.{class_name}");
         let resolved_resource = ResolvedResource {
-            link_name: resource
+            link_name: bff_resource
+                .resource
                 .link_name
                 .as_ref()
                 .map(|name| name.with_context(name_context).to_string()),
-            resource,
+            resource: bff_resource.resource,
         };
 
         assert!(

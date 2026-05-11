@@ -13,12 +13,20 @@ use binrw::io::BufReader;
 use crate::path_helpers::resolve_bigfile_path;
 
 fn assert_no_missing_class_names(bigfile: &BigFile, name_context: &NameContext) {
-    for (i, resource) in bigfile.resources.values().enumerate() {
-        let resource_name = resource.name.with_context(name_context).to_string();
-        let class_name = resource.class_name.with_context(name_context).to_string();
+    for (i, bff_resource) in bigfile.bff_resources().enumerate() {
+        let resource_name = bff_resource
+            .resource
+            .name
+            .with_context(name_context)
+            .to_string();
+        let class_name = bff_resource
+            .resource
+            .class_name
+            .with_context(name_context)
+            .to_string();
 
         assert!(
-            name_context.contains(resource.class_name),
+            name_context.contains(bff_resource.resource.class_name),
             "missing class name for resource {i} {resource_name}: {class_name}",
         );
     }
@@ -53,11 +61,16 @@ fn roundtrip_resources(bigfile_path_str: String) {
     let mut reader = BufReader::new(f);
     let mut name_context = probe_name_context(&mut reader, platform);
     let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
-    let version = bigfile.manifest.version.clone();
+    let version = bigfile.manifest().version.clone();
 
-    for resource in bigfile.resources.values() {
-        let class: Class =
-            Class::from_resource(resource, version.clone(), platform, &name_context).unwrap();
+    for bff_resource in bigfile.bff_resources() {
+        let class: Class = Class::from_resource(
+            bff_resource.resource,
+            version.clone(),
+            platform,
+            &name_context,
+        )
+        .unwrap();
         let bff_class = BffClass {
             header: BffResourceHeader {
                 platform,
@@ -79,10 +92,21 @@ fn roundtrip_resources(bigfile_path_str: String) {
             .class
             .to_resource(version.clone(), platform, &name_context)
             .unwrap();
-        let resource_name = resource.name.with_context(&name_context).to_string();
-        let class_name = resource.class_name.with_context(&name_context).to_string();
+        let resource_name = bff_resource
+            .resource
+            .name
+            .with_context(&name_context)
+            .to_string();
+        let class_name = bff_resource
+            .resource
+            .class_name
+            .with_context(&name_context)
+            .to_string();
 
-        assert!(new_resource == *resource, "{resource_name}.{class_name}");
+        assert!(
+            new_resource == *bff_resource.resource,
+            "{resource_name}.{class_name}"
+        );
     }
 }
 

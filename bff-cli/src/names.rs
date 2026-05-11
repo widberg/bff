@@ -99,8 +99,11 @@ pub fn names(
                                 .with_context(&name_context)
                                 .get_wordlist_encoded_string(WORDLIST_BIP39),
                         };
-                        let class = if let Some(resource) = bigfile.resources.get(&name) {
-                            format!(".{}", resource.class_name.with_context(&name_context))
+                        let class = if let Some(bff_resource) = bigfile.bff_resource(name) {
+                            format!(
+                                ".{}",
+                                bff_resource.resource.class_name.with_context(&name_context)
+                            )
                         } else {
                             "".to_owned()
                         };
@@ -130,9 +133,13 @@ pub fn names(
                     }
                 }
             } else {
-                for resource in bigfile.resources.values() {
-                    let name = resource.name;
-                    let class = resource.class_name.with_context(&name_context).to_string();
+                for bff_resource in bigfile.bff_resources() {
+                    let name = bff_resource.resource.name;
+                    let class = bff_resource
+                        .resource
+                        .class_name
+                        .with_context(&name_context)
+                        .to_string();
                     if !name_context.contains(name) {
                         let string = match wordlist {
                             Wordlist::Empty => "".to_owned(),
@@ -154,7 +161,7 @@ pub fn names(
         }
 
         if let Some(out_names) = out_names {
-            let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
+            let resource_names: Vec<_> = bigfile.resource_names().collect();
             write_names(out_names, Some(resource_names.as_slice()), &name_context)?;
         }
     } else if let Some(out_names) = out_names {

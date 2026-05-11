@@ -52,11 +52,6 @@ pub fn create(
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
     let manifest = bff::names::json::from_reader(manifest_reader, &mut name_context)?;
 
-    let mut bigfile = BigFile {
-        manifest,
-        resources: Default::default(),
-    };
-
     let resources_path = directory.join("resources");
     std::fs::create_dir_all(&resources_path)?;
 
@@ -137,7 +132,7 @@ pub fn create(
             resources.insert(resource.name, resource);
         }
     }
-    bigfile.resources = resources;
+    let bigfile = BigFile::new(manifest, resources);
 
     progress_bar.set_style(ProgressStyle::default_spinner());
     progress_bar.set_message("Writing BigFile");
@@ -155,7 +150,7 @@ pub fn create(
     progress_bar.set_message("Writing names");
 
     if let Some(out_names) = out_names {
-        let resource_names: Vec<_> = bigfile.resources.keys().copied().collect();
+        let resource_names: Vec<_> = bigfile.resource_names().collect();
         write_names(out_names, Some(resource_names.as_slice()), &name_context)?;
     }
 

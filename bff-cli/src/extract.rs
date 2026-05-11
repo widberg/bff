@@ -154,8 +154,8 @@ fn export_bff_resource(
     name_context: &NameContext,
     rich_suffix: &String,
 ) -> BffCliResult<()> {
-    let platform = bigfile.manifest.platform;
-    let version = bigfile.manifest.version.clone();
+    let platform = bigfile.manifest().platform;
+    let version = bigfile.manifest().version.clone();
     let header = BffResourceHeader {
         platform,
         version: version.clone(),
@@ -229,31 +229,35 @@ pub fn extract(
 
     let manifest_path = directory.join("manifest.json");
     let manifest_writer = BufWriter::new(File::create(manifest_path)?);
-    bff::names::json::to_writer_pretty(manifest_writer, &bigfile.manifest, &name_context)?;
+    bff::names::json::to_writer_pretty(manifest_writer, bigfile.manifest(), &name_context)?;
 
     progress_bar.set_style(ProgressStyle::default_bar());
-    progress_bar.set_length(bigfile.resources.len() as u64);
+    progress_bar.set_length(bigfile.bff_resources().len() as u64);
 
     let resources_path = directory.join("resources");
     std::fs::create_dir(&resources_path)?;
 
     bigfile
-        .resources
-        .values()
+        .bff_resources()
         .par_bridge()
-        .try_for_each(|resource| {
+        .try_for_each(|bff_resource| {
             progress_bar.inc(1);
             if !matches!(*export_strategy, ExportStrategy::Rich)
                 || export_bff_resource(
                     &resources_path,
                     &bigfile,
-                    resource,
+                    bff_resource.resource,
                     &name_context,
                     rich_suffix,
                 )
                 .is_err()
             {
-                dump_bff_resource(&resources_path, &bigfile, resource, &name_context)?;
+                dump_bff_resource(
+                    &resources_path,
+                    &bigfile,
+                    bff_resource.resource,
+                    &name_context,
+                )?;
             }
 
             Ok::<(), BffCliError>(())

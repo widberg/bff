@@ -42,13 +42,56 @@ use crate::traits::{FromResource, ReferencedNames};
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
+pub type ResourceMap = HashMap<Name, Resource>;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct BigFile {
-    pub manifest: Manifest,
-    pub resources: HashMap<Name, Resource>,
+    manifest: Manifest,
+    resources: ResourceMap,
 }
 
 impl BigFile {
+    pub const fn new(manifest: Manifest, resources: ResourceMap) -> Self {
+        Self {
+            manifest,
+            resources,
+        }
+    }
+
+    pub const fn manifest(&self) -> &Manifest {
+        &self.manifest
+    }
+
+    pub fn resource_names(&self) -> impl ExactSizeIterator<Item = Name> + '_ {
+        self.resources.keys().copied()
+    }
+
+    pub fn bff_resources(
+        &self,
+    ) -> impl ExactSizeIterator<Item = crate::bigfile::resource::BffResourceRef<'_>> + '_ {
+        let platform = self.manifest.platform;
+        let version = &self.manifest.version;
+        self.resources
+            .values()
+            .map(move |resource| crate::bigfile::resource::BffResourceRef {
+                platform,
+                version,
+                resource,
+            })
+    }
+
+    pub fn bff_resource(&self, name: Name) -> Option<crate::bigfile::resource::BffResourceRef<'_>> {
+        let platform = self.manifest.platform;
+        let version = &self.manifest.version;
+        self.resources
+            .get(&name)
+            .map(|resource| crate::bigfile::resource::BffResourceRef {
+                platform,
+                version,
+                resource,
+            })
+    }
+
     pub fn reference_graph(&self, name_context: &NameContext) -> Graph<Name, ()> {
         let mut graph = Graph::with_capacity(self.resources.len(), 0);
         let mut node_ids = HashMap::new();
