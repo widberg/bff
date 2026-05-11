@@ -62,11 +62,11 @@ pub fn write_names(
 
 pub fn read_bigfile(
     bigfile_path: &Path,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
     name_context: &NameContext,
 ) -> BffCliResult<BigFile> {
-    let platform = platform_override.unwrap_or_else(|| {
+    let platform = platform_override.copied().unwrap_or_else(|| {
         bigfile_path
             .extension()
             .and_then(|e| e.try_into().ok())
@@ -84,10 +84,10 @@ pub fn read_bigfile(
 
 pub fn probe_bigfile_name_context(
     bigfile_path: &Path,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
 ) -> BffCliResult<NameContext> {
-    let platform = platform_override.unwrap_or_else(|| {
+    let platform = platform_override.copied().unwrap_or_else(|| {
         bigfile_path
             .extension()
             .and_then(|e| e.try_into().ok())
@@ -209,13 +209,12 @@ pub fn extract(
     bigfile_path: &Path,
     directory: &Path,
     in_names: &Vec<PathBuf>,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
     export_strategy: &ExportStrategy,
     rich_suffix: &String,
 ) -> BffCliResult<()> {
-    let mut name_context =
-        probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
     read_bigfile_names(bigfile_path, &mut name_context)?;

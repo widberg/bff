@@ -11,7 +11,7 @@ pub struct BlockDescription {
     pub working_buffer_offset: u32,
     pub first_resource_name: Name,
     #[br(map = |checksum: i32| (checksum != 0).then_some(checksum))]
-    #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
+    #[bw(map = |checksum| checksum.as_ref().copied().unwrap_or(0))]
     pub checksum: Option<i32>,
 }
 

@@ -14,7 +14,7 @@ use crate::error::BffCliResult;
 use crate::extract::write_names;
 
 fn validate_version_override_name_type(
-    version_override: &Option<Version>,
+    version_override: Option<&Version>,
     expected_name_type: NameType,
 ) -> BffCliResult<()> {
     if let Some(version_override) = version_override {
@@ -34,9 +34,9 @@ fn validate_version_override_name_type(
 pub fn create_resource(
     directory: &Path,
     resource_path: &Path,
-    out_names: &Option<PathBuf>,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
+    out_names: Option<&PathBuf>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
 ) -> BffCliResult<()> {
     let resource_serialized_path = directory.join("resource.json");
     let name_type = bff::names::json::probe_name_type_from_bff_class_reader(BufReader::new(
@@ -85,8 +85,8 @@ pub fn create_resource(
     let _ = bff_class.class.import(&artifacts);
 
     let bff_resource = bff_class.bff_resource_with_override(
-        *platform_override,
-        version_override.as_ref(),
+        platform_override.copied(),
+        version_override,
         &name_context,
     )?;
 

@@ -13,7 +13,7 @@ use crate::error::BffCliResult;
 use crate::extract::read_in_names;
 
 fn validate_version_override_name_type(
-    version_override: &Option<Version>,
+    version_override: Option<&Version>,
     expected_name_type: NameType,
 ) -> BffCliResult<()> {
     if let Some(version_override) = version_override {
@@ -34,8 +34,8 @@ pub fn extract_resource(
     resource_path: &Path,
     directory: &Path,
     in_names: &Vec<PathBuf>,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
 ) -> BffCliResult<()> {
     let mut probe_reader = BufReader::new(File::open(resource_path)?);
     let name_type = BffResourceHeader::probe_name_type(&mut probe_reader)?;
@@ -48,8 +48,8 @@ pub fn extract_resource(
     let bff_resource = BffResource::read(&mut reader, &name_context)?;
 
     let bff_class = bff_resource.bff_class_with_override(
-        *platform_override,
-        version_override.as_ref(),
+        platform_override.copied(),
+        version_override,
         &name_context,
     )?;
 

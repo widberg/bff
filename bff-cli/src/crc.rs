@@ -97,7 +97,7 @@ fn hash(bytes: &[u8], starting: &i64, algorithm: &CrcAlgorithm, format: &CrcForm
 }
 
 pub fn crc(
-    string: &Option<String>,
+    string: Option<&String>,
     starting: &i64,
     algorithm: &CrcAlgorithm,
     mode: &CrcMode,

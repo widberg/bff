@@ -30,17 +30,17 @@ pub enum Wordlist {
 }
 
 pub fn names(
-    bigfile_path: &Option<PathBuf>,
-    name_type: &Option<NameType>,
-    wordlist: &Option<Wordlist>,
+    bigfile_path: Option<&PathBuf>,
+    name_type: Option<&NameType>,
+    wordlist: Option<&Wordlist>,
     in_names: &Vec<PathBuf>,
-    out_names: &Option<PathBuf>,
+    out_names: Option<&PathBuf>,
     use_reference_graph: &bool,
 ) -> BffCliResult<()> {
     let mut name_context = if let Some(bigfile_path) = bigfile_path {
-        probe_bigfile_name_context(bigfile_path, &None, &None)?
+        probe_bigfile_name_context(bigfile_path, None, None)?
     } else {
-        NameContext::new(name_type.ok_or_else(|| {
+        NameContext::new(name_type.copied().ok_or_else(|| {
             std::io::Error::other("`--name-type` is required when `--bigfile` is not provided")
         })?)
     };
@@ -50,7 +50,7 @@ pub fn names(
     read_in_names(in_names, &mut name_context)?;
 
     if let Some(bigfile_path) = bigfile_path {
-        let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
+        let bigfile = read_bigfile(bigfile_path, None, None, &name_context)?;
 
         if let Some(wordlist) = wordlist {
             if *use_reference_graph {

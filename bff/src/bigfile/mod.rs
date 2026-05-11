@@ -114,7 +114,7 @@ impl BigFile {
     pub fn probe_name_type_platform<R: std::io::Read + std::io::Seek>(
         reader: &mut R,
         _platform: crate::bigfile::platforms::Platform,
-        version_override: &Option<crate::bigfile::versions::Version>,
+        version_override: Option<&crate::bigfile::versions::Version>,
     ) -> crate::BffResult<crate::names::NameType> {
         use binrw::BinRead;
 
@@ -125,7 +125,7 @@ impl BigFile {
                 .into();
         reader.seek(std::io::SeekFrom::Start(start))?;
 
-        let version = version_override.clone().unwrap_or(version);
+        let version = version_override.cloned().unwrap_or(version);
         version.name_type()
     }
 }

@@ -25,14 +25,14 @@ fn read_name_file(name_path: &Path, name_context: &mut NameContext) -> BffCliRes
 
 fn load_bigfile(
     bigfile_path: &Path,
-    name_path: &Option<PathBuf>,
+    name_path: Option<&Path>,
 ) -> BffCliResult<(BigFile, NameContext)> {
-    let mut name_context = probe_bigfile_name_context(bigfile_path, &None, &None)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path, None, None)?;
     read_bigfile_names(bigfile_path, &mut name_context)?;
     if let Some(name_path) = name_path {
         read_name_file(name_path, &mut name_context)?;
     }
-    let bigfile = read_bigfile(bigfile_path, &None, &None, &name_context)?;
+    let bigfile = read_bigfile(bigfile_path, None, None, &name_context)?;
     Ok((bigfile, name_context))
 }
 
@@ -75,8 +75,8 @@ fn resolve_resources<'a>(
     Ok(resources)
 }
 
-fn display_link_name(link_name: &Option<String>) -> &str {
-    link_name.as_deref().unwrap_or("<none>")
+fn display_link_name(link_name: Option<&str>) -> &str {
+    link_name.unwrap_or("<none>")
 }
 
 fn describe_data_change(old_resource: &Resource, new_resource: &Resource) -> String {
@@ -99,8 +99,8 @@ fn describe_changes(
     if old_resource.link_name != new_resource.link_name {
         changes.push(format!(
             "link: {} -> {}",
-            display_link_name(&old_resource.link_name),
-            display_link_name(&new_resource.link_name)
+            display_link_name(old_resource.link_name.as_deref()),
+            display_link_name(new_resource.link_name.as_deref())
         ));
     }
 
@@ -117,11 +117,13 @@ fn describe_changes(
 pub fn diff(
     old_bigfile_path: &Path,
     new_bigfile_path: &Path,
-    old_name_path: &Option<PathBuf>,
-    new_name_path: &Option<PathBuf>,
+    old_name_path: Option<&PathBuf>,
+    new_name_path: Option<&PathBuf>,
 ) -> BffCliResult<()> {
-    let (old_bigfile, old_name_context) = load_bigfile(old_bigfile_path, old_name_path)?;
-    let (new_bigfile, new_name_context) = load_bigfile(new_bigfile_path, new_name_path)?;
+    let (old_bigfile, old_name_context) =
+        load_bigfile(old_bigfile_path, old_name_path.map(PathBuf::as_path))?;
+    let (new_bigfile, new_name_context) =
+        load_bigfile(new_bigfile_path, new_name_path.map(PathBuf::as_path))?;
 
     let old_resources = resolve_resources(&old_bigfile, &old_name_context, "old BigFile")?;
     let new_resources = resolve_resources(&new_bigfile, &new_name_context, "new BigFile")?;

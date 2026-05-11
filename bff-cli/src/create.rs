@@ -15,7 +15,7 @@ use crate::error::BffCliResult;
 use crate::extract::write_names;
 
 fn validate_version_override_name_type(
-    version_override: &Option<Version>,
+    version_override: Option<&Version>,
     expected_name_type: NameType,
 ) -> BffCliResult<()> {
     if let Some(version_override) = version_override {
@@ -35,11 +35,11 @@ fn validate_version_override_name_type(
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,
-    out_names: &Option<PathBuf>,
-    platform_override: &Option<Platform>,
-    version_override: &Option<Version>,
-    version_to_write: &Option<Version>,
-    tag: &Option<String>,
+    out_names: Option<&PathBuf>,
+    platform_override: Option<&Platform>,
+    version_override: Option<&Version>,
+    version_to_write: Option<&Version>,
+    tag: Option<&String>,
 ) -> BffCliResult<()> {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading manifest");
@@ -115,8 +115,8 @@ pub fn create(
             let _ = bff_class.class.import(&artifacts);
 
             let BffResource { resource, .. } = bff_class.bff_resource_with_override(
-                *platform_override,
-                version_override.as_ref(),
+                platform_override.copied(),
+                version_override,
                 &name_context,
             )?;
 
@@ -136,10 +136,10 @@ pub fn create(
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
     bigfile.write(
         &mut bigfile_writer,
-        *platform_override,
+        platform_override.copied(),
         version_override,
         version_to_write,
-        tag.as_deref(),
+        tag.map(String::as_str),
         &name_context,
     )?;
 

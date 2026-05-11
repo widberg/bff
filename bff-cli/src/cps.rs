@@ -93,7 +93,7 @@ fn read_files_into_cps_recursively(
 pub fn create_cps(
     directory: &Path,
     cps_path: &Path,
-    out_names: &Option<PathBuf>,
+    out_names: Option<&PathBuf>,
     endian: &LzEndian,
     unencrypted: &bool,
 ) -> BffCliResult<()> {

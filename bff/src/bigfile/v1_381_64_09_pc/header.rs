@@ -14,7 +14,7 @@ pub struct BlockDescription {
     pub working_buffer_offset: u32,
     pub first_resource_name: Name,
     #[br(map = |checksum: i32| (checksum != 0).then_some(checksum))]
-    #[bw(map = |checksum: &Option<i32>| checksum.unwrap_or(0))]
+    #[bw(map = |checksum| checksum.as_ref().copied().unwrap_or(0))]
     pub checksum: Option<i32>,
 }
 
@@ -61,7 +61,7 @@ pub struct Header {
     #[brw(seek_before = SeekFrom::Start(0x720))]
     pub pool_manifest_padded_size: u32,
     #[br(map = |pool_offset: u32| (pool_offset != u32::MAX && pool_offset != 0).then(|| pool_offset * 2048))]
-    #[bw(map = |pool_offset: &Option<u32>| pool_offset.map(|pool_offset| pool_offset / 2048).unwrap_or(0))]
+    #[bw(map = |pool_offset| pool_offset.as_ref().map(|pool_offset| *pool_offset / 2048).unwrap_or(0))]
     pub pool_offset: Option<u32>,
     #[br(map = |pool_manifest_unused: u32| (pool_manifest_unused != u32::MAX).then_some(pool_manifest_unused))]
     pub pool_manifest_unused: Option<u32>,
@@ -74,6 +74,6 @@ pub struct Header {
     pub file_size: u32,
     #[brw(align_after = 2048)]
     #[br(try, map = |incredi_builder_string: FixedStringNull<128>| Some(incredi_builder_string.into()))]
-    #[bw(map = |incredi_builder_string: &Option<String>| incredi_builder_string.as_ref().map(|s| FixedStringNull::<128>::from(s.clone())).unwrap_or(FixedStringNull::<128>::from(String::new())))]
+    #[bw(map = |incredi_builder_string| incredi_builder_string.as_ref().map(|s| FixedStringNull::<128>::from(s.clone())).unwrap_or(FixedStringNull::<128>::from(String::new())))]
     pub incredi_builder_string: Option<String>,
 }

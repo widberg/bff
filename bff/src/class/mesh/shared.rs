@@ -22,7 +22,7 @@ pub enum CollisionFacesRange {
 pub struct AABBNode {
     min: Vec3f,
     #[br(map = |x: (u16, u16)| (x != (0, 0)).then(|| (x.0 - 1, x.1 - 1)))]
-    #[bw(map = |x: &Option<(u16, u16)>| x.map(|x| (x.0 + 1, x.1 + 1)).unwrap_or((0, 0)))]
+    #[bw(map = |x| x.as_ref().map(|x| (x.0 + 1, x.1 + 1)).unwrap_or((0, 0)))]
     #[serde(skip_serializing_if = "Option::is_none")]
     collision_aabb_children: Option<(u16, u16)>,
     max: Vec3f,
