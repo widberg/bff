@@ -7,7 +7,7 @@ use crate::names::NameContext;
 pub trait FromResource: Sized {
     fn from_resource(
         resource: &Resource,
-        version: Version,
+        version: &Version,
         platform: Platform,
         name_context: &NameContext,
     ) -> BffResult<Self>;
@@ -16,7 +16,7 @@ pub trait FromResource: Sized {
 pub trait ToResource {
     fn to_resource(
         &self,
-        version: Version,
+        version: &Version,
         platform: Platform,
         name_context: &NameContext,
     ) -> BffResult<Resource>;

@@ -98,7 +98,7 @@ impl BigFile {
         for (&name, resource) in &self.resources {
             let references = Class::from_resource(
                 resource,
-                self.manifest.version.clone(),
+                &self.manifest.version,
                 self.manifest.platform,
                 name_context,
             )

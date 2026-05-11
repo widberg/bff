@@ -57,12 +57,8 @@ pub fn extract_resource(
         version: version.clone(),
     };
 
-    let class: Class = Class::from_resource(
-        &bff_resource.resource,
-        version.clone(),
-        platform,
-        &name_context,
-    )?;
+    let class: Class =
+        Class::from_resource(&bff_resource.resource, version, platform, &name_context)?;
     let bff_class = BffClass { header, class };
 
     std::fs::create_dir(directory)?;

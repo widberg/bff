@@ -122,7 +122,7 @@ pub fn create(
             let resource: Resource =
                 bff_class
                     .class
-                    .to_resource(version.clone(), platform, &name_context)?;
+                    .to_resource(version, platform, &name_context)?;
 
             if resources.contains_key(&resource.name) {
                 return Err(crate::error::BffCliError::DuplicateResource {

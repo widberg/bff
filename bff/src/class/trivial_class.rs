@@ -37,7 +37,7 @@ where
 {
     fn from_resource(
         resource: &Resource,
-        _version: Version,
+        _version: &Version,
         platform: Platform,
         name_context: &NameContext,
     ) -> BffResult<Self> {
@@ -99,7 +99,7 @@ where
 {
     fn to_resource(
         &self,
-        _version: Version,
+        _version: &Version,
         platform: Platform,
         name_context: &NameContext,
     ) -> BffResult<Resource> {

@@ -89,10 +89,9 @@ pub fn create_resource(
         .as_ref()
         .unwrap_or(&bff_class.header.version);
 
-    let resource: Resource =
-        bff_class
-            .class
-            .to_resource(version.clone(), platform, &name_context)?;
+    let resource: Resource = bff_class
+        .class
+        .to_resource(version, platform, &name_context)?;
 
     let mut resource_writer = BufWriter::new(File::create(resource_path)?);
     Resource::dump_bff_resource(

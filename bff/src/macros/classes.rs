@@ -102,7 +102,7 @@ macro_rules! classes {
         impl crate::traits::FromResource for Class {
             fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
-                version: crate::bigfile::versions::Version,
+                version: &crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<Class> {
@@ -114,7 +114,7 @@ macro_rules! classes {
                         )*
                     };
                 }
-                Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into())
+                Err(crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version.clone(), platform).into())
             }
         }
     };
@@ -123,7 +123,7 @@ macro_rules! classes {
         impl crate::traits::ToResource for Class {
             fn to_resource(
                 &self,
-                version: crate::bigfile::versions::Version,
+                version: &crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
@@ -200,12 +200,12 @@ macro_rules! classes {
         impl crate::traits::FromResource for $class {
             fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
-                version: crate::bigfile::versions::Version,
+                version: &crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 _name_context: &crate::names::NameContext,
             ) -> crate::BffResult<$class> {
                 Err(
-                        crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into(),
+                        crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version.clone(), platform).into(),
                     )
             }
         }
@@ -213,7 +213,7 @@ macro_rules! classes {
         impl crate::traits::ToResource for $class {
             fn to_resource(
                 &self,
-                _version: crate::bigfile::versions::Version,
+                _version: &crate::bigfile::versions::Version,
                 _platform: crate::bigfile::platforms::Platform,
                 _name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {
@@ -269,7 +269,7 @@ macro_rules! classes {
         impl crate::traits::FromResource for $class {
             fn from_resource(
                 resource: &crate::bigfile::resource::Resource,
-                version: crate::bigfile::versions::Version,
+                version: &crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<$class> {
@@ -281,7 +281,7 @@ macro_rules! classes {
                         Ok(std::boxed::Box::new(shadow_class).into())
                     })*
                     _ => Err(
-                        crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version, platform).into(),
+                        crate::error::UnimplementedClassError::new(resource.name, resource.class_name, version.clone(), platform).into(),
                     ),
                 }
             }
@@ -291,7 +291,7 @@ macro_rules! classes {
             #[expect(unused_imports)]
             fn to_resource(
                 &self,
-                version: crate::bigfile::versions::Version,
+                version: &crate::bigfile::versions::Version,
                 platform: crate::bigfile::platforms::Platform,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<crate::bigfile::resource::Resource> {

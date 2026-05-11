@@ -155,13 +155,13 @@ fn export_bff_resource(
     rich_suffix: &String,
 ) -> BffCliResult<()> {
     let platform = bigfile.manifest().platform;
-    let version = bigfile.manifest().version.clone();
+    let version = &bigfile.manifest().version;
     let header = BffResourceHeader {
         platform,
         version: version.clone(),
     };
 
-    let class: Class = Class::from_resource(resource, version.clone(), platform, name_context)?;
+    let class: Class = Class::from_resource(resource, version, platform, name_context)?;
     let bff_class = BffClass { header, class };
 
     let class_name = resource.class_name.with_context(name_context).to_string();

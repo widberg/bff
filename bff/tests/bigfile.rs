@@ -61,16 +61,11 @@ fn roundtrip_resources(bigfile_path_str: String) {
     let mut reader = BufReader::new(f);
     let mut name_context = probe_name_context(&mut reader, platform);
     let bigfile = BigFile::read_platform(&mut reader, platform, &None, &name_context).unwrap();
-    let version = bigfile.manifest().version.clone();
+    let version = &bigfile.manifest().version;
 
     for bff_resource in bigfile.bff_resources() {
-        let class: Class = Class::from_resource(
-            bff_resource.resource,
-            version.clone(),
-            platform,
-            &name_context,
-        )
-        .unwrap();
+        let class: Class =
+            Class::from_resource(bff_resource.resource, version, platform, &name_context).unwrap();
         let bff_class = BffClass {
             header: BffResourceHeader {
                 platform,
@@ -90,7 +85,7 @@ fn roundtrip_resources(bigfile_path_str: String) {
 
         let new_resource: Resource = roundtripped_bff_class
             .class
-            .to_resource(version.clone(), platform, &name_context)
+            .to_resource(version, platform, &name_context)
             .unwrap();
         let resource_name = bff_resource
             .resource
