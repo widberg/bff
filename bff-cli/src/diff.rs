@@ -5,7 +5,7 @@ use std::path::Path;
 
 use bff::BufReader;
 use bff::bigfile::BigFile;
-use bff::bigfile::resource::Resource;
+use bff::bigfile::resource::{Resource, ResourceData};
 use bff::names::NameContext;
 
 use crate::error::BffCliResult;
@@ -79,14 +79,57 @@ fn display_link_name(link_name: Option<&str>) -> &str {
     link_name.unwrap_or("<none>")
 }
 
-fn describe_data_change(old_resource: &Resource, new_resource: &Resource) -> String {
-    let old_size = old_resource.size();
-    let new_size = new_resource.size();
-
+fn describe_size_change(label: &str, old_size: usize, new_size: usize) -> String {
     if old_size == new_size {
-        format!("data changed ({old_size} bytes)")
+        format!("{label} changed ({old_size} bytes)")
     } else {
-        format!("data: {old_size} -> {new_size} bytes")
+        format!("{label}: {old_size} -> {new_size} bytes")
+    }
+}
+
+fn describe_split_part_size_change(label: &str, old_size: usize, new_size: usize) -> String {
+    if old_size == new_size {
+        format!("{label}: {old_size} bytes")
+    } else {
+        format!("{label}: {old_size} -> {new_size} bytes")
+    }
+}
+
+fn describe_data_change(old_resource: &Resource, new_resource: &Resource) -> String {
+    match (&old_resource.data, &new_resource.data) {
+        (ResourceData::Data(old_data), ResourceData::Data(new_data)) => {
+            describe_size_change("data", old_data.len(), new_data.len())
+        }
+        (
+            ResourceData::SplitData {
+                link_header: old_link_header,
+                body: old_body,
+            },
+            ResourceData::SplitData {
+                link_header: new_link_header,
+                body: new_body,
+            },
+        ) => format!(
+            "split data ({}, {})",
+            describe_split_part_size_change(
+                "link_header",
+                old_link_header.len(),
+                new_link_header.len()
+            ),
+            describe_split_part_size_change("body", old_body.len(), new_body.len())
+        ),
+        (ResourceData::Data(old_data), ResourceData::SplitData { link_header, body }) => format!(
+            "data format: Data ({} bytes) -> SplitData (link_header: {} bytes, body: {} bytes)",
+            old_data.len(),
+            link_header.len(),
+            body.len()
+        ),
+        (ResourceData::SplitData { link_header, body }, ResourceData::Data(new_data)) => format!(
+            "data format: SplitData (link_header: {} bytes, body: {} bytes) -> Data ({} bytes)",
+            link_header.len(),
+            body.len(),
+            new_data.len()
+        ),
     }
 }
 

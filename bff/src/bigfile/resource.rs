@@ -28,15 +28,6 @@ pub struct Resource {
     pub data: ResourceData,
 }
 
-impl Resource {
-    pub fn size(&self) -> usize {
-        match &self.data {
-            ResourceData::Data(data) => data.len(),
-            ResourceData::SplitData { link_header, body } => link_header.len() + body.len(),
-        }
-    }
-}
-
 #[binrw]
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[brw(little, magic = b"BFF0")] // Increment number when format changes
