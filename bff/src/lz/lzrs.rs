@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinReaderExt, BinResult, BinWriterExt, Endian};
+use binrw::{BinReaderExt as _, BinResult, BinWriterExt as _, Endian};
 
 use crate::BffResult;
 

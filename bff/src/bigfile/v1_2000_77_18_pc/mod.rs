@@ -5,7 +5,7 @@ use std::cmp::max;
 use std::collections::{HashMap, HashSet, hash_map};
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead as _, BinResult, BinWrite as _, Endian};
 use header::*;
 use pool::{Pool, PoolManifest, ResourceDescription, calculate_padded_pool_header_size};
 

@@ -7,7 +7,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::Resource;
 use bff::class::bff_class::BffClass;
 use bff::names::NameContext;
-use bff::traits::{Export, Import, ToResource};
+use bff::traits::{Export as _, Import as _, ToResource as _};
 use binrw::io::BufReader;
 
 use crate::path_helpers::resolve_bigfile_path;

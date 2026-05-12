@@ -7,7 +7,7 @@ use const_power_of_two::PowerOfTwoUsize;
 
 use super::scope::{current_name_type, with_name_context};
 use super::{NameContext, NameType};
-use crate::traits::{NameHashFunction, NameTarget};
+use crate::traits::{NameHashFunction, NameTarget as _};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
 

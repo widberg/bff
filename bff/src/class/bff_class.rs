@@ -7,7 +7,7 @@ use crate::bigfile::resource::bff_resource::{BffResource, BffResourceHeader};
 use crate::bigfile::versions::Version;
 use crate::class::Class;
 use crate::names::NameContext;
-use crate::traits::ToResource;
+use crate::traits::ToResource as _;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BffClass {

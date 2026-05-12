@@ -2,7 +2,7 @@ use std::io::{Read, Seek, Write};
 
 use bff_derive::ReferencedNames;
 use bilge::prelude::*;
-use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian};
+use binrw::{BinRead, BinResult, BinWrite, BinWriterExt as _, Endian};
 use derive_more::{Deref, DerefMut};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

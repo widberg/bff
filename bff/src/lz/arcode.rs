@@ -2,7 +2,7 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 use arcode::bitbit::{BitReader, BitWriter, LSB};
 use arcode::{ArithmeticDecoder, ArithmeticEncoder, EOFKind, Model};
-use binrw::{BinRead, BinResult, BinWrite, Endian, args};
+use binrw::{BinRead as _, BinResult, BinWrite as _, Endian, args};
 
 use crate::BffResult;
 

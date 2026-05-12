@@ -1,4 +1,4 @@
-use std::io::{BufRead, Cursor};
+use std::io::{BufRead as _, Cursor};
 
 use bff_derive::ReferencedNames;
 use binrw::{BinRead, BinWrite};

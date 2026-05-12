@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufWriter, Read, Write};
+use std::io::{BufWriter, Read as _, Write as _};
 use std::path::Path;
 
 use bff::BufReader;

@@ -6,7 +6,7 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult, BinWrite};
+use binrw::{BinRead as _, BinResult, BinWrite as _};
 use block::Block;
 use header::*;
 use resource::Resource;

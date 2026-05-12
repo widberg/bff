@@ -6,10 +6,10 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::BffResourceRef;
 use bff::bigfile::versions::Version;
 use bff::names::NameContext;
-use bff::traits::Export;
+use bff::traits::Export as _;
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
-use rayon::iter::{ParallelBridge, ParallelIterator};
+use rayon::iter::{ParallelBridge as _, ParallelIterator as _};
 
 use crate::error::{BffCliError, BffCliResult};
 use crate::shared::{

@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::spanned::Spanned;
+use syn::spanned::Spanned as _;
 use syn::{Attribute, Data, DeriveInput, Fields, Ident};
 
 fn does_not_have_skip_attr(attrs: &Vec<Attribute>) -> bool {

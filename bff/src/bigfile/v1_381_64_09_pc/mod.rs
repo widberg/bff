@@ -5,10 +5,10 @@ pub mod resource;
 
 use std::cmp::max;
 use std::collections::{HashMap, HashSet, hash_map};
-use std::default::Default;
+use std::default::Default as _;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian};
+use binrw::{BinRead as _, BinResult, BinWrite as _, Endian};
 use block::Block;
 use header::{BlockDescription, Header};
 use pool::Pool;

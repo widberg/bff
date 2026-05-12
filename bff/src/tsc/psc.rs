@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
 use binrw::{BinRead, BinResult, BinWrite, Endian};
-use itertools::Itertools;
+use itertools::Itertools as _;
 
 use crate::BffResult;
 use crate::helpers::StringUntilNull;

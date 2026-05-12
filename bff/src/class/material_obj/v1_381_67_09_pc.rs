@@ -29,8 +29,8 @@ impl Import for MaterialObjV1_381_67_09PC {}
 mod material_obj_entries {
     use indexmap::IndexMap;
     use serde::de::Error as _;
-    use serde::ser::SerializeSeq;
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use serde::ser::SerializeSeq as _;
+    use serde::{Deserialize as _, Deserializer, Serialize, Serializer};
 
     use super::MaterialObjEntryV1_381_67_09PC;
     use crate::helpers::{BffMap, DynArray};

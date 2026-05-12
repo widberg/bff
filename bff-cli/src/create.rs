@@ -9,7 +9,7 @@ use bff::bigfile::resource::bff_resource::BffResource;
 use bff::bigfile::versions::Version;
 use bff::class::bff_class::BffClass;
 use bff::names::NameContext;
-use bff::traits::Import;
+use bff::traits::Import as _;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;

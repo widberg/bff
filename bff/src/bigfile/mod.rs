@@ -38,7 +38,7 @@ use crate::bigfile::v2_128_92_19_pc::BigFileV2_128_92_19PC;
 use crate::bigfile::v2_256_38_19_pc::BigFileV2_256_38_19PC;
 use crate::macros::bigfiles::bigfiles;
 use crate::names::{Name, NameContext};
-use crate::traits::ReferencedNames;
+use crate::traits::ReferencedNames as _;
 
 pub static DEFAULT_TAG: &str = "made with <3 by bff contributors (https://github.com/widberg/bff)";
 
@@ -111,7 +111,7 @@ impl BigFile {
         _platform: crate::bigfile::platforms::Platform,
         version_override: Option<&crate::bigfile::versions::Version>,
     ) -> crate::BffResult<crate::names::NameType> {
-        use binrw::BinRead;
+        use binrw::BinRead as _;
 
         let start = reader.stream_position()?;
         let version: crate::bigfile::versions::Version =

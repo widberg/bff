@@ -3,7 +3,7 @@ pub mod header;
 use std::collections::HashMap;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult};
+use binrw::{BinRead as _, BinResult};
 use header::{BlockDescription, Header, Resources};
 
 use crate::BffResult;

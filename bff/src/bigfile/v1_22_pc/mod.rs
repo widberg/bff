@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian, binread, binrw, parser};
+use binrw::{BinRead as _, BinResult, BinWrite, Endian, binread, binrw, parser};
 
 use crate::BffResult;
 use crate::bigfile::BigFile;

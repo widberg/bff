@@ -6,7 +6,7 @@ use std::str::from_utf8;
 use bff_derive::ReferencedNames;
 use binrw::io::{Read, Seek};
 use binrw::meta::{EndianKind, ReadEndian, WriteEndian};
-use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian, Error, NullString, args};
+use binrw::{BinRead, BinResult, BinWrite, BinWriterExt as _, Endian, Error, NullString, args};
 use derive_more::{Constructor, Deref, DerefMut, Display, Error, From, Into};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

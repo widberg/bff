@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinWrite, binrw};
+use binrw::{BinRead as _, BinWrite as _, binrw};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +11,7 @@ use crate::bigfile::versions::Version;
 use crate::class::Class;
 use crate::class::bff_class::BffClass;
 use crate::names::{NameContext, NameType};
-use crate::traits::FromResource;
+use crate::traits::FromResource as _;
 
 pub struct BffResource {
     pub header: BffResourceHeader,

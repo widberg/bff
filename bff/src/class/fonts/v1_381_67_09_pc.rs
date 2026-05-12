@@ -1,4 +1,4 @@
-use binrw::{BinRead, BinResult, BinWrite};
+use binrw::{BinRead as _, BinResult, BinWrite as _};
 
 use crate::class::trivial_class::TrivialClass;
 use crate::helpers::{

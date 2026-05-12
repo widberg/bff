@@ -7,7 +7,7 @@ use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::{BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
 use bff::names::NameContext;
-use bff::traits::Export;
+use bff::traits::Export as _;
 
 use crate::error::BffCliResult;
 use crate::shared::{

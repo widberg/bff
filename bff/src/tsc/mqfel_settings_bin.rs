@@ -1,7 +1,16 @@
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 
-use binrw::{BinRead, BinReaderExt, BinResult, BinWrite, BinWriterExt, Endian, NullString, args};
+use binrw::{
+    BinRead,
+    BinReaderExt as _,
+    BinResult,
+    BinWrite,
+    BinWriterExt as _,
+    Endian,
+    NullString,
+    args,
+};
 
 use crate::BffResult;
 use crate::crc::racenet32;

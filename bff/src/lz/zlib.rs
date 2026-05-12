@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use binrw::{BinRead, BinReaderExt, BinResult, BinWrite, Endian, args};
+use binrw::{BinRead as _, BinReaderExt as _, BinResult, BinWrite as _, Endian, args};
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 

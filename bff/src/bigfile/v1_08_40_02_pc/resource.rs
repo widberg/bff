@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian, binread};
+use binrw::{BinRead as _, BinResult, BinWrite as _, Endian, binread};
 
 use crate::bigfile::resource::ResourceData::{Data, SplitData};
 use crate::bigfile::v1_06_63_02_pc::resource::body_parser;

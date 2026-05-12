@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, BufWriter, Write};
+use std::io::{self, BufWriter, Write as _};
 use std::path::{Path, PathBuf};
 
 use bff::petgraph::dot::{Config, Dot};

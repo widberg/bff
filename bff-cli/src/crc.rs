@@ -1,4 +1,4 @@
-use std::io::{self, BufRead, Read};
+use std::io::{self, BufRead as _, Read as _};
 
 use bff::crc::{
     asobo_alternate32_options,

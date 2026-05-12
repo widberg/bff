@@ -9,7 +9,7 @@ use bff::names::{
     get_forced_hash_string_for_type,
 };
 use bff::petgraph;
-use bff::petgraph::visit::{VisitMap, Visitable};
+use bff::petgraph::visit::{VisitMap as _, Visitable as _};
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 

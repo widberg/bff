@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, Write};
 
-use binrw::{BinRead, BinResult, BinWrite, Endian, args, binread, parser};
+use binrw::{BinRead, BinResult, BinWrite as _, Endian, args, binread, parser};
 use derive_more::{Deref, DerefMut};
 
 use crate::bigfile::resource::ResourceData::SplitData;
