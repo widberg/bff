@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
@@ -7,29 +6,16 @@ use bff::BufReader;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
 use bff::class::bff_class::BffClass;
-use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Import};
+use bff::names::NameContext;
+use bff::traits::Import;
 
 use crate::error::BffCliResult;
-use crate::extract::write_names;
-
-fn validate_version_override_name_type(
-    version_override: Option<&Version>,
-    expected_name_type: NameType,
-) -> BffCliResult<()> {
-    if let Some(version_override) = version_override {
-        let override_name_type = version_override.name_type()?;
-        if override_name_type != expected_name_type {
-            return Err(std::io::Error::other(format!(
-                "`--version-override` implies NameType {:?}, but context requires {:?}",
-                override_name_type, expected_name_type
-            ))
-            .into());
-        }
-    }
-
-    Ok(())
-}
+use crate::shared::{
+    read_artifacts,
+    resource_json_path,
+    validate_version_override_name_type,
+    write_names,
+};
 
 pub fn create_resource(
     directory: &Path,
@@ -38,7 +24,7 @@ pub fn create_resource(
     platform_override: Option<Platform>,
     version_override: Option<&Version>,
 ) -> BffCliResult<()> {
-    let resource_serialized_path = directory.join("resource.json");
+    let resource_serialized_path = resource_json_path(directory);
     let name_type = bff::names::json::probe_name_type_from_bff_class_reader(BufReader::new(
         File::open(&resource_serialized_path)?,
     ))?;
@@ -48,39 +34,7 @@ pub fn create_resource(
     let mut bff_class: BffClass =
         bff::names::json::from_reader(resource_serialized_reader, &mut name_context)?;
 
-    let mut artifacts = HashMap::new();
-
-    for file in std::fs::read_dir(directory)? {
-        let path = file?.path();
-        if path.is_file() {
-            if path.file_name() == Some("resource.json".as_ref()) {
-                continue;
-            }
-            match path.extension().unwrap().to_str().unwrap() {
-                "bin" => {
-                    let name = path.file_stem().unwrap().to_os_string();
-                    let bytes = std::fs::read(path)?;
-                    artifacts.insert(name, Artifact::Binary(bytes));
-                }
-                "dds" => {
-                    let name = path.file_stem().unwrap().to_os_string();
-                    let bytes = std::fs::read(path)?;
-                    artifacts.insert(name, Artifact::Dds(bytes));
-                }
-                "wav" => {
-                    let name = path.file_stem().unwrap().to_os_string();
-                    let bytes = std::fs::read(path)?;
-                    artifacts.insert(name, Artifact::Wav(bytes));
-                }
-                "txt" => {
-                    let name = path.file_stem().unwrap().to_os_string();
-                    let text = std::fs::read_to_string(path)?;
-                    artifacts.insert(name, Artifact::Text(text));
-                }
-                _ => {}
-            }
-        }
-    }
+    let artifacts = read_artifacts(directory)?;
 
     let _ = bff_class.class.import(&artifacts);
 

@@ -6,29 +6,16 @@ use bff::BufReader;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::{BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
-use bff::names::{NameContext, NameType};
-use bff::traits::{Artifact, Export};
+use bff::names::NameContext;
+use bff::traits::Export;
 
 use crate::error::BffCliResult;
-use crate::extract::read_in_names;
-
-fn validate_version_override_name_type(
-    version_override: Option<&Version>,
-    expected_name_type: NameType,
-) -> BffCliResult<()> {
-    if let Some(version_override) = version_override {
-        let override_name_type = version_override.name_type()?;
-        if override_name_type != expected_name_type {
-            return Err(std::io::Error::other(format!(
-                "`--version-override` implies NameType {:?}, but context requires {:?}",
-                override_name_type, expected_name_type
-            ))
-            .into());
-        }
-    }
-
-    Ok(())
-}
+use crate::shared::{
+    read_in_names,
+    resource_json_path,
+    validate_version_override_name_type,
+    write_artifacts,
+};
 
 pub fn extract_resource(
     resource_path: &Path,
@@ -52,23 +39,12 @@ pub fn extract_resource(
 
     std::fs::create_dir(directory)?;
 
-    let resource_serialized_path = directory.join("resource.json");
+    let resource_serialized_path = resource_json_path(directory);
     let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
     bff::names::json::to_writer_pretty(resource_serialized_writer, &bff_class, &name_context)?;
 
     if let Ok(artifacts) = bff_class.class.export() {
-        for (name, artifact) in artifacts {
-            let artifact_path = directory.join(name);
-
-            match artifact {
-                Artifact::Binary(bytes) => {
-                    std::fs::write(artifact_path.with_extension("bin"), bytes)?
-                }
-                Artifact::Dds(bytes) => std::fs::write(artifact_path.with_extension("dds"), bytes)?,
-                Artifact::Wav(bytes) => std::fs::write(artifact_path.with_extension("wav"), bytes)?,
-                Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
-            }
-        }
+        write_artifacts(directory, artifacts)?;
     }
 
     Ok(())

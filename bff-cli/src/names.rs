@@ -14,7 +14,7 @@ use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
-use crate::extract::{
+use crate::shared::{
     probe_bigfile_name_context,
     read_bigfile,
     read_bigfile_names,

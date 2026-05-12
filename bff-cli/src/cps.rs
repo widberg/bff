@@ -9,8 +9,8 @@ use bff::{BufReader, Endian};
 use pathdiff::diff_paths;
 
 use crate::error::BffCliResult;
-use crate::extract::{read_in_names, write_names};
 use crate::lz::LzEndian;
+use crate::shared::{read_in_names, write_names};
 
 fn collect_cps_names(cps: &Cps, name_context: &mut NameContext) -> HashSet<Name> {
     let mut names = HashSet::new();

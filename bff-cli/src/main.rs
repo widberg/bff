@@ -28,6 +28,7 @@ mod lz;
 mod mqfel_settings_bin;
 mod names;
 mod psc;
+mod shared;
 mod stdio_or_path;
 
 use mimalloc::MiMalloc;

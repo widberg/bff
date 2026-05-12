@@ -2,18 +2,24 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
-use bff::BufReader;
-use bff::bigfile::BigFile;
-use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
+use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::BffResourceRef;
 use bff::bigfile::versions::Version;
-use bff::names::{Name, NameContext};
-use bff::traits::{Artifact, Export};
+use bff::names::NameContext;
+use bff::traits::Export;
 use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::error::{BffCliError, BffCliResult};
+use crate::shared::{
+    probe_bigfile_name_context,
+    read_bigfile,
+    read_bigfile_names,
+    read_in_names,
+    resource_json_path,
+    write_artifacts,
+};
 
 #[derive(ValueEnum, Clone, Copy, Debug)]
 pub enum ExportStrategy {
@@ -21,82 +27,6 @@ pub enum ExportStrategy {
     Binary,
     #[value(alias("r"))]
     Rich,
-}
-
-pub fn read_bigfile_names(bigfile_path: &Path, name_context: &mut NameContext) -> BffCliResult<()> {
-    if let Some(extension) = bigfile_path.extension() {
-        let name_extension =
-            try_platform_style_to_name_extension(extension.try_into()?, extension.try_into()?)?;
-        let in_name = bigfile_path.with_extension(name_extension);
-
-        if let Ok(f) = File::open(in_name) {
-            let mut reader = BufReader::new(f);
-            name_context.read(&mut reader)?;
-        }
-    }
-
-    Ok(())
-}
-
-pub fn read_in_names(in_names: &[PathBuf], name_context: &mut NameContext) -> BffCliResult<()> {
-    for in_name in in_names {
-        let f = File::open(in_name)?;
-        let mut reader = BufReader::new(f);
-        name_context.read(&mut reader)?;
-    }
-
-    Ok(())
-}
-
-pub fn write_names(
-    out_names: &Path,
-    names: Option<&[Name]>,
-    name_context: &NameContext,
-) -> BffCliResult<()> {
-    let f = File::create(out_names)?;
-    let mut writer = BufWriter::new(f);
-    name_context.write(&mut writer, names)?;
-
-    Ok(())
-}
-
-pub fn read_bigfile(
-    bigfile_path: &Path,
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
-    name_context: &NameContext,
-) -> BffCliResult<BigFile> {
-    let platform = platform_override.unwrap_or_else(|| {
-        bigfile_path
-            .extension()
-            .and_then(|e| e.try_into().ok())
-            .unwrap_or(Platform::PC)
-    });
-    let f = File::open(bigfile_path)?;
-    let mut reader = BufReader::new(f);
-    Ok(BigFile::read_platform(
-        &mut reader,
-        platform,
-        version_override,
-        name_context,
-    )?)
-}
-
-pub fn probe_bigfile_name_context(
-    bigfile_path: &Path,
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
-) -> BffCliResult<NameContext> {
-    let platform = platform_override.unwrap_or_else(|| {
-        bigfile_path
-            .extension()
-            .and_then(|e| e.try_into().ok())
-            .unwrap_or(Platform::PC)
-    });
-    let f = File::open(bigfile_path)?;
-    let mut reader = BufReader::new(f);
-    let name_type = BigFile::probe_name_type_platform(&mut reader, platform, version_override)?;
-    Ok(NameContext::new(name_type))
 }
 
 const INVALID_PATH_CHARS: [u8; 41] = [
@@ -183,23 +113,12 @@ fn export_bff_resource(
 
     std::fs::create_dir(&directory)?;
 
-    let resource_serialized_path = directory.join("resource.json");
+    let resource_serialized_path = resource_json_path(&directory);
     let resource_serialized_writer = BufWriter::new(File::create(resource_serialized_path)?);
     bff::names::json::to_writer_pretty(resource_serialized_writer, &bff_class, name_context)?;
 
     if let Ok(artifacts) = bff_class.class.export() {
-        for (name, artifact) in artifacts {
-            let artifact_path = directory.join(name);
-
-            match artifact {
-                Artifact::Binary(bytes) => {
-                    std::fs::write(artifact_path.with_extension("bin"), bytes)?
-                }
-                Artifact::Dds(bytes) => std::fs::write(artifact_path.with_extension("dds"), bytes)?,
-                Artifact::Wav(bytes) => std::fs::write(artifact_path.with_extension("wav"), bytes)?,
-                Artifact::Text(text) => std::fs::write(artifact_path.with_extension("txt"), text)?,
-            }
-        }
+        write_artifacts(&directory, artifacts)?;
     }
 
     Ok(())

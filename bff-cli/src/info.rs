@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use bff::petgraph::dot::{Config, Dot};
 
 use crate::error::BffCliResult;
-use crate::extract::{probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names};
+use crate::shared::{probe_bigfile_name_context, read_bigfile, read_bigfile_names, read_in_names};
 
 pub fn info(
     bigfile_path: &Path,
