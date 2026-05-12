@@ -5,7 +5,7 @@ use std::path::Path;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, BffResource, Resource};
+use bff::bigfile::resource::{BffClass, BffResource};
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import};
@@ -64,7 +64,7 @@ pub fn create(
         progress_bar.inc(1);
         if path.is_file() {
             let mut file_reader = BufReader::new(File::open(&path)?);
-            let resource = Resource::read_bff_resource(&mut file_reader, &name_context)?;
+            let BffResource { resource, .. } = BffResource::read(&mut file_reader, &name_context)?;
             if resources.contains_key(&resource.name) {
                 return Err(crate::error::BffCliError::DuplicateResource {
                     name: resource.name,

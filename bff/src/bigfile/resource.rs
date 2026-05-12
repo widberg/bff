@@ -50,15 +50,11 @@ pub struct BffResourceHeader {
 }
 
 impl BffResourceHeader {
-    pub fn name_type(&self) -> BffResult<NameType> {
-        self.version.name_type()
-    }
-
     pub fn probe_name_type<R: Read + Seek>(reader: &mut R) -> BffResult<NameType> {
         let start = reader.stream_position()?;
         let header = Self::read(reader)?;
         reader.seek(SeekFrom::Start(start))?;
-        header.name_type()
+        header.version.name_type()
     }
 
     const fn data_padded_size_on_disk(&self) -> u16 {

@@ -72,93 +72,6 @@ macro_rules! bigfiles {
                 }
             }
 
-            pub fn dump_resource<W: std::io::Write + std::io::Seek>(
-                &self,
-                resource: &crate::bigfile::resource::Resource,
-                writer: &mut W,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<()> {
-                use crate::bigfile::versions::Version::*;
-                use crate::traits::BigFileIo;
-
-                let platform = self.manifest.platform;
-                let endian: crate::Endian = platform.into();
-                let version = &self.manifest.version;
-                match version {
-                    $($version_pattern => {
-                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
-                            return Err(std::io::Error::other(format!(
-                                "NameContext type mismatch: expected {:?}, got {:?}",
-                                <$bigfile as BigFileIo>::NAME_TYPE,
-                                name_context.name_type()
-                            ))
-                            .into());
-                        }
-                        name_context.scope(|| {
-                            Ok(<$bigfile as BigFileIo>::ResourceType::dump_resource(resource, writer, endian)?)
-                        })
-                    })*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version.clone()).into()),
-                }
-            }
-
-            pub fn read_resource<R: std::io::Read + std::io::Seek>(
-                &self,
-                reader: &mut R,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use crate::bigfile::versions::Version::*;
-                use crate::traits::BigFileIo;
-
-                let platform = self.manifest.platform;
-                let endian: crate::Endian = platform.into();
-                let version = &self.manifest.version;
-                match version {
-                    $($version_pattern => {
-                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
-                            return Err(std::io::Error::other(format!(
-                                "NameContext type mismatch: expected {:?}, got {:?}",
-                                <$bigfile as BigFileIo>::NAME_TYPE,
-                                name_context.name_type()
-                            ))
-                            .into());
-                        }
-                        name_context.scope(|| {
-                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
-                        })
-                    })*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version.clone()).into()),
-                }
-            }
-
-            pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(
-                &self,
-                reader: &mut R,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use crate::bigfile::versions::Version::*;
-                use crate::traits::BigFileIo;
-
-                let crate::bigfile::resource::BffResourceHeader { platform, version } =
-                    <crate::bigfile::resource::BffResourceHeader as binrw::BinRead>::read(reader)?;
-                let endian: crate::Endian = platform.into();
-                match &version {
-                    $($version_pattern => {
-                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
-                            return Err(std::io::Error::other(format!(
-                                "NameContext type mismatch: expected {:?}, got {:?}",
-                                <$bigfile as BigFileIo>::NAME_TYPE,
-                                name_context.name_type()
-                            ))
-                            .into());
-                        }
-                        name_context.scope(|| {
-                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
-                        })
-                    })*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version).into()),
-                }
-            }
         }
 
         impl crate::bigfile::resource::Resource {
@@ -217,34 +130,6 @@ macro_rules! bigfiles {
                         })
                     })*
                     _ => Err(crate::error::UnimplementedVersionError::new(version.clone()).into()),
-                }
-            }
-
-            pub fn read_bff_resource<R: std::io::Read + std::io::Seek>(
-                reader: &mut R,
-                name_context: &crate::names::NameContext,
-            ) -> crate::BffResult<crate::bigfile::resource::Resource> {
-                use crate::bigfile::versions::Version::*;
-                use crate::traits::BigFileIo;
-
-                let crate::bigfile::resource::BffResourceHeader { platform, version } =
-                    <crate::bigfile::resource::BffResourceHeader as binrw::BinRead>::read(reader)?;
-                let endian: crate::Endian = platform.into();
-                match &version {
-                    $($version_pattern => {
-                        if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
-                            return Err(std::io::Error::other(format!(
-                                "NameContext type mismatch: expected {:?}, got {:?}",
-                                <$bigfile as BigFileIo>::NAME_TYPE,
-                                name_context.name_type()
-                            ))
-                            .into());
-                        }
-                        name_context.scope(|| {
-                            Ok(<$bigfile as BigFileIo>::ResourceType::read_resource(reader, endian)?)
-                        })
-                    })*
-                    _ => Err(crate::error::UnimplementedVersionError::new(version).into()),
                 }
             }
         }
