@@ -5,8 +5,8 @@ use std::path::Path;
 
 use bff::BufReader;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::BffClass;
 use bff::bigfile::versions::Version;
+use bff::class::bff_class::BffClass;
 use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import};
 

@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use bff::BufReader;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
-use bff::bigfile::resource::BffResourceRef;
+use bff::bigfile::resource::bff_resource::BffResourceRef;
 use bff::bigfile::versions::Version;
 use bff::names::{Name, NameContext};
 use bff::traits::{Artifact, Export};

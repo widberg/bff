@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use bff::BufReader;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffResource, BffResourceHeader};
+use bff::bigfile::resource::bff_resource::{BffResource, BffResourceHeader};
 use bff::bigfile::versions::Version;
 use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Export};

@@ -1,5 +1,6 @@
 use crate::macros::classes::classes;
 
+pub mod bff_class;
 pub mod trivial_class;
 
 classes! {

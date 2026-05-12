@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
-use bff::bigfile::resource::BffClass;
+use bff::class::bff_class::BffClass;
 use schemars::schema_for;
 
 use crate::error::BffCliResult;

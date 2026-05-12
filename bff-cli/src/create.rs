@@ -5,8 +5,9 @@ use std::path::Path;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, BffResource};
+use bff::bigfile::resource::bff_resource::BffResource;
 use bff::bigfile::versions::Version;
+use bff::class::bff_class::BffClass;
 use bff::names::{NameContext, NameType};
 use bff::traits::{Artifact, Import};
 use indicatif::{ProgressBar, ProgressStyle};

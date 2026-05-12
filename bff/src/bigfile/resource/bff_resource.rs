@@ -4,28 +4,24 @@ use binrw::{BinRead, BinWrite, binrw};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::platforms::Platform;
-use super::versions::Version;
 use crate::BffResult;
+use crate::bigfile::platforms::Platform;
+use crate::bigfile::resource::Resource;
+use crate::bigfile::versions::Version;
 use crate::class::Class;
-use crate::names::{Name, NameContext, NameType};
-use crate::traits::{FromResource, ToResource};
+use crate::class::bff_class::BffClass;
+use crate::names::{NameContext, NameType};
+use crate::traits::FromResource;
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum ResourceData {
-    Data(Box<[u8]>),
-    SplitData {
-        link_header: Box<[u8]>,
-        body: Box<[u8]>,
-    },
+pub struct BffResource {
+    pub header: BffResourceHeader,
+    pub resource: Resource,
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct Resource {
-    pub class_name: Name,
-    pub name: Name,
-    pub link_name: Option<Name>,
-    pub data: ResourceData,
+pub struct BffResourceRef<'a> {
+    pub platform: Platform,
+    pub version: &'a Version,
+    pub resource: &'a Resource,
 }
 
 #[binrw]
@@ -55,47 +51,6 @@ impl BffResourceHeader {
         let padding_size = (16 - (total_unpadded_size % 16)) % 16;
         let total_padded_size = total_unpadded_size + padding_size;
         total_padded_size - non_data_size
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct BffClass {
-    pub header: BffResourceHeader,
-    pub class: Class,
-}
-
-pub struct BffResource {
-    pub header: BffResourceHeader,
-    pub resource: Resource,
-}
-
-pub struct BffResourceRef<'a> {
-    pub platform: Platform,
-    pub version: &'a Version,
-    pub resource: &'a Resource,
-}
-
-impl BffClass {
-    pub fn bff_resource(&self, name_context: &NameContext) -> BffResult<BffResource> {
-        self.bff_resource_with_override(None, None, name_context)
-    }
-
-    pub fn bff_resource_with_override(
-        &self,
-        platform_override: Option<Platform>,
-        version_override: Option<&Version>,
-        name_context: &NameContext,
-    ) -> BffResult<BffResource> {
-        let platform = platform_override.unwrap_or(self.header.platform);
-        let version = version_override.unwrap_or(&self.header.version);
-        let resource = self.class.to_resource(version, platform, name_context)?;
-        Ok(BffResource {
-            header: BffResourceHeader {
-                platform,
-                version: version.clone(),
-            },
-            resource,
-        })
     }
 }
 

@@ -20,6 +20,7 @@ use petgraph::Graph;
 
 use crate::bigfile::manifest::Manifest;
 use crate::bigfile::resource::Resource;
+use crate::bigfile::resource::bff_resource::BffResourceRef;
 use crate::bigfile::v1_06_63_02_pc::BigFileV1_06_63_02PC;
 use crate::bigfile::v1_08_40_02_pc::BigFileV1_08_40_02PC;
 use crate::bigfile::v1_22_pc::{
@@ -65,30 +66,24 @@ impl BigFile {
         self.resources.keys().copied()
     }
 
-    pub fn bff_resources(
-        &self,
-    ) -> impl ExactSizeIterator<Item = crate::bigfile::resource::BffResourceRef<'_>> + '_ {
+    pub fn bff_resources(&self) -> impl ExactSizeIterator<Item = BffResourceRef<'_>> + '_ {
         let platform = self.manifest.platform;
         let version = &self.manifest.version;
-        self.resources
-            .values()
-            .map(move |resource| crate::bigfile::resource::BffResourceRef {
-                platform,
-                version,
-                resource,
-            })
+        self.resources.values().map(move |resource| BffResourceRef {
+            platform,
+            version,
+            resource,
+        })
     }
 
-    pub fn bff_resource(&self, name: Name) -> Option<crate::bigfile::resource::BffResourceRef<'_>> {
+    pub fn bff_resource(&self, name: Name) -> Option<BffResourceRef<'_>> {
         let platform = self.manifest.platform;
         let version = &self.manifest.version;
-        self.resources
-            .get(&name)
-            .map(|resource| crate::bigfile::resource::BffResourceRef {
-                platform,
-                version,
-                resource,
-            })
+        self.resources.get(&name).map(|resource| BffResourceRef {
+            platform,
+            version,
+            resource,
+        })
     }
 
     pub fn reference_graph(&self, name_context: &NameContext) -> Graph<Name, ()> {

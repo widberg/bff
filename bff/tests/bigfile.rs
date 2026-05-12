@@ -4,7 +4,8 @@ use std::io::Cursor;
 
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
-use bff::bigfile::resource::{BffClass, Resource};
+use bff::bigfile::resource::Resource;
+use bff::class::bff_class::BffClass;
 use bff::names::NameContext;
 use bff::traits::{Export, Import, ToResource};
 use binrw::io::BufReader;
