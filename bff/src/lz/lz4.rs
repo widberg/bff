@@ -39,23 +39,7 @@ pub fn lz4_decompress_body_parser(
 #[binrw::writer(writer)]
 pub fn lz4_compress_data_writer(data: &[u8]) -> BinResult<()> {
     // TODO: Not the same parameters used by the game.
-    let compress_bound = unsafe { lz4::liblz4::LZ4_compressBound(data.len() as i32) as usize };
-    let mut compressed_buffer: Vec<u8> = Vec::with_capacity(compress_bound);
-    unsafe {
-        let result = lz4::liblz4::LZ4_compress_default(
-            data.as_ptr() as *const i8,
-            compressed_buffer.as_mut_ptr() as *mut i8,
-            data.len() as i32,
-            compressed_buffer.capacity() as i32,
-        );
-        if result < 0 {
-            return BinResult::Err(binrw::Error::AssertFail {
-                pos: writer.stream_position()?,
-                message: format!("LZ4 compression failed with code {}", result),
-            });
-        }
-        compressed_buffer.set_len(result as usize);
-    }
+    let compressed_buffer = lz4_flex::block::compress(data);
     writer.write_all(&compressed_buffer)?;
     Ok(())
 }
@@ -95,22 +79,13 @@ pub fn lz4_decompress_data_parser(
     if compressed_size != 0 {
         let compressed_buffer =
             Vec::<u8>::read_args(reader, args! { count: compressed_size as usize })?;
-        let mut decompressed_buffer: Vec<u8> = Vec::with_capacity(decompressed_size as usize);
-        unsafe {
-            let result = lz4::liblz4::LZ4_decompress_safe(
-                compressed_buffer.as_ptr() as *const i8,
-                decompressed_buffer.as_mut_ptr() as *mut i8,
-                compressed_size as i32,
-                decompressed_size as i32,
-            );
-            if result < 0 {
-                return BinResult::Err(binrw::Error::AssertFail {
-                    pos: reader.stream_position()?,
-                    message: format!("LZ4 decompression failed with code {}", result),
-                });
-            }
-            decompressed_buffer.set_len(result as usize);
-        }
+        let decompressed_buffer =
+            lz4_flex::block::decompress(&compressed_buffer, decompressed_size as usize).map_err(
+                |e| binrw::Error::AssertFail {
+                    pos: reader.stream_position().unwrap_or_default(),
+                    message: format!("LZ4 decompression failed: {}", e),
+                },
+            )?;
         if decompressed_buffer.len() != decompressed_size as usize {
             return BinResult::Err(binrw::Error::AssertFail {
                 pos: reader.stream_position()?,

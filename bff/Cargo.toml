@@ -23,7 +23,7 @@ hound = "3.5.1"
 impl-trait-for-tuples = "0.2.2"
 indexmap = { version = "2.0.0", features = ["serde"] }
 itertools = "0.14.0"
-lz4 = "1.24.0"
+lz4_flex = { version = "0.11", default-features = false, features = ["std"] }
 num-traits = "0.2.15"
 pastey = "0.2.1"
 petgraph = "0.8.1"
