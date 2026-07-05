@@ -140,6 +140,9 @@ fn compress_and_encrypt<W: Write>(decompressed_data: &[u8], writer: &mut W) -> B
     let decompressed_size = u32::try_from(decompressed_data.len()).unwrap();
 
     let mut compressed_data = Cursor::new(Vec::new());
+
+    // Won't match the original byte-for-byte
+    // It uses a different version or config than everything else
     lzo_compress(decompressed_data, &mut compressed_data)?;
 
     let mut payload_cursor = Cursor::new(compressed_data.into_inner());
