@@ -10,6 +10,9 @@ repository = "https://github.com/widberg/bff"
 edition = "2024"
 rust-version = "1.88.0"
 
+[workspace.lints.rust]
+unsafe_code = "deny"
+
 [workspace.lints.clippy]
 allow_attributes = "warn"
 assigning_clones = "warn"

@@ -1,3 +1,9 @@
+#![expect(
+    unsafe_code,
+    reason = "ambient NameContext requires storing lifetime-erased borrows in a thread-local; \
+              guarded by runtime borrow-state + LIFO Drop discipline. See module tests."
+)]
+
 use std::cell::{Cell, RefCell};
 use std::ptr::NonNull;
 
