@@ -3,15 +3,6 @@
 version = 4
 
 [[package]]
-name = "absperf-minilzo-sys"
-version = "2.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ad87b3bb1514c91eefab7357c719139922dff06a94235f21cfbeba86760daae"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "adler2"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,7 +118,6 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 name = "bff"
 version = "1.1.0"
 dependencies = [
- "absperf-minilzo-sys",
  "arcode",
  "bff-derive",
  "bilge",

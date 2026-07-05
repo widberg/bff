@@ -9,7 +9,6 @@ rust-version.workspace = true
 autotests = false
 
 [dependencies]
-absperf-minilzo-sys = "2.10.0"
 arcode = "0.2.4"
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = ["serde", "schemars"], branch = "paradiso" }

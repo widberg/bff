@@ -220,8 +220,6 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
             block_data.resize(block_payload_size as usize, 0);
 
             if compressed {
-                // TODO: Compressed data isn't a 1-to-1 match but round trips correctly?
-                // I bet the version of minilzo is wrong.
                 compression_type = CompressionType::Lzo;
                 lzo_compress(&block_data, writer)?;
             } else {

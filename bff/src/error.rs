@@ -4,6 +4,7 @@ use derive_more::{Constructor, Display, Error, From};
 
 use crate::bigfile::platforms::{Platform, Style};
 use crate::bigfile::versions::Version;
+use crate::lz::LzoError;
 use crate::names::Name;
 
 #[derive(Debug, Constructor, Display, Error)]
@@ -78,4 +79,5 @@ pub enum Error {
     UnimplementedImportExport,
     ImportBadArtifact,
     UnconsumedInput,
+    LzoError(LzoError),
 }
