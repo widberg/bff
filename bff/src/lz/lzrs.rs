@@ -166,14 +166,14 @@ struct Match {
 }
 
 // Detach node from previous
-fn split_off(matches: &mut [Match], node: usize) {
+const fn split_off(matches: &mut [Match], node: usize) {
     let prev = matches[node].prev.unwrap();
     matches[prev].next = None;
     matches[node].prev = None;
 }
 
 // Insert node between target and target.prev
-fn insert_before(matches: &mut [Match], target: usize, node: usize) {
+const fn insert_before(matches: &mut [Match], target: usize, node: usize) {
     let target_prev = matches[target].prev;
     matches[node].prev = target_prev;
     if let Some(prev) = target_prev {
