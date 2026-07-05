@@ -5,6 +5,7 @@ use std::io::Cursor;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::Resource;
+use bff::bigfile::versions::Version;
 use bff::class::bff_class::BffClass;
 use bff::names::NameContext;
 use bff::traits::{Export as _, Import as _, ToResource as _};
@@ -95,6 +96,14 @@ fn roundtrip_resources(bigfile_path_str: String) {
             "{resource_name}.{class_name}"
         );
     }
+}
+
+#[datatest::data("tests/datasets/bigfile_roundtrip_versions.yaml")]
+#[test]
+fn roundtrip_versions(version_str: String) {
+    let version = Version::from(version_str.as_str());
+
+    assert_eq!(version.to_string(), version_str);
 }
 
 #[datatest::data("tests/datasets/bigfile_roundtrip.yaml")]

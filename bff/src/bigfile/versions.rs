@@ -33,7 +33,7 @@ pub enum Version {
     #[brw(magic = 3u8)]
     // The space is intentional :(
     // This format is used in Shaun White Snowboarding: World Stage by Ubisoft as well
-    #[display("Bigfile Data v{}.{} ", _0, _1)]
+    #[display("Bigfile Data v{}.{:02} ", _0, _1)]
     BlackSheep(u16, u16),
     #[brw(magic = 4u8)]
     // Used in The Mighty Quest for Epic Loot by Ubisoft
