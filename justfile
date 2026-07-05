@@ -129,7 +129,7 @@ profile-compile *TARGET:
     Write-Output "Wrote compile profile artifacts to $out"
 
 zizmor:
-    zizmor --persona auditor --collect all -- .github/workflows/build-wasm.yml .github/workflows/build.yml .github/workflows/nightly-release.yml .github/workflows/release.yml
+    zizmor --persona auditor --strict-collection .github/workflows
 
 machete:
     cargo machete

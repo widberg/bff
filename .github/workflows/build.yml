@@ -11,9 +11,50 @@ on:
 permissions: {}
 
 jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    concurrency:
+      group: checks-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Configure Rust toolchain
+        run: |
+          rustup toolchain install nightly --profile minimal --component clippy --component rustfmt --no-self-update
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          save-if: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          lookup-only: true
+
+      - name: Check formatting
+        run: cargo +nightly fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo +nightly clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: Install cargo-deny
+        run: cargo +nightly install --locked cargo-deny
+
+      - name: Run cargo-deny
+        run: cargo +nightly deny check
+
+      - name: Install zizmor
+        run: cargo +nightly install --locked zizmor
+
+      - name: Run zizmor
+        run: zizmor --persona auditor --strict-collection .github/workflows
+
   build:
     name: Build for ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: checks
     concurrency:
       group: build-${{ github.ref }}-${{ matrix.name }}
       cancel-in-progress: true
@@ -43,12 +84,6 @@ jobs:
         with:
           save-if: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
           lookup-only: true
-
-      - name: Install dependencies (linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install libgtk-3-dev libasound2-dev
-        if: matrix.name == 'linux'
 
       - name: Build
         run: cargo build --release --locked -p bff-cli --bins
