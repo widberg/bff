@@ -19,6 +19,10 @@ use crate::traits::BigFileIo;
 
 type Resource = Resource12<20>;
 
+/// The smallest `decompressed_block_size` the format emits. Blocks whose content is
+/// smaller than this are still padded up to it (10 * 2048).
+const MINIMUM_DECOMPRESSED_BLOCK_SIZE: u32 = 0x5000;
+
 #[derive(Debug)]
 pub struct Block {
     pub compressed: bool,
@@ -205,7 +209,13 @@ impl BigFileIo for BigFileV2_0PC {
             ));
         }
 
-        decompressed_block_size = calculated_padded(decompressed_block_size as usize, 2048) as u32;
+        // The format enforces a minimum decompressed block size: even tiny blocks are
+        // padded up to `MINIMUM_DECOMPRESSED_BLOCK_SIZE`, so clamp the content-derived
+        // value to it to reproduce the original header and padding byte-for-byte.
+        decompressed_block_size = max(
+            calculated_padded(decompressed_block_size as usize, 2048) as u32,
+            MINIMUM_DECOMPRESSED_BLOCK_SIZE,
+        );
         let mut block_sizes = Vec::with_capacity(blocks.len());
         let mut compression_type = CompressionType::None;
 
@@ -216,12 +226,15 @@ impl BigFileIo for BigFileV2_0PC {
 
             resource_count.write_options(writer, endian, ())?;
 
-            block_data.resize((decompressed_block_size - 8) as usize, 0);
-
             if compressed {
+                // Compress the block at its natural length. Padding the input up to
+                // `decompressed_block_size` (as the uncompressed branch does) would feed
+                // extra trailing zeros to the compressor and produce a larger, non-matching
+                // stream, even though it still decompresses correctly.
                 compression_type = CompressionType::Lzo;
                 lzo_compress(&block_data, writer)?;
             } else {
+                block_data.resize(decompressed_block_size.saturating_sub(8) as usize, 0);
                 writer.write_all(&block_data)?;
             }
 

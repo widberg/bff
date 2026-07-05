@@ -90,7 +90,7 @@ fn parse_blocks<const GAME: usize>(
     Ok(blocks)
 }
 
-#[derive(Debug, BinRead, BinWrite, Copy, Clone)]
+#[derive(Debug, BinRead, BinWrite, Copy, Clone, Eq, PartialEq)]
 #[brw(repr = u32)]
 pub enum CompressionType {
     None,
@@ -207,22 +207,49 @@ impl<const GAME: usize> BigFileIo for BigFileV2_07PC<GAME> {
             ));
         }
 
-        decompressed_block_size = calculated_padded(decompressed_block_size as usize, 2048) as u32;
+        // Shaun White World Stage (BlackSheep v2.158+) enforces a minimum
+        // `decompressed_block_size`; the prototype (v2.07) shares this write path but does
+        // not. Both route to `SHAUN_PROTO`, so key the floor off the version rather than
+        // `GAME`. For compressed blocks this only affects the stored header value, not the
+        // layout, but reproducing it is required for a byte-for-byte round trip.
+        let minimum_decompressed_block_size: u32 = match &bigfile.manifest.version {
+            Version::BlackSheep(2, minor) if *minor >= 158 => 0x40000,
+            _ => 0,
+        };
+        decompressed_block_size = max(
+            calculated_padded(decompressed_block_size as usize, 2048) as u32,
+            minimum_decompressed_block_size,
+        );
         let mut block_sizes = Vec::with_capacity(blocks.len());
-        let mut compression_type = CompressionType::None;
+        // `compression_type` is a build-time capability flag, not a per-block property: the
+        // Shaun White prototype and World Stage always mark bigfiles as LZO even when an
+        // individual block ends up stored raw (its compressed form was >= the block size).
+        // Deriving it purely from the blocks would emit `None` for such all-raw files, so
+        // seed it from the game instead.
+        let compression_type = match GAME {
+            SHAUN_PROTO => CompressionType::Lzo,
+            SHAUN => CompressionType::None,
+            _ => unreachable!(),
+        };
 
         for (resource_count, _, compressed, mut block_data) in blocks {
             let block_begin = writer.stream_position()?;
-            let block_payload_size = decompressed_block_size.saturating_sub(4);
 
             resource_count.write_options(writer, endian, ())?;
 
-            block_data.resize(block_payload_size as usize, 0);
-
             if compressed {
-                compression_type = CompressionType::Lzo;
-                lzo_compress(&block_data, writer)?;
+                // Compress the block at its natural length. Padding the input up to
+                // `decompressed_block_size` (as the uncompressed branch does) would feed
+                // extra trailing zeros to the compressor and produce a larger, non-matching
+                // stream, even though it still decompresses correctly.
+                match compression_type {
+                    CompressionType::Lzo => {
+                        lzo_compress(&block_data, writer)?;
+                    }
+                    _ => unreachable!(),
+                }
             } else {
+                block_data.resize(decompressed_block_size.saturating_sub(4) as usize, 0);
                 writer.write_all(&block_data)?;
             }
 
