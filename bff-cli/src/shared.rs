@@ -10,7 +10,7 @@ use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
 use bff::names::{Name, NameContext};
 use bff::traits::Artifact;
 
-use crate::error::BffCliResult;
+use crate::error::{BffCliError, BffCliResult};
 
 pub const RESOURCE_JSON_FILE_NAME: &str = "resource.json";
 
@@ -55,15 +55,18 @@ pub fn write_names(
     Ok(())
 }
 
-fn resolve_platform(bigfile_path: &Path) -> Platform {
-    bigfile_path
-        .extension()
-        .and_then(|e| e.try_into().ok())
-        .unwrap_or(Platform::PC)
+pub fn resolve_platform(bigfile_path: &Path) -> BffCliResult<Platform> {
+    let extension =
+        bigfile_path
+            .extension()
+            .ok_or_else(|| BffCliError::MissingBigFileExtension {
+                path: bigfile_path.to_path_buf(),
+            })?;
+    Ok(extension.try_into()?)
 }
 
 pub fn read_bigfile(bigfile_path: &Path, name_context: &NameContext) -> BffCliResult<BigFile> {
-    let platform = resolve_platform(bigfile_path);
+    let platform = resolve_platform(bigfile_path)?;
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
     Ok(BigFile::read_platform(&mut reader, platform, name_context)?)

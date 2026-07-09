@@ -4,6 +4,7 @@ use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
 use bff::bigfile::BigFile;
+use bff::bigfile::manifest::Manifest;
 use bff::bigfile::resource::bff_resource::BffResource;
 use bff::bigfile::versions::Version;
 use bff::class::bff_class::BffClass;
@@ -11,8 +12,8 @@ use bff::names::NameContext;
 use bff::traits::Import as _;
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::error::BffCliResult;
-use crate::shared::{read_artifacts, resource_json_path, write_names};
+use crate::error::{BffCliError, BffCliResult};
+use crate::shared::{read_artifacts, resolve_platform, resource_json_path, write_names};
 
 pub fn create(
     directory: &Path,
@@ -29,7 +30,16 @@ pub fn create(
     )?;
     let mut name_context = NameContext::new(manifest_name_type);
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
-    let manifest = bff::names::json::from_reader(manifest_reader, &mut name_context)?;
+    let manifest: Manifest = bff::names::json::from_reader(manifest_reader, &mut name_context)?;
+
+    let path_platform = resolve_platform(bigfile_path)?;
+    if manifest.platform != path_platform {
+        return Err(BffCliError::PlatformMismatch {
+            manifest_platform: manifest.platform,
+            path_platform,
+            path: bigfile_path.to_path_buf(),
+        });
+    }
 
     let resources_path = directory.join("resources");
     std::fs::create_dir_all(&resources_path)?;
