@@ -106,10 +106,8 @@ impl BigFile {
         graph
     }
 
-    pub fn probe_name_type_platform<R: std::io::Read + std::io::Seek>(
+    pub fn probe_name_type<R: std::io::Read + std::io::Seek>(
         reader: &mut R,
-        _platform: crate::bigfile::platforms::Platform,
-        version_override: Option<&crate::bigfile::versions::Version>,
     ) -> crate::BffResult<crate::names::NameType> {
         use binrw::BinRead as _;
 
@@ -120,7 +118,6 @@ impl BigFile {
                 .into();
         reader.seek(std::io::SeekFrom::Start(start))?;
 
-        let version = version_override.cloned().unwrap_or(version);
         version.name_type()
     }
 }

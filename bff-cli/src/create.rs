@@ -4,7 +4,6 @@ use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
 use bff::bigfile::BigFile;
-use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::BffResource;
 use bff::bigfile::versions::Version;
 use bff::class::bff_class::BffClass;
@@ -13,19 +12,12 @@ use bff::traits::Import as _;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
-use crate::shared::{
-    read_artifacts,
-    resource_json_path,
-    validate_version_override_name_type,
-    write_names,
-};
+use crate::shared::{read_artifacts, resource_json_path, write_names};
 
 pub fn create(
     directory: &Path,
     bigfile_path: &Path,
     out_names: Option<&Path>,
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
     version_to_write: Option<&Version>,
     tag: Option<&str>,
 ) -> BffCliResult<()> {
@@ -35,7 +27,6 @@ pub fn create(
     let manifest_name_type = bff::names::json::probe_name_type_from_manifest_reader(
         BufReader::new(File::open(&manifest_path)?),
     )?;
-    validate_version_override_name_type(version_override, manifest_name_type)?;
     let mut name_context = NameContext::new(manifest_name_type);
     let manifest_reader = BufReader::new(File::open(manifest_path)?);
     let manifest = bff::names::json::from_reader(manifest_reader, &mut name_context)?;
@@ -70,11 +61,7 @@ pub fn create(
 
             let _ = bff_class.class.import(&artifacts);
 
-            let BffResource { resource, .. } = bff_class.bff_resource_with_override(
-                platform_override,
-                version_override,
-                &name_context,
-            )?;
+            let BffResource { resource, .. } = bff_class.bff_resource(&name_context)?;
 
             if resources.contains_key(&resource.name) {
                 return Err(crate::error::BffCliError::DuplicateResource {
@@ -90,14 +77,7 @@ pub fn create(
     progress_bar.set_message("Writing BigFile");
 
     let mut bigfile_writer = BufWriter::new(File::create(bigfile_path)?);
-    bigfile.write(
-        &mut bigfile_writer,
-        platform_override,
-        version_override,
-        version_to_write,
-        tag,
-        &name_context,
-    )?;
+    bigfile.write(&mut bigfile_writer, version_to_write, tag, &name_context)?;
 
     progress_bar.set_message("Writing names");
 

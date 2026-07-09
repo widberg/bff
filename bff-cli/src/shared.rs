@@ -7,31 +7,12 @@ use std::path::{Path, PathBuf};
 use bff::BufReader;
 use bff::bigfile::BigFile;
 use bff::bigfile::platforms::{Platform, try_platform_style_to_name_extension};
-use bff::bigfile::versions::Version;
-use bff::names::{Name, NameContext, NameType};
+use bff::names::{Name, NameContext};
 use bff::traits::Artifact;
 
 use crate::error::BffCliResult;
 
 pub const RESOURCE_JSON_FILE_NAME: &str = "resource.json";
-
-pub fn validate_version_override_name_type(
-    version_override: Option<&Version>,
-    expected_name_type: NameType,
-) -> BffCliResult<()> {
-    if let Some(version_override) = version_override {
-        let override_name_type = version_override.name_type()?;
-        if override_name_type != expected_name_type {
-            return Err(std::io::Error::other(format!(
-                "`--version-override` implies NameType {:?}, but context requires {:?}",
-                override_name_type, expected_name_type
-            ))
-            .into());
-        }
-    }
-
-    Ok(())
-}
 
 pub fn resource_json_path(directory: &Path) -> PathBuf {
     directory.join(RESOURCE_JSON_FILE_NAME)
@@ -74,41 +55,24 @@ pub fn write_names(
     Ok(())
 }
 
-fn resolve_platform(bigfile_path: &Path, platform_override: Option<Platform>) -> Platform {
-    platform_override.unwrap_or_else(|| {
-        bigfile_path
-            .extension()
-            .and_then(|e| e.try_into().ok())
-            .unwrap_or(Platform::PC)
-    })
+fn resolve_platform(bigfile_path: &Path) -> Platform {
+    bigfile_path
+        .extension()
+        .and_then(|e| e.try_into().ok())
+        .unwrap_or(Platform::PC)
 }
 
-pub fn read_bigfile(
-    bigfile_path: &Path,
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
-    name_context: &NameContext,
-) -> BffCliResult<BigFile> {
-    let platform = resolve_platform(bigfile_path, platform_override);
+pub fn read_bigfile(bigfile_path: &Path, name_context: &NameContext) -> BffCliResult<BigFile> {
+    let platform = resolve_platform(bigfile_path);
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
-    Ok(BigFile::read_platform(
-        &mut reader,
-        platform,
-        version_override,
-        name_context,
-    )?)
+    Ok(BigFile::read_platform(&mut reader, platform, name_context)?)
 }
 
-pub fn probe_bigfile_name_context(
-    bigfile_path: &Path,
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
-) -> BffCliResult<NameContext> {
-    let platform = resolve_platform(bigfile_path, platform_override);
+pub fn probe_bigfile_name_context(bigfile_path: &Path) -> BffCliResult<NameContext> {
     let f = File::open(bigfile_path)?;
     let mut reader = BufReader::new(f);
-    let name_type = BigFile::probe_name_type_platform(&mut reader, platform, version_override)?;
+    let name_type = BigFile::probe_name_type(&mut reader)?;
     Ok(NameContext::new(name_type))
 }
 

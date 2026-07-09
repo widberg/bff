@@ -12,11 +12,11 @@ pub fn info(
     in_names: &[PathBuf],
     out_reference_graph: Option<&Path>,
 ) -> BffCliResult<()> {
-    let mut name_context = probe_bigfile_name_context(bigfile_path, None, None)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path)?;
     read_bigfile_names(bigfile_path, &mut name_context)?;
     read_in_names(in_names, &mut name_context)?;
 
-    let bigfile = read_bigfile(bigfile_path, None, None, &name_context)?;
+    let bigfile = read_bigfile(bigfile_path, &name_context)?;
     bff::names::json::to_writer_pretty(io::stdout().lock(), bigfile.manifest(), &name_context)?;
 
     if let Some(out_dependencies) = out_reference_graph {

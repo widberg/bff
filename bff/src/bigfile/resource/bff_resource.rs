@@ -64,23 +64,7 @@ impl BffResource {
     }
 
     pub fn bff_class(&self, name_context: &NameContext) -> BffResult<BffClass> {
-        self.bff_class_with_override(None, None, name_context)
-    }
-
-    pub fn bff_class_with_override(
-        &self,
-        platform_override: Option<Platform>,
-        version_override: Option<&Version>,
-        name_context: &NameContext,
-    ) -> BffResult<BffClass> {
-        let platform = platform_override.unwrap_or(self.header.platform);
-        let version = version_override.unwrap_or(&self.header.version);
-        BffResourceRef {
-            platform,
-            version,
-            resource: &self.resource,
-        }
-        .bff_class(name_context)
+        self.as_ref().bff_class(name_context)
     }
 
     pub fn read<R: Read + Seek>(reader: &mut R, name_context: &NameContext) -> BffResult<Self> {

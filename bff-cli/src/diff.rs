@@ -27,12 +27,12 @@ fn load_bigfile(
     bigfile_path: &Path,
     name_path: Option<&Path>,
 ) -> BffCliResult<(BigFile, NameContext)> {
-    let mut name_context = probe_bigfile_name_context(bigfile_path, None, None)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path)?;
     read_bigfile_names(bigfile_path, &mut name_context)?;
     if let Some(name_path) = name_path {
         read_name_file(name_path, &mut name_context)?;
     }
-    let bigfile = read_bigfile(bigfile_path, None, None, &name_context)?;
+    let bigfile = read_bigfile(bigfile_path, &name_context)?;
     Ok((bigfile, name_context))
 }
 

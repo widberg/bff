@@ -2,9 +2,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
-use bff::bigfile::platforms::Platform;
 use bff::bigfile::resource::bff_resource::BffResourceRef;
-use bff::bigfile::versions::Version;
 use bff::names::NameContext;
 use bff::traits::Export as _;
 use clap::ValueEnum;
@@ -128,25 +126,17 @@ pub fn extract(
     bigfile_path: &Path,
     directory: &Path,
     in_names: &[PathBuf],
-    platform_override: Option<Platform>,
-    version_override: Option<&Version>,
     export_strategy: ExportStrategy,
     rich_suffix: &str,
 ) -> BffCliResult<()> {
-    let mut name_context =
-        probe_bigfile_name_context(bigfile_path, platform_override, version_override)?;
+    let mut name_context = probe_bigfile_name_context(bigfile_path)?;
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_message("Reading names");
     read_bigfile_names(bigfile_path, &mut name_context)?;
     read_in_names(in_names, &mut name_context)?;
 
     progress_bar.set_message("Reading BigFile");
-    let bigfile = read_bigfile(
-        bigfile_path,
-        platform_override,
-        version_override,
-        &name_context,
-    )?;
+    let bigfile = read_bigfile(bigfile_path, &name_context)?;
 
     progress_bar.set_message("Writing manifest");
     std::fs::create_dir_all(directory)?;

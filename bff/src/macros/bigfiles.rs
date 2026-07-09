@@ -4,7 +4,6 @@ macro_rules! bigfiles {
             pub fn read_platform<R: std::io::Read + std::io::Seek>(
                 reader: &mut R,
                 platform: crate::bigfile::platforms::Platform,
-                version_override: Option<&crate::bigfile::versions::Version>,
                 name_context: &crate::names::NameContext,
             ) -> crate::BffResult<Self> {
                 use crate::bigfile::versions::Version::*;
@@ -16,7 +15,6 @@ macro_rules! bigfiles {
                     crate::helpers::FixedStringNull::<256>::read_be(reader)?
                         .as_str()
                         .into();
-                let version = version_override.cloned().unwrap_or(version);
                 match &version {
                     $($version_pattern => {
                         if name_context.name_type() != <$bigfile as BigFileIo>::NAME_TYPE {
@@ -36,8 +34,6 @@ macro_rules! bigfiles {
             pub fn write<W: std::io::Write + std::io::Seek>(
                 &self,
                 writer: &mut W,
-                platform_override: Option<crate::bigfile::platforms::Platform>,
-                version_override: Option<&crate::bigfile::versions::Version>,
                 version_to_write: Option<&crate::bigfile::versions::Version>,
                 tag: Option<&str>,
                 name_context: &crate::names::NameContext,
@@ -46,10 +42,8 @@ macro_rules! bigfiles {
                 use crate::traits::BigFileIo;
                 use binrw::BinWrite;
 
-                let platform = platform_override.unwrap_or(self.manifest.platform);
-                let _endian: crate::Endian = platform.into();
+                let _endian: crate::Endian = self.manifest.platform.into();
                 let version = &self.manifest.version;
-                let version = version_override.unwrap_or(version);
                 let version_string = if let Some(version_to_write) = version_to_write {
                     version_to_write.to_string()
                 } else {

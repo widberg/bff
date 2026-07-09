@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use bff::bigfile::platforms::Platform;
 use bff::bigfile::versions::Version;
 use bff::names::NameType;
 use clap::*;
@@ -51,10 +50,6 @@ enum Commands {
         directory: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
-        #[arg(short, long)]
-        platform_override: Option<Platform>,
-        #[arg(short, long)]
-        version_override: Option<Version>,
         #[clap(value_enum)]
         #[arg(short, long, default_value_t = ExportStrategy::Binary)]
         export_strategy: ExportStrategy,
@@ -67,10 +62,6 @@ enum Commands {
         bigfile: PathBuf,
         #[arg(long)]
         out_names: Option<PathBuf>,
-        #[arg(short, long)]
-        platform_override: Option<Platform>,
-        #[arg(short, long)]
-        version_override: Option<Version>,
         #[arg(short = 'w', long)]
         version_to_write: Option<Version>,
         #[arg(short, long)]
@@ -82,10 +73,6 @@ enum Commands {
         directory: PathBuf,
         #[arg(long)]
         in_names: Vec<PathBuf>,
-        #[arg(short, long)]
-        platform_override: Option<Platform>,
-        #[arg(short, long)]
-        version_override: Option<Version>,
     },
     #[clap(alias = "cr")]
     CreateResource {
@@ -93,10 +80,6 @@ enum Commands {
         resource: PathBuf,
         #[arg(long)]
         out_names: Option<PathBuf>,
-        #[arg(short, long)]
-        platform_override: Option<Platform>,
-        #[arg(short, long)]
-        version_override: Option<Version>,
     },
     #[clap(alias = "t")]
     Info {
@@ -280,16 +263,12 @@ fn main() -> BffCliResult<()> {
             bigfile,
             directory,
             in_names,
-            platform_override,
-            version_override,
             export_strategy,
             rich_suffix,
         } => extract::extract(
             &bigfile,
             &directory,
             &in_names,
-            platform_override,
-            version_override.as_ref(),
             export_strategy,
             &rich_suffix,
         ),
@@ -297,16 +276,12 @@ fn main() -> BffCliResult<()> {
             directory,
             bigfile,
             out_names,
-            platform_override,
-            version_override,
             version_to_write,
             tag,
         } => create::create(
             &directory,
             &bigfile,
             out_names.as_deref(),
-            platform_override,
-            version_override.as_ref(),
             version_to_write.as_ref(),
             tag.as_deref(),
         ),
@@ -314,28 +289,12 @@ fn main() -> BffCliResult<()> {
             resource,
             directory,
             in_names,
-            platform_override,
-            version_override,
-        } => extract_resource::extract_resource(
-            &resource,
-            &directory,
-            &in_names,
-            platform_override,
-            version_override.as_ref(),
-        ),
+        } => extract_resource::extract_resource(&resource, &directory, &in_names),
         Commands::CreateResource {
             directory,
             resource,
             out_names,
-            platform_override,
-            version_override,
-        } => create_resource::create_resource(
-            &directory,
-            &resource,
-            out_names.as_deref(),
-            platform_override,
-            version_override.as_ref(),
-        ),
+        } => create_resource::create_resource(&directory, &resource, out_names.as_deref()),
         Commands::Info {
             bigfile,
             in_names,
