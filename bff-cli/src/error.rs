@@ -9,15 +9,6 @@ pub enum BffCliError {
     Io(std::io::Error),
     SerdeJson(serde_json::Error),
     StripPrefix(std::path::StripPrefixError),
-    #[display(
-        "No filler found in length range [{}, {}], consider expanding the range",
-        min_filler_length,
-        max_filler_length
-    )]
-    NoFillerFound {
-        min_filler_length: usize,
-        max_filler_length: usize,
-    },
     #[display("Found duplicate resource with name {}", name)]
     DuplicateResource {
         name: Name,

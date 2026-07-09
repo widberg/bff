@@ -75,7 +75,6 @@ pub enum Error {
     ParseInt(std::num::ParseIntError),
     UnimplementedClass(UnimplementedClassError),
     UnimplementedVersion(UnimplementedVersionError),
-    Utf8(std::string::FromUtf8Error),
     UnimplementedImportExport,
     ImportBadArtifact,
     UnconsumedInput,
