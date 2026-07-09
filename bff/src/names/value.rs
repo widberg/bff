@@ -3,10 +3,9 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io::{Read, Seek, Write};
 
 use binrw::{BinRead, BinResult, BinWrite, Endian};
-use const_power_of_two::PowerOfTwoUsize;
 
 use super::scope::{current_name_type, with_name_context};
-use super::{NameContext, NameType};
+use super::{NameContext, NameType, WORDLIST_BIP39};
 use crate::traits::{NameHashFunction, NameTarget as _};
 
 const FORCED_NAME_STRING_CHAR: char = '$';
@@ -55,18 +54,15 @@ pub struct NameWithContext<'a> {
 }
 
 impl NameWithContext<'_> {
-    pub fn get_wordlist_encoded_string<const N: usize>(&self, wordlist: [&str; N]) -> String
-    where
-        usize: PowerOfTwoUsize<N>,
-    {
+    pub fn get_wordlist_encoded_string(&self) -> String {
         let target_bits = self.name_context.name_type().target_bits();
-        let wordlist_mask = (wordlist.len() - 1) as u64;
-        let wordlist_bits = wordlist_mask.count_ones() as usize;
+        let wordlist_mask = (WORDLIST_BIP39.len() - 1) as u64;
+        let wordlist_bits = WORDLIST_BIP39.len().trailing_zeros() as usize;
         let mut out = String::new();
         let mut value = self.name.0;
         for _ in 0..target_bits.div_ceil(wordlist_bits) {
             let index = (value & wordlist_mask) as usize;
-            out.push_str(wordlist[index]);
+            out.push_str(WORDLIST_BIP39[index]);
             value >>= wordlist_bits;
         }
         out

@@ -1,16 +1,9 @@
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 
-use bff::names::{
-    NameContext,
-    NameType,
-    WORDLIST_ANIMALS,
-    WORDLIST_BIP39,
-    get_forced_hash_string_for_type,
-};
+use bff::names::{NameContext, NameType, get_forced_hash_string_for_type};
 use bff::petgraph;
 use bff::petgraph::visit::{VisitMap as _, Visitable as _};
-use clap::ValueEnum;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::error::BffCliResult;
@@ -22,20 +15,13 @@ use crate::shared::{
     write_names,
 };
 
-#[derive(ValueEnum, Clone, Copy)]
-pub enum Wordlist {
-    Empty,
-    Animals,
-    BIP39,
-}
-
 pub fn names(
     bigfile_path: Option<&Path>,
     name_type: Option<NameType>,
-    wordlist: Option<Wordlist>,
+    wordlist: bool,
     in_names: &[PathBuf],
     out_names: Option<&Path>,
-    use_reference_graph: bool,
+    reference_graph: bool,
 ) -> BffCliResult<()> {
     let mut name_context = if let Some(bigfile_path) = bigfile_path {
         probe_bigfile_name_context(bigfile_path)?
@@ -52,8 +38,8 @@ pub fn names(
     if let Some(bigfile_path) = bigfile_path {
         let bigfile = read_bigfile(bigfile_path, &name_context)?;
 
-        if let Some(wordlist) = wordlist {
-            if use_reference_graph {
+        if wordlist {
+            if reference_graph {
                 let progress_bar = ProgressBar::new_spinner();
                 progress_bar.set_message("Generating reference graph");
                 let graph = bigfile.reference_graph(&name_context);
@@ -90,15 +76,9 @@ pub fn names(
                     let name = *graph.node_weight(node).unwrap();
                     let name_in_db = name_context.contains(name);
                     if !name_in_db {
-                        let string = match wordlist {
-                            Wordlist::Empty => "".to_owned(),
-                            Wordlist::Animals => name
-                                .with_context(&name_context)
-                                .get_wordlist_encoded_string(WORDLIST_ANIMALS),
-                            Wordlist::BIP39 => name
-                                .with_context(&name_context)
-                                .get_wordlist_encoded_string(WORDLIST_BIP39),
-                        };
+                        let string = name
+                            .with_context(&name_context)
+                            .get_wordlist_encoded_string();
                         let class = if let Some(bff_resource) = bigfile.bff_resource(name) {
                             format!(
                                 ".{}",
@@ -141,15 +121,9 @@ pub fn names(
                         .with_context(&name_context)
                         .to_string();
                     if !name_context.contains(name) {
-                        let string = match wordlist {
-                            Wordlist::Empty => "".to_owned(),
-                            Wordlist::Animals => name
-                                .with_context(&name_context)
-                                .get_wordlist_encoded_string(WORDLIST_ANIMALS),
-                            Wordlist::BIP39 => name
-                                .with_context(&name_context)
-                                .get_wordlist_encoded_string(WORDLIST_BIP39),
-                        };
+                        let string = name
+                            .with_context(&name_context)
+                            .get_wordlist_encoded_string();
                         name_context.insert(&get_forced_hash_string_for_type(
                             name_context.name_type(),
                             name,

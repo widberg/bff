@@ -19,8 +19,8 @@ pub fn info(
     let bigfile = read_bigfile(bigfile_path, &name_context)?;
     bff::names::json::to_writer_pretty(io::stdout().lock(), bigfile.manifest(), &name_context)?;
 
-    if let Some(out_dependencies) = out_reference_graph {
-        let f = File::create(out_dependencies)?;
+    if let Some(out_reference_graph) = out_reference_graph {
+        let f = File::create(out_reference_graph)?;
         let mut writer = BufWriter::new(f);
         let graph = bigfile.reference_graph(&name_context);
         let dot = Dot::with_config(&graph, &[Config::EdgeNoLabel]);

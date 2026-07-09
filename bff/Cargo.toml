@@ -12,7 +12,6 @@ autotests = false
 bff-derive = { path = "../bff-derive" }
 bilge = { git = "https://github.com/widberg/bilge.git", features = ["serde", "schemars"], branch = "paradiso" }
 binrw = { git = "https://github.com/widberg/binrw.git", branch = "paradiso" }
-const_power_of_two = "1.0.0"
 ddsfile = { git = "https://github.com/widberg/ddsfile.git", branch = "master" }
 derive_aliases = "0.4"
 derive_more = { version = "2.0.1", features = ["full"] }

@@ -33,7 +33,6 @@ mod stdio_or_path;
 use mimalloc::MiMalloc;
 use shadow_rs::shadow;
 
-use crate::names::Wordlist;
 use crate::psc::PscAlgorithm;
 use crate::stdio_or_path::StdioOrPath;
 
@@ -101,15 +100,14 @@ enum Commands {
         bigfile: Option<PathBuf>,
         #[arg(long)]
         name_type: Option<NameType>,
-        #[clap(value_enum)]
         #[arg(short, long)]
-        wordlist: Option<Wordlist>,
+        wordlist: bool,
         #[arg(long)]
         in_names: Vec<PathBuf>,
         #[arg(long)]
         out_names: Option<PathBuf>,
         #[arg(short, long)]
-        use_reference_graph: bool,
+        reference_graph: bool,
     },
     Crc {
         string: Option<String>,
@@ -298,8 +296,8 @@ fn main() -> BffCliResult<()> {
         Commands::Info {
             bigfile,
             in_names,
-            out_reference_graph: out_dependencies,
-        } => info::info(&bigfile, &in_names, out_dependencies.as_deref()),
+            out_reference_graph,
+        } => info::info(&bigfile, &in_names, out_reference_graph.as_deref()),
         Commands::Diff {
             old_bigfile,
             new_bigfile,
@@ -317,14 +315,14 @@ fn main() -> BffCliResult<()> {
             wordlist,
             in_names,
             out_names,
-            use_reference_graph,
+            reference_graph,
         } => names::names(
             bigfile.as_deref(),
             name_type,
             wordlist,
             &in_names,
             out_names.as_deref(),
-            use_reference_graph,
+            reference_graph,
         ),
         Commands::Crc {
             string,
