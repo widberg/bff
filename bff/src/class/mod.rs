@@ -25,7 +25,7 @@ classes! {
     Bitmap {
         (Asobo(1, 6, 63, 2), PC) => v1_06_63_02_pc::BitmapV1_06_63_02PC,
         (Asobo(1, 231..=291, _, _), _) => v1_291_03_06_pc::BitmapV1_291_03_06PC,
-        (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::BitmapV1_381_67_09PC,
+        (Asobo(1, 381, 67, 9) | Asobo(1, 530, 62, 9), PC) => v1_381_67_09_pc::BitmapV1_381_67_09PC,
     },
     Camera {
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::CameraV1_381_67_09PC,
@@ -56,7 +56,7 @@ classes! {
     Font3D,
     Fonts {
         (Asobo(1, 6, 63, _), _) => v1_06_63_02_pc::FontsV1_06_63_02PC,
-        (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::FontsV1_381_67_09PC,
+        (Asobo(1, 381, 67, 9) | Asobo(1, 530, 62, 9), PC) => v1_381_67_09_pc::FontsV1_381_67_09PC,
     },
     FxParticles,
     FxParticlesData,
@@ -105,7 +105,7 @@ classes! {
     Material {
         (Asobo(1, 6, 63, 2), PC) => v1_06_63_02_pc::MaterialV1_06_63_02PC,
         (Asobo(1, 291, 3, 6), PC) => v1_291_03_06_pc::MaterialV1_291_03_06PC,
-        (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::MaterialV1_381_67_09PC,
+        (Asobo(1, 381, 67, 9) | Asobo(1, 530, 62, 9), PC) => v1_381_67_09_pc::MaterialV1_381_67_09PC,
     },
     MaterialAnim {
         (Asobo(1, 381, 67, 9), PC) => v1_381_67_09_pc::MaterialAnimV1_381_67_09PC,
