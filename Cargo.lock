@@ -160,7 +160,7 @@ dependencies = [
 [[package]]
 name = "bilge"
 version = "0.3.0"
-source = "git+https://github.com/widberg/bilge.git?branch=paradiso#f1b2b71d4352e5afa5690a1e389adefbadad5707"
+source = "git+https://github.com/widberg/bilge.git?branch=paradiso#b7882cdb1443c68b7a35adfc7ec19310794c9e1b"
 dependencies = [
  "arbitrary-int",
  "bilge-impl",
@@ -169,7 +169,7 @@ dependencies = [
 [[package]]
 name = "bilge-impl"
 version = "0.3.0"
-source = "git+https://github.com/widberg/bilge.git?branch=paradiso#f1b2b71d4352e5afa5690a1e389adefbadad5707"
+source = "git+https://github.com/widberg/bilge.git?branch=paradiso#b7882cdb1443c68b7a35adfc7ec19310794c9e1b"
 dependencies = [
  "itertools",
  "manyhow",
@@ -680,9 +680,9 @@ checksum = "373f5eceeeab7925e0c1098212f2fbc4d416adec9d35051a6ab251e824c1854a"
 
 [[package]]
 name = "manyhow"
-version = "0.11.4"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b33efb3ca6d3b07393750d4030418d594ab1139cee518f0dc88db70fec873587"
+checksum = "e480c047342e73ccc05fb821f0953512868b9257c2559b22a7e3efafc4aad85d"
 dependencies = [
  "manyhow-macros",
  "proc-macro2",
@@ -692,9 +692,9 @@ dependencies = [
 
 [[package]]
 name = "manyhow-macros"
-version = "0.11.4"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46fce34d199b78b6e6073abf984c9cf5fd3e9330145a93ee0738a7443e371495"
+checksum = "c3330ca83c69fe1691d12126d522dda965e58735ac26052580f95f56e4169ec4"
 dependencies = [
  "proc-macro-utils",
  "proc-macro2",
