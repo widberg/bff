@@ -13,10 +13,10 @@ fmt:
     just --fmt --unstable
 
 clippy:
-    cargo +nightly clippy --tests
+    cargo +nightly clippy --tests --examples
 
 check:
-    cargo +nightly check --tests
+    cargo +nightly check --tests --examples
 
 deny:
     cargo deny check

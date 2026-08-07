@@ -111,6 +111,7 @@ dependencies = [
  "bff-derive",
  "bilge",
  "binrw",
+ "clap",
  "datatest",
  "ddsfile",
  "derive_aliases",
