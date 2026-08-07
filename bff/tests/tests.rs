@@ -10,3 +10,4 @@ mod bigfile;
 mod cps;
 mod mqfel_settings;
 mod path_helpers;
+mod tsc;

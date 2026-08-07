@@ -60,6 +60,7 @@ A ✔ indicates that the format has been tested and is working. An ❌ indicates
 
 | Format | Status |
 |--------|--------|
+| tsc    | ✔      |
 | csc    | ✔      |
 | psc    | ✔      |
 | CPS    | ✔      |
