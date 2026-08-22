@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
-use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
-use schemars::{JsonSchema, SchemaGenerator};
+use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use super::scope::{with_name_context, with_name_context_mut};
@@ -109,11 +108,7 @@ impl<'de> Deserialize<'de> for Name {
 }
 
 impl JsonSchema for Name {
-    fn is_referenceable() -> bool {
-        true
-    }
-
-    fn schema_name() -> std::string::String {
+    fn schema_name() -> Cow<'static, str> {
         "Name".into()
     }
 
@@ -122,12 +117,10 @@ impl JsonSchema for Name {
     }
 
     fn json_schema(_schema_generator: &mut SchemaGenerator) -> Schema {
-        Schema::Object(SchemaObject {
-            instance_type: Some(SingleOrVec::Vec(vec![
-                InstanceType::String,
-                InstanceType::Integer,
-            ])),
-            ..Default::default()
+        // A Name serializes as either a resolved string or its signed hash value.
+        // Deserialization accepts the same two JSON types.
+        json_schema!({
+            "type": ["string", "integer"]
         })
     }
 }

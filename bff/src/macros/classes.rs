@@ -222,11 +222,7 @@ macro_rules! classes {
         }
 
         impl ::schemars::JsonSchema for $class {
-            fn is_referenceable() -> bool {
-                true
-            }
-
-            fn schema_name() -> ::std::string::String {
+            fn schema_name() -> ::std::borrow::Cow<'static, str> {
                 stringify!($class).into()
             }
 
@@ -234,11 +230,9 @@ macro_rules! classes {
                 concat!(module_path!(), "::", stringify!($class)).into()
             }
 
-            fn json_schema(_schema_generator: &mut ::schemars::SchemaGenerator) -> ::schemars::schema::Schema {
-                ::schemars::schema::Schema::Object(::schemars::schema::SchemaObject {
-                    instance_type: ::core::option::Option::Some(::schemars::schema::InstanceType::Object.into()),
-                    ..::core::default::Default::default()
-                })
+            fn json_schema(_schema_generator: &mut ::schemars::SchemaGenerator) -> ::schemars::Schema {
+                // Serde cannot serialize or deserialize a zero-variant enum.
+                ::schemars::json_schema!(false)
             }
         }
 
