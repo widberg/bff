@@ -1,3 +1,6 @@
+// `derive_more::Constructor` produces these initializers, but their spans point here.
+#![allow(clippy::redundant_field_names)]
+
 use std::ffi::OsString;
 
 use derive_more::{Constructor, Display, Error, From};
